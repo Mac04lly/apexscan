@@ -1,0 +1,126 @@
+# ====================================================
+# ApexScan Config — US Market Only
+# ====================================================
+
+finnhub_key: "YOUR_FINNHUB_FREE_KEY_HERE"       # Get free at finnhub.io
+alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE" # Paste your key here
+
+# ---- ALPHA VANTAGE SETTINGS ----
+alpha_vantage:
+  # Free tier: 25 requests/day, 5 requests/minute
+  # Premium tier: higher limits — adjust rate_limit_pause and cache_hours below
+
+  eps_lookback_quarters: 4      # how many quarters of EPS to analyse
+  min_eps_growth: 15            # % minimum quarterly EPS growth to flag
+  min_surprise_pct: 5           # % minimum earnings beat to score positively
+
+  # KEY SETTING: cache for 7 days so you only burn 3 API calls per ticker
+  # on the first scan, then read from cache for the rest of the week
+  cache_hours: 168              # 168h = 7 days (FREE TIER MUST USE 168+)
+
+  rate_limit_pause: 13          # seconds between AV calls (free: 5/min max)
+
+  # Smart batching — only fetch AV data for top N tickers by price momentum
+  # This keeps you well within 25 calls/day on the free tier
+  # Set to 0 to fetch for ALL tickers (premium only)
+  max_av_calls_per_scan: 8      # fetch AV for top 8 tickers only (uses 24 calls)
+
+# ---- THRESHOLDS ----
+thresholds:
+  us:
+    min_3m_perf: 15
+    min_volume: 1_000_000
+    rs_rating_min: 70
+    near_52w_high: 0.85
+    score_filter: 30
+
+# ---- BENCHMARKS ----
+benchmarks:
+  us: "^GSPC"   # S&P 500
+
+# ---- US THEMES ----
+us_themes:
+  ai_semis:
+    - NVDA
+    - MU
+    - MRVL
+    - ARM
+    - AVGO
+    - TSM
+    - ASML
+  software_agentic:
+    - SNOW
+    - DDOG
+    - CRWD
+    - PANW
+    - NET
+    - ORCL
+    - PLTR
+  cybersecurity:
+    - CRWD
+    - PANW
+    - FTNT
+    - ZS
+    - CYBR
+  space_ev:
+    - RKLB
+    - TSLA
+    - IONQ
+  fintech_payments:
+    - V
+    - MA
+    - SQ
+    - AFRM
+    - SOFI
+    - HOOD
+  biotech_health:
+    - LLY
+    - NVO
+    - MRNA
+    - ABBV
+    - ISRG
+    - HIMS
+  cloud_infra:
+    - MSFT
+    - AMZN
+    - GOOGL
+    - META
+    - CRM
+  consumer_growth:
+    - CELH
+    - LULU
+    - ONON
+    - NKE
+    - DUOL
+
+# ---- SCAN SETTINGS ----
+scan:
+  rate_limit_pause: 1.2
+  history_period: "1y"
+  min_history_bars: 100
+  report_top_n: 20
+
+# ---- ADVANCED SIGNAL THRESHOLDS ----
+advanced:
+  # Order Flow Persistence
+  of_lookback: 10              # days to measure directional persistence
+  of_min_bullish_days: 60      # % of up days to flag as persistent flow
+  of_min_vol_ratio: 1.5        # up-day volume / down-day volume minimum
+
+  # VWAP / Auction Market Theory
+  vwap_lookback: 20            # days for rolling VWAP calculation
+  vwap_reclaim_alert: true     # alert when price reclaims VWAP on volume
+
+  # Market Structure
+  swing_lookback: 5            # bars each side for swing pivot detection
+
+  # Price Action Patterns
+  pa_context_vol_mult: 1.2     # volume multiplier for context candle
+  pa_engulf_min_body: 0.5      # minimum body size as % of prior candle
+  pa_sfp_min_wick: 0.3         # minimum wick size as % of candle range
+
+  # Alert triggers (new signal types)
+  alert_persistent_flow: true
+  alert_sfp_setup: true
+  alert_vwap_imbalance: true
+  alert_sfp_min_score: 50      # minimum apex score to fire SFP alert
