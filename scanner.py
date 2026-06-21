@@ -198,6 +198,53 @@ except (ModuleNotFoundError, ImportError):
 # ── Benchmark Cache ────────────────────────────────────────────────────────────
 _bench_cache: Dict[str, pd.Series] = {}
 
+# ── Market Cap Cache (Emerging Gems) ──────────────────────────────────────────
+_mcap_cache: Dict[str, dict] = {}
+
+def get_market_cap_data(ticker: str) -> Dict:
+    """Fetch market cap and liquidity data. Cached per session."""
+    if ticker in _mcap_cache:
+        return _mcap_cache[ticker]
+    result = {
+        "market_cap": None, "market_cap_bn": None,
+        "avg_volume_30d": None, "is_gem": False,
+        "liquidity_warn": False, "mcap_category": "Unknown",
+    }
+    try:
+        info    = yf.Ticker(ticker).fast_info
+        mcap    = getattr(info, "market_cap", None)
+        avg_vol = getattr(info, "three_month_average_volume", None)
+        if mcap:
+            result["market_cap"]    = mcap
+            result["market_cap_bn"] = round(mcap / 1e9, 2)
+            if mcap < 300_000_000:       result["mcap_category"] = "Micro Cap"
+            elif mcap < 2_000_000_000:   result["mcap_category"] = "Small Cap"
+            elif mcap < 10_000_000_000:  result["mcap_category"] = "Mid Cap"
+            elif mcap < 200_000_000_000: result["mcap_category"] = "Large Cap"
+            else:                        result["mcap_category"] = "Mega Cap"
+            result["is_gem"] = 100_000_000 <= mcap <= 5_000_000_000
+        if avg_vol:
+            result["avg_volume_30d"] = int(avg_vol)
+            result["liquidity_warn"] = avg_vol < 300_000
+    except Exception:
+        pass
+    _mcap_cache[ticker] = result
+    return result
+
+
+def gem_score_boost(score: float, rs3: float, breaking_out: bool,
+                    of_score: int, pa_score: int, gem_cfg: dict) -> float:
+    """Apply score boosts for emerging gems with strong signals."""
+    boosts = gem_cfg.get("score_boosts", {})
+    bonus  = 0
+    if rs3 >= boosts.get("rs_bonus_threshold", 150):
+        bonus += boosts.get("rs_bonus_points", 5)
+    if breaking_out:
+        bonus += boosts.get("breakout_bonus", 5)
+    bonus += of_score * (boosts.get("of_persistence_multiplier", 1.25) - 1)
+    bonus += pa_score * (boosts.get("pa_patterns_multiplier", 1.20) - 1)
+    return round(min(100, score + bonus), 1)
+
 def get_benchmark(symbol: str = "^GSPC", period: str = "1y") -> pd.Series:
     if symbol not in _bench_cache:
         try:
@@ -507,6 +554,19 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
                     else earnings_momentum_proxy(fh["news_count"], perf_3m))
 
         theme    = next((k for k, v in cfg["us_themes"].items() if ticker in v), "other")
+
+        # ── Market Cap & Liquidity (Emerging Gems) ────────────────────────
+        gem_cfg   = cfg.get("emerging_gems", {})
+        mcap_data = get_market_cap_data(ticker)
+        is_gem    = mcap_data["is_gem"] or theme == "emerging_gems"
+        avg_vol_30d = mcap_data.get("avg_volume_30d")
+        liq_score = 3
+        if avg_vol_30d:
+            if avg_vol_30d >= 1_000_000:  liq_score = 3
+            elif avg_vol_30d >= 300_000:  liq_score = 2
+            elif avg_vol_30d >= 100_000:  liq_score = 1
+            else:                         liq_score = 0
+
         of_data  = order_flow_persistence(hist, cfg.get("advanced", {}).get("of_lookback", 10))
         vwap_data= compute_vwap(hist, cfg.get("advanced", {}).get("vwap_lookback", 20))
         ms_data  = detect_market_structure(hist, cfg.get("advanced", {}).get("swing_lookback", 5))
@@ -528,6 +588,15 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
         if ms_data["ms_break_of_struct"] and ms_data["ms_hh_hl"]: score += 1
         if av_data:                                 score += av_data.get("eps_score", 0)  # 0-15
         score = min(100, round(score, 1))
+
+        # Apply gem score boosts for emerging gems with strong signals
+        if is_gem:
+            score = gem_score_boost(
+                score, rs_3m, breaking_out,
+                of_data["of_persistence_score"],
+                pa_data["pa_score"],
+                gem_cfg,
+            )
 
         pa_summary = " | ".join(pa_data["pa_patterns"]) if pa_data["pa_patterns"] else "None"
 
@@ -594,6 +663,14 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
             "pa_score":        pa_data["pa_score"],
             "apex_score":      score,
             "scanned_at":      datetime.now().strftime("%Y-%m-%d %H:%M"),
+            # ── Emerging Gems ─────────────────────────────────────────────
+            "market_cap":      mcap_data["market_cap"],
+            "market_cap_bn":   mcap_data["market_cap_bn"],
+            "mcap_category":   mcap_data["mcap_category"],
+            "is_gem":          is_gem,
+            "liquidity_score": liq_score,
+            "liquidity_warn":  mcap_data["liquidity_warn"],
+            "avg_volume_30d":  avg_vol_30d,
         }
 
     except Exception as e:
