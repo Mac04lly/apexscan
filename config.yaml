@@ -92,6 +92,27 @@ us_themes:
     - ONON
     - NKE
     - DUOL
+  emerging_gems:
+    - IONQ
+    - RKLB
+    - SOUN
+    - UPST
+    - HIMS
+    - RDDT
+    - CAVA
+    - TMDX
+    - RXRX
+    - ACHR
+    - JOBY
+    - LUNR
+    - ASTS
+    - DAVE
+    - MSTR
+    - OPEN
+    - UWMC
+    - BTDR
+    - SMAR
+    - DOCN
 
 # ---- SCAN SETTINGS ----
 scan:
@@ -124,3 +145,21 @@ advanced:
   alert_sfp_setup: true
   alert_vwap_imbalance: true
   alert_sfp_min_score: 50      # minimum apex score to fire SFP alert
+
+# ---- EMERGING GEMS SETTINGS ----
+emerging_gems:
+  description: "Low-cap / emerging growth stocks with high momentum potential"
+  market_cap_min: 100000000
+  market_cap_max: 5000000000
+  min_avg_volume: 300000
+  position_size_max: 0.02
+  disclaimer: "Higher risk / higher volatility — use smaller position sizes (0.5-1% max risk)"
+  score_boosts:
+    of_persistence_multiplier: 1.25
+    pa_patterns_multiplier: 1.20
+    breakout_bonus: 5
+    rs_bonus_threshold: 150
+    rs_bonus_points: 5
+  alerts:
+    gems_breakout: true
+    gems_flow: true

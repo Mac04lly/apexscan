@@ -156,6 +156,29 @@ def color_rs(v):
         return "color:#f85149"
     except: return ""
 
+def format_mcap(v):
+    try:
+        v = float(v)
+        if v >= 1e9: return f"${v/1e9:.1f}B"
+        if v >= 1e6: return f"${v/1e6:.0f}M"
+        return f"${v:,.0f}"
+    except: return "–"
+
+def color_mcap_cat(v):
+    v = str(v)
+    if "Micro" in v: return "color:#f85149;font-size:0.8rem"
+    if "Small" in v: return "color:#d29922;font-size:0.8rem"
+    if "Mid"   in v: return "color:#388bfd;font-size:0.8rem"
+    return "color:#8b949e;font-size:0.8rem"
+
+GEM_DISCLAIMER = """<div style="background:#1a1500;border:1px solid #d29922;border-radius:8px;
+padding:10px 16px;margin:6px 0;font-size:0.83rem;">
+⚠️ <b style="color:#d29922;">Emerging Gems — Higher Risk / Higher Volatility</b><br>
+<span style="color:#c9d1d9;">Small/micro-cap stocks can drop 30–50% on a single bad quarter.
+Use <b>0.5–1% max risk per trade</b> (half your normal size).
+These are long-term conviction plays — only hold what you can stomach losing short-term.</span>
+</div>"""
+
 def load_latest_report() -> pd.DataFrame:
     reports = sorted(Path("reports").glob("scan_*.csv"), reverse=True)
     if reports:
@@ -612,11 +635,28 @@ with tabs[0]:
         if filter_pa != "All" and "pa_patterns" in df_filtered.columns:
             df_filtered = df_filtered[df_filtered["pa_patterns"].str.contains(filter_pa, na=False)]
 
+        # ── Theme Category Filter ─────────────────────────────────────────
+        theme_filter = st.radio(
+            "📊 Theme Filter",
+            ["🌐 All Themes", "🚀 Growth Leaders", "💎 Emerging Gems"],
+            horizontal=True, key="lb_theme_filter"
+        )
+        if theme_filter == "💎 Emerging Gems":
+            st.markdown(GEM_DISCLAIMER, unsafe_allow_html=True)
+            if "is_gem" in df_filtered.columns:
+                df_filtered = df_filtered[df_filtered["is_gem"] == True]
+            elif "theme" in df_filtered.columns:
+                df_filtered = df_filtered[df_filtered["theme"] == "emerging_gems"]
+        elif theme_filter == "🚀 Growth Leaders":
+            if "market_cap" in df_filtered.columns:
+                mcap_num = pd.to_numeric(df_filtered["market_cap"], errors="coerce")
+                df_filtered = df_filtered[mcap_num >= 10_000_000_000]
+
         # Column view toggle
         col_view = st.radio("Column View", ["Standard", "Order Flow", "VWAP & Structure", "Price Action", "Fundamentals"], horizontal=True)
 
         if col_view == "Standard":
-            want = ["ticker","theme","price","stage",
+            want = ["ticker","theme","price","mcap_category","stage",
                     "perf_1m_%","perf_3m_%","perf_6m_%",
                     "rs_3m","vol_surge_x","near_52wh","pattern",
                     "earn_momentum","eps_growth_%","eps_surprise_%","consec_beats","apex_score"]
@@ -1033,9 +1073,68 @@ with tabs[2]:
                 yaxis=dict(gridcolor="#21262d"))
             st.plotly_chart(fig5, use_container_width=True)
 
+        # ── Emerging Gems Spotlight ───────────────────────────────────────
+        st.markdown("---")
+        st.markdown("### 💎 Emerging Gems Spotlight")
+        st.markdown(GEM_DISCLAIMER, unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════════════════════════
-# TAB 4 — PORTFOLIO TRACKER
+        gems_df = pd.DataFrame()
+        if "theme" in df.columns:
+            gems_df = df[df["theme"] == "emerging_gems"].copy()
+        if "is_gem" in df.columns:
+            extra = df[df["is_gem"] == True].copy()
+            gems_df = pd.concat([gems_df, extra]).drop_duplicates(subset=["ticker"]) if not gems_df.empty else extra
+
+        if gems_df.empty:
+            st.info("No emerging gems in current scan results. Run a Live Scan — gems are automatically detected from your config.")
+        else:
+            g1, g2, g3, g4 = st.columns(4)
+            with g1:
+                st.markdown(f'<div class="metric-card"><h3>💎 Gems Found</h3><div class="value amber">{len(gems_df)}</div></div>', unsafe_allow_html=True)
+            gem_s2 = int(gems_df["stage"].str.contains("2 ✅", na=False).sum()) if "stage" in gems_df.columns else 0
+            with g2:
+                st.markdown(f'<div class="metric-card"><h3>Stage 2 Gems</h3><div class="value green">{gem_s2}</div></div>', unsafe_allow_html=True)
+            gem_brk = int((gems_df.get("breaking_out", pd.Series([False]*len(gems_df))) == True).sum()) if "breaking_out" in gems_df.columns else 0
+            with g3:
+                st.markdown(f'<div class="metric-card"><h3>Gem Breakouts 🚀</h3><div class="value amber">{gem_brk}</div></div>', unsafe_allow_html=True)
+            top_gem_score = pd.to_numeric(gems_df["apex_score"], errors="coerce").max() if not gems_df.empty else 0
+            with g4:
+                st.markdown(f'<div class="metric-card"><h3>Top Gem Score</h3><div class="value green">{top_gem_score:.0f}</div></div>', unsafe_allow_html=True)
+
+            gem_show = [c for c in ["ticker","mcap_category","market_cap_bn","price","stage",
+                                    "perf_3m_%","rs_3m","of_bias","vwap_position",
+                                    "pa_patterns","apex_score"] if c in gems_df.columns]
+            gem_disp = gems_df[gem_show].copy()
+            gem_fmt  = {
+                "price":         "${:.2f}",
+                "market_cap_bn": lambda v: f"${v:.2f}B" if pd.notna(v) and v else "–",
+                "apex_score":    "{:.0f}",
+                "perf_3m_%":     pct_fmt,
+                "rs_3m":         lambda v: f"{v:.0f}" if pd.notna(v) and v else "–",
+            }
+            active_gem_fmt = {k: v for k, v in gem_fmt.items() if k in gem_disp.columns}
+            st.dataframe(
+                gem_disp.style.map(color_score, subset=["apex_score"]).format(active_gem_fmt, na_rep="–"),
+                use_container_width=True, hide_index=True
+            )
+
+            if len(gems_df) >= 2:
+                gems_df["apex_score"] = pd.to_numeric(gems_df["apex_score"], errors="coerce")
+                fig_gems = go.Figure(go.Bar(
+                    x=gems_df["apex_score"].head(10),
+                    y=gems_df["ticker"].head(10),
+                    orientation="h", marker_color="#d29922",
+                    text=gems_df["apex_score"].head(10).round(0).astype("Int64"),
+                    textposition="outside",
+                ))
+                fig_gems.update_layout(
+                    title="💎 Emerging Gems — Apex Score Ranking",
+                    paper_bgcolor="#0d1117", plot_bgcolor="#0d1117", font_color="#e6edf3",
+                    yaxis=dict(autorange="reversed", gridcolor="#21262d"),
+                    xaxis=dict(range=[0, 115], gridcolor="#21262d"),
+                    height=320, margin=dict(l=10, r=60, t=40, b=20),
+                )
+                st.plotly_chart(fig_gems, use_container_width=True)
 # ══════════════════════════════════════════════════════════════════════════════
 
 with tabs[3]:
