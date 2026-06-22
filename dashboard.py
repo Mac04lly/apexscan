@@ -1014,8 +1014,8 @@ with tabs[1]:
             # PA pattern annotations on last candle
             if not df.empty and sel in df["ticker"].values:
                 row_data = df[df["ticker"] == sel].iloc[0]
-                pa = row_data.get("pa_patterns", "")
-                if pa and pa != "None":
+                pa = str(row_data.get("pa_patterns", "") or "")
+                if pa and pa not in ("None", "nan", ""):
                     last_date  = hist_vwap.index[-1]
                     last_price = hist_vwap["High"].iloc[-1]
                     fig2.add_annotation(
