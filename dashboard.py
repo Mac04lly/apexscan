@@ -44,6 +44,10 @@ _al   = _safe_import("modules.alerts",            ["load_alert_settings", "save_
                                                     "check_and_fire_alerts", "build_daily_briefing_alert"])
 _av   = _safe_import("modules.alpha_vantage",     ["analyse_eps", "get_upcoming_earnings_for_watchlist",
                                                     "_cache_path", "_cache_valid"])
+_td   = _safe_import("modules.twelve_data",       ["get_realtime_quote", "get_all_indicators",
+                                                    "get_rsi", "get_macd", "get_bollinger_bands",
+                                                    "get_earnings_calendar", "get_quota_status"])
+_ms   = _safe_import("modules.marketstack",       ["get_latest_quote", "get_quota_status"])
 
 # Expose as module-level names (None if module missing)
 scan_options_flow      = _of["scan_options_flow"]
@@ -74,6 +78,17 @@ dispatch_alert         = _al["dispatch_alert"]
 check_and_fire_alerts  = _al["check_and_fire_alerts"]
 build_daily_briefing_alert = _al["build_daily_briefing_alert"]
 get_upcoming_earnings_for_watchlist = _av["get_upcoming_earnings_for_watchlist"]
+# Twelve Data
+get_realtime_quote     = _td["get_realtime_quote"]
+get_all_indicators     = _td["get_all_indicators"]
+get_rsi_td             = _td["get_rsi"]
+get_macd_td            = _td["get_macd"]
+get_bbands_td          = _td["get_bollinger_bands"]
+get_td_earnings_cal    = _td["get_earnings_calendar"]
+get_td_quota           = _td["get_quota_status"]
+# Marketstack
+get_ms_quote           = _ms["get_latest_quote"]
+get_ms_quota           = _ms["get_quota_status"]
 
 # Fallback: if alert module missing, define minimal stubs so app doesn't crash
 if load_alert_settings is None:
@@ -475,21 +490,34 @@ with st.sidebar:
     _cfg_check = load_config("config.yaml")
     _av_key    = _cfg_check.get("alpha_vantage_key","")
     _fh_key    = _cfg_check.get("finnhub_key","")
+    _td_key    = _cfg_check.get("twelve_data_key","")
+    _ms_key    = _cfg_check.get("marketstack_key","")
     _av_ok     = bool(_av_key and not _av_key.startswith("YOUR_"))
     _fh_ok     = bool(_fh_key and not _fh_key.startswith("YOUR_"))
+    _td_ok     = bool(_td_key and not _td_key.startswith("YOUR_"))
+    _ms_ok     = bool(_ms_key and not _ms_key.startswith("YOUR_"))
 
     st.markdown("**API Status**")
-    st.markdown(
-        f"{'🟢' if _av_ok else '🔴'} Alpha Vantage {'✓ Active' if _av_ok else '✗ Not set'}"
-    )
-    st.markdown(
-        f"{'🟢' if _fh_ok else '🟡'} Finnhub {'✓ Active' if _fh_ok else 'Optional'}"
-    )
-    if not _av_ok:
-        st.caption("Add your AV key to config.yaml → alpha_vantage_key")
+    st.markdown(f"{'🟢' if _av_ok else '🔴'} Alpha Vantage {'✓ Active' if _av_ok else '✗ Not set'}")
+    st.markdown(f"{'🟢' if _fh_ok else '🟡'} Finnhub {'✓ Active' if _fh_ok else 'Optional'}")
+    st.markdown(f"{'🟢' if _td_ok else '🟡'} Twelve Data {'✓ Active' if _td_ok else '✗ Not set'}")
+    st.markdown(f"{'🟢' if _ms_ok else '🟡'} Marketstack {'✓ Active' if _ms_ok else '✗ Not set'}")
+
+    if _td_ok and get_td_quota:
+        try:
+            _td_quota = get_td_quota()
+            st.caption(f"Twelve Data: {_td_quota['remaining']}/800 req remaining today {_td_quota['status']}")
+        except Exception:
+            pass
+    if _ms_ok and get_ms_quota:
+        try:
+            _ms_quota = get_ms_quota()
+            st.caption(f"Marketstack: {_ms_quota['remaining']}/100 req remaining this month {_ms_quota['status']}")
+        except Exception:
+            pass
 
     st.divider()
-    st.caption("Data: yfinance · Finnhub · Alpha Vantage")
+    st.caption("Data: yfinance · Finnhub · Alpha Vantage · Twelve Data · Marketstack")
     st.caption(f"Updated: {datetime.now().strftime('%H:%M:%S')}")
 
 st.markdown("""
@@ -903,14 +931,21 @@ with tabs[0]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 with tabs[1]:
-    st.markdown("### 📈 Price Chart + Moving Averages + VWAP")
+    st.markdown("### 📈 Price Chart + Moving Averages + VWAP + Indicators")
     ticker_opts = df["ticker"].tolist() if not df.empty else ["NVDA","AAPL","TSM","ASML"]
     ca, cb, cc = st.columns([2, 1, 1])
     with ca: sel = st.selectbox("Ticker", ticker_opts)
     with cb: period = st.selectbox("Period", ["3mo","6mo","1y","2y"], index=1)
     with cc:
-        show_vwap   = st.checkbox("VWAP", value=True)
-        show_swings = st.checkbox("Swing Levels", value=True)
+        show_vwap      = st.checkbox("VWAP", value=True)
+        show_swings    = st.checkbox("Swing Levels", value=True)
+
+    # Indicator controls
+    ind1, ind2, ind3, ind4 = st.columns(4)
+    with ind1: show_rsi    = st.checkbox("RSI (14)", value=True)
+    with ind2: show_macd   = st.checkbox("MACD", value=True)
+    with ind3: show_bbands = st.checkbox("Bollinger Bands", value=False)
+    with ind4: show_realtime = st.checkbox("Live Quote (Twelve Data)", value=False)
 
     if sel:
         hist = fetch_hist(sel, period)
@@ -1023,6 +1058,163 @@ with tabs[1]:
                 n3.metric("vs VWAP",      pct_fmt(row_data.get("vs_vwap_%",0)))
                 n4.metric("Structure",    str(row_data.get("ms_structure","–")))
                 n5.metric("PA Patterns",  str(row_data.get("pa_patterns","None"))[:30])
+
+        # ── Live Quote (Twelve Data) ──────────────────────────────────────
+        if show_realtime and sel:
+            _cfg_ch = load_config("config.yaml")
+            _td_key_ch = _cfg_ch.get("twelve_data_key","")
+            if not _td_key_ch or _td_key_ch.startswith("YOUR_"):
+                st.info("Add your Twelve Data key to config.yaml to see live quotes.")
+            elif get_realtime_quote:
+                with st.spinner(f"Fetching live quote for {sel}…"):
+                    qt = get_realtime_quote(sel, _td_key_ch)
+                if qt:
+                    st.markdown("#### 📡 Live Quote — Twelve Data")
+                    q1,q2,q3,q4,q5,q6 = st.columns(6)
+                    chg_color = "normal" if qt.get("change",0) >= 0 else "inverse"
+                    q1.metric("Price",    f"${qt.get('price',0):.2f}",
+                              f"{qt.get('change_pct',0):+.2f}%")
+                    q2.metric("Open",     f"${qt.get('open',0):.2f}")
+                    q3.metric("High",     f"${qt.get('high',0):.2f}")
+                    q4.metric("Low",      f"${qt.get('low',0):.2f}")
+                    q5.metric("Volume",   f"{qt.get('volume',0):,}")
+                    q6.metric("52W High", f"${qt.get('52w_high',0):.2f}")
+                    mkt = "🟢 Market Open" if qt.get("is_market_open") else "🔴 Market Closed"
+                    st.caption(f"{mkt} · Source: Twelve Data · {qt.get('timestamp','')}")
+
+        # ── Technical Indicators (Twelve Data) ───────────────────────────
+        if sel and (show_rsi or show_macd or show_bbands):
+            _cfg_ch  = load_config("config.yaml")
+            _td_key_ch = _cfg_ch.get("twelve_data_key","")
+            if not _td_key_ch or _td_key_ch.startswith("YOUR_"):
+                st.info("💡 Add your **Twelve Data** key to config.yaml to unlock RSI, MACD and Bollinger Bands.")
+            elif get_all_indicators:
+                st.markdown("---")
+                st.markdown("#### 📊 Technical Indicators — Twelve Data")
+                with st.spinner(f"Loading indicators for {sel}…"):
+                    ind_data = get_all_indicators(sel, _td_key_ch,
+                                                  cache_hours=_cfg_ch.get("twelve_data",{}).get("cache_hours",4))
+
+                # ── RSI ───────────────────────────────────────────────────
+                if show_rsi and ind_data.get("rsi"):
+                    rsi = ind_data["rsi"]
+                    rsi_val = rsi.get("rsi", 0)
+                    rsi_color = "#f85149" if rsi_val >= 70 else ("#3fb950" if rsi_val <= 30 else "#d29922")
+                    st.markdown(f"""
+                    <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;
+                                padding:14px 20px;margin:8px 0;">
+                      <div style="display:flex;align-items:center;gap:20px;">
+                        <div>
+                          <div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;">RSI (14)</div>
+                          <div style="font-size:2rem;font-weight:800;color:{rsi_color};">{rsi_val}</div>
+                        </div>
+                        <div>
+                          <div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;">Signal</div>
+                          <div style="font-size:1rem;font-weight:600;color:{rsi_color};">{rsi.get("signal","–")}</div>
+                        </div>
+                        <div style="flex:1;color:#8b949e;font-size:0.85rem;">
+                          RSI above 70 = overbought (momentum extended, watch for pullback) |
+                          RSI below 30 = oversold (potential reversal zone) |
+                          50-60 + rising = healthy momentum
+                        </div>
+                      </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    if rsi.get("series") and rsi.get("dates"):
+                        fig_rsi = go.Figure()
+                        fig_rsi.add_trace(go.Scatter(
+                            x=rsi["dates"], y=rsi["series"],
+                            line=dict(color="#d29922", width=2), name="RSI"
+                        ))
+                        fig_rsi.add_hline(y=70, line_color="#f85149", line_dash="dash", opacity=0.5,
+                                          annotation_text="Overbought 70")
+                        fig_rsi.add_hline(y=30, line_color="#3fb950", line_dash="dash", opacity=0.5,
+                                          annotation_text="Oversold 30")
+                        fig_rsi.add_hline(y=50, line_color="#30363d", line_width=1)
+                        fig_rsi.update_layout(
+                            paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
+                            font_color="#e6edf3", height=180,
+                            xaxis=dict(gridcolor="#21262d"),
+                            yaxis=dict(gridcolor="#21262d", range=[0,100]),
+                            margin=dict(l=10,r=10,t=10,b=20),
+                            showlegend=False,
+                        )
+                        st.plotly_chart(fig_rsi, use_container_width=True)
+
+                # ── MACD ──────────────────────────────────────────────────
+                if show_macd and ind_data.get("macd"):
+                    macd = ind_data["macd"]
+                    cross = macd.get("crossover","–")
+                    cross_color = "#3fb950" if "Bullish" in cross else ("#f85149" if "Bearish" in cross else "#d29922")
+                    st.markdown(f"""
+                    <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;
+                                padding:14px 20px;margin:8px 0;">
+                      <div style="display:flex;align-items:center;gap:20px;">
+                        <div>
+                          <div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;">MACD</div>
+                          <div style="font-size:1.4rem;font-weight:800;color:#e6edf3;">{macd.get("macd",0):.4f}</div>
+                        </div>
+                        <div>
+                          <div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;">Signal Line</div>
+                          <div style="font-size:1.4rem;color:#388bfd;">{macd.get("signal",0):.4f}</div>
+                        </div>
+                        <div>
+                          <div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;">Histogram</div>
+                          <div style="font-size:1.4rem;color:{'#3fb950' if (macd.get('histogram',0) or 0)>0 else '#f85149'};">{macd.get("histogram",0):.4f}</div>
+                        </div>
+                        <div>
+                          <div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;">Status</div>
+                          <div style="font-size:1rem;font-weight:700;color:{cross_color};">{cross}</div>
+                        </div>
+                      </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    if macd.get("hist_series") and macd.get("dates"):
+                        fig_macd = go.Figure()
+                        colors_hist = ["#3fb950" if v >= 0 else "#f85149" for v in macd["hist_series"]]
+                        fig_macd.add_trace(go.Bar(
+                            x=macd["dates"], y=macd["hist_series"],
+                            marker_color=colors_hist, name="Histogram", opacity=0.7
+                        ))
+                        fig_macd.add_trace(go.Scatter(
+                            x=macd["dates"], y=macd["macd_series"],
+                            line=dict(color="#d29922", width=1.5), name="MACD"
+                        ))
+                        fig_macd.add_trace(go.Scatter(
+                            x=macd["dates"], y=macd["sig_series"],
+                            line=dict(color="#388bfd", width=1.5), name="Signal"
+                        ))
+                        fig_macd.update_layout(
+                            paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
+                            font_color="#e6edf3", height=200,
+                            xaxis=dict(gridcolor="#21262d"),
+                            yaxis=dict(gridcolor="#21262d"),
+                            margin=dict(l=10,r=10,t=10,b=20),
+                            legend=dict(orientation="h", y=1.1),
+                        )
+                        st.plotly_chart(fig_macd, use_container_width=True)
+
+                # ── Bollinger Bands ───────────────────────────────────────
+                if show_bbands and ind_data.get("bbands"):
+                    bb = ind_data["bbands"]
+                    squeeze_txt = "🔄 SQUEEZE — volatility compressed, breakout incoming!" if bb.get("squeeze") else "Normal volatility"
+                    squeeze_color = "#d29922" if bb.get("squeeze") else "#8b949e"
+                    b1,b2,b3,b4 = st.columns(4)
+                    b1.metric("Upper Band",  f"${bb.get('upper',0):.2f}")
+                    b2.metric("Middle (SMA)",f"${bb.get('middle',0):.2f}")
+                    b3.metric("Lower Band",  f"${bb.get('lower',0):.2f}")
+                    b4.metric("Bandwidth",   f"{bb.get('bandwidth',0):.2f}%")
+                    st.markdown(f'<div style="color:{squeeze_color};font-weight:600;padding:4px 0;">{squeeze_txt}</div>', unsafe_allow_html=True)
+
+                # ── Composite signals ─────────────────────────────────────
+                comp_sigs = ind_data.get("composite_signals", [])
+                if comp_sigs:
+                    st.markdown("##### 🧠 Indicator Synthesis")
+                    for sig in comp_sigs:
+                        color = "#3fb950" if "🟢" in sig else ("#f85149" if "🔴" in sig else "#d29922")
+                        st.markdown(f'<div style="background:#161b22;border-left:3px solid {color};padding:8px 14px;margin:4px 0;border-radius:0 6px 6px 0;color:#c9d1d9;">{sig}</div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1824,6 +2016,46 @@ with tabs[6]:
                 fig_d.update_yaxes(gridcolor="#21262d")
                 fig_d.update_xaxes(gridcolor="#21262d")
                 st.plotly_chart(fig_d, use_container_width=True)
+
+            # ── Technical Indicators (Twelve Data) ───────────────────────
+            st.markdown("---")
+            st.markdown("#### 📊 Technical Indicators — Twelve Data")
+            _cfg_dd   = load_config("config.yaml")
+            _td_key_dd = _cfg_dd.get("twelve_data_key","")
+            if not _td_key_dd or _td_key_dd.startswith("YOUR_"):
+                st.markdown('<div class="warn-box">💡 Add your <b>Twelve Data</b> key to config.yaml to unlock RSI, MACD and Bollinger Bands for any ticker.</div>', unsafe_allow_html=True)
+            elif get_all_indicators:
+                with st.spinner(f"Loading indicators for {dive_ticker}…"):
+                    dd_ind = get_all_indicators(dive_ticker, _td_key_dd,
+                                                cache_hours=_cfg_dd.get("twelve_data",{}).get("cache_hours",4))
+
+                di1, di2, di3 = st.columns(3)
+                # RSI card
+                with di1:
+                    rsi_dd = dd_ind.get("rsi",{})
+                    rsi_v  = rsi_dd.get("rsi",0) or 0
+                    rc = "#f85149" if rsi_v>=70 else ("#3fb950" if rsi_v<=30 else "#d29922")
+                    st.markdown(f'<div class="metric-card"><h3>RSI (14)</h3><div class="value" style="color:{rc};font-size:2rem;">{rsi_v}</div><div style="color:{rc};font-size:0.85rem;">{rsi_dd.get("signal","–")}</div></div>', unsafe_allow_html=True)
+                # MACD card
+                with di2:
+                    macd_dd = dd_ind.get("macd",{})
+                    cross   = macd_dd.get("crossover","–")
+                    mc = "#3fb950" if "Bullish" in cross else ("#f85149" if "Bearish" in cross else "#d29922")
+                    st.markdown(f'<div class="metric-card"><h3>MACD (12,26,9)</h3><div class="value" style="color:{mc};font-size:1.3rem;">{macd_dd.get("macd",0):.4f}</div><div style="color:{mc};font-size:0.85rem;">{cross}</div></div>', unsafe_allow_html=True)
+                # Bollinger card
+                with di3:
+                    bb_dd   = dd_ind.get("bbands",{})
+                    sq      = bb_dd.get("squeeze", False)
+                    bw_val  = bb_dd.get("bandwidth",0) or 0
+                    bc = "#d29922" if sq else "#8b949e"
+                    st.markdown(f'<div class="metric-card"><h3>Bollinger Bands</h3><div class="value" style="color:{bc};font-size:1.3rem;">BW: {bw_val:.2f}%</div><div style="color:{bc};font-size:0.85rem;">{"🔄 Squeeze!" if sq else "Normal"}</div></div>', unsafe_allow_html=True)
+
+                # Composite signals
+                comp = dd_ind.get("composite_signals",[])
+                if comp:
+                    for sig in comp:
+                        sc = "#3fb950" if "🟢" in sig else ("#f85149" if "🔴" in sig else "#d29922")
+                        st.markdown(f'<div style="background:#161b22;border-left:3px solid {sc};padding:8px 14px;margin:4px 0;border-radius:0 6px 6px 0;color:#c9d1d9;">{sig}</div>', unsafe_allow_html=True)
 
             # ── Plain English Summary ─────────────────────────────────────
             st.markdown("---")

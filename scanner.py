@@ -48,6 +48,10 @@ def load_config(path: str = "config.yaml") -> dict:
                 cfg["alpha_vantage_key"] = st.secrets["alpha_vantage_key"]
             if "finnhub_key" in st.secrets:
                 cfg["finnhub_key"] = st.secrets["finnhub_key"]
+            if "twelve_data_key" in st.secrets:
+                cfg["twelve_data_key"] = st.secrets["twelve_data_key"]
+            if "marketstack_key" in st.secrets:
+                cfg["marketstack_key"] = st.secrets["marketstack_key"]
     except Exception:
         pass  # Not running in Streamlit context (e.g. CLI), use config.yaml only
 
@@ -498,9 +502,22 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
     av_key       = cfg.get("alpha_vantage_key", "")
     av_cfg       = cfg.get("alpha_vantage", {})
     use_av       = bool(av_key and not av_key.startswith("YOUR_"))
+    ms_key       = cfg.get("marketstack_key", "")
 
     try:
         hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
+
+        # Marketstack fallback if yfinance returns insufficient data
+        if len(hist) < cfg["scan"]["min_history_bars"] and ms_key and not ms_key.startswith("YOUR_"):
+            try:
+                from modules.marketstack import get_history_with_fallback
+                hist_ms = get_history_with_fallback(ticker, ms_key, period=cfg["scan"]["history_period"])
+                if hist_ms is not None and len(hist_ms) >= cfg["scan"]["min_history_bars"]:
+                    hist = hist_ms
+                    log.info(f"{ticker}: using Marketstack fallback data ({len(hist)} bars)")
+            except Exception as ms_err:
+                log.debug(f"Marketstack fallback failed {ticker}: {ms_err}")
+
         if len(hist) < cfg["scan"]["min_history_bars"]:
             log.debug(f"{ticker}: only {len(hist)} bars, skipping")
             return None

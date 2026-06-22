@@ -2,8 +2,10 @@
 # ApexScan Config — US Market Only
 # ====================================================
 
-finnhub_key: "YOUR_FINNHUB_FREE_KEY_HERE"       # Get free at finnhub.io
-alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE" # Paste your key here
+finnhub_key: "YOUR_FINNHUB_FREE_KEY_HERE"         # Get free at finnhub.io
+alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE"  # alphavantage.co
+twelve_data_key: "YOUR_TWELVE_DATA_KEY_HERE"       # twelvedata.com (800 req/day free)
+marketstack_key: "YOUR_MARKETSTACK_KEY_HERE"       # marketstack.com (100 req/month free)
 
 # ---- ALPHA VANTAGE SETTINGS ----
 alpha_vantage:
@@ -163,3 +165,27 @@ emerging_gems:
   alerts:
     gems_breakout: true
     gems_flow: true
+
+# ---- TWELVE DATA SETTINGS ----
+twelve_data:
+  cache_hours: 4              # cache indicators for 4 hours
+  rate_limit_pause: 8         # seconds between calls (free: 8/min)
+  max_calls_per_session: 50   # safety cap per scan session
+  indicators:
+    rsi_period: 14
+    macd_fast: 12
+    macd_slow: 26
+    macd_signal: 9
+    bbands_period: 20
+    bbands_std: 2.0
+  # Which tabs use Twelve Data (to control quota usage)
+  use_for_realtime_quotes: true
+  use_for_chart_indicators: true
+  use_for_earnings_calendar: true
+  use_for_deep_dive: true
+
+# ---- MARKETSTACK SETTINGS ----
+marketstack:
+  cache_hours: 168            # 7 days — protect 100 req/month quota
+  use_as_yfinance_fallback: true
+  max_calls_per_month: 90     # stay under 100 limit
