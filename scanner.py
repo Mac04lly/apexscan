@@ -48,10 +48,6 @@ def load_config(path: str = "config.yaml") -> dict:
                 cfg["alpha_vantage_key"] = st.secrets["alpha_vantage_key"]
             if "finnhub_key" in st.secrets:
                 cfg["finnhub_key"] = st.secrets["finnhub_key"]
-            if "twelve_data_key" in st.secrets:
-                cfg["twelve_data_key"] = st.secrets["twelve_data_key"]
-            if "marketstack_key" in st.secrets:
-                cfg["marketstack_key"] = st.secrets["marketstack_key"]
     except Exception:
         pass  # Not running in Streamlit context (e.g. CLI), use config.yaml only
 
@@ -502,22 +498,9 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
     av_key       = cfg.get("alpha_vantage_key", "")
     av_cfg       = cfg.get("alpha_vantage", {})
     use_av       = bool(av_key and not av_key.startswith("YOUR_"))
-    ms_key       = cfg.get("marketstack_key", "")
 
     try:
         hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
-
-        # Marketstack fallback if yfinance returns insufficient data
-        if len(hist) < cfg["scan"]["min_history_bars"] and ms_key and not ms_key.startswith("YOUR_"):
-            try:
-                from modules.marketstack import get_history_with_fallback
-                hist_ms = get_history_with_fallback(ticker, ms_key, period=cfg["scan"]["history_period"])
-                if hist_ms is not None and len(hist_ms) >= cfg["scan"]["min_history_bars"]:
-                    hist = hist_ms
-                    log.info(f"{ticker}: using Marketstack fallback data ({len(hist)} bars)")
-            except Exception as ms_err:
-                log.debug(f"Marketstack fallback failed {ticker}: {ms_err}")
-
         if len(hist) < cfg["scan"]["min_history_bars"]:
             log.debug(f"{ticker}: only {len(hist)} bars, skipping")
             return None
@@ -699,9 +682,27 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
 # FULL SCAN (two-pass: fast price scan then targeted AV enrichment)
 # ══════════════════════════════════════════════════════════════════════════════
 
-def run_scan(cfg: dict, markets: List[str] = None) -> pd.DataFrame:
-    tickers  = build_watchlist(cfg)
-    log.info(f"Scanning {len(tickers)} US tickers…")
+def run_scan(cfg: dict, markets: List[str] = None,
+             ticker_list: List[str] = None,
+             max_tickers: int = None,
+             progress_callback=None) -> pd.DataFrame:
+    """
+    Full scan engine.
+    ticker_list: explicit list of tickers to scan (from universe module)
+    max_tickers: optional cap on number of tickers
+    progress_callback: fn(current, total, passing) for live progress updates
+    """
+    # Use provided ticker_list, or build from config themes as fallback
+    if ticker_list:
+        tickers = ticker_list
+    else:
+        tickers = build_watchlist(cfg)
+
+    # Optional cap
+    if max_tickers and len(tickers) > max_tickers:
+        tickers = tickers[:max_tickers]
+
+    log.info(f"Scanning {len(tickers)} tickers…")
 
     av_key   = cfg.get("alpha_vantage_key", "")
     av_cfg   = cfg.get("alpha_vantage", {})
@@ -715,17 +716,37 @@ def run_scan(cfg: dict, markets: List[str] = None) -> pd.DataFrame:
     else:
         log.info("Alpha Vantage not configured — using earnings proxy")
 
-    results = []
-    pause   = cfg["scan"]["rate_limit_pause"]
+    results   = []
+    pause     = cfg["scan"]["rate_limit_pause"]
+    total     = len(tickers)
+    errors    = 0
 
     # ── Pass 1: price/technical scan, no AV ──────────────────────────────
-    log.info("Pass 1: technical scan…")
+    log.info(f"Pass 1: technical scan of {total} tickers…")
     for i, ticker in enumerate(tickers):
-        if i > 0 and i % 8 == 0:
+        # Rate limiting
+        if i > 0 and i % 10 == 0:
             time.sleep(pause)
 
+        # Progress update every 25 tickers
+        if progress_callback and i % 25 == 0:
+            try:
+                progress_callback(i, total, len(results))
+            except Exception:
+                pass
+
+        # Log every 100
+        if i > 0 and i % 100 == 0:
+            log.info(f"  {i}/{total} scanned — {len(results)} passing filters")
+
         cfg_no_av = {**cfg, "alpha_vantage_key": ""}
-        data = analyze_stock(ticker, cfg_no_av)
+        try:
+            data = analyze_stock(ticker, cfg_no_av)
+        except Exception as e:
+            errors += 1
+            log.debug(f"Error {ticker}: {e}")
+            continue
+
         if data is None:
             continue
 
@@ -733,6 +754,15 @@ def run_scan(cfg: dict, markets: List[str] = None) -> pd.DataFrame:
         min_vol   = cfg["thresholds"]["us"]["min_volume"]
         if data["apex_score"] >= min_score and data["volume"] >= min_vol:
             results.append(data)
+
+    # Final progress update
+    if progress_callback:
+        try:
+            progress_callback(total, total, len(results))
+        except Exception:
+            pass
+
+    log.info(f"Pass 1 complete: {len(results)} passing from {total} tickers ({errors} errors)")
 
     if not results:
         log.warning("No results passed filters.")
