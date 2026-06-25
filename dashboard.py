@@ -133,6 +133,21 @@ def pct_fmt(v):
     except:
         return str(v)
 
+def safe_str(v, default="–", max_len=None):
+    """Convert any value to string safely — handles nan, None, float nan."""
+    import math
+    try:
+        if v is None:
+            return default
+        if isinstance(v, float) and math.isnan(v):
+            return default
+        s = str(v).strip()
+        if s.lower() in ["nan", "none", "", "nat"]:
+            return default
+        return s[:max_len] if max_len else s
+    except:
+        return default
+
 def color_score(v):
     try:
         v = float(v)
@@ -467,70 +482,42 @@ with st.sidebar:
     min_score = st.slider("Min Apex Score", 0, 100, 30, 5)
     min_3m    = st.slider("Min 3m Return %", -50, 100, 0, 5)
     st.divider()
-
-    # ── Scan Mode ─────────────────────────────────────────────────────────
-    st.markdown("**Scan Universe**")
-    scan_mode = st.radio(
-        "Select universe",
-        [
-            "⚡ Tier 1 — Best Quality (~600)",
-            "🔍 Tier 1+2 — Broad (~1,000)",
-            "🌐 Full Universe (~1,400)",
-        ],
-        index=1,
-        help=(
-            "Tier 1: S&P 500 + NASDAQ 100 — most reliable signals, ~20 min\n"
-            "Tier 1+2: + S&P 400 Mid Cap — more growth names, ~35 min\n"
-            "Full: + Curated growth list — maximum coverage, ~50 min"
-        )
-    )
-
-    run_btn  = st.button("🚀 Run Live Scan", use_container_width=True, type="primary")
+    run_btn  = st.button("🚀 Run Live Scan", use_container_width=True)
     load_btn = st.button("📂 Load Last Report", use_container_width=True)
     st.divider()
 
-    # ── Universe stats ─────────────────────────────────────────────────────
-    try:
-        from modules.ticker_universe import get_universe_stats
-        _uni = get_universe_stats()
-        if _uni.get("total", 0) > 0:
-            st.markdown("**Universe Cache**")
-            st.caption(f"📊 {_uni['total']:,} tickers loaded")
-            st.caption(f"🔄 Next refresh in {_uni['next_refresh']}")
-            st.caption(_uni.get("quality_note",""))
-    except Exception:
-        st.caption("📊 Universe: S&P 500 + NASDAQ 100 + S&P 400 + Growth")
-
-    st.divider()
-
-    # ── API Key Status ────────────────────────────────────────────────────
+    # ── API Key Status — reads from Streamlit Secrets (safe for public repos) ──
     _cfg_check = load_config("config.yaml")
-    _av_key    = _cfg_check.get("alpha_vantage_key","")
-    _fh_key    = _cfg_check.get("finnhub_key","")
-    _td_key    = _cfg_check.get("twelve_data_key","")
-    _ms_key    = _cfg_check.get("marketstack_key","")
-    _av_ok     = bool(_av_key and not _av_key.startswith("YOUR_"))
-    _fh_ok     = bool(_fh_key and not _fh_key.startswith("YOUR_"))
-    _td_ok     = bool(_td_key and not _td_key.startswith("YOUR_"))
-    _ms_ok     = bool(_ms_key and not _ms_key.startswith("YOUR_"))
+
+    def _get_key(name: str) -> str:
+        """Get API key from Streamlit secrets first, fall back to config.yaml."""
+        try:
+            val = st.secrets.get(name, "")
+            if val and not val.startswith("YOUR_"):
+                return val
+        except Exception:
+            pass
+        return _cfg_check.get(name, "")
+
+    _av_key = _get_key("alpha_vantage_key")
+    _fh_key = _get_key("finnhub_key")
+    _td_key = _get_key("twelve_data_key")
+    _ms_key = _get_key("marketstack_key")
+
+    _av_ok  = bool(_av_key and not _av_key.startswith("YOUR_"))
+    _fh_ok  = bool(_fh_key and not _fh_key.startswith("YOUR_"))
+    _td_ok  = bool(_td_key and not _td_key.startswith("YOUR_"))
+    _ms_ok  = bool(_ms_key and not _ms_key.startswith("YOUR_"))
 
     st.markdown("**API Status**")
     st.markdown(f"{'🟢' if _av_ok else '🔴'} Alpha Vantage {'✓ Active' if _av_ok else '✗ Not set'}")
-    st.markdown(f"{'🟢' if _fh_ok else '🟡'} Finnhub {'✓ Active' if _fh_ok else 'Optional'}")
+    st.markdown(f"{'🟢' if _fh_ok else '🟡'} Finnhub {'✓ Active' if _fh_ok else '✗ Not set'}")
     st.markdown(f"{'🟢' if _td_ok else '🟡'} Twelve Data {'✓ Active' if _td_ok else '✗ Not set'}")
     st.markdown(f"{'🟢' if _ms_ok else '🟡'} Marketstack {'✓ Active' if _ms_ok else '✗ Not set'}")
 
     st.divider()
-    st.caption("Data: yfinance · Finnhub · AV · Twelve Data · Marketstack")
+    st.caption("Data: yfinance · Finnhub · Alpha Vantage · Twelve Data · Marketstack")
     st.caption(f"Updated: {datetime.now().strftime('%H:%M:%S')}")
-
-# ── Map scan mode to parameters ────────────────────────────────────────────
-_scan_mode_map = {
-    "⚡ Tier 1 — Best Quality (~600)":  ("tier1",  600,  "~20 min"),
-    "🔍 Tier 1+2 — Broad (~1,000)":    ("tier12", 1000, "~35 min"),
-    "🌐 Full Universe (~1,400)":        ("full",   None, "~50 min"),
-}
-_scan_tier, _max_tickers, _scan_eta = _scan_mode_map[scan_mode]
 
 st.markdown("""
 <h1 style="margin:0 0 16px 0;font-size:1.5rem;">
@@ -575,86 +562,24 @@ prev_df      = pd.DataFrame()
 gone_tickers = set()
 
 if run_btn:
-    cfg     = load_config("config.yaml")
-    prev_df = load_latest_report()
-
-    # ── Build universe based on selected tier ─────────────────────────────
-    try:
-        from modules.ticker_universe import (
-            build_full_universe, get_tier1_only, get_sp500,
-            get_nasdaq100, get_sp400, CURATED_GROWTH
-        )
-        with st.spinner("Loading ticker universe…"):
-            if _scan_tier == "tier1":
-                universe = get_tier1_only()
-                tier_label = "Tier 1 (S&P 500 + NASDAQ 100)"
-            elif _scan_tier == "tier12":
-                sp500  = get_sp500()
-                ndx    = get_nasdaq100()
-                sp400  = get_sp400()
-                universe = sorted(set(sp500 + ndx + sp400))
-                tier_label = "Tier 1+2 (S&P 500 + NASDAQ 100 + S&P 400)"
-            else:
-                universe = build_full_universe(cfg)
-                tier_label = "Full Universe"
-    except Exception as _ue:
-        # Fallback to config themes
-        universe = list(set(
-            t for theme in cfg["us_themes"].values() for t in theme
-        ))
-        tier_label = "Config Themes (fallback)"
-
-    total_universe = len(universe)
-    cap = _max_tickers
-    if cap and len(universe) > cap:
-        universe = universe[:cap]
-
-    st.info(
-        f"**{tier_label}** — scanning **{len(universe):,}** tickers "
-        f"(from {total_universe:,} in universe) · Est. time: {_scan_eta}"
-    )
-
-    # ── Progress bar ──────────────────────────────────────────────────────
-    prog_bar   = st.progress(0)
-    prog_text  = st.empty()
-    res_badge  = st.empty()
-
-    def _progress_cb(current, total, passing):
-        pct = min(int(current / max(total, 1) * 100), 99)
-        prog_bar.progress(pct)
-        prog_text.caption(f"Scanning {current:,} / {total:,} tickers ({pct}%)")
-        res_badge.markdown(f"✅ **{passing}** setups passing filters so far…")
-
-    # ── Run scan ──────────────────────────────────────────────────────────
-    with st.spinner(f"Scanning {len(universe):,} tickers…"):
-        df_raw = run_scan(
-            cfg,
-            ticker_list=universe,
-            progress_callback=_progress_cb,
-        )
-
-    prog_bar.progress(100)
-    prog_text.empty()
-    res_badge.empty()
-
-    if not df_raw.empty:
-        save_report(df_raw)
-        st.success(
-            f"✅ Scan complete — **{len(df_raw)} setups** found "
-            f"from {len(universe):,} tickers scanned!"
-        )
-        try:
-            alert_settings = load_alert_settings()
-            if alert_settings.get("alerts_enabled"):
-                portfolio_data = load_portfolio()
-                fired = check_and_fire_alerts(
-                    df_raw, portfolio_data, alert_settings, fetch_price)
-                if fired:
-                    st.info(f"🔔 {len(fired)} alert(s) sent.")
-        except Exception:
-            pass
-    else:
-        st.warning("No setups found. Try lowering the Score Threshold or switching to Full Universe.")
+    with st.spinner("Running live scan… (2–5 min)"):
+        cfg     = load_config("config.yaml")
+        prev_df = load_latest_report()   # capture BEFORE saving new one
+        df_raw  = run_scan(cfg)
+        if not df_raw.empty:
+            save_report(df_raw)
+            st.success(f"Scan complete — {len(df_raw)} setups found!")
+            try:
+                alert_settings = load_alert_settings()
+                if alert_settings.get("alerts_enabled"):
+                    portfolio_data = load_portfolio()
+                    fired = check_and_fire_alerts(df_raw, portfolio_data, alert_settings, fetch_price)
+                    if fired:
+                        st.info(f"🔔 {len(fired)} alert(s) sent to your configured channels.")
+            except Exception as ae:
+                pass
+        else:
+            st.warning("No setups found. Try lowering the Score Threshold.")
 else:
     prev_df = load_previous_report()
     df_raw  = load_latest_report()
@@ -1082,7 +1007,8 @@ with tabs[1]:
             if not df.empty and sel in df["ticker"].values:
                 row_data = df[df["ticker"] == sel].iloc[0]
                 pa = row_data.get("pa_patterns", "")
-                if pa and pa != "None":
+                pa = "" if pa is None or str(pa).lower() in ["nan","none",""] else str(pa)
+                if pa:
                     last_date  = hist_vwap.index[-1]
                     last_price = hist_vwap["High"].iloc[-1]
                     fig2.add_annotation(
@@ -1120,11 +1046,11 @@ with tabs[1]:
                 s5.metric("ADR %",      f"{float(row_data.get('adr_%',0)):.1f}%")
                 # Row 2: new metrics
                 n1,n2,n3,n4,n5 = st.columns(5)
-                n1.metric("Order Flow",   str(row_data.get("of_bias","–")))
-                n2.metric("VWAP Position",str(row_data.get("vwap_position","–")))
+                n1.metric("Order Flow",   safe_str(row_data.get("of_bias")))
+                n2.metric("VWAP Position",safe_str(row_data.get("vwap_position")))
                 n3.metric("vs VWAP",      pct_fmt(row_data.get("vs_vwap_%",0)))
-                n4.metric("Structure",    str(row_data.get("ms_structure","–")))
-                n5.metric("PA Patterns",  str(row_data.get("pa_patterns","None"))[:30])
+                n4.metric("Structure",    safe_str(row_data.get("ms_structure")))
+                n5.metric("PA Patterns",  safe_str(row_data.get("pa_patterns"), default="None", max_len=30))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1732,9 +1658,9 @@ with tabs[6]:
 
             # ── KPI row 7: Price Action Patterns (NEW) ───────────────────
             st.markdown("#### 🕯 Price Action Patterns")
-            pa_patterns = result.get("pa_patterns","None")
+            pa_patterns = safe_str(result.get("pa_patterns"), default="None")
             if pa_patterns and pa_patterns != "None":
-                pa_list = [p.strip() for p in pa_patterns.split("|")]
+                pa_list = [p.strip() for p in pa_patterns.split("|") if p.strip()]
                 pa_cols = st.columns(min(len(pa_list),4))
                 pa_colors = {
                     "Bullish SFP (Bear Trap)":  "#3fb950",
@@ -3530,7 +3456,7 @@ with tabs[15]:
                     st.markdown("#### Price Action Per Stock")
                     for _, row in interp_df.head(15).iterrows():
                         tk       = row["ticker"]
-                        pa_str   = str(row.get("pa_patterns","None"))
+                        pa_str   = safe_str(row.get("pa_patterns"), default="None")
                         pa_sc    = int(row.get("pa_score",0) or 0)
                         price_v  = float(row.get("price",0))
 
@@ -3541,7 +3467,7 @@ with tabs[15]:
                                       f'<span style="color:#8b949e;font-size:0.85rem;">No significant PA pattern on last candle — '
                                       f'check again after tomorrow\'s session.</span></div>')
                         else:
-                            patterns_found = [p.strip() for p in pa_str.split("|")]
+                            patterns_found = [p.strip() for p in pa_str.split("|") if p.strip()]
                             readings = []
                             for p in patterns_found:
                                 if p in pa_explanations:
@@ -3559,7 +3485,7 @@ with tabs[15]:
 
                 else:
                     row    = interp_df.iloc[0]
-                    pa_str = str(row.get("pa_patterns","None"))
+                    pa_str = safe_str(row.get("pa_patterns"), default="None")
                     pa_sc  = int(row.get("pa_score",0) or 0)
 
                     if pa_str == "None" or not pa_str:
@@ -3573,7 +3499,7 @@ with tabs[15]:
                         </div>
                         """, unsafe_allow_html=True)
                     else:
-                        patterns_found = [p.strip() for p in pa_str.split("|")]
+                        patterns_found = [p.strip() for p in pa_str.split("|") if p.strip()]
                         for p in patterns_found:
                             if p in pa_explanations:
                                 c, name, expl = pa_explanations[p]
