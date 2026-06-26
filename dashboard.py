@@ -44,6 +44,27 @@ _al   = _safe_import("modules.alerts",            ["load_alert_settings", "save_
                                                     "check_and_fire_alerts", "build_daily_briefing_alert"])
 _av   = _safe_import("modules.alpha_vantage",     ["analyse_eps", "get_upcoming_earnings_for_watchlist",
                                                     "_cache_path", "_cache_valid"])
+_uni  = _safe_import("modules.universe",        ["build_universe", "get_universe_stats", "UNIVERSE_PRESETS", "refresh_universe_cache"])
+_td   = _safe_import("modules.twelve_data",       ["enrich_ticker", "estimate_credits",
+                                                    "get_rsi", "get_macd", "get_bbands", "get_adx"])
+_ms   = _safe_import("modules.marketstack",       ["get_eod_price", "get_dividend_yield",
+                                                    "verify_price", "get_dividends"])
+
+# Expose universe names
+build_universe_fn        = _uni["build_universe"]
+get_universe_stats_fn    = _uni["get_universe_stats"]
+UNIVERSE_PRESETS         = _uni["UNIVERSE_PRESETS"] or {}
+refresh_universe_cache_fn= _uni["refresh_universe_cache"]
+
+# Expose TD names
+enrich_ticker    = _td["enrich_ticker"]
+estimate_credits = _td["estimate_credits"]
+
+# Expose MS names
+get_eod_price_ms   = _ms["get_eod_price"]
+get_dividend_yield = _ms["get_dividend_yield"]
+verify_price_ms    = _ms["verify_price"]
+get_dividends_ms   = _ms["get_dividends"]
 
 # Expose as module-level names (None if module missing)
 scan_options_flow      = _of["scan_options_flow"]
@@ -132,21 +153,6 @@ def pct_fmt(v):
         return f"{sign}{float(v):.1f}%"
     except:
         return str(v)
-
-def safe_str(v, default="–", max_len=None):
-    """Convert any value to string safely — handles nan, None, float nan."""
-    import math
-    try:
-        if v is None:
-            return default
-        if isinstance(v, float) and math.isnan(v):
-            return default
-        s = str(v).strip()
-        if s.lower() in ["nan", "none", "", "nat"]:
-            return default
-        return s[:max_len] if max_len else s
-    except:
-        return default
 
 def color_score(v):
     try:
@@ -486,37 +492,32 @@ with st.sidebar:
     load_btn = st.button("📂 Load Last Report", use_container_width=True)
     st.divider()
 
-    # ── API Key Status — reads from Streamlit Secrets (safe for public repos) ──
+    # API Key Status — reads from Streamlit secrets OR config.yaml
+    # load_config() handles the injection automatically
     _cfg_check = load_config("config.yaml")
 
-    def _get_key(name: str) -> str:
-        """Get API key from Streamlit secrets first, fall back to config.yaml."""
-        try:
-            val = st.secrets.get(name, "")
-            if val and not val.startswith("YOUR_"):
-                return val
-        except Exception:
-            pass
-        return _cfg_check.get(name, "")
+    def _key_ok(k):
+        v = _cfg_check.get(k, "")
+        return bool(v and not str(v).startswith("YOUR_"))
 
-    _av_key = _get_key("alpha_vantage_key")
-    _fh_key = _get_key("finnhub_key")
-    _td_key = _get_key("twelve_data_key")
-    _ms_key = _get_key("marketstack_key")
-
-    _av_ok  = bool(_av_key and not _av_key.startswith("YOUR_"))
-    _fh_ok  = bool(_fh_key and not _fh_key.startswith("YOUR_"))
-    _td_ok  = bool(_td_key and not _td_key.startswith("YOUR_"))
-    _ms_ok  = bool(_ms_key and not _ms_key.startswith("YOUR_"))
+    _av_ok = _key_ok("alpha_vantage_key")
+    _fh_ok = _key_ok("finnhub_key")
+    _td_ok = _key_ok("twelve_data_key")
+    _ms_ok = _key_ok("marketstack_key")
 
     st.markdown("**API Status**")
-    st.markdown(f"{'🟢' if _av_ok else '🔴'} Alpha Vantage {'✓ Active' if _av_ok else '✗ Not set'}")
-    st.markdown(f"{'🟢' if _fh_ok else '🟡'} Finnhub {'✓ Active' if _fh_ok else '✗ Not set'}")
-    st.markdown(f"{'🟢' if _td_ok else '🟡'} Twelve Data {'✓ Active' if _td_ok else '✗ Not set'}")
-    st.markdown(f"{'🟢' if _ms_ok else '🟡'} Marketstack {'✓ Active' if _ms_ok else '✗ Not set'}")
+    st.markdown(f"{'🟢' if _av_ok else '🔴'} Alpha Vantage {'✓ EPS data'    if _av_ok else '✗ Not set'}")
+    st.markdown(f"{'🟢' if _td_ok else '🔴'} Twelve Data {'✓ Indicators'   if _td_ok else '✗ Not set'}")
+    st.markdown(f"{'🟢' if _ms_ok else '🟡'} MarketStack {'✓ Backup'       if _ms_ok else 'Optional'}")
+    st.markdown(f"{'🟢' if _fh_ok else '🟡'} Finnhub {'✓ News'            if _fh_ok else 'Optional'}")
+
+    if not _td_ok:
+        st.caption("Add twelve_data_key to Streamlit Secrets")
+    if not _ms_ok:
+        st.caption("Add marketstack_key to Streamlit Secrets")
 
     st.divider()
-    st.caption("Data: yfinance · Finnhub · Alpha Vantage · Twelve Data · Marketstack")
+    st.caption("Data: yfinance · Finnhub · Alpha Vantage")
     st.caption(f"Updated: {datetime.now().strftime('%H:%M:%S')}")
 
 st.markdown("""
@@ -529,6 +530,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 tabs = st.tabs([
+    "🌐 Universe Scanner",
     "🏆 Leaderboard",
     "📈 Chart Viewer",
     "🌍 Theme Heatmap",
@@ -608,10 +610,408 @@ if not df.empty:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 1 — LEADERBOARD
+# TAB 0 — UNIVERSE SCANNER
 # ══════════════════════════════════════════════════════════════════════════════
 
 with tabs[0]:
+    st.markdown("### 🌐 Universe Scanner")
+    st.caption(
+        "Scan the actual S&P 500, NASDAQ 100, Russell 2000 and more — "
+        "1500+ tickers automatically, all filtered through the full Apex Score engine."
+    )
+
+    cfg_u = load_config("config.yaml")
+
+    # ── Universe preset selector ───────────────────────────────────────────
+    preset_options = {
+        "custom":    "📋 Custom (config.yaml themes — 65 tickers)",
+        "nasdaq100": "🟢 NASDAQ 100 (~101 tickers, ~2 min)",
+        "sp500":     "🔵 S&P 500 (~503 tickers, ~11 min)",
+        "sp500+ndx": "🔵🟢 S&P 500 + NASDAQ 100 (~550, ~12 min)",
+        "large_cap": "🏦 Large Cap — SP500+NASDAQ+DOW (~550, ~12 min)",
+        "mid_cap":   "📊 Mid Cap — S&P 400 (~400 tickers, ~9 min)",
+        "broad":     "🌍 Broad — SP500+NASDAQ+SP400 (~900, ~20 min)",
+        "full":      "🌐 Full Universe — 2000+ tickers (~45 min, run overnight)",
+    }
+    current_preset = cfg_u.get("scan_universe", {}).get("preset", "custom")
+
+    uc1, uc2, uc3 = st.columns([3, 1, 1])
+    with uc1:
+        selected_preset = st.selectbox(
+            "Index Universe",
+            options=list(preset_options.keys()),
+            format_func=lambda x: preset_options[x],
+            index=list(preset_options.keys()).index(current_preset)
+                  if current_preset in preset_options else 0,
+            key="uni_preset",
+        )
+    with uc2:
+        max_scan_u = st.number_input(
+            "Max tickers", min_value=50, max_value=2500,
+            value=cfg_u.get("scan_universe", {}).get("max_tickers_per_scan", 500),
+            step=50, key="uni_max",
+            help="Limit scan size. 0 = scan all tickers in selected universe.",
+        )
+    with uc3:
+        min_uni_score = st.slider(
+            "Min Apex Score", 20, 80, 30, 5, key="uni_score",
+            help="Only stocks scoring above this threshold appear in results."
+        )
+
+    # ── Quality filters (Apex Score laws) ─────────────────────────────────
+    with st.expander("🔬 Quality Filters", expanded=False):
+        qf1, qf2, qf3 = st.columns(3)
+        with qf1:
+            st.markdown("**Stage & Trend**")
+            stage2_only = st.checkbox("Stage 2 uptrend only", value=True,
+                help="Price > MA50 > MA200. The only stage worth buying.")
+            min_rs = st.slider("Min RS vs S&P 500", 0, 200, 70, 10,
+                help="Relative Strength score. 100 = beating the market.")
+        with qf2:
+            st.markdown("**Momentum**")
+            min_3m_u = st.slider("Min 3-month return %", -20, 50, 10, 5)
+            min_vol_u = st.number_input("Min daily volume", value=500_000, step=100_000)
+        with qf3:
+            st.markdown("**Sector Filter**")
+            sector_options = [
+                "Information Technology", "Health Care", "Financials",
+                "Consumer Discretionary", "Communication Services",
+                "Industrials", "Consumer Staples", "Energy",
+                "Materials", "Real Estate", "Utilities",
+            ]
+            inc_sectors = st.multiselect(
+                "Include only (blank = all sectors)", sector_options,
+                default=[], key="uni_inc_sec"
+            )
+            exc_sectors = st.multiselect(
+                "Exclude sectors", sector_options,
+                default=["Utilities", "Consumer Staples"],
+                key="uni_exc_sec",
+                help="Typically exclude defensive sectors from momentum scans."
+            )
+
+        # Extra/exclude tickers
+        et1, et2 = st.columns(2)
+        with et1:
+            extra_tix_u = st.text_area(
+                "Always include these tickers (comma separated)",
+                placeholder="HIMS, RDDT, CAVA, SOUN",
+                key="uni_extra", height=70,
+            )
+        with et2:
+            excl_tix_u = st.text_area(
+                "Always exclude these tickers",
+                placeholder="BRK.A, BRK.B",
+                key="uni_excl", height=70,
+            )
+
+    # ── Action buttons ─────────────────────────────────────────────────────
+    btn1, btn2, btn3 = st.columns([2, 1, 1])
+    with btn1:
+        uni_scan_btn = st.button(
+            "🚀 Launch Universe Scan", use_container_width=True,
+            type="primary", key="uni_scan_btn"
+        )
+    with btn2:
+        preview_btn = st.button(
+            "👁 Preview Universe", use_container_width=True, key="uni_preview"
+        )
+    with btn3:
+        refresh_uni_btn = st.button(
+            "🔄 Refresh Index Data", use_container_width=True, key="uni_refresh"
+        )
+
+    # ── Refresh index cache ────────────────────────────────────────────────
+    if refresh_uni_btn:
+        if refresh_universe_cache_fn:
+            refresh_universe_cache_fn()
+            st.success("Index component cache cleared — next scan fetches fresh data.")
+        else:
+            st.warning("Universe module not loaded. Ensure modules/universe.py is in your repo.")
+
+    # ── Preview universe without scanning ─────────────────────────────────
+    if preview_btn:
+        if not build_universe_fn:
+            st.error("Universe module not loaded.")
+        else:
+            with st.spinner("Building universe component list…"):
+                extra_list = [t.strip().upper() for t in extra_tix_u.split(",") if t.strip()] if extra_tix_u else []
+                excl_list  = [t.strip().upper() for t in excl_tix_u.split(",")  if t.strip()] if excl_tix_u else []
+                uni_data = build_universe_fn(
+                    preset          = selected_preset,
+                    extra_tickers   = extra_list,
+                    exclude_tickers = excl_list,
+                    include_sectors = inc_sectors or None,
+                    exclude_sectors = exc_sectors or None,
+                )
+
+            if not uni_data:
+                st.warning("Could not build universe. Check internet connection.")
+            else:
+                stats = get_universe_stats_fn(uni_data) if get_universe_stats_fn else {}
+                pk1, pk2, pk3 = st.columns(3)
+                with pk1:
+                    st.markdown(f'<div class="metric-card"><h3>Total Tickers</h3>'
+                                f'<div class="value white">{stats.get("total",0)}</div></div>',
+                                unsafe_allow_html=True)
+                with pk2:
+                    by_idx = stats.get("by_index", {})
+                    idx_str = " · ".join(f"{k}: {v}" for k,v in list(by_idx.items())[:4])
+                    st.markdown(f'<div class="metric-card"><h3>By Index</h3>'
+                                f'<div style="font-size:0.8rem;color:#c9d1d9;">{idx_str}</div></div>',
+                                unsafe_allow_html=True)
+                with pk3:
+                    by_tier = stats.get("by_tier", {})
+                    tier_str = " · ".join(f"{k}: {v}" for k,v in by_tier.items())
+                    st.markdown(f'<div class="metric-card"><h3>By Cap Tier</h3>'
+                                f'<div style="font-size:0.8rem;color:#c9d1d9;">{tier_str}</div></div>',
+                                unsafe_allow_html=True)
+
+                # Sector breakdown
+                by_sec = stats.get("by_sector", {})
+                if by_sec:
+                    fig_uni = go.Figure(go.Bar(
+                        x=list(by_sec.values()), y=list(by_sec.keys()),
+                        orientation="h", marker_color="#388bfd",
+                    ))
+                    fig_uni.update_layout(
+                        title="Tickers by GICS Sector",
+                        paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
+                        font_color="#e6edf3", height=340,
+                        xaxis=dict(gridcolor="#21262d"),
+                        yaxis=dict(autorange="reversed", gridcolor="#21262d"),
+                        margin=dict(l=10, r=10, t=40, b=10),
+                    )
+                    st.plotly_chart(fig_uni, use_container_width=True)
+
+                st.markdown(f"**Sample** (first 30 of {len(uni_data)} tickers):")
+                cols_show = [c for c in ["ticker","name","sector","index","market_cap_tier"]
+                             if c in pd.DataFrame(uni_data[:1]).columns]
+                st.dataframe(pd.DataFrame(uni_data[:30]), use_container_width=True,
+                             hide_index=True, height=320)
+
+    # ── Universe scan execution ────────────────────────────────────────────
+    elif uni_scan_btn:
+        if not build_universe_fn:
+            st.error("Universe module not loaded. Ensure modules/universe.py exists in your repo.")
+        else:
+            # Build universe
+            with st.spinner("Fetching index components…"):
+                extra_list = [t.strip().upper() for t in extra_tix_u.split(",") if t.strip()] if extra_tix_u else []
+                excl_list  = [t.strip().upper() for t in excl_tix_u.split(",")  if t.strip()] if excl_tix_u else []
+                uni_data = build_universe_fn(
+                    preset          = selected_preset,
+                    extra_tickers   = extra_list,
+                    exclude_tickers = excl_list,
+                    include_sectors = inc_sectors or None,
+                    exclude_sectors = exc_sectors or None,
+                )
+                if max_scan_u and max_scan_u > 0:
+                    uni_data = uni_data[:int(max_scan_u)]
+
+            total_u   = len(uni_data)
+            est_mins  = round(total_u * 1.4 / 60, 1)
+
+            st.info(f"🚀 Scanning **{total_u} tickers** through the full Apex Score engine. "
+                    f"Estimated time: **{est_mins} minutes**. "
+                    f"Each ticker runs all 4 signal layers: Momentum → Order Flow → VWAP → Price Action.")
+
+            prog = st.progress(0, text="Initialising…")
+            status_txt = st.empty()
+
+            # Override config with UI quality filters
+            cfg_scan = load_config("config.yaml")
+            cfg_scan["thresholds"]["us"]["score_filter"]  = int(min_uni_score)
+            cfg_scan["thresholds"]["us"]["min_volume"]    = int(min_vol_u)
+            cfg_scan["thresholds"]["us"]["min_3m_perf"]   = int(min_3m_u)
+            cfg_scan["thresholds"]["us"]["rs_rating_min"] = int(min_rs)
+
+            all_results = []
+            CHUNK = 50   # scan in chunks of 50 so progress updates live
+
+            try:
+                for start in range(0, total_u, CHUNK):
+                    chunk = uni_data[start : start + CHUNK]
+                    done  = min(start + CHUNK, total_u)
+                    pct   = done / total_u
+                    prog.progress(pct, text=f"Scanning {done}/{total_u} tickers…")
+                    status_txt.markdown(
+                        f"**{len(all_results)} setups found** so far | "
+                        f"Scanning {start+1}–{done} of {total_u} "
+                        f"(Stage 2 only: {'✅' if stage2_only else '❌'} | "
+                        f"Min RS: {min_rs} | Min 3m: {min_3m_u}%)"
+                    )
+
+                    chunk_df = run_scan(cfg_scan, universe_override=chunk)
+
+                    if not chunk_df.empty:
+                        # Apply Stage 2 filter if requested
+                        if stage2_only and "stage" in chunk_df.columns:
+                            chunk_df = chunk_df[
+                                chunk_df["stage"].str.contains("2 ✅", na=False)
+                            ]
+                        # Apply RS filter
+                        if "rs_3m" in chunk_df.columns:
+                            chunk_df = chunk_df[
+                                pd.to_numeric(chunk_df["rs_3m"], errors="coerce")
+                                >= min_rs
+                            ]
+                        if not chunk_df.empty:
+                            all_results.append(chunk_df)
+
+                prog.empty()
+                status_txt.empty()
+
+                if all_results:
+                    final_df = pd.concat(all_results, ignore_index=True)
+                    final_df = final_df.sort_values(
+                        "apex_score", ascending=False
+                    ).reset_index(drop=True)
+                    final_df.index += 1
+                    final_df.index.name = "rank"
+
+                    # Save to reports
+                    save_report(final_df)
+                    # Store in session state for Leaderboard tab
+                    st.session_state["uni_result"]      = final_df
+                    st.session_state["uni_result_time"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+                    st.success(
+                        f"✅ **{len(final_df)} high-quality setups** found from "
+                        f"{total_u} tickers. "
+                        f"Switch to the 🏆 Leaderboard tab to explore results."
+                    )
+
+                    # KPI row
+                    rk1,rk2,rk3,rk4,rk5 = st.columns(5)
+                    with rk1:
+                        st.markdown(f'<div class="metric-card"><h3>Setups Found</h3>'
+                                    f'<div class="value green">{len(final_df)}</div>'
+                                    f'<div style="color:#8b949e;font-size:.75rem;">of {total_u} scanned</div>'
+                                    f'</div>', unsafe_allow_html=True)
+                    with rk2:
+                        bo_u = int((final_df.get("breaking_out", pd.Series([False]*len(final_df))) == True).sum()) if "breaking_out" in final_df.columns else 0
+                        st.markdown(f'<div class="metric-card"><h3>Active Breakouts</h3>'
+                                    f'<div class="value amber">{bo_u}</div></div>',
+                                    unsafe_allow_html=True)
+                    with rk3:
+                        top_s = pd.to_numeric(final_df.get("apex_score", pd.Series()), errors="coerce").max()
+                        st.markdown(f'<div class="metric-card"><h3>Top Apex Score</h3>'
+                                    f'<div class="value green">{top_s:.0f}</div></div>',
+                                    unsafe_allow_html=True)
+                    with rk4:
+                        sfp_u = final_df["pa_sfp"].notna().sum() if "pa_sfp" in final_df.columns else 0
+                        st.markdown(f'<div class="metric-card"><h3>SFP Setups</h3>'
+                                    f'<div class="value blue">{sfp_u}</div></div>',
+                                    unsafe_allow_html=True)
+                    with rk5:
+                        sec_u = final_df["gics_sector"].nunique() if "gics_sector" in final_df.columns else 0
+                        st.markdown(f'<div class="metric-card"><h3>Sectors Represented</h3>'
+                                    f'<div class="value white">{sec_u}</div></div>',
+                                    unsafe_allow_html=True)
+
+                    # Top 15 preview table
+                    st.markdown("---")
+                    st.markdown("#### Top 15 Setups")
+                    preview_c = [c for c in [
+                        "ticker","company_name","gics_sector","index","price",
+                        "stage","perf_3m_%","rs_3m","of_bias","vwap_position",
+                        "pa_patterns","pattern","apex_score"
+                    ] if c in final_df.columns]
+
+                    disp_u = final_df[preview_c].head(15).copy()
+                    for col in ["apex_score","perf_3m_%","rs_3m"]:
+                        if col in disp_u.columns:
+                            disp_u[col] = pd.to_numeric(disp_u[col], errors="coerce")
+
+                    styled_u = disp_u.style \
+                        .map(color_score, subset=["apex_score"]) \
+                        .map(color_perf,  subset=["perf_3m_%"] if "perf_3m_%" in disp_u.columns else []) \
+                        .map(color_rs,    subset=["rs_3m"]     if "rs_3m"     in disp_u.columns else []) \
+                        .format({
+                            "price":      "${:.2f}",
+                            "perf_3m_%":  pct_fmt,
+                            "rs_3m":      lambda v: f"{v:.0f}" if pd.notna(v) and v != 0 else "–",
+                            "apex_score": "{:.0f}",
+                        }, na_rep="–")
+                    st.dataframe(styled_u, use_container_width=True, height=460)
+
+                    st.download_button(
+                        "⬇ Download Full Results CSV",
+                        final_df.to_csv().encode("utf-8"),
+                        file_name=f"apexscan_universe_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                        mime="text/csv",
+                    )
+                else:
+                    st.warning(
+                        f"No setups passed the quality filters from {total_u} tickers. "
+                        f"Try: lowering Min Apex Score below {min_uni_score}, "
+                        f"reducing Min RS below {min_rs}, or unchecking 'Stage 2 only'."
+                    )
+
+            except Exception as scan_err:
+                prog.empty()
+                st.error(f"Scan error: {scan_err}")
+                import traceback as _tb
+                st.code(_tb.format_exc())
+
+    else:
+        # Default info panel
+        st.markdown("""
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;
+                    padding:28px 32px;">
+          <h3 style="color:#e6edf3;margin:0 0 16px 0;">
+            From 65 tickers to 2000+ — same rigorous Apex Score engine
+          </h3>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;
+                      color:#c9d1d9;font-size:0.9rem;line-height:1.9;">
+            <div>
+              <div style="color:#388bfd;font-weight:700;margin-bottom:4px;">
+                📡 Auto-fetches real index components
+              </div>
+              S&P 500, NASDAQ 100, and Russell 2000 components are pulled
+              automatically from Wikipedia and iShares ETF holdings.
+              No manual ticker lists. Always current.<br><br>
+              <div style="color:#388bfd;font-weight:700;margin-bottom:4px;">
+                🔬 Same quality laws — no compromise
+              </div>
+              Every ticker runs the full Apex Score: momentum, relative strength,
+              stage analysis, order flow persistence, VWAP position, and
+              price action patterns. A stock with 500 RS from a mid-cap
+              is worth more than a large-cap with RS of 70.
+            </div>
+            <div>
+              <div style="color:#388bfd;font-weight:700;margin-bottom:4px;">
+                🎯 Quality filters built-in
+              </div>
+              Stage 2 only filter ensures you only see confirmed uptrends.
+              RS minimum ensures you only see market leaders.
+              Sector exclusions let you focus on growth-oriented sectors.<br><br>
+              <div style="color:#388bfd;font-weight:700;margin-bottom:4px;">
+                ⏱ Timing guide
+              </div>
+              NASDAQ 100 = 2 min | S&P 500 = 11 min<br>
+              Broad (900) = 20 min | Full (2000+) = 45 min<br>
+              Run the full universe overnight using scheduler.py
+            </div>
+          </div>
+          <div style="margin-top:20px;padding:14px;background:#0d1117;
+                      border-radius:8px;color:#8b949e;font-size:0.85rem;">
+            💡 <b>Recommended starting point:</b> Select <b>S&P 500</b>,
+            keep Stage 2 only ✅, Min RS 70, Min 3m return 10%.
+            This gives you the highest-quality setups from the 503 most
+            liquid US stocks — typically 20–60 results that genuinely qualify.
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 1 — LEADERBOARD
+# ══════════════════════════════════════════════════════════════════════════════
+
+with tabs[1]:
+
     if df.empty:
         st.info("Click **🚀 Run Live Scan** or **📂 Load Last Report** in the sidebar.")
     else:
@@ -680,7 +1080,7 @@ with tabs[0]:
                 df_filtered = df_filtered[mcap_num >= 10_000_000_000]
 
         # Column view toggle
-        col_view = st.radio("Column View", ["Standard", "Order Flow", "VWAP & Structure", "Price Action", "Fundamentals"], horizontal=True)
+        col_view = st.radio("Column View", ["Standard", "Order Flow", "VWAP & Structure", "Price Action", "Fundamentals", "Indicators"], horizontal=True)
 
         if col_view == "Standard":
             want = ["ticker","theme","price","mcap_category","stage",
@@ -699,11 +1099,16 @@ with tabs[0]:
             want = ["ticker","price","pa_patterns","pa_engulfing","pa_sfp",
                     "pa_inside_day","pa_context","pa_score",
                     "of_bias","vwap_position","apex_score"]
-        else:  # Fundamentals
+        elif col_view == "Fundamentals":
             want = ["ticker","price","earn_momentum",
                     "eps_growth_%","eps_surprise_%","eps_accel",
                     "consec_beats","rev_growth_%","eps_score",
                     "analyst_target","pe_ratio","peg_ratio","apex_score"]
+        else:  # Indicators (Twelve Data)
+            want = ["ticker","price",
+                    "td_rsi","td_macd_bull","td_macd_cross","td_macd_momentum",
+                    "td_bb_squeeze","td_bb_position","td_bb_pct_b",
+                    "td_adx","td_trend_strength","td_score","apex_score"]
 
         show_cols = [c for c in want if c in df_filtered.columns]
         disp = df_filtered[show_cols].head(30).copy()
@@ -750,6 +1155,11 @@ with tabs[0]:
             "vwap": "${:.2f}",
             "ms_swing_high": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
             "ms_swing_low":  lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+            # Twelve Data indicators
+            "td_rsi":         lambda v: f"{v:.1f}" if pd.notna(v) else "–",
+            "td_adx":         lambda v: f"{v:.1f}" if pd.notna(v) else "–",
+            "td_bb_pct_b":    lambda v: f"{v:.0f}%" if pd.notna(v) else "–",
+            "td_score":       lambda v: f"{v}/10" if pd.notna(v) else "–",
             # AV fundamentals
             "eps_growth_%":   lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
             "eps_surprise_%": lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
@@ -929,7 +1339,7 @@ with tabs[0]:
 # TAB 2 — CHART VIEWER
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[1]:
+with tabs[2]:
     st.markdown("### 📈 Price Chart + Moving Averages + VWAP")
     ticker_opts = df["ticker"].tolist() if not df.empty else ["NVDA","AAPL","TSM","ASML"]
     ca, cb, cc = st.columns([2, 1, 1])
@@ -1007,8 +1417,7 @@ with tabs[1]:
             if not df.empty and sel in df["ticker"].values:
                 row_data = df[df["ticker"] == sel].iloc[0]
                 pa = row_data.get("pa_patterns", "")
-                pa = "" if pa is None or str(pa).lower() in ["nan","none",""] else str(pa)
-                if pa:
+                if pa and pa != "None":
                     last_date  = hist_vwap.index[-1]
                     last_price = hist_vwap["High"].iloc[-1]
                     fig2.add_annotation(
@@ -1046,18 +1455,18 @@ with tabs[1]:
                 s5.metric("ADR %",      f"{float(row_data.get('adr_%',0)):.1f}%")
                 # Row 2: new metrics
                 n1,n2,n3,n4,n5 = st.columns(5)
-                n1.metric("Order Flow",   safe_str(row_data.get("of_bias")))
-                n2.metric("VWAP Position",safe_str(row_data.get("vwap_position")))
+                n1.metric("Order Flow",   str(row_data.get("of_bias","–")))
+                n2.metric("VWAP Position",str(row_data.get("vwap_position","–")))
                 n3.metric("vs VWAP",      pct_fmt(row_data.get("vs_vwap_%",0)))
-                n4.metric("Structure",    safe_str(row_data.get("ms_structure")))
-                n5.metric("PA Patterns",  safe_str(row_data.get("pa_patterns"), default="None", max_len=30))
+                n4.metric("Structure",    str(row_data.get("ms_structure","–")))
+                n5.metric("PA Patterns",  str(row_data.get("pa_patterns","None"))[:30])
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — THEME HEATMAP
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[2]:
+with tabs[3]:
     st.markdown("### 🌍 Theme Rotation Heatmap")
     if df.empty:
         st.info("Run a scan first.")
@@ -1165,7 +1574,7 @@ with tabs[2]:
                 st.plotly_chart(fig_gems, use_container_width=True)
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[3]:
+with tabs[4]:
     st.markdown("### 💼 Portfolio Tracker")
     st.caption("Your holdings are saved locally in data/portfolio.json")
 
@@ -1315,7 +1724,7 @@ with tabs[3]:
 # TAB 5 — EARNINGS CALENDAR
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[4]:
+with tabs[5]:
     st.markdown("### 📅 Earnings Calendar")
     st.caption("Tracks upcoming earnings for your watchlist. Data from yfinance — may not cover all tickers.")
 
@@ -1430,7 +1839,7 @@ with tabs[4]:
 # TAB 6 — SECTOR ROTATION
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[5]:
+with tabs[6]:
     st.markdown("### 🔄 Sector Rotation Dashboard")
     st.caption("Tracks US sector ETF performance to show where institutional money is flowing.")
 
@@ -1527,7 +1936,7 @@ with tabs[5]:
 # TAB 7 — STOCK DEEP DIVE
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[6]:
+with tabs[7]:
     st.markdown("### 🔍 Stock Deep Dive")
     st.caption("Analyse any US stock — same scoring engine as the live scan.")
 
@@ -1658,9 +2067,9 @@ with tabs[6]:
 
             # ── KPI row 7: Price Action Patterns (NEW) ───────────────────
             st.markdown("#### 🕯 Price Action Patterns")
-            pa_patterns = safe_str(result.get("pa_patterns"), default="None")
+            pa_patterns = result.get("pa_patterns","None")
             if pa_patterns and pa_patterns != "None":
-                pa_list = [p.strip() for p in pa_patterns.split("|") if p.strip()]
+                pa_list = [p.strip() for p in pa_patterns.split("|")]
                 pa_cols = st.columns(min(len(pa_list),4))
                 pa_colors = {
                     "Bullish SFP (Bear Trap)":  "#3fb950",
@@ -1772,6 +2181,96 @@ with tabs[6]:
                     target_color = "alert-box" if upside > 10 else ("warn-box" if upside > 0 else "danger-box")
                     st.markdown(f'<div class="{target_color}">📍 <b>Analyst Target:</b> ${analyst_t:.2f} '
                                 f'= <b>{upside:+.1f}% upside</b> from current price ${result["price"]:.2f}</div>',
+                                unsafe_allow_html=True)
+
+            st.markdown("---")
+
+            # ── Twelve Data Indicators ────────────────────────────────────
+            td_rsi   = result.get("td_rsi")
+            td_adx   = result.get("td_adx")
+            td_macd_b= result.get("td_macd_bull")
+            td_macd_c= result.get("td_macd_cross")
+            td_bb_sq = result.get("td_bb_squeeze")
+            td_bb_p  = result.get("td_bb_position","–")
+            td_bb_pctb=result.get("td_bb_pct_b")
+            td_tstr  = result.get("td_trend_strength","–")
+            td_sc    = result.get("td_score", 0)
+            td_sigs  = result.get("td_signals", [])
+
+            if td_rsi is None and td_adx is None:
+                st.markdown('<div class="warn-box">⚠️ <b>Twelve Data not active</b> — '
+                            'add your key to config.yaml under <code>twelve_data_key</code> '
+                            'for real RSI, MACD, Bollinger Bands and ADX data.</div>',
+                            unsafe_allow_html=True)
+            else:
+                st.markdown("#### 📡 Technical Indicators (Twelve Data)")
+                ti1,ti2,ti3,ti4,ti5 = st.columns(5)
+
+                # RSI
+                rsi_color = "#d29922" if td_rsi and td_rsi > 70 else ("#f85149" if td_rsi and td_rsi < 30 else "#3fb950")
+                ti1.markdown(f'<div class="metric-card"><h3>RSI (14)</h3>'
+                             f'<div class="value" style="color:{rsi_color};">{td_rsi:.1f if td_rsi else "–"}</div>'
+                             f'<div style="color:#8b949e;font-size:.75rem;">'
+                             f'{"Overbought" if td_rsi and td_rsi>70 else "Oversold" if td_rsi and td_rsi<30 else "Healthy range"}'
+                             f'</div></div>', unsafe_allow_html=True)
+
+                # MACD
+                macd_color = "#3fb950" if td_macd_b else "#f85149"
+                macd_label = "🚀 Crossover!" if td_macd_c else ("Bullish" if td_macd_b else "Bearish")
+                ti2.markdown(f'<div class="metric-card"><h3>MACD</h3>'
+                             f'<div class="value" style="color:{macd_color};">{macd_label}</div>'
+                             f'<div style="color:#8b949e;font-size:.75rem;">{result.get("td_macd_momentum","–")}</div>'
+                             f'</div>', unsafe_allow_html=True)
+
+                # Bollinger Bands
+                bb_color = "#d29922" if td_bb_sq else "#8b949e"
+                ti3.markdown(f'<div class="metric-card"><h3>BB Squeeze</h3>'
+                             f'<div class="value" style="color:{bb_color};">{"🔄 YES" if td_bb_sq else "No"}</div>'
+                             f'<div style="color:#8b949e;font-size:.75rem;">{td_bb_p}</div>'
+                             f'</div>', unsafe_allow_html=True)
+
+                # BB %B
+                bb_pct_color = "#3fb950" if td_bb_pctb and td_bb_pctb > 60 else "#f85149" if td_bb_pctb and td_bb_pctb < 20 else "#8b949e"
+                ti4.markdown(f'<div class="metric-card"><h3>BB %B</h3>'
+                             f'<div class="value" style="color:{bb_pct_color};">{f"{td_bb_pctb:.0f}%" if td_bb_pctb is not None else "–"}</div>'
+                             f'<div style="color:#8b949e;font-size:.75rem;">0=lower 100=upper</div>'
+                             f'</div>', unsafe_allow_html=True)
+
+                # ADX
+                adx_color = "#3fb950" if td_adx and td_adx > 25 else "#8b949e"
+                ti5.markdown(f'<div class="metric-card"><h3>ADX</h3>'
+                             f'<div class="value" style="color:{adx_color};">{f"{td_adx:.1f}" if td_adx else "–"}</div>'
+                             f'<div style="color:#8b949e;font-size:.75rem;">{td_tstr}</div>'
+                             f'</div>', unsafe_allow_html=True)
+
+                # TD signals list
+                if td_sigs:
+                    sigs_html = " &nbsp;|&nbsp; ".join(td_sigs)
+                    st.markdown(
+                        f'<div style="background:#161b22;border:1px solid #30363d;'
+                        f'border-radius:8px;padding:10px 16px;margin-top:6px;font-size:0.85rem;color:#c9d1d9;">'
+                        f'📡 <b>TD Signals:</b> {sigs_html} &nbsp; '
+                        f'<span style="color:#8b949e;">TD Score: {td_sc}/10</span></div>',
+                        unsafe_allow_html=True
+                    )
+
+                # BB Squeeze interpretation
+                if td_bb_sq:
+                    st.markdown('<div class="warn-box">🔄 <b>Bollinger Band Squeeze detected:</b> '
+                                'The bands are narrowing — this is compression before a significant '
+                                'directional move. Combined with volume and price action signals, '
+                                'this can precede powerful breakouts.</div>',
+                                unsafe_allow_html=True)
+                if td_macd_c:
+                    st.markdown('<div class="alert-box">🚀 <b>MACD Crossover:</b> '
+                                'The MACD line crossed above the signal line — '
+                                'a classic momentum buy signal. Most reliable when '
+                                'combined with Stage 2 and price above VWAP.</div>',
+                                unsafe_allow_html=True)
+                if td_rsi and td_rsi > 70:
+                    st.markdown(f'<div class="warn-box">⚡ <b>RSI {td_rsi:.0f} — Overbought:</b> '
+                                f'Strong momentum but extended. In powerful uptrends RSI can stay '
+                                f'overbought for weeks — but be cautious chasing at these levels.</div>',
                                 unsafe_allow_html=True)
 
             st.markdown("---")
@@ -1898,7 +2397,7 @@ with tabs[6]:
 # TAB 8 — OPTIONS FLOW
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[7]:
+with tabs[8]:
     st.markdown("### 🎯 Options Flow Scanner")
     st.caption("Scans for unusual options activity — large bets placed by smart money via yfinance options chain.")
 
@@ -1978,7 +2477,7 @@ with tabs[7]:
 # TAB 9 — INSIDER TRACKER
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[8]:
+with tabs[9]:
     st.markdown("### 🕵️ Insider Trading Tracker")
     st.caption("SEC Form 4 filings via OpenInsider — when executives buy their own stock, pay attention.")
 
@@ -2047,7 +2546,7 @@ with tabs[8]:
 # TAB 10 — DIVIDEND REINVESTMENT CALCULATOR
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[9]:
+with tabs[10]:
     st.markdown("### 📊 Dividend Reinvestment Calculator (DRIP)")
     st.caption("Shows the compounding power of reinvesting dividends over time.")
 
@@ -2185,7 +2684,7 @@ with tabs[9]:
 # TAB 11 — BACKTESTER
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[10]:
+with tabs[11]:
     st.markdown("### ⏱ Strategy Backtester")
     st.caption("Test the Apex Score strategy on historical data. Did it work? By how much?")
 
@@ -2300,7 +2799,7 @@ with tabs[10]:
 # TAB 12 — RISK CALCULATOR
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[11]:
+with tabs[12]:
     st.markdown("### ⚖️ Position Size & Risk Calculator")
     st.caption("Never risk more than 1–2% of your account on any single trade. This calculator tells you exactly how many shares to buy.")
 
@@ -2434,7 +2933,7 @@ with tabs[11]:
 # TAB 13 — AI DAILY BRIEFING
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[12]:
+with tabs[13]:
     st.markdown("### 🤖 AI Daily Briefing")
     st.caption("Claude reads your scan results and writes a plain-English morning briefing — like having a research analyst on call.")
 
@@ -2539,7 +3038,7 @@ with tabs[12]:
 # TAB 14 — WATCHLIST MANAGER
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[13]:
+with tabs[14]:
     st.markdown("### 📋 Watchlist Manager")
     st.caption("Save named watchlists and scan each one independently. Your lists persist between sessions.")
 
@@ -2695,7 +3194,7 @@ with tabs[13]:
 # TAB 15 — ALERT SETTINGS
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[14]:
+with tabs[15]:
     st.markdown("### 🔔 Alert Settings")
     st.caption("Configure Telegram and Email alerts. Both work simultaneously — alerts fire automatically after every scan.")
 
@@ -2884,7 +3383,7 @@ with tabs[14]:
 # TAB 16 — INTERPRETATION
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[15]:
+with tabs[16]:
     st.markdown("### 🧠 Scan Interpretation")
     st.caption("Plain-English breakdown of your scan results across all four signal views.")
 
@@ -3456,7 +3955,7 @@ with tabs[15]:
                     st.markdown("#### Price Action Per Stock")
                     for _, row in interp_df.head(15).iterrows():
                         tk       = row["ticker"]
-                        pa_str   = safe_str(row.get("pa_patterns"), default="None")
+                        pa_str   = str(row.get("pa_patterns","None"))
                         pa_sc    = int(row.get("pa_score",0) or 0)
                         price_v  = float(row.get("price",0))
 
@@ -3467,7 +3966,7 @@ with tabs[15]:
                                       f'<span style="color:#8b949e;font-size:0.85rem;">No significant PA pattern on last candle — '
                                       f'check again after tomorrow\'s session.</span></div>')
                         else:
-                            patterns_found = [p.strip() for p in pa_str.split("|") if p.strip()]
+                            patterns_found = [p.strip() for p in pa_str.split("|")]
                             readings = []
                             for p in patterns_found:
                                 if p in pa_explanations:
@@ -3485,7 +3984,7 @@ with tabs[15]:
 
                 else:
                     row    = interp_df.iloc[0]
-                    pa_str = safe_str(row.get("pa_patterns"), default="None")
+                    pa_str = str(row.get("pa_patterns","None"))
                     pa_sc  = int(row.get("pa_score",0) or 0)
 
                     if pa_str == "None" or not pa_str:
@@ -3499,7 +3998,7 @@ with tabs[15]:
                         </div>
                         """, unsafe_allow_html=True)
                     else:
-                        patterns_found = [p.strip() for p in pa_str.split("|") if p.strip()]
+                        patterns_found = [p.strip() for p in pa_str.split("|")]
                         for p in patterns_found:
                             if p in pa_explanations:
                                 c, name, expl = pa_explanations[p]
@@ -3781,7 +4280,7 @@ with tabs[15]:
 # TAB 17 — GUIDE
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[16]:
+with tabs[17]:
     st.markdown("""
 ### 📖 How to Use ApexScan — Complete Guide
 
