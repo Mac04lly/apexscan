@@ -2,10 +2,30 @@
 # ApexScan Config — US Market Only
 # ====================================================
 
-finnhub_key: "YOUR_FINNHUB_FREE_KEY_HERE"         # Get free at finnhub.io
+finnhub_key: "YOUR_FINNHUB_FREE_KEY_HERE"        # Get free at finnhub.io
 alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE"  # alphavantage.co
-twelve_data_key: "YOUR_TWELVE_DATA_KEY_HERE"       # twelvedata.com (800 req/day free)
-marketstack_key: "YOUR_MARKETSTACK_KEY_HERE"       # marketstack.com (100 req/month free)
+twelve_data_key: "YOUR_TWELVE_DATA_KEY_HERE"      # twelvedata.com (800 credits/day free)
+marketstack_key: "YOUR_MARKETSTACK_KEY_HERE"      # marketstack.com (100 calls/month free)
+
+# ---- TWELVE DATA SETTINGS ----
+twelve_data:
+  # Free tier: 800 credits/day, 8 requests/minute
+  # 4 credits per ticker (RSI + MACD + BBands + ADX)
+  # Max tickers per scan on free tier: 800 / 4 = 200 tickers
+  cache_hours: 4               # cache indicators for 4 hours (intraday relevance)
+  max_tickers_per_scan: 15     # enrich top N tickers with TD indicators
+  rate_limit_pause: 8          # seconds between TD calls (8 req/min free)
+  enabled: true
+
+# ---- MARKETSTACK SETTINGS ----
+marketstack:
+  # Free tier: 100 API calls/MONTH — use very sparingly
+  # Primary use: price verification backup + dividends
+  cache_hours: 24              # cache EOD data for 24 hours
+  use_as_backup: true          # use MS when yfinance returns stale/empty data
+  verify_prices: false         # cross-check yfinance prices (uses extra calls)
+  fetch_dividends: true        # fetch dividend history for portfolio stocks
+  enabled: true
 
 # ---- ALPHA VANTAGE SETTINGS ----
 alpha_vantage:
@@ -123,6 +143,63 @@ scan:
   min_history_bars: 100
   report_top_n: 20
 
+# ---- UNIVERSE SCANNER SETTINGS ----
+# Controls which stocks get scanned — replaces the manual us_themes watchlist
+# Set preset to "custom" to use the us_themes list below instead
+scan_universe:
+  # PRESET OPTIONS:
+  # "custom"      — use us_themes in this file (current behaviour, 65 tickers)
+  # "sp500"       — S&P 500 only (~503 tickers)
+  # "nasdaq100"   — NASDAQ 100 only (~101 tickers)
+  # "sp500+ndx"   — S&P 500 + NASDAQ 100 (~550 unique)
+  # "large_cap"   — S&P 500 + NASDAQ + DOW (~550 unique)
+  # "mid_cap"     — S&P 400 Mid-Cap (~400 tickers)
+  # "broad"       — S&P 500 + NASDAQ + S&P 400 (~900 tickers)
+  # "full"        — All: SP500 + NASDAQ + SP400 + Russell2000 (~2000+ tickers)
+  preset: "sp500"
+
+  # Speed control — how many tickers to scan per session
+  # 0 = no limit (scan everything in the preset)
+  # Recommended: 500 for daily scans, 0 overnight
+  max_tickers_per_scan: 500
+
+  # Batch size — tickers per batch before a longer pause (prevents rate-limiting)
+  batch_size: 50
+
+  # Cache how long to store index component lists (hours)
+  # 24h = refresh daily (components rarely change)
+  universe_cache_hours: 24
+
+  # Price filter — skip penny stocks and ultra-high priced stocks
+  min_price: 5.0
+  max_price: 99999.0
+
+  # Volume filter override for large universe scanning
+  # (config thresholds.us.min_volume still applies as final filter)
+
+  # Sector filter — leave empty to include ALL sectors
+  # Example: ["Information Technology", "Health Care", "Consumer Discretionary"]
+  include_sectors: []
+
+  # Sectors to always exclude
+  exclude_sectors: []
+
+  # Market cap tier filter — leave empty for all
+  # Options: "large", "mid", "small"
+  market_cap_tiers: []
+
+  # Extra tickers to always include (appended to preset)
+  extra_tickers:
+    - HIMS
+    - RDDT
+    - CAVA
+    - SOUN
+    - ASTS
+
+  # Tickers to always exclude
+  exclude_tickers:
+    - BRK.A    # price too high, distorts filters
+
 # ---- ADVANCED SIGNAL THRESHOLDS ----
 advanced:
   # Order Flow Persistence
@@ -165,27 +242,3 @@ emerging_gems:
   alerts:
     gems_breakout: true
     gems_flow: true
-
-# ---- TWELVE DATA SETTINGS ----
-twelve_data:
-  cache_hours: 4              # cache indicators for 4 hours
-  rate_limit_pause: 8         # seconds between calls (free: 8/min)
-  max_calls_per_session: 50   # safety cap per scan session
-  indicators:
-    rsi_period: 14
-    macd_fast: 12
-    macd_slow: 26
-    macd_signal: 9
-    bbands_period: 20
-    bbands_std: 2.0
-  # Which tabs use Twelve Data (to control quota usage)
-  use_for_realtime_quotes: true
-  use_for_chart_indicators: true
-  use_for_earnings_calendar: true
-  use_for_deep_dive: true
-
-# ---- MARKETSTACK SETTINGS ----
-marketstack:
-  cache_hours: 168            # 7 days — protect 100 req/month quota
-  use_as_yfinance_fallback: true
-  max_calls_per_month: 90     # stay under 100 limit
