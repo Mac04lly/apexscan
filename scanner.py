@@ -41,70 +41,21 @@ def load_config(path: str = "config.yaml") -> dict:
         cfg = yaml.safe_load(f)
 
     # Override with Streamlit secrets when running on Streamlit Cloud
-    # This covers ALL API keys so the sidebar status check works correctly
     try:
         import streamlit as st
         if hasattr(st, "secrets") and st.secrets:
-            key_map = {
-                "alpha_vantage_key": "alpha_vantage_key",
-                "finnhub_key":       "finnhub_key",
-                "twelve_data_key":   "twelve_data_key",
-                "marketstack_key":   "marketstack_key",
-                "anthropic_api_key": "anthropic_api_key",
-            }
-            for secret_name, cfg_key in key_map.items():
-                if secret_name in st.secrets:
-                    cfg[cfg_key] = st.secrets[secret_name]
+            if "alpha_vantage_key" in st.secrets:
+                cfg["alpha_vantage_key"] = st.secrets["alpha_vantage_key"]
+            if "finnhub_key" in st.secrets:
+                cfg["finnhub_key"] = st.secrets["finnhub_key"]
     except Exception:
-        pass  # Not in Streamlit context — use config.yaml values
+        pass  # Not running in Streamlit context (e.g. CLI), use config.yaml only
 
     return cfg
 
 
 def build_watchlist(cfg: dict) -> List[str]:
-    """Legacy: returns tickers from config.yaml us_themes (used as fallback)."""
     return list(set(t for theme in cfg["us_themes"].values() for t in theme))
-
-
-def build_universe_tickers(cfg: dict) -> List[Dict]:
-    """
-    Build the full ticker universe based on config scan_universe settings.
-    Falls back to config.yaml watchlist if universe module unavailable.
-    Returns list of {ticker, name, sector, index, market_cap_tier, theme} dicts.
-    """
-    scan_cfg = cfg.get("scan_universe", {})
-    preset   = scan_cfg.get("preset", "custom")
-
-    # Custom preset = use config.yaml themes (legacy behaviour)
-    if preset == "custom" or not scan_cfg:
-        tickers = build_watchlist(cfg)
-        return [{"ticker": t, "name": t, "sector": "",
-                 "index": "CUSTOM", "market_cap_tier": "unknown",
-                 "theme": next((k for k, v in cfg["us_themes"].items() if t in v), "other")}
-                for t in tickers]
-
-    try:
-        from modules.universe import build_universe
-        universe = build_universe(
-            preset           = preset,
-            extra_tickers    = scan_cfg.get("extra_tickers", []),
-            exclude_tickers  = scan_cfg.get("exclude_tickers", []),
-            min_price        = scan_cfg.get("min_price", 5.0),
-            max_price        = scan_cfg.get("max_price", 99999.0),
-            include_sectors  = scan_cfg.get("include_sectors") or None,
-            exclude_sectors  = scan_cfg.get("exclude_sectors") or None,
-            market_cap_tiers = scan_cfg.get("market_cap_tiers") or None,
-            cache_hours      = scan_cfg.get("universe_cache_hours", 24),
-        )
-        log.info(f"Universe: {len(universe)} tickers from preset='{preset}'")
-        return universe
-    except Exception as e:
-        log.warning(f"Universe build failed ({e}), falling back to config watchlist")
-        tickers = build_watchlist(cfg)
-        return [{"ticker": t, "name": t, "sector": "",
-                 "index": "CUSTOM", "market_cap_tier": "unknown",
-                 "theme": next((k for k, v in cfg["us_themes"].items() if t in v), "other")}
-                for t in tickers]
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -243,23 +194,6 @@ except (ModuleNotFoundError, ImportError):
     def analyse_eps(*a, **k): return None
     def _cache_path(*a, **k): return type("P", (), {"exists": lambda s: False, "stat": lambda s: type("S", (), {"st_mtime": 0})()})()
     def _cache_valid(*a, **k): return False
-
-# ── Twelve Data — top-level import with fallback ───────────────────────────────
-try:
-    from modules.twelve_data import enrich_ticker as td_enrich_ticker
-    _TD_AVAILABLE = True
-except (ModuleNotFoundError, ImportError):
-    _TD_AVAILABLE = False
-    def td_enrich_ticker(*a, **k): return {}
-
-# ── MarketStack — top-level import with fallback ───────────────────────────────
-try:
-    from modules.marketstack import get_dividend_yield, verify_price as ms_verify_price
-    _MS_AVAILABLE = True
-except (ModuleNotFoundError, ImportError):
-    _MS_AVAILABLE = False
-    def get_dividend_yield(*a, **k): return None
-    def ms_verify_price(*a, **k): return {}
 
 # ── Benchmark Cache ────────────────────────────────────────────────────────────
 _bench_cache: Dict[str, pd.Series] = {}
@@ -597,6 +531,9 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
 
         adr          = adr_pct(hist, 20)
         vol_today    = int(hist["Volume"].iloc[-1])
+        # Use average volume for filter — last day can be 0 for incomplete sessions
+        vol_avg_20   = int(hist["Volume"].rolling(20).mean().iloc[-1]) if len(hist) >= 20 else vol_today
+        vol_filter   = max(vol_today, vol_avg_20)  # use whichever is higher
         vol_surge    = volume_surge_ratio(hist)
         breaking_out, pattern = detect_base_breakout(hist)
 
@@ -681,6 +618,7 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
             "vs_50ma_%":       vs_50ma_pct,
             "vs_200ma_%":      vs_200ma_pct,
             "volume":          vol_today,
+            "vol_filter":      vol_filter,
             "vol_surge_x":     vol_surge,
             "above_50ma":      above_50ma,
             "above_200ma":     above_200ma,
@@ -748,21 +686,10 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
 # FULL SCAN (two-pass: fast price scan then targeted AV enrichment)
 # ══════════════════════════════════════════════════════════════════════════════
 
-def run_scan(cfg: dict, markets: List[str] = None,
-             universe_override: List[Dict] = None) -> pd.DataFrame:
-    """
-    Full ApexScan scan engine supporting 1500+ ticker universes.
+def run_scan(cfg: dict, markets: List[str] = None) -> pd.DataFrame:
+    tickers  = build_watchlist(cfg)
+    log.info(f"Scanning {len(tickers)} US tickers…")
 
-    Flow:
-      Pass 1 — Build universe (S&P500/NASDAQ100/R2000 etc) or use override
-      Pass 2 — Fast technical scan all tickers in batches
-      Pass 3 — AV EPS enrichment for top N results
-      Pass 4 — Twelve Data indicator enrichment for top N results
-      Pass 5 — MarketStack dividend/backup for top N results
-
-    Progress is logged every 50 tickers so you can watch it work.
-    """
-    # ── Setup ─────────────────────────────────────────────────────────────
     av_key   = cfg.get("alpha_vantage_key", "")
     av_cfg   = cfg.get("alpha_vantage", {})
     use_av   = bool(av_key and not av_key.startswith("YOUR_"))
@@ -770,97 +697,43 @@ def run_scan(cfg: dict, markets: List[str] = None,
     av_max   = av_cfg.get("max_av_calls_per_scan", 8)
     cache_h  = av_cfg.get("cache_hours", 168)
 
-    td_key   = cfg.get("twelve_data_key", "")
-    td_cfg   = cfg.get("twelve_data", {})
-    use_td   = bool(td_key and not td_key.startswith("YOUR_")) and td_cfg.get("enabled", True)
-    td_max   = td_cfg.get("max_tickers_per_scan", 15)
-    td_pause = td_cfg.get("rate_limit_pause", 8)
-    td_cache = td_cfg.get("cache_hours", 4)
-
-    ms_key   = cfg.get("marketstack_key", "")
-    ms_cfg   = cfg.get("marketstack", {})
-    use_ms   = bool(ms_key and not ms_key.startswith("YOUR_")) and ms_cfg.get("enabled", True)
-
-    pause         = cfg["scan"]["rate_limit_pause"]
-    min_score     = cfg["thresholds"]["us"]["score_filter"]
-    min_vol       = cfg["thresholds"]["us"]["min_volume"]
-    scan_cfg      = cfg.get("scan_universe", {})
-    batch_size    = scan_cfg.get("batch_size", 50)
-    max_tickers   = scan_cfg.get("max_tickers_per_scan", 0)  # 0 = no limit
-
-    # ── Pass 1: Build universe ─────────────────────────────────────────────
-    if universe_override is not None:
-        universe = universe_override
+    if use_av:
+        log.info(f"Alpha Vantage active — top {av_max} tickers, cache={cache_h}h")
     else:
-        universe = build_universe_tickers(cfg)
+        log.info("Alpha Vantage not configured — using earnings proxy")
 
-    if not universe:
-        log.warning("Empty universe — falling back to config watchlist")
-        tickers_fallback = build_watchlist(cfg)
-        universe = [{"ticker": t, "name": t, "sector": "", "index": "CUSTOM",
-                     "market_cap_tier": "unknown", "theme": "other"}
-                    for t in tickers_fallback]
+    results = []
+    pause   = cfg["scan"]["rate_limit_pause"]
 
-    # Apply max_tickers limit (useful for testing or free-tier speed)
-    if max_tickers and max_tickers > 0:
-        universe = universe[:max_tickers]
-
-    total    = len(universe)
-    log.info(f"Starting scan: {total} tickers | "
-             f"AV={'on' if use_av else 'off'} | "
-             f"TD={'on' if use_td else 'off'} | "
-             f"MS={'on' if use_ms else 'off'}")
-
-    # ── Pass 2: Fast technical scan ────────────────────────────────────────
-    log.info(f"Pass 1: Technical scan ({total} tickers in batches of {batch_size})…")
-    results  = []
-    skipped  = 0
-    cfg_no_av = {**cfg, "alpha_vantage_key": ""}
-
-    for i, item in enumerate(universe):
-        ticker = item["ticker"]
-
-        # Rate limit pause every batch_size tickers
-        if i > 0 and i % batch_size == 0:
-            log.info(f"  Progress: {i}/{total} scanned | {len(results)} passing | {skipped} skipped")
-            time.sleep(pause * 2)  # slightly longer pause between batches
-        elif i > 0 and i % 8 == 0:
+    # ── Pass 1: price/technical scan, no AV ──────────────────────────────
+    log.info("Pass 1: technical scan…")
+    for i, ticker in enumerate(tickers):
+        if i > 0 and i % 8 == 0:
             time.sleep(pause)
 
+        cfg_no_av = {**cfg, "alpha_vantage_key": ""}
         data = analyze_stock(ticker, cfg_no_av)
         if data is None:
-            skipped += 1
             continue
 
-        # Merge universe metadata into result
-        data["index"]           = item.get("index", "CUSTOM")
-        data["market_cap_tier"] = item.get("market_cap_tier", "unknown")
-        data["company_name"]    = item.get("name", ticker)
-        data["gics_sector"]     = item.get("sector", "")
-        # Override theme with GICS if not already set from config
-        if data.get("theme") == "other" and item.get("theme"):
-            data["theme"] = item["theme"]
-
-        if data["apex_score"] >= min_score and data["volume"] >= min_vol:
+        min_score = cfg["thresholds"]["us"]["score_filter"]
+        min_vol   = cfg["thresholds"]["us"]["min_volume"]
+        if data["apex_score"] >= min_score and data["vol_filter"] >= min_vol:
             results.append(data)
 
-    log.info(f"Pass 1 complete: {len(results)} setups from {total} tickers "
-             f"({skipped} skipped, {total-len(results)-skipped} below threshold)")
-
     if not results:
-        log.warning("No results passed filters. Try lowering score_filter in config.yaml")
+        log.warning("No results passed filters.")
         return pd.DataFrame()
 
     results.sort(key=lambda x: x["apex_score"], reverse=True)
 
-    # ── Pass 3: AV EPS enrichment (top N only) ────────────────────────────
+    # ── Pass 2: AV enrichment for top N tickers ───────────────────────────
     if use_av and av_max > 0:
         api_calls_made = 0
-        log.info(f"Pass 2: AV EPS enrichment for top {av_max} tickers…")
+        log.info(f"Pass 2: AV enrichment for top {av_max} tickers…")
 
         for data in results:
             if api_calls_made >= av_max:
-                log.info(f"  AV quota reached ({av_max} calls used)")
                 break
 
             ticker    = data["ticker"]
@@ -897,8 +770,10 @@ def run_scan(cfg: dict, markets: List[str] = None,
                     data["eps_details"]    = av_data.get("details", "–")
                     data["apex_score"]     = min(100, round(
                         data["apex_score"] + av_data.get("eps_score", 0), 1))
+
                     src = "cache" if has_cache else "API"
-                    log.info(f"  ✓ AV {ticker:<14} EPS={av_data.get('eps_momentum','?')} [{src}]")
+                    log.info(f"  ✓ {ticker:<16} EPS={av_data.get('eps_momentum','?')} "
+                             f"growth={av_data.get('eps_growth_pct','?')}% [{src}]")
 
                 if not has_cache:
                     api_calls_made += 1
@@ -906,48 +781,9 @@ def run_scan(cfg: dict, markets: List[str] = None,
             except Exception as av_err:
                 log.warning(f"  AV error {ticker}: {av_err}")
 
-    # ── Pass 4: Twelve Data indicators ────────────────────────────────────
-    if use_td and td_max > 0:
-        log.info(f"Pass 3: Twelve Data indicators for top {td_max} tickers…")
-        for i, data in enumerate(results[:td_max]):
-            ticker = data["ticker"]
-            if i > 0:
-                time.sleep(td_pause)
-            try:
-                td = td_enrich_ticker(ticker, td_key, cache_hours=td_cache)
-                if td:
-                    data.update(td)
-                    data["apex_score"] = min(100, round(
-                        data["apex_score"] + td.get("td_score", 0), 1))
-                    log.info(f"  ✓ TD {ticker:<14} RSI={td.get('td_rsi','?')} "
-                             f"ADX={td.get('td_adx','?')} +{td.get('td_score',0)}pts")
-            except Exception as td_err:
-                log.warning(f"  TD error {ticker}: {td_err}")
-
-    # ── Pass 5: MarketStack dividend yield ─────────────────────────────────
-    if use_ms and ms_cfg.get("fetch_dividends", True):
-        log.info("Pass 4: MarketStack dividend yields (top 10)…")
-        for data in results[:10]:
-            ticker = data["ticker"]
-            try:
-                dy = get_dividend_yield(ticker, data["price"], ms_key)
-                data["div_yield_%"] = dy
-                if dy and dy > 0:
-                    log.info(f"  MS {ticker:<14} div_yield={dy:.2f}%")
-                if ms_cfg.get("verify_prices", False):
-                    vfy = ms_verify_price(ticker, data["price"], ms_key)
-                    data["ms_price_match"] = vfy.get("match")
-                    if vfy.get("match") is False:
-                        log.warning(f"  MS price mismatch {ticker}: "
-                                    f"disc={vfy.get('discrepancy_pct')}%")
-            except Exception as ms_err:
-                log.warning(f"  MS error {ticker}: {ms_err}")
-
-    # ── Final sort and return ──────────────────────────────────────────────
     df = pd.DataFrame(results).sort_values("apex_score", ascending=False).reset_index(drop=True)
     df.index += 1
     df.index.name = "rank"
-    log.info(f"Scan complete: {len(df)} setups returned")
     return df
 
 
