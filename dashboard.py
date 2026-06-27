@@ -3611,16 +3611,7 @@ with tabs[16]:
             def red(t):    return pill(t, "#f85149")
             def blue(t):   return pill(t, "#388bfd")
             def purple(t): return pill(t, "#c084fc")
-                    f'border:1px solid {color};border-radius:4px;'
-                    f'padding:2px 8px;font-size:0.8rem;font-weight:600;">'
-                    f'{text}</span>')
-
-        def green(t):  return pill(t, "#3fb950")
-        def amber(t):  return pill(t, "#d29922")
-        def red(t):    return pill(t, "#f85149")
-        def blue(t):   return pill(t, "#388bfd")
-        def purple(t): return pill(t, "#c084fc")
-
+                    
         # ════════════════════════════════════════════════════════════════
         # VIEW 1 — STANDARD
         # ════════════════════════════════════════════════════════════════
