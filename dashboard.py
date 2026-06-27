@@ -3615,8 +3615,8 @@ with tabs[16]:
             # ════════════════════════════════════════════════════════════════
             # VIEW 1 — STANDARD
             # ════════════════════════════════════════════════════════════════
-            with st.expander("📋 Standard View — Momentum & Stage", expanded=True):
-            if interp_mode == "Full Scan Summary":
+           with st.expander("📋 Standard View — Momentum & Stage", expanded=True):
+                if interp_mode == "Full Scan Summary":
                 total      = len(interp_df)
                 stage2     = interp_df["stage"].str.contains("2 ✅", na=False).sum() if "stage" in interp_df.columns else 0
                 stage4     = interp_df["stage"].str.contains("4 🔴", na=False).sum() if "stage" in interp_df.columns else 0
