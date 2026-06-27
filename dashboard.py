@@ -3384,27 +3384,218 @@ with tabs[15]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 with tabs[16]:
-    st.markdown("### 🧠 Scan Interpretation")
-    st.caption("Plain-English breakdown of your scan results across all four signal views.")
+    st.markdown("### 🧠 Interpretation & Report Decoder")
+    st.caption("Plain-English breakdown of scan results — and a full explanation of every column in the report.")
 
-    if df.empty:
-        st.info("Run a Live Scan or Load Last Report first, then come here for the interpretation.")
-    else:
-        # ── Ticker selector ───────────────────────────────────────────────
-        interp_mode = st.radio(
-            "Interpret",
-            ["Full Scan Summary", "Single Ticker Deep Read"],
-            horizontal=True
-        )
+    # ── Mode selector ─────────────────────────────────────────────────────
+    interp_top_mode = st.radio(
+        "What do you want to do?",
+        ["📊 Interpret My Scan Results", "📋 Decode the Report Columns"],
+        horizontal=True,
+        key="interp_top_mode"
+    )
 
-        if interp_mode == "Single Ticker Deep Read":
-            interp_ticker = st.selectbox("Choose ticker", df["ticker"].tolist(), key="interp_tk")
-            interp_df = df[df["ticker"] == interp_ticker]
-        else:
-            interp_ticker = None
-            interp_df = df.copy()
+    # ══════════════════════════════════════════════════════════════════════
+    # REPORT DECODER
+    # ══════════════════════════════════════════════════════════════════════
+
+    if interp_top_mode == "📋 Decode the Report Columns":
+        st.markdown("#### 📋 Complete Report Column Guide")
+        st.caption("Every column in your downloaded CSV explained in plain English — what it means and how to use it.")
+
+        DECODER = {
+            "🏷️ Identity & Classification": [
+                ("ticker",          "Stock symbol — the short code used to identify the stock (e.g. CAT = Caterpillar, NVDA = Nvidia)"),
+                ("company_name",    "Full company name"),
+                ("gics_sector",     "Official GICS industry sector — the broad category the company operates in (e.g. Information Technology, Health Care)"),
+                ("theme",           "ApexScan theme — which of our custom watchlist categories the stock belongs to (ai_semis, fintech_payments etc)"),
+                ("index",           "Which market index the stock came from — SP500, NASDAQ100, RUSSELL2000, SP400, or CUSTOM"),
+                ("market_cap_tier", "Size classification — large (>$10B), mid ($2B-$10B), small (<$2B)"),
+                ("market_cap_bn",   "Market capitalisation in billions of dollars — total value of all shares outstanding"),
+                ("mcap_category",   "Simplified size label — Mega Cap (>$200B), Large Cap, Mid Cap, Small Cap, Micro Cap"),
+                ("is_gem",          "TRUE = this is an Emerging Gem (small/micro-cap high-growth stock). These need smaller position sizes — max 0.5% account risk"),
+                ("scanned_at",      "Date and time this stock was analysed"),
+                ("market",          "US = United States market (all current stocks)"),
+            ],
+            "💰 Price & Performance": [
+                ("price",           "Current stock price in USD at time of scan"),
+                ("perf_1m_%",       "Price return over the last 1 month (21 trading days). +16.2% means the stock rose 16.2% in one month"),
+                ("perf_3m_%",       "Price return over the last 3 months — the CORE momentum signal. We require >15% for a setup to qualify. CAT at +50.6% is exceptional"),
+                ("perf_6m_%",       "Price return over the last 6 months. Confirms whether momentum is sustained or a short-term spike"),
+                ("pct_off_high_%",  "How far the stock is below its 52-week high. -5% means 5% below the high. Closer to 0% = nearer the top of its range = stronger"),
+                ("near_52wh",       "TRUE = stock is within 15% of its 52-week high. Leaders break out from near their highs — they don't rally from 50% below"),
+            ],
+            "📊 Relative Strength": [
+                ("rs_3m",           "Relative Strength vs S&P 500 over 3 months. 100 = matching the market. 372 (CAT) means CAT returned 3.72× what the S&P 500 returned — a market leader. Always buy RS leaders, never laggards"),
+                ("rs_6m",           "Same calculation over 6 months. Consistent high RS confirms the stock is a sustained leader, not a one-month wonder"),
+            ],
+            "📈 Stage Analysis (Moving Averages)": [
+                ("stage",           "Where the stock is in its price cycle: '2 ✅ Uptrend' = price above MA50 above MA200 = the ONLY stage worth buying. Stage 4 🔴 = downtrend = avoid entirely"),
+                ("above_50ma",      "TRUE = price is above its 50-day moving average. The 50MA is the key medium-term trend line institutions watch"),
+                ("above_200ma",     "TRUE = price is above its 200-day moving average. The 200MA separates long-term uptrends from downtrends"),
+                ("ma50_gt_ma200",   "TRUE = the 50-day MA is above the 200-day MA. This is the 'golden cross' structure — confirms Stage 2 uptrend"),
+                ("vs_50ma_%",       "How far price is above (+) or below (-) the 50-day MA in %. +18.7% (CAT) = extended, strong momentum. Negative = below the MA = weakness"),
+                ("vs_200ma_%",      "Same vs the 200-day MA. CAT at +55.3% means price is 55% above its long-term average — exceptional underlying strength"),
+            ],
+            "📦 Volume & Liquidity": [
+                ("volume",          "Number of shares traded today. Higher = more activity and interest"),
+                ("avg_volume_30d",  "Average daily volume over the last 30 days — the baseline for what 'normal' looks like for this stock"),
+                ("vol_surge_x",     "Today's volume divided by the 50-day average volume. 1.6x = 60% above normal. We flag anything above 1.4x as unusual — often signals institutional activity"),
+                ("adr_%",           "Average Daily Range % — how much the stock moves from high to low in a typical day. 3.23% (CAT) = moderate. Higher ADR = more volatile = wider stop needed"),
+                ("liquidity_score", "1 to 5 rating of how easily you can trade this stock. 5 = very liquid (large cap, high volume). 1 = illiquid (small cap, low volume — harder to exit quickly)"),
+                ("liquidity_warn",  "TRUE = this stock has low liquidity. Be careful with large position sizes — you may not be able to exit at your intended price"),
+            ],
+            "🔍 Chart Pattern": [
+                ("pattern",         "The current price consolidation or breakout pattern detected in the last 8 weeks. Examples: Cup Breakout (bullish), Flat Base Breakout (bullish), Handle Forming (watch), Deep Correction (avoid), Near High No Vol (watch for volume)"),
+                ("breaking_out",    "TRUE = the stock is actively breaking out right now — price at new highs with volume surge. This is the highest-priority actionable signal in the entire scan"),
+            ],
+            "🌊 Order Flow Persistence": [
+                ("of_bias",         "Directional bias of institutional buying over the last 10 sessions. 'Strong Bullish' = institutions are consistently and heavily accumulating. This is the signature of TWAP/VWAP algorithms splitting large buy orders"),
+                ("of_up_vol_ratio", "Volume on up-days divided by volume on down-days. 7.46 (CAT) means 7× more volume when the stock rises vs when it falls — clear institutional accumulation. 1.5x+ is significant, 3x+ is exceptional"),
+                ("of_bullish_days", "% of the last 10 sessions that closed higher. 90% means 9 out of 10 days were up-closes — sustained directional pressure"),
+                ("of_consec_up",    "Number of consecutive sessions the stock closed higher. 7 consecutive up-closes (CAT) = an active buying algorithm at work"),
+                ("of_score",        "Order flow score out of 8 points — your quick summary of institutional buying conviction"),
+            ],
+            "💧 VWAP & Fair Value": [
+                ("vwap",            "Volume Weighted Average Price over 20 days — the single most-watched price level by institutional traders. It represents 'fair value' where the most trading volume has occurred"),
+                ("vwap_upper",      "Upper VWAP band (1 standard deviation above). Price reaching here = stock is pricing at a premium to fair value"),
+                ("vwap_lower",      "Lower VWAP band (1 standard deviation below). Price here = discount to fair value — where value buyers step in"),
+                ("vs_vwap_%",       "How far price is above (+) or below (-) the VWAP. CAT at +12.55% = well above fair value. Extended Above = momentum strong but entry risk is higher"),
+                ("vwap_position",   "Where price sits relative to VWAP: 'Above VWAP' = buyers in control. 'Extended Above' = strong momentum but stretched. 'Below VWAP' = sellers in control. 'Extended Below' = avoid"),
+                ("vwap_slope",      "Whether the VWAP itself is rising, falling, or flat. Rising VWAP = the institutional fair value reference is moving higher — ideal condition for longs"),
+                ("vwap_score",      "VWAP signal score out of 4 points"),
+            ],
+            "🏗️ Market Structure": [
+                ("ms_structure",    "Whether the stock is making Higher Highs and Higher Lows (uptrend) or Lower Highs and Lower Lows (downtrend). 'Bullish (HH/HL)' = each pullback holds higher, each rally reaches higher — structurally healthy"),
+                ("ms_hh_hl",        "TRUE = confirmed Higher High + Higher Low pattern. This means the uptrend is intact at the price structure level — not just an indicator signal"),
+                ("ms_bos",          "Break of Structure — TRUE when price closes beyond a key swing high (bullish BOS) or swing low (bearish BOS). A bullish BOS in an uptrend confirms the move is accelerating"),
+                ("ms_swing_high",   "The most recent significant swing high price — acts as resistance. A close above this level = breakout confirmation"),
+                ("ms_swing_low",    "The most recent significant swing low price — acts as support. A close below this = trend deterioration signal, review your position"),
+            ],
+            "🕯️ Price Action Patterns": [
+                ("pa_patterns",     "Candle patterns detected on the most recent session. Multiple patterns in one day = higher conviction. Examples: Bullish Engulfing, Bullish SFP (Bear Trap), Inside Day (Compression), Bullish Context Candle, PA Confluence"),
+                ("pa_engulfing",    "Bullish Engulfing = a large green candle completely engulfs the previous red candle — buyers overwhelmed sellers decisively. Bearish Engulfing = opposite"),
+                ("pa_sfp",          "Swing Failure Pattern — the most powerful trap setup. Bullish SFP: price wicked below a recent swing low (stopping bears out), then reversed back above — shorts are now trapped and forced to buy"),
+                ("pa_inside_day",   "TRUE = today's entire price range fits within yesterday's range — compression and equilibrium. A directional break from an inside day often starts a strong move"),
+                ("pa_context",      "Bullish Context Candle = high-volume day that closed in the top 25% of its range. The market tested lower prices and buyers decisively rejected them"),
+                ("pa_score",        "Price action score out of 5 points"),
+            ],
+            "📊 Fundamentals (Alpha Vantage)": [
+                ("earn_momentum",   "Summary of earnings quality — Strong / Moderate / Weak. Based on EPS growth, beat history, and acceleration"),
+                ("eps_growth_%",    "Year-over-year earnings per share growth. How much more the company earned this year vs last year. 25%+ = strong growth stock territory"),
+                ("eps_surprise_%",  "How much the last quarter's actual EPS beat or missed analyst estimates. +20% = massive beat — institutions often re-rate (push price higher) after large beats"),
+                ("eps_accel",       "TRUE = EPS growth rate is accelerating quarter over quarter — the company is earning MORE each quarter, not just maintaining growth. Acceleration precedes the biggest stock moves"),
+                ("consec_beats",    "How many consecutive quarters the company has beaten analyst estimates. 4+ consecutive beats = management consistently delivers above expectations — high trust signal"),
+                ("rev_growth_%",    "Year-over-year revenue growth. Confirms earnings growth is from real business expansion, not just cost-cutting"),
+                ("eps_score",       "Fundamental score out of 15 points added to the Apex Score"),
+                ("eps_trend",       "Last 4 quarters of actual EPS values — shows the trajectory"),
+                ("analyst_target",  "Wall Street consensus price target. The average of what professional analysts think the stock is worth. Useful for gauging upside potential"),
+                ("pe_ratio",        "Price-to-Earnings ratio — how much investors pay per dollar of earnings. Growth stocks have higher PEs. Compare within the same sector"),
+                ("peg_ratio",       "PE ratio divided by EPS growth rate. Below 1.0 = potentially undervalued relative to growth. Above 2.0 = growth is fully priced in"),
+            ],
+            "🔔 Changes Tracker": [
+                ("changes",         "What changed for this stock since the previous scan. Examples: 'Score ▲+12', 'Entered Stage 2', 'Reclaimed VWAP', '🚀 NEW Breakout!', 'Flow flipped Bull'"),
+                ("is_new",          "TRUE = this stock was not in the previous scan — it just qualified for the first time"),
+                ("delta_score",     "How much the Apex Score changed since the last scan. Positive = improving. Negative = deteriorating. Useful for spotting momentum building"),
+            ],
+            "🏆 The Apex Score": [
+                ("apex_score",      "The composite score from 0 to 100 combining ALL signals. 70+ = strong setup worth researching. 40-70 = watchlist candidate. Below 40 = skip. CAT at 100 means it scored maximum across every signal layer: momentum, RS, stage, order flow, VWAP, market structure and price action all aligned"),
+            ],
+        }
+
+        # Display each section as an expander
+        for section_title, fields in DECODER.items():
+            with st.expander(section_title, expanded=False):
+                for col_name, explanation in fields:
+                    st.markdown(
+                        f'<div style="background:#0d1117;border-left:3px solid #388bfd;'
+                        f'border-radius:0 6px 6px 0;padding:10px 14px;margin:4px 0;">'
+                        f'<div style="font-family:monospace;color:#79c0ff;font-size:0.85rem;'
+                        f'font-weight:700;margin-bottom:4px;">{col_name}</div>'
+                        f'<div style="color:#c9d1d9;font-size:0.88rem;line-height:1.6;">'
+                        f'{explanation}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
 
         st.markdown("---")
+
+        # Quick reference card
+        st.markdown("#### 🎯 Quick Decision Framework")
+        st.markdown("""
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px 24px;">
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;font-size:0.88rem;color:#c9d1d9;line-height:1.8;">
+            <div>
+              <div style="color:#3fb950;font-weight:700;margin-bottom:6px;">✅ Signs of a STRONG setup</div>
+              • Stage = <b>2 ✅ Uptrend</b><br>
+              • rs_3m > 100 (beating the market)<br>
+              • of_bias = <b>Strong Bullish</b><br>
+              • of_up_vol_ratio > 2.0<br>
+              • vwap_position = <b>Above VWAP</b><br>
+              • vwap_slope = <b>Rising</b><br>
+              • ms_hh_hl = <b>TRUE</b><br>
+              • breaking_out = <b>TRUE</b><br>
+              • apex_score > 70
+            </div>
+            <div>
+              <div style="color:#f85149;font-weight:700;margin-bottom:6px;">❌ Signs to AVOID or WAIT</div>
+              • Stage = <b>4 🔴 Downtrend</b><br>
+              • rs_3m < 70 (lagging the market)<br>
+              • vwap_position = <b>Extended Below VWAP</b><br>
+              • ms_structure = <b>Bearish (LH/LL)</b><br>
+              • pa_sfp = <b>Bearish SFP</b> (bull trap)<br>
+              • pct_off_high < -40% (deep correction)<br>
+              • of_bias = <b>Bearish</b><br>
+              • apex_score < 40
+            </div>
+          </div>
+          <div style="margin-top:16px;padding:12px;background:#0d1117;border-radius:8px;
+                      color:#8b949e;font-size:0.82rem;">
+            💡 <b>The golden rule:</b> When apex_score > 70 AND of_bias is Strong Bullish
+            AND vwap_slope is Rising AND ms_hh_hl is TRUE — all four signal layers agree.
+            That is the highest-conviction setup. CAT in your report is a perfect example.
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Download glossary
+        glossary_lines = ["ApexScan Report Column Glossary\n" + "="*50 + "\n"]
+        for section_title, fields in DECODER.items():
+            glossary_lines.append(f"\n{section_title}\n" + "-"*40)
+            for col, exp in fields:
+                glossary_lines.append(f"\n{col}:\n  {exp}")
+        glossary_text = "\n".join(glossary_lines)
+        st.download_button(
+            "⬇ Download Full Glossary (.txt)",
+            glossary_text.encode("utf-8"),
+            file_name="apexscan_column_glossary.txt",
+            mime="text/plain",
+        )
+
+    # ══════════════════════════════════════════════════════════════════════
+    # SCAN INTERPRETATION (existing content)
+    # ══════════════════════════════════════════════════════════════════════
+
+    else:  # "📊 Interpret My Scan Results"
+        if df.empty:
+            st.info("Run a Live Scan or Load Last Report first, then come here for the interpretation.")
+        else:
+            # ── Ticker selector ────────────────────────────────────────────
+            interp_mode = st.radio(
+                "Interpret",
+                ["Full Scan Summary", "Single Ticker Deep Read"],
+                horizontal=True,
+                key="interp_scan_mode"
+            )
+
+            if interp_mode == "Single Ticker Deep Read":
+                interp_ticker = st.selectbox("Choose ticker", df["ticker"].tolist(), key="interp_tk")
+                interp_df = df[df["ticker"] == interp_ticker]
+            else:
+                interp_ticker = None
+                interp_df = df.copy()
+
+            st.markdown("---")
 
         # ════════════════════════════════════════════════════════════════
         # HELPER: colour-coded signal pill
