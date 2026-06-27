@@ -3611,664 +3611,531 @@ with tabs[16]:
             def red(t):    return pill(t, "#f85149")
             def blue(t):   return pill(t, "#388bfd")
             def purple(t): return pill(t, "#c084fc")
-                    
+
             # ════════════════════════════════════════════════════════════════
             # VIEW 1 — STANDARD
             # ════════════════════════════════════════════════════════════════
-           with st.expander("📋 Standard View — Momentum & Stage", expanded=True):
+            with st.expander("📋 Standard View — Momentum & Stage", expanded=True):
                 if interp_mode == "Full Scan Summary":
-                total      = len(interp_df)
-                stage2     = interp_df["stage"].str.contains("2 ✅", na=False).sum() if "stage" in interp_df.columns else 0
-                stage4     = interp_df["stage"].str.contains("4 🔴", na=False).sum() if "stage" in interp_df.columns else 0
-                avg_3m     = pd.to_numeric(interp_df.get("perf_3m_%", pd.Series()), errors="coerce").mean()
-                avg_rs     = pd.to_numeric(interp_df.get("rs_3m", pd.Series()), errors="coerce").mean()
-                breakouts  = interp_df.get("breaking_out", pd.Series([False]*total)).sum()
-                top3       = interp_df.head(3)["ticker"].tolist()
-                near_high  = interp_df.get("near_52wh", pd.Series([False]*total)).sum()
+                    total      = len(interp_df)
+                    stage2     = interp_df["stage"].str.contains("2 ✅", na=False).sum() if "stage" in interp_df.columns else 0
+                    stage4     = interp_df["stage"].str.contains("4 🔴", na=False).sum() if "stage" in interp_df.columns else 0
+                    avg_3m     = pd.to_numeric(interp_df.get("perf_3m_%", pd.Series()), errors="coerce").mean()
+                    avg_rs     = pd.to_numeric(interp_df.get("rs_3m", pd.Series()), errors="coerce").mean()
+                    breakouts  = interp_df.get("breaking_out", pd.Series([False]*total)).sum()
+                    top3       = interp_df.head(3)["ticker"].tolist()
+                    near_high  = interp_df.get("near_52wh", pd.Series([False]*total)).sum()
 
-                # Market health verdict
-                if stage2 / max(total,1) >= 0.6:
-                    health = green("HEALTHY MARKET")
-                    health_msg = "Most setups are in Stage 2 uptrends — conditions favour the bull side."
-                elif stage2 / max(total,1) >= 0.4:
-                    health = amber("MIXED CONDITIONS")
-                    health_msg = "Market is split — be selective, stick to Stage 2 stocks only."
-                else:
-                    health = red("WEAK BREADTH")
-                    health_msg = "Few Stage 2 setups — reduce position size and wait for clarity."
-
-                st.markdown(f"""
-                <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px 24px;margin-bottom:16px;">
-                  <div style="font-size:1.1rem;font-weight:700;margin-bottom:12px;">
-                    Market Condition: {health}
-                  </div>
-                  <p style="color:#e6edf3;margin:0 0 12px 0;">{health_msg}</p>
-                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
-                    <div><span style="color:#8b949e;font-size:0.75rem;">SETUPS PASSING</span><br>
-                         <span style="font-size:1.4rem;font-weight:700;">{total}</span></div>
-                    <div><span style="color:#8b949e;font-size:0.75rem;">STAGE 2 (BUY ZONE)</span><br>
-                         <span style="font-size:1.4rem;font-weight:700;color:#3fb950;">{stage2}</span></div>
-                    <div><span style="color:#8b949e;font-size:0.75rem;">AVG 3M RETURN</span><br>
-                         <span style="font-size:1.4rem;font-weight:700;color:{'#3fb950' if avg_3m>0 else '#f85149'};">{avg_3m:+.1f}%</span></div>
-                  </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-                # Per-stock standard interpretation
-                st.markdown("#### Stock-by-Stock Reading")
-                for _, row in interp_df.head(15).iterrows():
-                    tk    = row["ticker"]
-                    score = float(row.get("apex_score", 0))
-                    stage = str(row.get("stage","?"))
-                    p3m   = float(row.get("perf_3m_%", 0) or 0)
-                    rs    = float(row.get("rs_3m", 0) or 0)
-                    patt  = str(row.get("pattern","–"))
-                    brk   = bool(row.get("breaking_out", False))
-
-                    # Score badge
-                    score_badge = green(f"Score {score:.0f}") if score>=70 else (amber(f"Score {score:.0f}") if score>=40 else red(f"Score {score:.0f}"))
-                    stage_badge = green(stage) if "2 ✅" in stage else (amber(stage) if "1 ⏳" in stage else red(stage))
-
-                    # Reading sentences
-                    sentences = []
-                    if "2 ✅" in stage:
-                        sentences.append(f"In a confirmed Stage 2 uptrend — price is above both moving averages with the 50MA rising above the 200MA.")
-                    elif "1 ⏳" in stage:
-                        sentences.append(f"Still building a base (Stage 1) — not yet buyable, needs to clear the 50MA.")
-                    elif "4 🔴" in stage:
-                        sentences.append(f"In a Stage 4 downtrend — avoid entirely until structure repairs.")
+                    if stage2 / max(total,1) >= 0.6:
+                        health = green("HEALTHY MARKET")
+                        health_msg = "Most setups are in Stage 2 uptrends — conditions favour the bull side."
+                    elif stage2 / max(total,1) >= 0.4:
+                        health = amber("MIXED CONDITIONS")
+                        health_msg = "Market is split — be selective, stick to Stage 2 stocks only."
                     else:
-                        sentences.append(f"Mixed stage — structure is unclear, wait for cleaner setup.")
-
-                    if p3m > 30:
-                        sentences.append(f"Exceptional 3-month momentum of {p3m:+.1f}% — this is a leading stock in its theme.")
-                    elif p3m > 15:
-                        sentences.append(f"Solid 3-month return of {p3m:+.1f}% — above the minimum momentum threshold.")
-                    else:
-                        sentences.append(f"3-month return of {p3m:+.1f}% is below the momentum threshold — needs to accelerate.")
-
-                    if rs > 150:
-                        sentences.append(f"RS of {rs:.0f} means it's massively outperforming the S&P 500 — buy leaders like this.")
-                    elif rs > 100:
-                        sentences.append(f"RS of {rs:.0f} — beating the S&P 500, in line with what you want to own.")
-                    elif rs > 70:
-                        sentences.append(f"RS of {rs:.0f} — keeping pace with the market but not leading.")
-                    else:
-                        sentences.append(f"RS of {rs:.0f} is below the market — lagging stocks rarely lead the next move.")
-
-                    if brk:
-                        sentences.append(f"Active breakout in progress ({patt}) — this is the highest-priority actionable setup.")
-                    elif "Handle" in patt or "Tight" in patt:
-                        sentences.append(f"Pattern ({patt}) suggests it's coiling for a move — watch the pivot point.")
-                    elif "Deep Correction" in patt:
-                        sentences.append(f"Currently in a deep correction ({patt}) — let it base and tighten before considering entry.")
-
-                    st.markdown(
-                        f'<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;'
-                        f'padding:14px 18px;margin:6px 0;">'
-                        f'<div style="margin-bottom:8px;">'
-                        f'<span style="font-size:1rem;font-weight:700;color:#e6edf3;">{tk}</span>'
-                        f'&nbsp;&nbsp;{score_badge}&nbsp;{stage_badge}</div>'
-                        f'<ul style="margin:0;padding-left:18px;color:#c9d1d9;font-size:0.88rem;line-height:1.8;">'
-                        + "".join(f"<li>{s}</li>" for s in sentences) +
-                        f'</ul></div>',
-                        unsafe_allow_html=True
-                    )
-
-            else:
-                # Single ticker standard
-                row   = interp_df.iloc[0]
-                score = float(row.get("apex_score",0))
-                stage = str(row.get("stage","?"))
-                p3m   = float(row.get("perf_3m_%",0) or 0)
-                p6m   = float(row.get("perf_6m_%",0) or 0)
-                rs3   = float(row.get("rs_3m",0) or 0)
-                patt  = str(row.get("pattern","–"))
-                brk   = bool(row.get("breaking_out",False))
-                near  = bool(row.get("near_52wh",False))
-                off_h = float(row.get("pct_off_high_%",0) or 0)
-
-                verdict = "Strong Setup" if score>=70 else ("Watch List" if score>=40 else "Not Ready")
-                vc      = "#3fb950" if score>=70 else ("#d29922" if score>=40 else "#f85149")
-
-                st.markdown(f"""
-                <div style="background:#161b22;border:2px solid {vc};border-radius:12px;padding:24px;margin-bottom:20px;">
-                  <div style="font-size:2rem;font-weight:800;color:#e6edf3;">{interp_ticker}</div>
-                  <div style="font-size:0.9rem;color:#8b949e;margin:4px 0 16px 0;">Standard Signal Reading</div>
-                  <div style="font-size:0.95rem;color:#c9d1d9;line-height:1.9;">
-                    {'✅' if '2 ✅' in stage else '❌'} <b>Stage:</b> {stage} —
-                    {'Price is above both moving averages and the 50MA is rising above the 200MA. This is the only stage worth holding or buying.' if '2 ✅' in stage else 'Not in a confirmed uptrend. Stage 2 is required before considering entry.'}<br>
-                    {'✅' if p3m>15 else '⚠️'} <b>3M Return:</b> {p3m:+.1f}% —
-                    {'Strong momentum. The stock has outperformed most of the market over the past quarter.' if p3m>15 else 'Below the 15% momentum threshold. Needs to accelerate before it qualifies as a leading stock.'}<br>
-                    {'✅' if p6m>20 else '⚠️'} <b>6M Return:</b> {p6m:+.1f}% —
-                    {'Sustained trend over 6 months confirms this is not a one-month wonder.' if p6m>20 else 'Six-month performance is muted — the trend may be early or stalling.'}<br>
-                    {'✅' if rs3>100 else '⚠️'} <b>RS Score:</b> {rs3:.0f} —
-                    {'Outperforming the S&P 500. You want to own the leaders, not keep up with the index.' if rs3>100 else 'Underperforming or matching the index. Leaders should have RS well above 100.'}<br>
-                    {'✅' if near else '⚠️'} <b>52-Week High:</b> {'Within 15% of highs — near the top of its range, which is where breakouts happen.' if near else f'{abs(off_h):.1f}% below its 52-week high — needs to reclaim ground before a breakout is possible.'}<br>
-                    {'🚀' if brk else '⏳'} <b>Pattern:</b> {patt} —
-                    {'Active breakout in progress. Highest priority actionable setup.' if brk else 'No active breakout yet. Monitor for the pivot point trigger.'}
-                  </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-        # ════════════════════════════════════════════════════════════════
-        # VIEW 2 — ORDER FLOW
-        # ════════════════════════════════════════════════════════════════
-        with st.expander("🌊 Order Flow Interpretation", expanded=True):
-            if "of_bias" not in interp_df.columns:
-                st.info("Run a fresh scan to get Order Flow data.")
-            else:
-                if interp_mode == "Full Scan Summary":
-                    of_strong  = interp_df["of_bias"].str.contains("Strong Bullish", na=False).sum()
-                    of_bull    = interp_df["of_bias"].str.contains("Bullish", na=False).sum()
-                    of_bear    = interp_df["of_bias"].str.contains("Bearish", na=False).sum()
-                    avg_ratio  = pd.to_numeric(interp_df.get("of_up_vol_ratio", pd.Series()), errors="coerce").mean()
-                    max_consec = pd.to_numeric(interp_df.get("of_consec_up", pd.Series()), errors="coerce").max()
-
-                    of_verdict = green("STRONG INSTITUTIONAL BUYING") if of_strong >= 3 else \
-                                 amber("MODERATE BUYING PRESSURE") if of_bull > of_bear else \
-                                 red("SELLING PRESSURE DOMINATES")
+                        health = red("WEAK BREADTH")
+                        health_msg = "Few Stage 2 setups — reduce position size and wait for clarity."
 
                     st.markdown(f"""
                     <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px 24px;margin-bottom:16px;">
-                      <div style="font-size:1rem;font-weight:700;margin-bottom:10px;">
-                        Order Flow Picture: {of_verdict}
+                      <div style="font-size:1.1rem;font-weight:700;margin-bottom:12px;">Market Condition: {health}</div>
+                      <p style="color:#e6edf3;margin:0 0 12px 0;">{health_msg}</p>
+                      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+                        <div><span style="color:#8b949e;font-size:0.75rem;">SETUPS PASSING</span><br>
+                             <span style="font-size:1.4rem;font-weight:700;">{total}</span></div>
+                        <div><span style="color:#8b949e;font-size:0.75rem;">STAGE 2 (BUY ZONE)</span><br>
+                             <span style="font-size:1.4rem;font-weight:700;color:#3fb950;">{stage2}</span></div>
+                        <div><span style="color:#8b949e;font-size:0.75rem;">AVG 3M RETURN</span><br>
+                             <span style="font-size:1.4rem;font-weight:700;color:{'#3fb950' if avg_3m>0 else '#f85149'};">{avg_3m:+.1f}%</span></div>
                       </div>
-                      <p style="color:#c9d1d9;font-size:0.9rem;margin:0 0 8px 0;">
-                        Order flow persistence measures whether institutional money is consistently active on the buy side
-                        over multiple sessions — the signature of TWAP/VWAP algorithms splitting large orders to avoid moving the market.
-                      </p>
-                      <p style="color:#c9d1d9;font-size:0.9rem;margin:0;">
-                        <b>{of_strong}</b> stocks show Strong Bullish flow (the highest conviction signal) &nbsp;|&nbsp;
-                        <b>{of_bull}</b> total with bullish bias &nbsp;|&nbsp;
-                        <b>{of_bear}</b> with bearish bias &nbsp;|&nbsp;
-                        Avg up/down vol ratio: <b>{avg_ratio:.2f}x</b> &nbsp;|&nbsp;
-                        Longest consecutive up-close streak: <b>{int(max_consec) if pd.notna(max_consec) else 0} days</b>
-                      </p>
                     </div>
                     """, unsafe_allow_html=True)
 
-                    st.markdown("#### Order Flow Reading Per Stock")
+                    st.markdown("#### Stock-by-Stock Reading")
                     for _, row in interp_df.head(15).iterrows():
-                        tk       = row["ticker"]
+                        tk    = row["ticker"]
+                        score = float(row.get("apex_score", 0))
+                        stage = str(row.get("stage","?"))
+                        p3m   = float(row.get("perf_3m_%", 0) or 0)
+                        rs    = float(row.get("rs_3m", 0) or 0)
+                        patt  = str(row.get("pattern","–"))
+                        brk   = bool(row.get("breaking_out", False))
+
+                        score_badge = green(f"Score {score:.0f}") if score>=70 else (amber(f"Score {score:.0f}") if score>=40 else red(f"Score {score:.0f}"))
+                        stage_badge = green(stage) if "2 ✅" in stage else (amber(stage) if "1 ⏳" in stage else red(stage))
+
+                        sentences = []
+                        if "2 ✅" in stage:
+                            sentences.append("In a confirmed Stage 2 uptrend — price is above both moving averages with the 50MA rising above the 200MA.")
+                        elif "1 ⏳" in stage:
+                            sentences.append("Still building a base (Stage 1) — not yet buyable, needs to clear the 50MA.")
+                        elif "4 🔴" in stage:
+                            sentences.append("In a Stage 4 downtrend — avoid entirely until structure repairs.")
+                        else:
+                            sentences.append("Mixed stage — structure is unclear, wait for cleaner setup.")
+
+                        if p3m > 30:
+                            sentences.append(f"Exceptional 3-month momentum of {p3m:+.1f}% — this is a leading stock in its theme.")
+                        elif p3m > 15:
+                            sentences.append(f"Solid 3-month return of {p3m:+.1f}% — above the minimum momentum threshold.")
+                        else:
+                            sentences.append(f"3-month return of {p3m:+.1f}% is below the momentum threshold — needs to accelerate.")
+
+                        if rs > 150:
+                            sentences.append(f"RS of {rs:.0f} means it's massively outperforming the S&P 500 — buy leaders like this.")
+                        elif rs > 100:
+                            sentences.append(f"RS of {rs:.0f} — beating the S&P 500, in line with what you want to own.")
+                        elif rs > 70:
+                            sentences.append(f"RS of {rs:.0f} — keeping pace with the market but not leading.")
+                        else:
+                            sentences.append(f"RS of {rs:.0f} is below the market — lagging stocks rarely lead the next move.")
+
+                        if brk:
+                            sentences.append(f"Active breakout in progress ({patt}) — this is the highest-priority actionable setup.")
+                        elif "Handle" in patt or "Tight" in patt:
+                            sentences.append(f"Pattern ({patt}) suggests it's coiling for a move — watch the pivot point.")
+                        elif "Deep Correction" in patt:
+                            sentences.append(f"Currently in a deep correction ({patt}) — let it base and tighten before considering entry.")
+
+                        st.markdown(
+                            f'<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;'
+                            f'padding:14px 18px;margin:6px 0;">'
+                            f'<div style="margin-bottom:8px;">'
+                            f'<span style="font-size:1rem;font-weight:700;color:#e6edf3;">{tk}</span>'
+                            f'&nbsp;&nbsp;{score_badge}&nbsp;{stage_badge}</div>'
+                            f'<ul style="margin:0;padding-left:18px;color:#c9d1d9;font-size:0.88rem;line-height:1.8;">'
+                            + "".join(f"<li>{s}</li>" for s in sentences) +
+                            f'</ul></div>',
+                            unsafe_allow_html=True
+                        )
+
+                else:
+                    row   = interp_df.iloc[0]
+                    score = float(row.get("apex_score",0))
+                    stage = str(row.get("stage","?"))
+                    p3m   = float(row.get("perf_3m_%",0) or 0)
+                    p6m   = float(row.get("perf_6m_%",0) or 0)
+                    rs3   = float(row.get("rs_3m",0) or 0)
+                    patt  = str(row.get("pattern","–"))
+                    brk   = bool(row.get("breaking_out",False))
+                    near  = bool(row.get("near_52wh",False))
+                    off_h = float(row.get("pct_off_high_%",0) or 0)
+                    vc    = "#3fb950" if score>=70 else ("#d29922" if score>=40 else "#f85149")
+
+                    st.markdown(f"""
+                    <div style="background:#161b22;border:2px solid {vc};border-radius:12px;padding:24px;margin-bottom:20px;">
+                      <div style="font-size:2rem;font-weight:800;color:#e6edf3;">{interp_ticker}</div>
+                      <div style="font-size:0.9rem;color:#8b949e;margin:4px 0 16px 0;">Standard Signal Reading</div>
+                      <div style="font-size:0.95rem;color:#c9d1d9;line-height:1.9;">
+                        {'✅' if '2 ✅' in stage else '❌'} <b>Stage:</b> {stage} —
+                        {'Price is above both moving averages and the 50MA is rising above the 200MA.' if '2 ✅' in stage else 'Not in a confirmed uptrend. Stage 2 is required before considering entry.'}<br>
+                        {'✅' if p3m>15 else '⚠️'} <b>3M Return:</b> {p3m:+.1f}% —
+                        {'Strong momentum.' if p3m>15 else 'Below the 15% momentum threshold.'}<br>
+                        {'✅' if p6m>20 else '⚠️'} <b>6M Return:</b> {p6m:+.1f}% —
+                        {'Sustained trend over 6 months.' if p6m>20 else 'Six-month performance is muted.'}<br>
+                        {'✅' if rs3>100 else '⚠️'} <b>RS Score:</b> {rs3:.0f} —
+                        {'Outperforming the S&P 500.' if rs3>100 else 'Underperforming or matching the index.'}<br>
+                        {'✅' if near else '⚠️'} <b>52-Week High:</b> {'Within 15% of highs.' if near else f'{abs(off_h):.1f}% below its 52-week high.'}<br>
+                        {'🚀' if brk else '⏳'} <b>Pattern:</b> {patt} —
+                        {'Active breakout in progress.' if brk else 'No active breakout yet.'}
+                      </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+            # ════════════════════════════════════════════════════════════════
+            # VIEW 2 — ORDER FLOW
+            # ════════════════════════════════════════════════════════════════
+            with st.expander("🌊 Order Flow Interpretation", expanded=True):
+                if "of_bias" not in interp_df.columns:
+                    st.info("Run a fresh scan to get Order Flow data.")
+                else:
+                    if interp_mode == "Full Scan Summary":
+                        of_strong  = interp_df["of_bias"].str.contains("Strong Bullish", na=False).sum()
+                        of_bull    = interp_df["of_bias"].str.contains("Bullish", na=False).sum()
+                        of_bear    = interp_df["of_bias"].str.contains("Bearish", na=False).sum()
+                        avg_ratio  = pd.to_numeric(interp_df.get("of_up_vol_ratio", pd.Series()), errors="coerce").mean()
+                        max_consec = pd.to_numeric(interp_df.get("of_consec_up", pd.Series()), errors="coerce").max()
+
+                        of_verdict = green("STRONG INSTITUTIONAL BUYING") if of_strong >= 3 else \
+                                     amber("MODERATE BUYING PRESSURE") if of_bull > of_bear else \
+                                     red("SELLING PRESSURE DOMINATES")
+
+                        st.markdown(f"""
+                        <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px 24px;margin-bottom:16px;">
+                          <div style="font-size:1rem;font-weight:700;margin-bottom:10px;">Order Flow Picture: {of_verdict}</div>
+                          <p style="color:#c9d1d9;font-size:0.9rem;margin:0;">
+                            <b>{of_strong}</b> stocks show Strong Bullish flow &nbsp;|&nbsp;
+                            <b>{of_bull}</b> total bullish &nbsp;|&nbsp;
+                            <b>{of_bear}</b> bearish &nbsp;|&nbsp;
+                            Avg up/down vol ratio: <b>{avg_ratio:.2f}x</b> &nbsp;|&nbsp;
+                            Longest streak: <b>{int(max_consec) if pd.notna(max_consec) else 0} days</b>
+                          </p>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                        st.markdown("#### Order Flow Reading Per Stock")
+                        for _, row in interp_df.head(15).iterrows():
+                            tk       = row["ticker"]
+                            bias     = str(row.get("of_bias","–"))
+                            ratio    = float(row.get("of_up_vol_ratio",1) or 1)
+                            bull_pct = float(row.get("of_bullish_days",50) or 50)
+                            consec   = int(row.get("of_consec_up",0) or 0)
+                            of_sc    = int(row.get("of_score",0) or 0)
+
+                            bias_badge = green(bias) if "Strong Bullish" in bias else \
+                                         amber(bias) if "Bullish" in bias else \
+                                         red(bias) if "Bearish" in bias else blue(bias)
+
+                            if "Strong Bullish" in bias:
+                                reading = (f"Institutional buying is persistent. {bull_pct:.0f}% of the last 10 sessions closed up "
+                                          f"with {ratio:.2f}x more volume on up days. "
+                                          f"{'Consecutive up closes of ' + str(consec) + ' sessions suggests an active algorithm.' if consec >= 3 else ''}")
+                            elif "Bullish" in bias:
+                                reading = f"Moderate buying pressure. {bull_pct:.0f}% of sessions closed up with {ratio:.2f}x up-volume ratio."
+                            elif "Bearish" in bias:
+                                reading = f"Selling pressure present. Only {bull_pct:.0f}% of sessions closed up — down-day volume is dominating."
+                            else:
+                                reading = "Flow is neutral — no clear directional conviction. Wait for a clearer signal."
+
+                            st.markdown(
+                                f'<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;'
+                                f'padding:14px 18px;margin:6px 0;">'
+                                f'<div style="margin-bottom:6px;"><span style="font-weight:700;color:#e6edf3;">{tk}</span>'
+                                f'&nbsp;&nbsp;{bias_badge}&nbsp;{purple(f"OF Score {of_sc}/8")}</div>'
+                                f'<p style="margin:0;color:#c9d1d9;font-size:0.88rem;line-height:1.7;">{reading}</p>'
+                                f'</div>',
+                                unsafe_allow_html=True
+                            )
+
+                    else:
+                        row      = interp_df.iloc[0]
                         bias     = str(row.get("of_bias","–"))
                         ratio    = float(row.get("of_up_vol_ratio",1) or 1)
                         bull_pct = float(row.get("of_bullish_days",50) or 50)
                         consec   = int(row.get("of_consec_up",0) or 0)
                         of_sc    = int(row.get("of_score",0) or 0)
+                        bias_color = "#3fb950" if "Bullish" in bias else ("#f85149" if "Bearish" in bias else "#d29922")
 
-                        bias_badge = green(bias) if "Strong Bullish" in bias else \
-                                     amber(bias) if "Bullish" in bias else \
-                                     red(bias) if "Bearish" in bias else blue(bias)
+                        st.markdown(f"""
+                        <div style="background:#161b22;border:1px solid {bias_color};border-radius:10px;padding:20px 24px;">
+                          <div style="color:{bias_color};font-weight:700;font-size:1rem;margin-bottom:10px;">
+                            {interp_ticker} — Order Flow: {bias} ({of_sc}/8 pts)
+                          </div>
+                          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px;">
+                            <div style="background:#0d1117;border-radius:6px;padding:10px;">
+                              <div style="color:#8b949e;font-size:0.7rem;text-transform:uppercase;">Up/Down Vol Ratio</div>
+                              <div style="font-size:1.3rem;font-weight:700;color:{bias_color};">{ratio:.2f}x</div>
+                              <div style="color:#8b949e;font-size:0.75rem;">{'✅ Institutional level' if ratio>=1.5 else '⚠️ Below threshold (1.5x)'}</div>
+                            </div>
+                            <div style="background:#0d1117;border-radius:6px;padding:10px;">
+                              <div style="color:#8b949e;font-size:0.7rem;text-transform:uppercase;">Bullish Sessions (10d)</div>
+                              <div style="font-size:1.3rem;font-weight:700;color:{bias_color};">{bull_pct:.0f}%</div>
+                              <div style="color:#8b949e;font-size:0.75rem;">{'✅ Persistent buying' if bull_pct>=60 else '⚠️ Needs >60%'}</div>
+                            </div>
+                            <div style="background:#0d1117;border-radius:6px;padding:10px;">
+                              <div style="color:#8b949e;font-size:0.7rem;text-transform:uppercase;">Consecutive Up Closes</div>
+                              <div style="font-size:1.3rem;font-weight:700;color:{bias_color};">{consec} days</div>
+                              <div style="color:#8b949e;font-size:0.75rem;">{'🔥 Active algo detected' if consec>=4 else '📊 Normal range'}</div>
+                            </div>
+                          </div>
+                        </div>
+                        """, unsafe_allow_html=True)
 
-                        if "Strong Bullish" in bias:
-                            reading = (f"Institutional buying is persistent and heavy. "
-                                      f"{bull_pct:.0f}% of the last 10 sessions closed up, "
-                                      f"with {ratio:.2f}x more volume on up days than down days. "
-                                      f"{'Consecutive up closes of ' + str(consec) + ' sessions suggests an active algorithm is working a large buy order.' if consec >= 3 else ''} "
-                                      f"This is the pattern left behind when a fund is accumulating a position quietly over time.")
-                        elif "Bullish" in bias:
-                            reading = (f"Moderate buying pressure detected. {bull_pct:.0f}% of sessions closed up "
-                                      f"with {ratio:.2f}x up-volume ratio. "
-                                      f"Directional bias is positive but not yet showing the heavy conviction of institutional accumulation.")
-                        elif "Bearish" in bias:
-                            reading = (f"Selling pressure is present. Only {bull_pct:.0f}% of sessions closed up "
-                                      f"and down-day volume is outpacing up-day volume ({ratio:.2f}x). "
-                                      f"This pattern can indicate distribution — institutions quietly reducing positions.")
-                        else:
-                            reading = (f"Flow is neutral — no clear directional conviction from either side over the last 10 sessions. "
-                                      f"Wait for a clearer signal before committing capital.")
-
-                        st.markdown(
-                            f'<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;'
-                            f'padding:14px 18px;margin:6px 0;">'
-                            f'<div style="margin-bottom:6px;">'
-                            f'<span style="font-weight:700;color:#e6edf3;">{tk}</span>&nbsp;&nbsp;'
-                            f'{bias_badge}&nbsp;{purple(f"OF Score {of_sc}/8")}</div>'
-                            f'<p style="margin:0;color:#c9d1d9;font-size:0.88rem;line-height:1.7;">{reading}</p>'
-                            f'</div>',
-                            unsafe_allow_html=True
-                        )
-
+            # ════════════════════════════════════════════════════════════════
+            # VIEW 3 — VWAP & STRUCTURE
+            # ════════════════════════════════════════════════════════════════
+            with st.expander("💧 VWAP & Market Structure Interpretation", expanded=True):
+                if "vwap_position" not in interp_df.columns:
+                    st.info("Run a fresh scan to get VWAP data.")
                 else:
-                    row      = interp_df.iloc[0]
-                    bias     = str(row.get("of_bias","–"))
-                    ratio    = float(row.get("of_up_vol_ratio",1) or 1)
-                    bull_pct = float(row.get("of_bullish_days",50) or 50)
-                    consec   = int(row.get("of_consec_up",0) or 0)
-                    of_sc    = int(row.get("of_score",0) or 0)
+                    if interp_mode == "Full Scan Summary":
+                        above_vwap = interp_df["vwap_position"].str.contains("Above", na=False).sum()
+                        ext_above  = interp_df["vwap_position"].str.contains("Extended Above", na=False).sum()
+                        hh_hl_ct   = interp_df.get("ms_hh_hl", pd.Series([False]*len(interp_df))).sum()
 
-                    bias_color = "#3fb950" if "Bullish" in bias else ("#f85149" if "Bearish" in bias else "#d29922")
+                        st.markdown(f"""
+                        <div style="background:#161b22;border:1px solid #c084fc;border-radius:10px;padding:20px 24px;margin-bottom:16px;">
+                          <div style="color:#c084fc;font-weight:700;font-size:1rem;margin-bottom:12px;">VWAP & Auction Market Picture</div>
+                          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+                            <div><span style="color:#8b949e;font-size:0.75rem;">ABOVE VWAP</span><br>
+                                 <span style="font-size:1.4rem;font-weight:700;color:#3fb950;">{above_vwap}</span>
+                                 <span style="color:#8b949e;font-size:0.8rem;"> of {len(interp_df)}</span></div>
+                            <div><span style="color:#8b949e;font-size:0.75rem;">EXTENDED (RISKY)</span><br>
+                                 <span style="font-size:1.4rem;font-weight:700;color:#d29922;">{ext_above}</span></div>
+                            <div><span style="color:#8b949e;font-size:0.75rem;">HH/HL STRUCTURE</span><br>
+                                 <span style="font-size:1.4rem;font-weight:700;color:#3fb950;">{hh_hl_ct}</span></div>
+                          </div>
+                        </div>
+                        """, unsafe_allow_html=True)
 
-                    if "Strong Bullish" in bias:
-                        of_summary = (
-                            f"The order flow picture for {interp_ticker} is strongly bullish. "
-                            f"Over the last 10 sessions, {bull_pct:.0f}% of days closed higher, "
-                            f"and volume on up-days was {ratio:.2f}x the volume on down-days. "
-                            f"{'A streak of ' + str(consec) + ' consecutive up-closes is a strong sign of an active institutional buyer systematically accumulating shares — typical of a fund using TWAP/VWAP execution.' if consec >= 3 else 'The volume-weighted bias confirms buyers are more active than sellers.'} "
-                            f"This is the kind of persistent, quiet accumulation that often precedes a significant price move."
-                        )
-                    elif "Bullish" in bias:
-                        of_summary = (
-                            f"{interp_ticker} shows moderate bullish order flow. "
-                            f"{bull_pct:.0f}% of the last 10 sessions closed up with a {ratio:.2f}x up-volume ratio. "
-                            f"Buying pressure is real but not yet at the level that suggests heavy institutional accumulation. "
-                            f"Monitor for the ratio to increase above 1.5x as confirmation."
-                        )
-                    elif "Bearish" in bias:
-                        of_summary = (
-                            f"{interp_ticker} is showing bearish order flow. "
-                            f"Only {bull_pct:.0f}% of sessions closed up, and selling volume is dominating. "
-                            f"This is a warning sign — even if the stock looks good technically, "
-                            f"persistent down-day volume can signal that larger players are quietly exiting positions."
-                        )
+                        st.markdown("#### VWAP & Structure Per Stock")
+                        for _, row in interp_df.head(15).iterrows():
+                            tk       = row["ticker"]
+                            vwap_pos = str(row.get("vwap_position","–"))
+                            vs_vwap  = float(row.get("vs_vwap_%",0) or 0)
+                            slope    = str(row.get("vwap_slope","–"))
+                            hh_hl    = bool(row.get("ms_hh_hl",False))
+                            bos      = bool(row.get("ms_bos",False))
+                            ms       = str(row.get("ms_structure","–"))
+                            sh       = row.get("ms_swing_high")
+                            sl       = row.get("ms_swing_low")
+
+                            if "Extended Above" in vwap_pos:
+                                vwap_read = f"Trading {vs_vwap:+.1f}% above VWAP — extended. Wait for pullback toward VWAP before adding."
+                                vc = "#d29922"
+                            elif "Above" in vwap_pos and slope == "Rising":
+                                vwap_read = f"Trading {vs_vwap:+.1f}% above a rising VWAP — ideal zone. Buyers in control."
+                                vc = "#3fb950"
+                            elif "Above" in vwap_pos:
+                                vwap_read = f"Above VWAP by {vs_vwap:+.1f}% but slope is {slope.lower()}. Watch for VWAP to start declining."
+                                vc = "#3fb950"
+                            elif "Extended Below" in vwap_pos:
+                                vwap_read = f"Extended {vs_vwap:.1f}% below VWAP — sellers in full control. Avoid new longs."
+                                vc = "#f85149"
+                            else:
+                                vwap_read = f"Below VWAP by {abs(vs_vwap):.1f}%. Wait for a confirmed close above VWAP."
+                                vc = "#f85149"
+
+                            struct_read = ""
+                            if hh_hl:
+                                struct_read = " Structure confirms HH/HL — uptrend intact."
+                                if sh: struct_read += f" Key resistance: ${sh:.2f}."
+                            elif "Bearish" in ms:
+                                struct_read = " Structure shows LH/LL — avoid."
+                            if bos and hh_hl:
+                                struct_read += " Break of Structure confirms the move is accelerating."
+
+                            vwap_badge = green("Above VWAP ↑") if "Above" in vwap_pos and "Extended" not in vwap_pos \
+                                    else amber("Extended ↑") if "Extended Above" in vwap_pos \
+                                    else red("Below VWAP ↓")
+                            ms_badge = green("HH/HL ✅") if hh_hl else red("No HH/HL")
+
+                            st.markdown(
+                                f'<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;'
+                                f'padding:14px 18px;margin:6px 0;">'
+                                f'<div style="margin-bottom:6px;"><span style="font-weight:700;color:#e6edf3;">{tk}</span>'
+                                f'&nbsp;&nbsp;{vwap_badge}&nbsp;{ms_badge}</div>'
+                                f'<p style="margin:0;color:#c9d1d9;font-size:0.88rem;line-height:1.7;">{vwap_read}{struct_read}</p>'
+                                f'</div>',
+                                unsafe_allow_html=True
+                            )
+
                     else:
-                        of_summary = (
-                            f"Order flow for {interp_ticker} is neutral — no clear directional bias from either side. "
-                            f"The market is in equilibrium on this name. Wait for a directional signal before acting."
-                        )
-
-                    st.markdown(f"""
-                    <div style="background:#161b22;border:1px solid {bias_color};border-radius:10px;padding:20px 24px;">
-                      <div style="color:{bias_color};font-weight:700;font-size:1rem;margin-bottom:10px;">
-                        {interp_ticker} — Order Flow: {bias} ({of_sc}/8 pts)
-                      </div>
-                      <p style="color:#c9d1d9;font-size:0.92rem;line-height:1.8;margin:0;">{of_summary}</p>
-                      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;">
-                        <div style="background:#0d1117;border-radius:6px;padding:10px;">
-                          <div style="color:#8b949e;font-size:0.7rem;text-transform:uppercase;">Up/Down Vol Ratio</div>
-                          <div style="font-size:1.3rem;font-weight:700;color:{bias_color};">{ratio:.2f}x</div>
-                          <div style="color:#8b949e;font-size:0.75rem;">{'✅ Institutional level' if ratio>=1.5 else '⚠️ Below threshold (1.5x)'}</div>
-                        </div>
-                        <div style="background:#0d1117;border-radius:6px;padding:10px;">
-                          <div style="color:#8b949e;font-size:0.7rem;text-transform:uppercase;">Bullish Sessions (10d)</div>
-                          <div style="font-size:1.3rem;font-weight:700;color:{bias_color};">{bull_pct:.0f}%</div>
-                          <div style="color:#8b949e;font-size:0.75rem;">{'✅ Persistent buying' if bull_pct>=60 else '⚠️ Needs >60% to qualify'}</div>
-                        </div>
-                        <div style="background:#0d1117;border-radius:6px;padding:10px;">
-                          <div style="color:#8b949e;font-size:0.7rem;text-transform:uppercase;">Consecutive Up Closes</div>
-                          <div style="font-size:1.3rem;font-weight:700;color:{bias_color};">{consec} days</div>
-                          <div style="color:#8b949e;font-size:0.75rem;">{'🔥 Active algo detected' if consec>=4 else '📊 Normal range'}</div>
-                        </div>
-                      </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-        # ════════════════════════════════════════════════════════════════
-        # VIEW 3 — VWAP & STRUCTURE
-        # ════════════════════════════════════════════════════════════════
-        with st.expander("💧 VWAP & Market Structure Interpretation", expanded=True):
-            if "vwap_position" not in interp_df.columns:
-                st.info("Run a fresh scan to get VWAP data.")
-            else:
-                if interp_mode == "Full Scan Summary":
-                    above_vwap = interp_df["vwap_position"].str.contains("Above", na=False).sum()
-                    ext_above  = interp_df["vwap_position"].str.contains("Extended Above", na=False).sum()
-                    ext_below  = interp_df["vwap_position"].str.contains("Extended Below", na=False).sum()
-                    hh_hl_ct   = interp_df.get("ms_hh_hl", pd.Series([False]*len(interp_df))).sum()
-                    bos_ct     = interp_df.get("ms_bos", pd.Series([False]*len(interp_df))).sum()
-                    rising_vwap= interp_df.get("vwap_slope", pd.Series()).str.contains("Rising", na=False).sum()
-
-                    st.markdown(f"""
-                    <div style="background:#161b22;border:1px solid #c084fc;border-radius:10px;padding:20px 24px;margin-bottom:16px;">
-                      <div style="color:#c084fc;font-weight:700;font-size:1rem;margin-bottom:12px;">
-                        VWAP & Auction Market Picture
-                      </div>
-                      <p style="color:#c9d1d9;font-size:0.9rem;line-height:1.7;margin:0 0 12px 0;">
-                        VWAP (Volume Weighted Average Price) is the fairest measure of where the market agreed to transact.
-                        Stocks above a rising VWAP have buyers in control and value is being accepted higher.
-                        Stocks extended far above VWAP are at risk of mean reversion back to fair value.
-                      </p>
-                      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
-                        <div><span style="color:#8b949e;font-size:0.75rem;">ABOVE VWAP</span><br>
-                             <span style="font-size:1.4rem;font-weight:700;color:#3fb950;">{above_vwap}</span>
-                             <span style="color:#8b949e;font-size:0.8rem;"> of {len(interp_df)}</span></div>
-                        <div><span style="color:#8b949e;font-size:0.75rem;">EXTENDED (RISKY)</span><br>
-                             <span style="font-size:1.4rem;font-weight:700;color:#d29922;">{ext_above}</span></div>
-                        <div><span style="color:#8b949e;font-size:0.75rem;">HH/HL STRUCTURE</span><br>
-                             <span style="font-size:1.4rem;font-weight:700;color:#3fb950;">{hh_hl_ct}</span></div>
-                      </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    st.markdown("#### VWAP & Structure Per Stock")
-                    for _, row in interp_df.head(15).iterrows():
-                        tk       = row["ticker"]
-                        vwap_pos = str(row.get("vwap_position","–"))
+                        row      = interp_df.iloc[0]
+                        vwap_val = row.get("vwap")
                         vs_vwap  = float(row.get("vs_vwap_%",0) or 0)
+                        vwap_pos = str(row.get("vwap_position","–"))
                         slope    = str(row.get("vwap_slope","–"))
                         hh_hl    = bool(row.get("ms_hh_hl",False))
                         bos      = bool(row.get("ms_bos",False))
                         ms       = str(row.get("ms_structure","–"))
                         sh       = row.get("ms_swing_high")
                         sl       = row.get("ms_swing_low")
+                        price    = float(row.get("price",0))
+                        vc = "#3fb950" if "Above" in vwap_pos and "Extended" not in vwap_pos \
+                             else "#d29922" if "Extended Above" in vwap_pos else "#f85149"
 
-                        if "Extended Above" in vwap_pos:
-                            vwap_read = (f"Trading {vs_vwap:+.1f}% above VWAP fair value — extended. "
-                                        f"While momentum is strong, entering here means chasing. "
-                                        f"Better to wait for a pullback toward VWAP before adding or initiating.")
-                            vc = "#d29922"
-                        elif "Above" in vwap_pos and slope == "Rising":
-                            vwap_read = (f"Trading {vs_vwap:+.1f}% above a rising VWAP — ideal zone. "
-                                        f"Buyers are in control, fair value is moving higher, "
-                                        f"and this is where high-quality momentum entries are found.")
-                            vc = "#3fb950"
-                        elif "Above" in vwap_pos:
-                            vwap_read = (f"Above VWAP by {vs_vwap:+.1f}% but VWAP slope is {slope.lower()}. "
-                                        f"Position is acceptable but watch for VWAP to start declining, "
-                                        f"which would signal a shift in auction control.")
-                            vc = "#3fb950"
-                        elif "Extended Below" in vwap_pos:
-                            vwap_read = (f"Extended {vs_vwap:.1f}% below VWAP — sellers in full control. "
-                                        f"Avoid new longs. Only consider watching for a VWAP reclaim on volume "
-                                        f"as a potential reversal signal.")
-                            vc = "#f85149"
-                        else:
-                            vwap_read = (f"Below VWAP by {abs(vs_vwap):.1f}%. The auction has not accepted value higher. "
-                                        f"Wait for a confirmed close above VWAP before considering a long position.")
-                            vc = "#f85149"
-
-                        struct_read = ""
-                        if hh_hl:
-                            struct_read = f" Market structure confirms Higher Highs and Higher Lows — the uptrend is intact."
-                            if sh: struct_read += f" Key resistance to watch: ${sh:.2f}."
-                        elif "Bearish" in ms:
-                            struct_read = f" Structure shows Lower Highs and Lower Lows — technically in a downtrend. Avoid."
-                        else:
-                            struct_read = f" Structure is transitional — no clear trend. Wait for HH/HL to establish."
-
-                        if bos and hh_hl:
-                            struct_read += f" A recent Break of Structure in an uptrend confirms the move is accelerating."
-
-                        vwap_badge = green("Above VWAP ↑") if "Above" in vwap_pos and "Extended" not in vwap_pos \
-                                else amber("Extended ↑") if "Extended Above" in vwap_pos \
-                                else red("Below VWAP ↓")
-                        ms_badge = green("HH/HL ✅") if hh_hl else red("No HH/HL")
-
-                        st.markdown(
-                            f'<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;'
-                            f'padding:14px 18px;margin:6px 0;">'
-                            f'<div style="margin-bottom:6px;">'
-                            f'<span style="font-weight:700;color:#e6edf3;">{tk}</span>&nbsp;&nbsp;'
-                            f'{vwap_badge}&nbsp;{ms_badge}</div>'
-                            f'<p style="margin:0;color:#c9d1d9;font-size:0.88rem;line-height:1.7;">'
-                            f'{vwap_read}{struct_read}</p>'
-                            f'</div>',
-                            unsafe_allow_html=True
-                        )
-
-                else:
-                    row      = interp_df.iloc[0]
-                    vwap_val = row.get("vwap")
-                    vs_vwap  = float(row.get("vs_vwap_%",0) or 0)
-                    vwap_pos = str(row.get("vwap_position","–"))
-                    slope    = str(row.get("vwap_slope","–"))
-                    vwap_u   = row.get("vwap_upper")
-                    vwap_l   = row.get("vwap_lower")
-                    hh_hl    = bool(row.get("ms_hh_hl",False))
-                    bos      = bool(row.get("ms_bos",False))
-                    ms       = str(row.get("ms_structure","–"))
-                    sh       = row.get("ms_swing_high")
-                    sl       = row.get("ms_swing_low")
-                    price    = float(row.get("price",0))
-
-                    vc = "#3fb950" if "Above" in vwap_pos and "Extended" not in vwap_pos \
-                         else "#d29922" if "Extended Above" in vwap_pos else "#f85149"
-
-                    st.markdown(f"""
-                    <div style="background:#161b22;border:1px solid {vc};border-radius:10px;padding:20px 24px;margin-bottom:16px;">
-                      <div style="color:{vc};font-weight:700;font-size:1rem;margin-bottom:14px;">
-                        {interp_ticker} — VWAP & Market Structure
-                      </div>
-                      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;">
-                        <div>
-                          <div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;margin-bottom:8px;">VWAP Analysis</div>
-                          <p style="color:#c9d1d9;font-size:0.9rem;line-height:1.8;margin:0;">
-                            Current price <b>${price:.2f}</b> sits <b style="color:{vc};">{vs_vwap:+.1f}%</b> {"above" if vs_vwap>0 else "below"} the 20-day VWAP of <b>${vwap_val:.2f}</b>.<br>
-                            {'The VWAP is rising, meaning the institutional fair value reference is moving higher — this is the setup you want.' if slope=='Rising' else
-                             'The VWAP is flat, meaning value is not yet being accepted higher — the auction is in balance.' if slope=='Flat' else
-                             'The VWAP is declining — sellers are pushing the fair value reference lower, a bearish signal.'}<br>
-                            {'Upper band at $' + f'{vwap_u:.2f}' + ' — this is resistance where price may pause or pull back.' if vwap_u else ''}
-                            {'Lower band at $' + f'{vwap_l:.2f}' + ' — this is VWAP support where buyers typically step in.' if vwap_l else ''}
-                          </p>
-                        </div>
-                        <div>
-                          <div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;margin-bottom:8px;">Market Structure</div>
-                          <p style="color:#c9d1d9;font-size:0.9rem;line-height:1.8;margin:0;">
-                            Structure: <b style="color:{'#3fb950' if 'Bullish' in ms else '#f85149'};">{ms}</b><br>
-                            {'✅ Higher Highs and Higher Lows confirmed — the stock is making progress and the uptrend is structurally sound.' if hh_hl else '❌ No HH/HL structure yet — the stock has not proven its uptrend with progressively higher pivot points.'}<br>
-                            {'🚨 Recent Break of Structure detected — price has moved beyond a key swing level, confirming the directional move.' if bos else ''}<br>
-                            {'Key swing high to watch: $' + f'{sh:.2f}' + ' — a close above this on volume would be a structural confirmation.' if sh else ''}
-                            {'Key swing low to defend: $' + f'{sl:.2f}' + ' — a close below this would signal trend deterioration.' if sl else ''}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-        # ════════════════════════════════════════════════════════════════
-        # VIEW 4 — PRICE ACTION
-        # ════════════════════════════════════════════════════════════════
-        with st.expander("🕯 Price Action Interpretation", expanded=True):
-            if "pa_patterns" not in interp_df.columns:
-                st.info("Run a fresh scan to get Price Action data.")
-            else:
-                pa_explanations = {
-                    "Bullish SFP (Bear Trap)": (
-                        "#3fb950",
-                        "Swing Failure Pattern — Bullish",
-                        "Price temporarily pierced below a recent swing low, triggering stop-losses and luring in short sellers, "
-                        "then reversed and closed back above that level. The shorts are now trapped and forced to cover, "
-                        "which fuels buying pressure. This is one of the highest-probability reversal setups in price action. "
-                        "Entry is typically on the next candle's open if the close holds above the swing low."
-                    ),
-                    "Bearish SFP (Bull Trap)": (
-                        "#f85149",
-                        "Swing Failure Pattern — Bearish",
-                        "Price spiked above a recent swing high, triggering breakout buyers and stop-losses on short positions, "
-                        "then reversed and closed back below. The longs who chased the breakout are now trapped. "
-                        "This signals the prior high is strong resistance and a move lower is likely."
-                    ),
-                    "Bullish Engulfing": (
-                        "#3fb950",
-                        "Bullish Engulfing Candle",
-                        "A large bullish candle whose body completely engulfs the prior bearish candle. "
-                        "This shows buyers decisively overwhelmed sellers in a single session. "
-                        "Most powerful when occurring at a support level, above VWAP, or after a pullback in an uptrend."
-                    ),
-                    "Bearish Engulfing": (
-                        "#f85149",
-                        "Bearish Engulfing Candle",
-                        "A large bearish candle engulfs the prior bullish candle — sellers took complete control. "
-                        "Most significant at resistance levels or after an extended run-up."
-                    ),
-                    "Inside Day (Compression)": (
-                        "#388bfd",
-                        "Inside Day — Compression",
-                        "Today's entire range fits within yesterday's high-low range. "
-                        "The market is in equilibrium, with neither buyers nor sellers willing to extend the range. "
-                        "Inside days signal compression before expansion — a directional move is building. "
-                        "The breakout direction from the inside day often sets the short-term trend."
-                    ),
-                    "Bullish Context Candle": (
-                        "#3fb950",
-                        "Bullish Context Candle",
-                        "A high-volume candle that closed in the top 25% of its range. "
-                        "In auction market terms, the market tested lower prices but buyers rejected them decisively — "
-                        "closing near the high shows the auction outcome was bullish. "
-                        "Volume above average amplifies the significance of this signal."
-                    ),
-                    "Bearish Context Candle": (
-                        "#f85149",
-                        "Bearish Context Candle",
-                        "High-volume candle closing in the bottom 25% of its range — sellers dominated the auction. "
-                        "The market tested higher prices but rejected them, closing near the low."
-                    ),
-                    "PA Confluence": (
-                        "#d29922",
-                        "Price Action Confluence",
-                        "Multiple price action signals are aligned on the same candle or within a close cluster of candles. "
-                        "Confluence dramatically increases the probability of a signal — "
-                        "when an SFP, engulfing candle, and bullish context candle all appear together, "
-                        "it indicates the market has made a very decisive statement about direction."
-                    ),
-                }
-
-                if interp_mode == "Full Scan Summary":
-                    # Count PA pattern types
-                    all_pa   = interp_df["pa_patterns"].dropna()
-                    sfp_bull = all_pa.str.contains("Bullish SFP", na=False).sum()
-                    sfp_bear = all_pa.str.contains("Bearish SFP", na=False).sum()
-                    engulf   = all_pa.str.contains("Engulfing",   na=False).sum()
-                    inside   = all_pa.str.contains("Inside Day",  na=False).sum()
-                    context  = all_pa.str.contains("Context",     na=False).sum()
-                    conflu   = all_pa.str.contains("Confluence",  na=False).sum()
-                    any_pa   = (all_pa != "None").sum()
-
-                    st.markdown(f"""
-                    <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px 24px;margin-bottom:16px;">
-                      <div style="font-weight:700;font-size:1rem;margin-bottom:12px;">Price Action Picture</div>
-                      <p style="color:#c9d1d9;font-size:0.9rem;line-height:1.7;margin:0 0 12px 0;">
-                        Price action patterns reveal what happened in the most recent session — the actual decisions made
-                        by buyers and sellers. They complement technical indicators by showing real-time sentiment.
-                      </p>
-                      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
-                        <div><span style="color:#8b949e;font-size:0.75rem;">BULLISH SFP (TRAPS)</span><br>
-                             <span style="font-size:1.4rem;font-weight:700;color:#3fb950;">{sfp_bull}</span></div>
-                        <div><span style="color:#8b949e;font-size:0.75rem;">ENGULFING CANDLES</span><br>
-                             <span style="font-size:1.4rem;font-weight:700;color:#3fb950;">{engulf}</span></div>
-                        <div><span style="color:#8b949e;font-size:0.75rem;">PA CONFLUENCE</span><br>
-                             <span style="font-size:1.4rem;font-weight:700;color:#d29922;">{conflu}</span></div>
-                      </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    st.markdown("#### Price Action Per Stock")
-                    for _, row in interp_df.head(15).iterrows():
-                        tk       = row["ticker"]
-                        pa_str   = str(row.get("pa_patterns","None"))
-                        pa_sc    = int(row.get("pa_score",0) or 0)
-                        price_v  = float(row.get("price",0))
-
-                        if pa_str == "None" or not pa_str:
-                            pa_html = (f'<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;'
-                                      f'padding:14px 18px;margin:6px 0;">'
-                                      f'<span style="font-weight:700;color:#e6edf3;">{tk}</span>&nbsp;&nbsp;'
-                                      f'<span style="color:#8b949e;font-size:0.85rem;">No significant PA pattern on last candle — '
-                                      f'check again after tomorrow\'s session.</span></div>')
-                        else:
-                            patterns_found = [p.strip() for p in pa_str.split("|")]
-                            readings = []
-                            for p in patterns_found:
-                                if p in pa_explanations:
-                                    c, name, expl = pa_explanations[p]
-                                    readings.append(f'<span style="color:{c};font-weight:600;">{name}:</span> {expl}')
-                            pa_html = (f'<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;'
-                                      f'padding:14px 18px;margin:6px 0;">'
-                                      f'<div style="margin-bottom:8px;">'
-                                      f'<span style="font-weight:700;color:#e6edf3;">{tk}</span>&nbsp;&nbsp;'
-                                      f'{amber(f"PA Score {pa_sc}/5")}</div>'
-                                      f'<ul style="margin:0;padding-left:18px;color:#c9d1d9;font-size:0.87rem;line-height:1.8;">'
-                                      + "".join(f"<li>{r}</li>" for r in readings) +
-                                      f'</ul></div>')
-                        st.markdown(pa_html, unsafe_allow_html=True)
-
-                else:
-                    row    = interp_df.iloc[0]
-                    pa_str = str(row.get("pa_patterns","None"))
-                    pa_sc  = int(row.get("pa_score",0) or 0)
-
-                    if pa_str == "None" or not pa_str:
                         st.markdown(f"""
-                        <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px 24px;">
-                          <div style="color:#8b949e;font-size:0.9rem;">
-                            No significant price action pattern detected on {interp_ticker}'s last candle.
-                            This is not necessarily negative — it simply means the most recent session
-                            did not produce a definitive signal. Check again after tomorrow's close.
+                        <div style="background:#161b22;border:1px solid {vc};border-radius:10px;padding:20px 24px;">
+                          <div style="color:{vc};font-weight:700;font-size:1rem;margin-bottom:14px;">
+                            {interp_ticker} — VWAP & Market Structure
+                          </div>
+                          <p style="color:#c9d1d9;font-size:0.9rem;line-height:1.8;margin:0;">
+                            Price <b>${price:.2f}</b> is <b style="color:{vc};">{vs_vwap:+.1f}%</b>
+                            {"above" if vs_vwap>0 else "below"} VWAP of <b>${vwap_val:.2f if vwap_val else '–'}</b>.<br>
+                            VWAP slope: <b>{slope}</b> — {'fair value is moving higher ✅' if slope=='Rising' else 'value is flat ⚠️' if slope=='Flat' else 'sellers pushing value lower 🔴'}<br>
+                            Structure: <b style="color:{'#3fb950' if 'Bullish' in ms else '#f85149'};">{ms}</b> —
+                            {'✅ HH/HL confirmed.' if hh_hl else '❌ No HH/HL yet.'}<br>
+                            {'🚨 Break of Structure detected.' if bos else ''}
+                            {'Key swing high: $' + f'{sh:.2f}' if sh else ''}
+                            {'| Key swing low: $' + f'{sl:.2f}' if sl else ''}
+                          </p>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+            # ════════════════════════════════════════════════════════════════
+            # VIEW 4 — PRICE ACTION
+            # ════════════════════════════════════════════════════════════════
+            with st.expander("🕯 Price Action Interpretation", expanded=True):
+                if "pa_patterns" not in interp_df.columns:
+                    st.info("Run a fresh scan to get Price Action data.")
+                else:
+                    pa_explanations = {
+                        "Bullish SFP (Bear Trap)": ("#3fb950", "Swing Failure Pattern — Bullish",
+                            "Price pierced below a swing low trapping shorts, then reversed back above. Shorts are forced to cover — fuelling buying pressure."),
+                        "Bearish SFP (Bull Trap)": ("#f85149", "Swing Failure Pattern — Bearish",
+                            "Price spiked above a swing high trapping longs, then reversed back below. The prior high is strong resistance."),
+                        "Bullish Engulfing": ("#3fb950", "Bullish Engulfing Candle",
+                            "A large bullish candle completely engulfs the prior bearish candle — buyers decisively overwhelmed sellers."),
+                        "Bearish Engulfing": ("#f85149", "Bearish Engulfing Candle",
+                            "A large bearish candle engulfs the prior bullish candle — sellers took complete control."),
+                        "Inside Day (Compression)": ("#388bfd", "Inside Day — Compression",
+                            "Today's range fits within yesterday's range. Compression before expansion — a directional move is building."),
+                        "Bullish Context Candle": ("#3fb950", "Bullish Context Candle",
+                            "High-volume candle closing in the top 25% of its range — buyers rejected lower prices decisively."),
+                        "Bearish Context Candle": ("#f85149", "Bearish Context Candle",
+                            "High-volume candle closing in the bottom 25% of its range — sellers dominated the auction."),
+                        "PA Confluence": ("#d29922", "Price Action Confluence",
+                            "Multiple PA signals aligned — dramatically increases probability. When SFP + engulfing + context candle appear together, the market has made a decisive statement."),
+                    }
+
+                    if interp_mode == "Full Scan Summary":
+                        all_pa   = interp_df["pa_patterns"].dropna()
+                        sfp_bull = all_pa.str.contains("Bullish SFP", na=False).sum()
+                        engulf   = all_pa.str.contains("Engulfing",   na=False).sum()
+                        conflu   = all_pa.str.contains("Confluence",  na=False).sum()
+
+                        st.markdown(f"""
+                        <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px 24px;margin-bottom:16px;">
+                          <div style="font-weight:700;font-size:1rem;margin-bottom:12px;">Price Action Picture</div>
+                          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+                            <div><span style="color:#8b949e;font-size:0.75rem;">BULLISH SFP</span><br>
+                                 <span style="font-size:1.4rem;font-weight:700;color:#3fb950;">{sfp_bull}</span></div>
+                            <div><span style="color:#8b949e;font-size:0.75rem;">ENGULFING</span><br>
+                                 <span style="font-size:1.4rem;font-weight:700;color:#3fb950;">{engulf}</span></div>
+                            <div><span style="color:#8b949e;font-size:0.75rem;">PA CONFLUENCE</span><br>
+                                 <span style="font-size:1.4rem;font-weight:700;color:#d29922;">{conflu}</span></div>
                           </div>
                         </div>
                         """, unsafe_allow_html=True)
+
+                        st.markdown("#### Price Action Per Stock")
+                        for _, row in interp_df.head(15).iterrows():
+                            tk     = row["ticker"]
+                            pa_str = str(row.get("pa_patterns","None"))
+                            pa_sc  = int(row.get("pa_score",0) or 0)
+
+                            if pa_str == "None" or not pa_str:
+                                st.markdown(
+                                    f'<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;'
+                                    f'padding:14px 18px;margin:6px 0;">'
+                                    f'<span style="font-weight:700;color:#e6edf3;">{tk}</span>&nbsp;&nbsp;'
+                                    f'<span style="color:#8b949e;font-size:0.85rem;">No significant PA pattern on last candle.</span></div>',
+                                    unsafe_allow_html=True
+                                )
+                            else:
+                                patterns_found = [p.strip() for p in pa_str.split("|")]
+                                readings = []
+                                for p in patterns_found:
+                                    if p in pa_explanations:
+                                        c, name, expl = pa_explanations[p]
+                                        readings.append(f'<span style="color:{c};font-weight:600;">{name}:</span> {expl}')
+                                st.markdown(
+                                    f'<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;'
+                                    f'padding:14px 18px;margin:6px 0;">'
+                                    f'<div style="margin-bottom:8px;"><span style="font-weight:700;color:#e6edf3;">{tk}</span>'
+                                    f'&nbsp;&nbsp;{amber(f"PA Score {pa_sc}/5")}</div>'
+                                    f'<ul style="margin:0;padding-left:18px;color:#c9d1d9;font-size:0.87rem;line-height:1.8;">'
+                                    + "".join(f"<li>{r}</li>" for r in readings) +
+                                    f'</ul></div>',
+                                    unsafe_allow_html=True
+                                )
                     else:
-                        patterns_found = [p.strip() for p in pa_str.split("|")]
-                        for p in patterns_found:
-                            if p in pa_explanations:
-                                c, name, expl = pa_explanations[p]
-                                st.markdown(f"""
-                                <div style="background:#161b22;border:1px solid {c};border-radius:10px;
-                                            padding:20px 24px;margin-bottom:12px;">
-                                  <div style="color:{c};font-weight:700;font-size:1rem;margin-bottom:10px;">
-                                    {interp_ticker} — {name} (PA Score: {pa_sc}/5)
-                                  </div>
-                                  <p style="color:#c9d1d9;font-size:0.92rem;line-height:1.85;margin:0;">{expl}</p>
-                                </div>
-                                """, unsafe_allow_html=True)
+                        row    = interp_df.iloc[0]
+                        pa_str = str(row.get("pa_patterns","None"))
+                        pa_sc  = int(row.get("pa_score",0) or 0)
 
-        # ════════════════════════════════════════════════════════════════
-        # VIEW 5 — FUNDAMENTALS (Alpha Vantage)
-        # ════════════════════════════════════════════════════════════════
-        with st.expander("📊 Fundamentals Interpretation (Alpha Vantage)", expanded=True):
-            if "eps_growth_%" not in interp_df.columns or interp_df["eps_growth_%"].isna().all():
-                st.markdown("""
-                <div style="background:#161b22;border:1px solid #d29922;border-radius:8px;padding:16px 20px;">
-                  <b style="color:#d29922;">⚠️ Alpha Vantage key not yet active</b><br>
-                  <span style="color:#8b949e;font-size:0.9rem;">
-                  Add your key to <code>config.yaml</code> under <code>alpha_vantage_key</code>
-                  and run a fresh scan to unlock real EPS data, earnings surprises,
-                  revenue growth, analyst targets and PE/PEG ratios for every stock.
-                  </span>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                if interp_mode == "Full Scan Summary":
-                    strong_eps = interp_df[
-                        pd.to_numeric(interp_df.get("eps_growth_%", pd.Series()), errors="coerce") >= 25
-                    ]
-                    accel_eps  = interp_df[interp_df.get("eps_accel", pd.Series([False]*len(interp_df))) == True]
-                    beat_3plus = interp_df[
-                        pd.to_numeric(interp_df.get("consec_beats", pd.Series()), errors="coerce") >= 3
-                    ]
+                        if pa_str == "None" or not pa_str:
+                            st.markdown(f"""
+                            <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px 24px;">
+                              <div style="color:#8b949e;">No significant PA pattern on {interp_ticker}'s last candle. Check again after tomorrow's close.</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        else:
+                            patterns_found = [p.strip() for p in pa_str.split("|")]
+                            for p in patterns_found:
+                                if p in pa_explanations:
+                                    c, name, expl = pa_explanations[p]
+                                    st.markdown(f"""
+                                    <div style="background:#161b22;border:1px solid {c};border-radius:10px;padding:20px 24px;margin-bottom:12px;">
+                                      <div style="color:{c};font-weight:700;font-size:1rem;margin-bottom:10px;">
+                                        {interp_ticker} — {name} (PA Score: {pa_sc}/5)
+                                      </div>
+                                      <p style="color:#c9d1d9;font-size:0.92rem;line-height:1.85;margin:0;">{expl}</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
 
-                    st.markdown(f"""
-                    <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;
-                                padding:20px 24px;margin-bottom:16px;">
-                      <div style="font-weight:700;font-size:1rem;margin-bottom:12px;">
-                        Real Earnings Picture (Alpha Vantage Data)
-                      </div>
-                      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
-                        <div>
-                          <span style="color:#8b949e;font-size:0.75rem;">EPS GROWTH ≥25%</span><br>
-                          <span style="font-size:1.4rem;font-weight:700;color:#3fb950;">
-                            {len(strong_eps)}
-                          </span>
-                          <div style="color:#8b949e;font-size:0.8rem;">
-                            {", ".join(strong_eps["ticker"].head(5).tolist()) or "None"}
-                          </div>
-                        </div>
-                        <div>
-                          <span style="color:#8b949e;font-size:0.75rem;">ACCELERATING EPS</span><br>
-                          <span style="font-size:1.4rem;font-weight:700;color:#d29922;">
-                            {len(accel_eps)}
-                          </span>
-                          <div style="color:#8b949e;font-size:0.8rem;">
-                            {", ".join(accel_eps["ticker"].head(5).tolist()) or "None"}
-                          </div>
-                        </div>
-                        <div>
-                          <span style="color:#8b949e;font-size:0.75rem;">3+ CONSEC BEATS</span><br>
-                          <span style="font-size:1.4rem;font-weight:700;color:#388bfd;">
-                            {len(beat_3plus)}
-                          </span>
-                          <div style="color:#8b949e;font-size:0.8rem;">
-                            {", ".join(beat_3plus["ticker"].head(5).tolist()) or "None"}
-                          </div>
-                        </div>
-                      </div>
+            # ════════════════════════════════════════════════════════════════
+            # VIEW 5 — FUNDAMENTALS
+            # ════════════════════════════════════════════════════════════════
+            with st.expander("📊 Fundamentals Interpretation (Alpha Vantage)", expanded=True):
+                if "eps_growth_%" not in interp_df.columns or interp_df["eps_growth_%"].isna().all():
+                    st.markdown("""
+                    <div style="background:#161b22;border:1px solid #d29922;border-radius:8px;padding:16px 20px;">
+                      <b style="color:#d29922;">⚠️ Alpha Vantage key not yet active</b><br>
+                      <span style="color:#8b949e;font-size:0.9rem;">Add your key to config.yaml under alpha_vantage_key and run a fresh scan.</span>
                     </div>
                     """, unsafe_allow_html=True)
+                else:
+                    if interp_mode == "Full Scan Summary":
+                        strong_eps = interp_df[pd.to_numeric(interp_df.get("eps_growth_%", pd.Series()), errors="coerce") >= 25]
+                        accel_eps  = interp_df[interp_df.get("eps_accel", pd.Series([False]*len(interp_df))) == True]
+                        beat_3plus = interp_df[pd.to_numeric(interp_df.get("consec_beats", pd.Series()), errors="coerce") >= 3]
 
-                    st.markdown("#### EPS Quality Per Stock")
-                    for _, row in interp_df.head(15).iterrows():
-                        tk      = row["ticker"]
+                        st.markdown(f"""
+                        <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px 24px;margin-bottom:16px;">
+                          <div style="font-weight:700;font-size:1rem;margin-bottom:12px;">Real Earnings Picture (Alpha Vantage)</div>
+                          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+                            <div><span style="color:#8b949e;font-size:0.75rem;">EPS GROWTH ≥25%</span><br>
+                                 <span style="font-size:1.4rem;font-weight:700;color:#3fb950;">{len(strong_eps)}</span>
+                                 <div style="color:#8b949e;font-size:0.8rem;">{", ".join(strong_eps["ticker"].head(5).tolist()) or "None"}</div></div>
+                            <div><span style="color:#8b949e;font-size:0.75rem;">ACCELERATING EPS</span><br>
+                                 <span style="font-size:1.4rem;font-weight:700;color:#d29922;">{len(accel_eps)}</span>
+                                 <div style="color:#8b949e;font-size:0.8rem;">{", ".join(accel_eps["ticker"].head(5).tolist()) or "None"}</div></div>
+                            <div><span style="color:#8b949e;font-size:0.75rem;">3+ CONSEC BEATS</span><br>
+                                 <span style="font-size:1.4rem;font-weight:700;color:#388bfd;">{len(beat_3plus)}</span>
+                                 <div style="color:#8b949e;font-size:0.8rem;">{", ".join(beat_3plus["ticker"].head(5).tolist()) or "None"}</div></div>
+                          </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                        st.markdown("#### EPS Quality Per Stock")
+                        for _, row in interp_df.head(15).iterrows():
+                            tk     = row["ticker"]
+                            eg     = row.get("eps_growth_%")
+                            es     = row.get("eps_surprise_%")
+                            accel  = bool(row.get("eps_accel", False))
+                            beats  = row.get("consec_beats")
+                            rev_g  = row.get("rev_growth_%")
+                            earn_m = str(row.get("earn_momentum","–"))
+                            eps_sc = row.get("eps_score", 0)
+                            tgt    = row.get("analyst_target")
+                            price_v= row.get("price",0)
+
+                            sentences = []
+                            if eg is not None:
+                                if eg >= 50:   sentences.append(f"EPS growing {eg:+.1f}% YoY — exceptional growth.")
+                                elif eg >= 25: sentences.append(f"EPS growth {eg:+.1f}% YoY — above the 25% growth stock threshold.")
+                                elif eg >= 0:  sentences.append(f"EPS growing {eg:+.1f}% YoY — positive but moderate.")
+                                else:          sentences.append(f"EPS declining {eg:.1f}% YoY — earnings contracting, yellow flag.")
+                            if es is not None:
+                                if es >= 20:   sentences.append(f"Beat estimates by {es:.1f}% — massive positive surprise.")
+                                elif es >= 5:  sentences.append(f"Beat estimates by {es:.1f}% — consistent execution.")
+                                elif es < 0:   sentences.append(f"Missed estimates by {abs(es):.1f}% — can create selling pressure.")
+                            if accel:          sentences.append("EPS growth accelerating QoQ — building momentum.")
+                            if beats and beats >= 3: sentences.append(f"{beats} consecutive quarterly beats — management under-promises and over-delivers.")
+                            if rev_g is not None and rev_g >= 20: sentences.append(f"Revenue growing {rev_g:+.1f}% YoY — real business expansion.")
+                            if tgt and price_v:
+                                upside = (tgt / price_v - 1) * 100
+                                sentences.append(f"Analyst target ${tgt:.2f} = {upside:+.1f}% upside.")
+                            if not sentences: sentences.append("Fundamental data not available from Alpha Vantage.")
+
+                            badge_c = "#3fb950" if "Strong" in earn_m else ("#d29922" if "Moderate" in earn_m else "#8b949e")
+                            earn_badge = f'<span style="background:{badge_c}22;color:{badge_c};border:1px solid {badge_c};border-radius:4px;padding:2px 8px;font-size:0.75rem;">{earn_m}</span>'
+
+                            st.markdown(
+                                f'<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;'
+                                f'padding:14px 18px;margin:6px 0;">'
+                                f'<div style="margin-bottom:8px;"><span style="font-weight:700;color:#e6edf3;">{tk}</span>'
+                                f'&nbsp;&nbsp;{earn_badge}&nbsp;<span style="color:#8b949e;font-size:0.8rem;">EPS Score: {eps_sc}/15</span></div>'
+                                f'<ul style="margin:0;padding-left:18px;color:#c9d1d9;font-size:0.87rem;line-height:1.8;">'
+                                + "".join(f"<li>{s}</li>" for s in sentences) +
+                                f'</ul></div>',
+                                unsafe_allow_html=True
+                            )
+
+                    else:
+                        row     = interp_df.iloc[0]
                         eg      = row.get("eps_growth_%")
                         es      = row.get("eps_surprise_%")
                         accel   = bool(row.get("eps_accel", False))
@@ -4277,196 +4144,88 @@ with tabs[16]:
                         earn_m  = str(row.get("earn_momentum","–"))
                         eps_sc  = row.get("eps_score", 0)
                         tgt     = row.get("analyst_target")
-                        price_v = row.get("price",0)
+                        pe      = row.get("pe_ratio")
+                        peg     = row.get("peg_ratio")
+                        price_v = float(row.get("price",0))
+                        fund_color = "#3fb950" if "Strong" in earn_m else ("#d29922" if "Moderate" in earn_m else "#f85149")
 
-                        sentences = []
+                        st.markdown(f"""
+                        <div style="background:#161b22;border:1px solid {fund_color};border-radius:10px;padding:20px 24px;">
+                          <div style="color:{fund_color};font-weight:700;font-size:1rem;margin-bottom:14px;">
+                            {interp_ticker} — Fundamental Profile (EPS Score: {eps_sc}/15)
+                          </div>
+                          <p style="color:#c9d1d9;font-size:0.9rem;line-height:1.85;margin:0;">
+                            {"✅" if (eg or 0)>=15 else "⚠️"} <b>EPS Growth YoY:</b> {f"{eg:+.1f}%" if eg is not None else "No data"}<br>
+                            {"✅" if (es or 0)>=5 else "⚠️"} <b>Last Surprise:</b> {f"{es:+.1f}%" if es is not None else "No data"}<br>
+                            {"✅" if accel else "–"} <b>Accelerating:</b> {"Yes" if accel else "No"}<br>
+                            {"✅" if (beats or 0)>=3 else "–"} <b>Consecutive Beats:</b> {f"{beats}Q" if beats else "No data"}<br>
+                            📈 <b>Revenue Growth:</b> {f"{rev_g:+.1f}%" if rev_g is not None else "No data"}<br>
+                            💰 <b>PE Ratio:</b> {f"{pe:.1f}x" if pe else "No data"} &nbsp;|&nbsp;
+                            📐 <b>PEG:</b> {f"{peg:.2f}" if peg else "No data"}<br>
+                            🎯 <b>Analyst Target:</b> {f"${tgt:.2f} = {(tgt/price_v-1)*100:+.1f}% upside" if tgt and price_v else "No data"}
+                          </p>
+                        </div>
+                        """, unsafe_allow_html=True)
 
-                        if eg is not None:
-                            if eg >= 50:
-                                sentences.append(f"EPS growing at {eg:+.1f}% YoY — exceptional growth rate. This is the kind of fundamental acceleration that institutional investors pay premium multiples for.")
-                            elif eg >= 25:
-                                sentences.append(f"EPS growth of {eg:+.1f}% YoY is strong and above the 25% threshold that marks a leading growth stock.")
-                            elif eg >= 0:
-                                sentences.append(f"EPS growing {eg:+.1f}% YoY — positive but moderate. Look for acceleration in coming quarters.")
-                            else:
-                                sentences.append(f"EPS declining {eg:.1f}% YoY — earnings are contracting. Strong price momentum with declining earnings is a yellow flag.")
+            # ── Combined summary for single ticker ─────────────────────────
+            if interp_mode == "Single Ticker Deep Read" and not interp_df.empty:
+                st.markdown("---")
+                st.markdown("#### 🎯 Combined Signal Summary")
+                row    = interp_df.iloc[0]
+                score  = float(row.get("apex_score",0))
+                stage  = str(row.get("stage","?"))
+                bias   = str(row.get("of_bias","–"))
+                vwap_p = str(row.get("vwap_position","–"))
+                ms_s   = str(row.get("ms_structure","–"))
+                pa_s   = str(row.get("pa_patterns","None"))
 
-                        if es is not None:
-                            if es >= 20:
-                                sentences.append(f"Beat estimates by {es:.1f}% last quarter — a massive positive surprise. Institutional re-rating often follows large beats.")
-                            elif es >= 5:
-                                sentences.append(f"Beat estimates by {es:.1f}% — consistent with a company executing above expectations.")
-                            elif es < 0:
-                                sentences.append(f"Missed estimates by {abs(es):.1f}% last quarter — a miss can create selling pressure even in uptrending stocks.")
+                signals_green = sum([
+                    "2 ✅" in stage,
+                    "Bullish" in bias,
+                    "Above VWAP" in vwap_p and "Extended" not in vwap_p,
+                    "Bullish" in ms_s,
+                    "Bullish" in pa_s,
+                ])
 
-                        if accel:
-                            sentences.append("EPS growth is accelerating quarter-over-quarter — the business is gaining momentum, not slowing down.")
-
-                        if beats and beats >= 3:
-                            sentences.append(f"{beats} consecutive quarterly beats. Management has a track record of under-promising and over-delivering — a quality signal.")
-
-                        if rev_g is not None and rev_g >= 20:
-                            sentences.append(f"Revenue growing {rev_g:+.1f}% YoY — top-line growth is real and substantial, not just cost-cutting driven.")
-
-                        if tgt and price_v:
-                            upside = (tgt / price_v - 1) * 100
-                            sentences.append(f"Analyst consensus target ${tgt:.2f} implies {upside:+.1f}% upside from current price.")
-
-                        if not sentences:
-                            sentences.append("Fundamental data not available for this ticker from Alpha Vantage.")
-
-                        badge_c = "#3fb950" if "Strong" in earn_m else ("#d29922" if "Moderate" in earn_m else "#8b949e")
-                        earn_badge = f'<span style="background:{badge_c}22;color:{badge_c};border:1px solid {badge_c};border-radius:4px;padding:2px 8px;font-size:0.75rem;">{earn_m}</span>'
-
-                        st.markdown(
-                            f'<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;'
-                            f'padding:14px 18px;margin:6px 0;">'
-                            f'<div style="margin-bottom:8px;">'
-                            f'<span style="font-weight:700;color:#e6edf3;">{tk}</span>'
-                            f'&nbsp;&nbsp;{earn_badge}&nbsp;'
-                            f'<span style="color:#8b949e;font-size:0.8rem;">EPS Score: {eps_sc}/15</span></div>'
-                            f'<ul style="margin:0;padding-left:18px;color:#c9d1d9;font-size:0.87rem;line-height:1.8;">'
-                            + "".join(f"<li>{s}</li>" for s in sentences) +
-                            f'</ul></div>',
-                            unsafe_allow_html=True
-                        )
-
+                if signals_green >= 4:
+                    verdict_html = f'<span style="color:#3fb950;font-weight:700;font-size:1.1rem;">HIGH CONVICTION SETUP ({signals_green}/5 signals aligned)</span>'
+                    verdict_text = f"All major signal categories are aligned bullishly for {interp_ticker}."
+                elif signals_green >= 3:
+                    verdict_html = f'<span style="color:#d29922;font-weight:700;font-size:1.1rem;">MODERATE CONVICTION ({signals_green}/5 signals aligned)</span>'
+                    verdict_text = f"Most signals positive for {interp_ticker} but some are missing. Wait for remaining signals to confirm."
                 else:
-                    # Single ticker
-                    row     = interp_df.iloc[0]
-                    eg      = row.get("eps_growth_%")
-                    es      = row.get("eps_surprise_%")
-                    accel   = bool(row.get("eps_accel", False))
-                    beats   = row.get("consec_beats")
-                    rev_g   = row.get("rev_growth_%")
-                    earn_m  = str(row.get("earn_momentum","–"))
-                    eps_sc  = row.get("eps_score", 0)
-                    tgt     = row.get("analyst_target")
-                    pe      = row.get("pe_ratio")
-                    peg     = row.get("peg_ratio")
-                    eps_det = row.get("eps_details","–")
-                    price_v = float(row.get("price",0))
+                    verdict_html = f'<span style="color:#f85149;font-weight:700;font-size:1.1rem;">LOW CONVICTION — WAIT ({signals_green}/5 signals aligned)</span>'
+                    verdict_text = f"Too many signals not yet aligned for {interp_ticker}. Patience protects capital."
 
-                    fund_color = "#3fb950" if "Strong" in earn_m else ("#d29922" if "Moderate" in earn_m else "#f85149")
-
-                    st.markdown(f"""
-                    <div style="background:#161b22;border:1px solid {fund_color};
-                                border-radius:10px;padding:20px 24px;">
-                      <div style="color:{fund_color};font-weight:700;font-size:1rem;margin-bottom:14px;">
-                        {interp_ticker} — Fundamental Profile (EPS Score: {eps_sc}/15)
-                      </div>
-                      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;">
-                        <div>
-                          <div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;margin-bottom:8px;">
-                            Earnings Quality
-                          </div>
-                          <p style="color:#c9d1d9;font-size:0.9rem;line-height:1.85;margin:0;">
-                            {"✅" if (eg or 0)>=15 else "⚠️"} <b>EPS Growth YoY:</b>
-                            {f"{eg:+.1f}%" if eg is not None else "No data"} —
-                            {f"Exceptional growth at {eg:.0f}% — this stock is earning far more than it did a year ago." if (eg or 0)>=50
-                             else f"Strong growth at {eg:.0f}% — above the 25% threshold for leading growth stocks." if (eg or 0)>=25
-                             else f"Moderate growth of {eg:.0f}%." if (eg or 0)>=0
-                             else f"Earnings declining {eg:.0f}% — watch this carefully alongside price action." if eg is not None
-                             else "Not available."}<br><br>
-                            {"✅" if (es or 0)>=5 else "⚠️"} <b>Last Surprise:</b>
-                            {f"{es:+.1f}%" if es is not None else "No data"} —
-                            {f"Beat by {es:.1f}% — institutional buyers often accumulate after large beats." if (es or 0)>=20
-                             else f"Beat by {es:.1f}% — consistent execution." if (es or 0)>=5
-                             else f"Missed by {abs(es or 0):.1f}% — misses can weigh on price even in uptrends." if es is not None
-                             else "Not available."}<br><br>
-                            {"✅" if accel else "–"} <b>Accelerating:</b>
-                            {"Yes — growth rate is increasing quarter over quarter. This is what drives institutional re-rating." if accel
-                             else "No acceleration yet. Steady growth but not yet building momentum in the earnings line."}<br><br>
-                            {"✅" if (beats or 0)>=3 else "–"} <b>Consecutive Beats:</b>
-                            {f"{beats} quarters" if beats else "No data"} —
-                            {f"{beats} consecutive beats shows management consistently sets achievable targets and exceeds them — a trust signal for institutional investors." if (beats or 0)>=3
-                             else "Less than 3 consecutive beats." if beats is not None else "Not available."}
-                          </p>
-                        </div>
-                        <div>
-                          <div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;margin-bottom:8px;">
-                            Valuation & Revenue
-                          </div>
-                          <p style="color:#c9d1d9;font-size:0.9rem;line-height:1.85;margin:0;">
-                            📈 <b>Revenue Growth:</b>
-                            {f"{rev_g:+.1f}% YoY — top-line growth confirms the earnings improvement is driven by real business expansion, not just cost cuts." if rev_g is not None else "Not available."}<br><br>
-                            💰 <b>PE Ratio:</b> {f"{pe:.1f}x — " if pe else "Not available — "}
-                            {f"premium valuation reflecting growth expectations." if (pe or 0)>40
-                             else f"reasonable for a growth company." if (pe or 0)>20
-                             else f"relatively cheap valuation." if (pe or 0)>0
-                             else ""}<br><br>
-                            📐 <b>PEG Ratio:</b> {f"{peg:.2f} — " if peg else "Not available — "}
-                            {f"below 1.0 = potentially undervalued relative to growth." if (peg or 0)<1 and (peg or 0)>0
-                             else f"above 2.0 = growth is priced in." if (peg or 0)>2
-                             else ""}<br><br>
-                            🎯 <b>Analyst Target:</b>
-                            {f"${tgt:.2f} = {(tgt/price_v-1)*100:+.1f}% from current ${price_v:.2f}" if tgt and price_v else "Not available."}
-                          </p>
-                        </div>
-                      </div>
+                st.markdown(f"""
+                <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px;margin-top:8px;">
+                  <div style="margin-bottom:12px;">{verdict_html}</div>
+                  <p style="color:#c9d1d9;font-size:0.92rem;line-height:1.8;margin:0 0 16px 0;">{verdict_text}</p>
+                  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
+                    <div style="background:#0d1117;border-radius:6px;padding:10px;text-align:center;">
+                      <div style="font-size:1.2rem;">{'✅' if '2 ✅' in stage else '❌'}</div>
+                      <div style="color:#8b949e;font-size:0.7rem;margin-top:4px;">STAGE 2</div>
                     </div>
-                    """, unsafe_allow_html=True)
-
-        # ── Combined summary for single ticker ─────────────────────────
-        if interp_mode == "Single Ticker Deep Read" and not interp_df.empty:
-            st.markdown("---")
-            st.markdown("#### 🎯 Combined Signal Summary")
-            row    = interp_df.iloc[0]
-            score  = float(row.get("apex_score",0))
-            stage  = str(row.get("stage","?"))
-            bias   = str(row.get("of_bias","–"))
-            vwap_p = str(row.get("vwap_position","–"))
-            ms_s   = str(row.get("ms_structure","–"))
-            pa_s   = str(row.get("pa_patterns","None"))
-
-            signals_green = sum([
-                "2 ✅" in stage,
-                "Bullish" in bias,
-                "Above VWAP" in vwap_p and "Extended" not in vwap_p,
-                "Bullish" in ms_s,
-                "Bullish" in pa_s,
-            ])
-
-            if signals_green >= 4:
-                verdict_html = f'<span style="color:#3fb950;font-weight:700;font-size:1.1rem;">HIGH CONVICTION SETUP ({signals_green}/5 signals aligned)</span>'
-                verdict_text = f"All major signal categories are aligned bullishly for {interp_ticker}. This is the type of setup where multiple independent frameworks agree — the highest conviction scenario."
-            elif signals_green >= 3:
-                verdict_html = f'<span style="color:#d29922;font-weight:700;font-size:1.1rem;">MODERATE CONVICTION ({signals_green}/5 signals aligned)</span>'
-                verdict_text = f"Most signals are positive for {interp_ticker} but some are missing. Worth monitoring closely. Wait for the remaining signals to confirm before committing full position size."
-            else:
-                verdict_html = f'<span style="color:#f85149;font-weight:700;font-size:1.1rem;">LOW CONVICTION — WAIT ({signals_green}/5 signals aligned)</span>'
-                verdict_text = f"Too many signals are not yet aligned for {interp_ticker}. The setup needs more time to develop. Patience here protects capital for when conditions improve."
-
-            st.markdown(f"""
-            <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px;margin-top:8px;">
-              <div style="margin-bottom:12px;">{verdict_html}</div>
-              <p style="color:#c9d1d9;font-size:0.92rem;line-height:1.8;margin:0 0 16px 0;">{verdict_text}</p>
-              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
-                <div style="background:#0d1117;border-radius:6px;padding:10px;text-align:center;">
-                  <div style="font-size:1.2rem;">{'✅' if '2 ✅' in stage else '❌'}</div>
-                  <div style="color:#8b949e;font-size:0.7rem;margin-top:4px;">STAGE 2</div>
+                    <div style="background:#0d1117;border-radius:6px;padding:10px;text-align:center;">
+                      <div style="font-size:1.2rem;">{'✅' if 'Bullish' in bias else '❌'}</div>
+                      <div style="color:#8b949e;font-size:0.7rem;margin-top:4px;">ORDER FLOW</div>
+                    </div>
+                    <div style="background:#0d1117;border-radius:6px;padding:10px;text-align:center;">
+                      <div style="font-size:1.2rem;">{'✅' if 'Above VWAP' in vwap_p and 'Extended' not in vwap_p else '❌'}</div>
+                      <div style="color:#8b949e;font-size:0.7rem;margin-top:4px;">ABOVE VWAP</div>
+                    </div>
+                    <div style="background:#0d1117;border-radius:6px;padding:10px;text-align:center;">
+                      <div style="font-size:1.2rem;">{'✅' if 'Bullish' in ms_s else '❌'}</div>
+                      <div style="color:#8b949e;font-size:0.7rem;margin-top:4px;">HH/HL</div>
+                    </div>
+                    <div style="background:#0d1117;border-radius:6px;padding:10px;text-align:center;">
+                      <div style="font-size:1.2rem;">{'✅' if 'Bullish' in pa_s else '❌'}</div>
+                      <div style="color:#8b949e;font-size:0.7rem;margin-top:4px;">PRICE ACTION</div>
+                    </div>
+                  </div>
                 </div>
-                <div style="background:#0d1117;border-radius:6px;padding:10px;text-align:center;">
-                  <div style="font-size:1.2rem;">{'✅' if 'Bullish' in bias else '❌'}</div>
-                  <div style="color:#8b949e;font-size:0.7rem;margin-top:4px;">ORDER FLOW</div>
-                </div>
-                <div style="background:#0d1117;border-radius:6px;padding:10px;text-align:center;">
-                  <div style="font-size:1.2rem;">{'✅' if 'Above VWAP' in vwap_p and 'Extended' not in vwap_p else '❌'}</div>
-                  <div style="color:#8b949e;font-size:0.7rem;margin-top:4px;">ABOVE VWAP</div>
-                </div>
-                <div style="background:#0d1117;border-radius:6px;padding:10px;text-align:center;">
-                  <div style="font-size:1.2rem;">{'✅' if 'Bullish' in ms_s else '❌'}</div>
-                  <div style="color:#8b949e;font-size:0.7rem;margin-top:4px;">HH/HL</div>
-                </div>
-                <div style="background:#0d1117;border-radius:6px;padding:10px;text-align:center;">
-                  <div style="font-size:1.2rem;">{'✅' if 'Bullish' in pa_s else '❌'}</div>
-                  <div style="color:#8b949e;font-size:0.7rem;margin-top:4px;">PRICE ACTION</div>
-                </div>
-              </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-
+                """, unsafe_allow_html=True)
+                
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 17 — GUIDE
 # ══════════════════════════════════════════════════════════════════════════════
