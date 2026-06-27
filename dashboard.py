@@ -3612,10 +3612,10 @@ with tabs[16]:
             def blue(t):   return pill(t, "#388bfd")
             def purple(t): return pill(t, "#c084fc")
                     
-        # ════════════════════════════════════════════════════════════════
-        # VIEW 1 — STANDARD
-        # ════════════════════════════════════════════════════════════════
-        with st.expander("📋 Standard View — Momentum & Stage", expanded=True):
+            # ════════════════════════════════════════════════════════════════
+            # VIEW 1 — STANDARD
+            # ════════════════════════════════════════════════════════════════
+            with st.expander("📋 Standard View — Momentum & Stage", expanded=True):
             if interp_mode == "Full Scan Summary":
                 total      = len(interp_df)
                 stage2     = interp_df["stage"].str.contains("2 ✅", na=False).sum() if "stage" in interp_df.columns else 0
