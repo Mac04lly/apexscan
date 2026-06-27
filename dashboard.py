@@ -550,15 +550,9 @@ tabs = st.tabs([
     "📖 Guide",
 ])
 
-
 # ══════════════════════════════════════════════════════════════════════════════
 # LOAD / SCAN DATA
 # ══════════════════════════════════════════════════════════════════════════════
-
-# ══════════════════════════════════════════════════════════════════════════════
-# LOAD / SCAN DATA
-# ══════════════════════════════════════════════════════════════════════════════
-
 df_raw       = pd.DataFrame()
 prev_df      = pd.DataFrame()
 gone_tickers = set()
@@ -566,10 +560,12 @@ gone_tickers = set()
 if run_btn:
     with st.spinner("Running live scan… (2–5 min)"):
         cfg     = load_config("config.yaml")
-        prev_df = load_latest_report()   # capture BEFORE saving new one
+        prev_df = load_latest_report()
         df_raw  = run_scan(cfg)
         if not df_raw.empty:
             save_report(df_raw)
+            st.session_state["df_raw"] = df_raw          # ← SAVE TO MEMORY
+            st.session_state["prev_df"] = prev_df        # ← SAVE PREV TOO
             st.success(f"Scan complete — {len(df_raw)} setups found!")
             try:
                 alert_settings = load_alert_settings()
@@ -582,9 +578,24 @@ if run_btn:
                 pass
         else:
             st.warning("No setups found. Try lowering the Score Threshold.")
+
+elif load_btn:                                            # ← CHANGED from else
+    if "df_raw" in st.session_state:
+        df_raw  = st.session_state["df_raw"]
+        prev_df = st.session_state.get("prev_df", pd.DataFrame())
+    else:
+        prev_df = load_previous_report()
+        df_raw  = load_latest_report()
+    if df_raw.empty:
+        st.sidebar.warning("No saved scan found. Please run Live Scan first.")
+
 else:
-    prev_df = load_previous_report()
-    df_raw  = load_latest_report()
+    if "df_raw" in st.session_state:                     # ← LOAD FROM MEMORY
+        df_raw  = st.session_state["df_raw"]
+        prev_df = st.session_state.get("prev_df", pd.DataFrame())
+    else:
+        prev_df = load_previous_report()
+        df_raw  = load_latest_report()
 
 # Compute deltas (changes vs previous scan)
 if not df_raw.empty and not prev_df.empty:
