@@ -3597,9 +3597,10 @@ with tabs[16]:
 
             st.markdown("---")
 
-        # ════════════════════════════════════════════════════════════════
-        # HELPER: colour-coded signal pill
-        # ════════════════════════════════════════════════════════════════
+            # ════════════════════════════════════════════════════════════════
+            # HELPER: colour-coded signal pill
+            # ════════════════════════════════════════════════════════════════
+            def pill(text, color="#3fb950"):
         def pill(text, color="#3fb950"):
             return (f'<span style="background:{color}22;color:{color};'
                     f'border:1px solid {color};border-radius:4px;'
