@@ -554,10 +554,6 @@ tabs = st.tabs([
 # LOAD / SCAN DATA
 # ══════════════════════════════════════════════════════════════════════════════
 # ══════════════════════════════════════════════════════════════════════════════
-# FIND THIS BLOCK in dashboard.py (around the LOAD / SCAN DATA section)
-# and REPLACE IT with the code below
-# ══════════════════════════════════════════════════════════════════════════════
-
 df_raw       = pd.DataFrame()
 prev_df      = pd.DataFrame()
 gone_tickers = set()
@@ -3591,18 +3587,17 @@ with tabs[16]:
     # SCAN INTERPRETATION (existing content)
     # ══════════════════════════════════════════════════════════════════════
 
-    else:  # "📊 Interpret My Scan Results"
+   else:  # "📊 Interpret My Scan Results"
         if df.empty:
-            st.info("Run a Live Scan or Load Last Report first, then come here for the interpretation.")
+            st.info("Run a Live Scan or Load Last Report first...")
         else:
-            # ── Ticker selector ────────────────────────────────────────────
             interp_mode = st.radio(
                 "Interpret",
                 ["Full Scan Summary", "Single Ticker Deep Read"],
                 horizontal=True,
                 key="interp_scan_mode"
             )
-
+            interp_mode = st.session_state.get("interp_scan_mode", "Full Scan Summary")  # ← ADD THIS
             if interp_mode == "Single Ticker Deep Read":
                 interp_ticker = st.selectbox("Choose ticker", df["ticker"].tolist(), key="interp_tk")
                 interp_df = df[df["ticker"] == interp_ticker]
