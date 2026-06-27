@@ -3601,7 +3601,6 @@ with tabs[16]:
             # HELPER: colour-coded signal pill
             # ════════════════════════════════════════════════════════════════
             def pill(text, color="#3fb950"):
-        def pill(text, color="#3fb950"):
             return (f'<span style="background:{color}22;color:{color};'
                     f'border:1px solid {color};border-radius:4px;'
                     f'padding:2px 8px;font-size:0.8rem;font-weight:600;">'
