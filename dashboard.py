@@ -44,27 +44,6 @@ _al   = _safe_import("modules.alerts",            ["load_alert_settings", "save_
                                                     "check_and_fire_alerts", "build_daily_briefing_alert"])
 _av   = _safe_import("modules.alpha_vantage",     ["analyse_eps", "get_upcoming_earnings_for_watchlist",
                                                     "_cache_path", "_cache_valid"])
-_uni  = _safe_import("modules.universe",        ["build_universe", "get_universe_stats", "UNIVERSE_PRESETS", "refresh_universe_cache"])
-_td   = _safe_import("modules.twelve_data",       ["enrich_ticker", "estimate_credits",
-                                                    "get_rsi", "get_macd", "get_bbands", "get_adx"])
-_ms   = _safe_import("modules.marketstack",       ["get_eod_price", "get_dividend_yield",
-                                                    "verify_price", "get_dividends"])
-
-# Expose universe names
-build_universe_fn        = _uni["build_universe"]
-get_universe_stats_fn    = _uni["get_universe_stats"]
-UNIVERSE_PRESETS         = _uni["UNIVERSE_PRESETS"] or {}
-refresh_universe_cache_fn= _uni["refresh_universe_cache"]
-
-# Expose TD names
-enrich_ticker    = _td["enrich_ticker"]
-estimate_credits = _td["estimate_credits"]
-
-# Expose MS names
-get_eod_price_ms   = _ms["get_eod_price"]
-get_dividend_yield = _ms["get_dividend_yield"]
-verify_price_ms    = _ms["verify_price"]
-get_dividends_ms   = _ms["get_dividends"]
 
 # Expose as module-level names (None if module missing)
 scan_options_flow      = _of["scan_options_flow"]
@@ -492,8 +471,7 @@ with st.sidebar:
     load_btn = st.button("📂 Load Last Report", use_container_width=True)
     st.divider()
 
-    # API Key Status — reads from Streamlit secrets OR config.yaml
-    # load_config() handles the injection automatically
+    # API Key Status — load_config reads from Streamlit secrets automatically
     _cfg_check = load_config("config.yaml")
 
     def _key_ok(k):
@@ -506,15 +484,14 @@ with st.sidebar:
     _ms_ok = _key_ok("marketstack_key")
 
     st.markdown("**API Status**")
-    st.markdown(f"{'🟢' if _av_ok else '🔴'} Alpha Vantage {'✓ EPS data'    if _av_ok else '✗ Not set'}")
-    st.markdown(f"{'🟢' if _td_ok else '🔴'} Twelve Data {'✓ Indicators'   if _td_ok else '✗ Not set'}")
-    st.markdown(f"{'🟢' if _ms_ok else '🟡'} MarketStack {'✓ Backup'       if _ms_ok else 'Optional'}")
-    st.markdown(f"{'🟢' if _fh_ok else '🟡'} Finnhub {'✓ News'            if _fh_ok else 'Optional'}")
-
+    st.markdown(f"{'🟢' if _av_ok else '🔴'} Alpha Vantage {'✓ EPS data'  if _av_ok else '✗ Not set'}")
+    st.markdown(f"{'🟢' if _td_ok else '🔴'} Twelve Data {'✓ Indicators' if _td_ok else '✗ Not set'}")
+    st.markdown(f"{'🟢' if _ms_ok else '🟡'} MarketStack {'✓ Backup'     if _ms_ok else 'Optional'}")
+    st.markdown(f"{'🟢' if _fh_ok else '🟡'} Finnhub {'✓ News'          if _fh_ok else 'Optional'}")
+    if not _av_ok:
+        st.caption("Add alpha_vantage_key to Streamlit Secrets")
     if not _td_ok:
         st.caption("Add twelve_data_key to Streamlit Secrets")
-    if not _ms_ok:
-        st.caption("Add marketstack_key to Streamlit Secrets")
 
     st.divider()
     st.caption("Data: yfinance · Finnhub · Alpha Vantage")
@@ -530,7 +507,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 tabs = st.tabs([
-    "🌐 Universe Scanner",
     "🏆 Leaderboard",
     "📈 Chart Viewer",
     "🌍 Theme Heatmap",
@@ -570,7 +546,6 @@ if run_btn:
         df_raw  = run_scan(cfg)
         if not df_raw.empty:
             save_report(df_raw)
-            st.success(f"Scan complete — {len(df_raw)} setups found!")
             try:
                 alert_settings = load_alert_settings()
                 if alert_settings.get("alerts_enabled"):
@@ -580,8 +555,10 @@ if run_btn:
                         st.info(f"🔔 {len(fired)} alert(s) sent to your configured channels.")
             except Exception as ae:
                 pass
+            st.success(f"✅ Scan complete — {len(df_raw)} setups found! Loading results…")
+            st.rerun()  # reload so Leaderboard tab populates from saved CSV
         else:
-            st.warning("No setups found. Try lowering the Score Threshold.")
+            st.warning("No setups found. Try lowering the Score or Volume thresholds in config.yaml.")
 else:
     prev_df = load_previous_report()
     df_raw  = load_latest_report()
@@ -610,408 +587,10 @@ if not df.empty:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 0 — UNIVERSE SCANNER
-# ══════════════════════════════════════════════════════════════════════════════
-
-with tabs[0]:
-    st.markdown("### 🌐 Universe Scanner")
-    st.caption(
-        "Scan the actual S&P 500, NASDAQ 100, Russell 2000 and more — "
-        "1500+ tickers automatically, all filtered through the full Apex Score engine."
-    )
-
-    cfg_u = load_config("config.yaml")
-
-    # ── Universe preset selector ───────────────────────────────────────────
-    preset_options = {
-        "custom":    "📋 Custom (config.yaml themes — 65 tickers)",
-        "nasdaq100": "🟢 NASDAQ 100 (~101 tickers, ~2 min)",
-        "sp500":     "🔵 S&P 500 (~503 tickers, ~11 min)",
-        "sp500+ndx": "🔵🟢 S&P 500 + NASDAQ 100 (~550, ~12 min)",
-        "large_cap": "🏦 Large Cap — SP500+NASDAQ+DOW (~550, ~12 min)",
-        "mid_cap":   "📊 Mid Cap — S&P 400 (~400 tickers, ~9 min)",
-        "broad":     "🌍 Broad — SP500+NASDAQ+SP400 (~900, ~20 min)",
-        "full":      "🌐 Full Universe — 2000+ tickers (~45 min, run overnight)",
-    }
-    current_preset = cfg_u.get("scan_universe", {}).get("preset", "custom")
-
-    uc1, uc2, uc3 = st.columns([3, 1, 1])
-    with uc1:
-        selected_preset = st.selectbox(
-            "Index Universe",
-            options=list(preset_options.keys()),
-            format_func=lambda x: preset_options[x],
-            index=list(preset_options.keys()).index(current_preset)
-                  if current_preset in preset_options else 0,
-            key="uni_preset",
-        )
-    with uc2:
-        max_scan_u = st.number_input(
-            "Max tickers", min_value=50, max_value=2500,
-            value=cfg_u.get("scan_universe", {}).get("max_tickers_per_scan", 500),
-            step=50, key="uni_max",
-            help="Limit scan size. 0 = scan all tickers in selected universe.",
-        )
-    with uc3:
-        min_uni_score = st.slider(
-            "Min Apex Score", 20, 80, 30, 5, key="uni_score",
-            help="Only stocks scoring above this threshold appear in results."
-        )
-
-    # ── Quality filters (Apex Score laws) ─────────────────────────────────
-    with st.expander("🔬 Quality Filters", expanded=False):
-        qf1, qf2, qf3 = st.columns(3)
-        with qf1:
-            st.markdown("**Stage & Trend**")
-            stage2_only = st.checkbox("Stage 2 uptrend only", value=True,
-                help="Price > MA50 > MA200. The only stage worth buying.")
-            min_rs = st.slider("Min RS vs S&P 500", 0, 200, 70, 10,
-                help="Relative Strength score. 100 = beating the market.")
-        with qf2:
-            st.markdown("**Momentum**")
-            min_3m_u = st.slider("Min 3-month return %", -20, 50, 10, 5)
-            min_vol_u = st.number_input("Min daily volume", value=500_000, step=100_000)
-        with qf3:
-            st.markdown("**Sector Filter**")
-            sector_options = [
-                "Information Technology", "Health Care", "Financials",
-                "Consumer Discretionary", "Communication Services",
-                "Industrials", "Consumer Staples", "Energy",
-                "Materials", "Real Estate", "Utilities",
-            ]
-            inc_sectors = st.multiselect(
-                "Include only (blank = all sectors)", sector_options,
-                default=[], key="uni_inc_sec"
-            )
-            exc_sectors = st.multiselect(
-                "Exclude sectors", sector_options,
-                default=["Utilities", "Consumer Staples"],
-                key="uni_exc_sec",
-                help="Typically exclude defensive sectors from momentum scans."
-            )
-
-        # Extra/exclude tickers
-        et1, et2 = st.columns(2)
-        with et1:
-            extra_tix_u = st.text_area(
-                "Always include these tickers (comma separated)",
-                placeholder="HIMS, RDDT, CAVA, SOUN",
-                key="uni_extra", height=70,
-            )
-        with et2:
-            excl_tix_u = st.text_area(
-                "Always exclude these tickers",
-                placeholder="BRK.A, BRK.B",
-                key="uni_excl", height=70,
-            )
-
-    # ── Action buttons ─────────────────────────────────────────────────────
-    btn1, btn2, btn3 = st.columns([2, 1, 1])
-    with btn1:
-        uni_scan_btn = st.button(
-            "🚀 Launch Universe Scan", use_container_width=True,
-            type="primary", key="uni_scan_btn"
-        )
-    with btn2:
-        preview_btn = st.button(
-            "👁 Preview Universe", use_container_width=True, key="uni_preview"
-        )
-    with btn3:
-        refresh_uni_btn = st.button(
-            "🔄 Refresh Index Data", use_container_width=True, key="uni_refresh"
-        )
-
-    # ── Refresh index cache ────────────────────────────────────────────────
-    if refresh_uni_btn:
-        if refresh_universe_cache_fn:
-            refresh_universe_cache_fn()
-            st.success("Index component cache cleared — next scan fetches fresh data.")
-        else:
-            st.warning("Universe module not loaded. Ensure modules/universe.py is in your repo.")
-
-    # ── Preview universe without scanning ─────────────────────────────────
-    if preview_btn:
-        if not build_universe_fn:
-            st.error("Universe module not loaded.")
-        else:
-            with st.spinner("Building universe component list…"):
-                extra_list = [t.strip().upper() for t in extra_tix_u.split(",") if t.strip()] if extra_tix_u else []
-                excl_list  = [t.strip().upper() for t in excl_tix_u.split(",")  if t.strip()] if excl_tix_u else []
-                uni_data = build_universe_fn(
-                    preset          = selected_preset,
-                    extra_tickers   = extra_list,
-                    exclude_tickers = excl_list,
-                    include_sectors = inc_sectors or None,
-                    exclude_sectors = exc_sectors or None,
-                )
-
-            if not uni_data:
-                st.warning("Could not build universe. Check internet connection.")
-            else:
-                stats = get_universe_stats_fn(uni_data) if get_universe_stats_fn else {}
-                pk1, pk2, pk3 = st.columns(3)
-                with pk1:
-                    st.markdown(f'<div class="metric-card"><h3>Total Tickers</h3>'
-                                f'<div class="value white">{stats.get("total",0)}</div></div>',
-                                unsafe_allow_html=True)
-                with pk2:
-                    by_idx = stats.get("by_index", {})
-                    idx_str = " · ".join(f"{k}: {v}" for k,v in list(by_idx.items())[:4])
-                    st.markdown(f'<div class="metric-card"><h3>By Index</h3>'
-                                f'<div style="font-size:0.8rem;color:#c9d1d9;">{idx_str}</div></div>',
-                                unsafe_allow_html=True)
-                with pk3:
-                    by_tier = stats.get("by_tier", {})
-                    tier_str = " · ".join(f"{k}: {v}" for k,v in by_tier.items())
-                    st.markdown(f'<div class="metric-card"><h3>By Cap Tier</h3>'
-                                f'<div style="font-size:0.8rem;color:#c9d1d9;">{tier_str}</div></div>',
-                                unsafe_allow_html=True)
-
-                # Sector breakdown
-                by_sec = stats.get("by_sector", {})
-                if by_sec:
-                    fig_uni = go.Figure(go.Bar(
-                        x=list(by_sec.values()), y=list(by_sec.keys()),
-                        orientation="h", marker_color="#388bfd",
-                    ))
-                    fig_uni.update_layout(
-                        title="Tickers by GICS Sector",
-                        paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
-                        font_color="#e6edf3", height=340,
-                        xaxis=dict(gridcolor="#21262d"),
-                        yaxis=dict(autorange="reversed", gridcolor="#21262d"),
-                        margin=dict(l=10, r=10, t=40, b=10),
-                    )
-                    st.plotly_chart(fig_uni, use_container_width=True)
-
-                st.markdown(f"**Sample** (first 30 of {len(uni_data)} tickers):")
-                cols_show = [c for c in ["ticker","name","sector","index","market_cap_tier"]
-                             if c in pd.DataFrame(uni_data[:1]).columns]
-                st.dataframe(pd.DataFrame(uni_data[:30]), use_container_width=True,
-                             hide_index=True, height=320)
-
-    # ── Universe scan execution ────────────────────────────────────────────
-    elif uni_scan_btn:
-        if not build_universe_fn:
-            st.error("Universe module not loaded. Ensure modules/universe.py exists in your repo.")
-        else:
-            # Build universe
-            with st.spinner("Fetching index components…"):
-                extra_list = [t.strip().upper() for t in extra_tix_u.split(",") if t.strip()] if extra_tix_u else []
-                excl_list  = [t.strip().upper() for t in excl_tix_u.split(",")  if t.strip()] if excl_tix_u else []
-                uni_data = build_universe_fn(
-                    preset          = selected_preset,
-                    extra_tickers   = extra_list,
-                    exclude_tickers = excl_list,
-                    include_sectors = inc_sectors or None,
-                    exclude_sectors = exc_sectors or None,
-                )
-                if max_scan_u and max_scan_u > 0:
-                    uni_data = uni_data[:int(max_scan_u)]
-
-            total_u   = len(uni_data)
-            est_mins  = round(total_u * 1.4 / 60, 1)
-
-            st.info(f"🚀 Scanning **{total_u} tickers** through the full Apex Score engine. "
-                    f"Estimated time: **{est_mins} minutes**. "
-                    f"Each ticker runs all 4 signal layers: Momentum → Order Flow → VWAP → Price Action.")
-
-            prog = st.progress(0, text="Initialising…")
-            status_txt = st.empty()
-
-            # Override config with UI quality filters
-            cfg_scan = load_config("config.yaml")
-            cfg_scan["thresholds"]["us"]["score_filter"]  = int(min_uni_score)
-            cfg_scan["thresholds"]["us"]["min_volume"]    = int(min_vol_u)
-            cfg_scan["thresholds"]["us"]["min_3m_perf"]   = int(min_3m_u)
-            cfg_scan["thresholds"]["us"]["rs_rating_min"] = int(min_rs)
-
-            all_results = []
-            CHUNK = 50   # scan in chunks of 50 so progress updates live
-
-            try:
-                for start in range(0, total_u, CHUNK):
-                    chunk = uni_data[start : start + CHUNK]
-                    done  = min(start + CHUNK, total_u)
-                    pct   = done / total_u
-                    prog.progress(pct, text=f"Scanning {done}/{total_u} tickers…")
-                    status_txt.markdown(
-                        f"**{len(all_results)} setups found** so far | "
-                        f"Scanning {start+1}–{done} of {total_u} "
-                        f"(Stage 2 only: {'✅' if stage2_only else '❌'} | "
-                        f"Min RS: {min_rs} | Min 3m: {min_3m_u}%)"
-                    )
-
-                    chunk_df = run_scan(cfg_scan, universe_override=chunk)
-
-                    if not chunk_df.empty:
-                        # Apply Stage 2 filter if requested
-                        if stage2_only and "stage" in chunk_df.columns:
-                            chunk_df = chunk_df[
-                                chunk_df["stage"].str.contains("2 ✅", na=False)
-                            ]
-                        # Apply RS filter
-                        if "rs_3m" in chunk_df.columns:
-                            chunk_df = chunk_df[
-                                pd.to_numeric(chunk_df["rs_3m"], errors="coerce")
-                                >= min_rs
-                            ]
-                        if not chunk_df.empty:
-                            all_results.append(chunk_df)
-
-                prog.empty()
-                status_txt.empty()
-
-                if all_results:
-                    final_df = pd.concat(all_results, ignore_index=True)
-                    final_df = final_df.sort_values(
-                        "apex_score", ascending=False
-                    ).reset_index(drop=True)
-                    final_df.index += 1
-                    final_df.index.name = "rank"
-
-                    # Save to reports
-                    save_report(final_df)
-                    # Store in session state for Leaderboard tab
-                    st.session_state["uni_result"]      = final_df
-                    st.session_state["uni_result_time"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-
-                    st.success(
-                        f"✅ **{len(final_df)} high-quality setups** found from "
-                        f"{total_u} tickers. "
-                        f"Switch to the 🏆 Leaderboard tab to explore results."
-                    )
-
-                    # KPI row
-                    rk1,rk2,rk3,rk4,rk5 = st.columns(5)
-                    with rk1:
-                        st.markdown(f'<div class="metric-card"><h3>Setups Found</h3>'
-                                    f'<div class="value green">{len(final_df)}</div>'
-                                    f'<div style="color:#8b949e;font-size:.75rem;">of {total_u} scanned</div>'
-                                    f'</div>', unsafe_allow_html=True)
-                    with rk2:
-                        bo_u = int((final_df.get("breaking_out", pd.Series([False]*len(final_df))) == True).sum()) if "breaking_out" in final_df.columns else 0
-                        st.markdown(f'<div class="metric-card"><h3>Active Breakouts</h3>'
-                                    f'<div class="value amber">{bo_u}</div></div>',
-                                    unsafe_allow_html=True)
-                    with rk3:
-                        top_s = pd.to_numeric(final_df.get("apex_score", pd.Series()), errors="coerce").max()
-                        st.markdown(f'<div class="metric-card"><h3>Top Apex Score</h3>'
-                                    f'<div class="value green">{top_s:.0f}</div></div>',
-                                    unsafe_allow_html=True)
-                    with rk4:
-                        sfp_u = final_df["pa_sfp"].notna().sum() if "pa_sfp" in final_df.columns else 0
-                        st.markdown(f'<div class="metric-card"><h3>SFP Setups</h3>'
-                                    f'<div class="value blue">{sfp_u}</div></div>',
-                                    unsafe_allow_html=True)
-                    with rk5:
-                        sec_u = final_df["gics_sector"].nunique() if "gics_sector" in final_df.columns else 0
-                        st.markdown(f'<div class="metric-card"><h3>Sectors Represented</h3>'
-                                    f'<div class="value white">{sec_u}</div></div>',
-                                    unsafe_allow_html=True)
-
-                    # Top 15 preview table
-                    st.markdown("---")
-                    st.markdown("#### Top 15 Setups")
-                    preview_c = [c for c in [
-                        "ticker","company_name","gics_sector","index","price",
-                        "stage","perf_3m_%","rs_3m","of_bias","vwap_position",
-                        "pa_patterns","pattern","apex_score"
-                    ] if c in final_df.columns]
-
-                    disp_u = final_df[preview_c].head(15).copy()
-                    for col in ["apex_score","perf_3m_%","rs_3m"]:
-                        if col in disp_u.columns:
-                            disp_u[col] = pd.to_numeric(disp_u[col], errors="coerce")
-
-                    styled_u = disp_u.style \
-                        .map(color_score, subset=["apex_score"]) \
-                        .map(color_perf,  subset=["perf_3m_%"] if "perf_3m_%" in disp_u.columns else []) \
-                        .map(color_rs,    subset=["rs_3m"]     if "rs_3m"     in disp_u.columns else []) \
-                        .format({
-                            "price":      "${:.2f}",
-                            "perf_3m_%":  pct_fmt,
-                            "rs_3m":      lambda v: f"{v:.0f}" if pd.notna(v) and v != 0 else "–",
-                            "apex_score": "{:.0f}",
-                        }, na_rep="–")
-                    st.dataframe(styled_u, use_container_width=True, height=460)
-
-                    st.download_button(
-                        "⬇ Download Full Results CSV",
-                        final_df.to_csv().encode("utf-8"),
-                        file_name=f"apexscan_universe_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-                        mime="text/csv",
-                    )
-                else:
-                    st.warning(
-                        f"No setups passed the quality filters from {total_u} tickers. "
-                        f"Try: lowering Min Apex Score below {min_uni_score}, "
-                        f"reducing Min RS below {min_rs}, or unchecking 'Stage 2 only'."
-                    )
-
-            except Exception as scan_err:
-                prog.empty()
-                st.error(f"Scan error: {scan_err}")
-                import traceback as _tb
-                st.code(_tb.format_exc())
-
-    else:
-        # Default info panel
-        st.markdown("""
-        <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;
-                    padding:28px 32px;">
-          <h3 style="color:#e6edf3;margin:0 0 16px 0;">
-            From 65 tickers to 2000+ — same rigorous Apex Score engine
-          </h3>
-          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;
-                      color:#c9d1d9;font-size:0.9rem;line-height:1.9;">
-            <div>
-              <div style="color:#388bfd;font-weight:700;margin-bottom:4px;">
-                📡 Auto-fetches real index components
-              </div>
-              S&P 500, NASDAQ 100, and Russell 2000 components are pulled
-              automatically from Wikipedia and iShares ETF holdings.
-              No manual ticker lists. Always current.<br><br>
-              <div style="color:#388bfd;font-weight:700;margin-bottom:4px;">
-                🔬 Same quality laws — no compromise
-              </div>
-              Every ticker runs the full Apex Score: momentum, relative strength,
-              stage analysis, order flow persistence, VWAP position, and
-              price action patterns. A stock with 500 RS from a mid-cap
-              is worth more than a large-cap with RS of 70.
-            </div>
-            <div>
-              <div style="color:#388bfd;font-weight:700;margin-bottom:4px;">
-                🎯 Quality filters built-in
-              </div>
-              Stage 2 only filter ensures you only see confirmed uptrends.
-              RS minimum ensures you only see market leaders.
-              Sector exclusions let you focus on growth-oriented sectors.<br><br>
-              <div style="color:#388bfd;font-weight:700;margin-bottom:4px;">
-                ⏱ Timing guide
-              </div>
-              NASDAQ 100 = 2 min | S&P 500 = 11 min<br>
-              Broad (900) = 20 min | Full (2000+) = 45 min<br>
-              Run the full universe overnight using scheduler.py
-            </div>
-          </div>
-          <div style="margin-top:20px;padding:14px;background:#0d1117;
-                      border-radius:8px;color:#8b949e;font-size:0.85rem;">
-            💡 <b>Recommended starting point:</b> Select <b>S&P 500</b>,
-            keep Stage 2 only ✅, Min RS 70, Min 3m return 10%.
-            This gives you the highest-quality setups from the 503 most
-            liquid US stocks — typically 20–60 results that genuinely qualify.
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — LEADERBOARD
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[1]:
-
+with tabs[0]:
     if df.empty:
         st.info("Click **🚀 Run Live Scan** or **📂 Load Last Report** in the sidebar.")
     else:
@@ -1080,7 +659,7 @@ with tabs[1]:
                 df_filtered = df_filtered[mcap_num >= 10_000_000_000]
 
         # Column view toggle
-        col_view = st.radio("Column View", ["Standard", "Order Flow", "VWAP & Structure", "Price Action", "Fundamentals", "Indicators"], horizontal=True)
+        col_view = st.radio("Column View", ["Standard", "Order Flow", "VWAP & Structure", "Price Action", "Fundamentals"], horizontal=True)
 
         if col_view == "Standard":
             want = ["ticker","theme","price","mcap_category","stage",
@@ -1099,16 +678,11 @@ with tabs[1]:
             want = ["ticker","price","pa_patterns","pa_engulfing","pa_sfp",
                     "pa_inside_day","pa_context","pa_score",
                     "of_bias","vwap_position","apex_score"]
-        elif col_view == "Fundamentals":
+        else:  # Fundamentals
             want = ["ticker","price","earn_momentum",
                     "eps_growth_%","eps_surprise_%","eps_accel",
                     "consec_beats","rev_growth_%","eps_score",
                     "analyst_target","pe_ratio","peg_ratio","apex_score"]
-        else:  # Indicators (Twelve Data)
-            want = ["ticker","price",
-                    "td_rsi","td_macd_bull","td_macd_cross","td_macd_momentum",
-                    "td_bb_squeeze","td_bb_position","td_bb_pct_b",
-                    "td_adx","td_trend_strength","td_score","apex_score"]
 
         show_cols = [c for c in want if c in df_filtered.columns]
         disp = df_filtered[show_cols].head(30).copy()
@@ -1155,11 +729,6 @@ with tabs[1]:
             "vwap": "${:.2f}",
             "ms_swing_high": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
             "ms_swing_low":  lambda v: f"${v:.2f}" if pd.notna(v) else "–",
-            # Twelve Data indicators
-            "td_rsi":         lambda v: f"{v:.1f}" if pd.notna(v) else "–",
-            "td_adx":         lambda v: f"{v:.1f}" if pd.notna(v) else "–",
-            "td_bb_pct_b":    lambda v: f"{v:.0f}%" if pd.notna(v) else "–",
-            "td_score":       lambda v: f"{v}/10" if pd.notna(v) else "–",
             # AV fundamentals
             "eps_growth_%":   lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
             "eps_surprise_%": lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
@@ -1339,7 +908,7 @@ with tabs[1]:
 # TAB 2 — CHART VIEWER
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[2]:
+with tabs[1]:
     st.markdown("### 📈 Price Chart + Moving Averages + VWAP")
     ticker_opts = df["ticker"].tolist() if not df.empty else ["NVDA","AAPL","TSM","ASML"]
     ca, cb, cc = st.columns([2, 1, 1])
@@ -1466,7 +1035,7 @@ with tabs[2]:
 # TAB 3 — THEME HEATMAP
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[3]:
+with tabs[2]:
     st.markdown("### 🌍 Theme Rotation Heatmap")
     if df.empty:
         st.info("Run a scan first.")
@@ -1574,7 +1143,7 @@ with tabs[3]:
                 st.plotly_chart(fig_gems, use_container_width=True)
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[4]:
+with tabs[3]:
     st.markdown("### 💼 Portfolio Tracker")
     st.caption("Your holdings are saved locally in data/portfolio.json")
 
@@ -1724,7 +1293,7 @@ with tabs[4]:
 # TAB 5 — EARNINGS CALENDAR
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[5]:
+with tabs[4]:
     st.markdown("### 📅 Earnings Calendar")
     st.caption("Tracks upcoming earnings for your watchlist. Data from yfinance — may not cover all tickers.")
 
@@ -1839,7 +1408,7 @@ with tabs[5]:
 # TAB 6 — SECTOR ROTATION
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[6]:
+with tabs[5]:
     st.markdown("### 🔄 Sector Rotation Dashboard")
     st.caption("Tracks US sector ETF performance to show where institutional money is flowing.")
 
@@ -1936,7 +1505,7 @@ with tabs[6]:
 # TAB 7 — STOCK DEEP DIVE
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[7]:
+with tabs[6]:
     st.markdown("### 🔍 Stock Deep Dive")
     st.caption("Analyse any US stock — same scoring engine as the live scan.")
 
@@ -2185,96 +1754,6 @@ with tabs[7]:
 
             st.markdown("---")
 
-            # ── Twelve Data Indicators ────────────────────────────────────
-            td_rsi   = result.get("td_rsi")
-            td_adx   = result.get("td_adx")
-            td_macd_b= result.get("td_macd_bull")
-            td_macd_c= result.get("td_macd_cross")
-            td_bb_sq = result.get("td_bb_squeeze")
-            td_bb_p  = result.get("td_bb_position","–")
-            td_bb_pctb=result.get("td_bb_pct_b")
-            td_tstr  = result.get("td_trend_strength","–")
-            td_sc    = result.get("td_score", 0)
-            td_sigs  = result.get("td_signals", [])
-
-            if td_rsi is None and td_adx is None:
-                st.markdown('<div class="warn-box">⚠️ <b>Twelve Data not active</b> — '
-                            'add your key to config.yaml under <code>twelve_data_key</code> '
-                            'for real RSI, MACD, Bollinger Bands and ADX data.</div>',
-                            unsafe_allow_html=True)
-            else:
-                st.markdown("#### 📡 Technical Indicators (Twelve Data)")
-                ti1,ti2,ti3,ti4,ti5 = st.columns(5)
-
-                # RSI
-                rsi_color = "#d29922" if td_rsi and td_rsi > 70 else ("#f85149" if td_rsi and td_rsi < 30 else "#3fb950")
-                ti1.markdown(f'<div class="metric-card"><h3>RSI (14)</h3>'
-                             f'<div class="value" style="color:{rsi_color};">{td_rsi:.1f if td_rsi else "–"}</div>'
-                             f'<div style="color:#8b949e;font-size:.75rem;">'
-                             f'{"Overbought" if td_rsi and td_rsi>70 else "Oversold" if td_rsi and td_rsi<30 else "Healthy range"}'
-                             f'</div></div>', unsafe_allow_html=True)
-
-                # MACD
-                macd_color = "#3fb950" if td_macd_b else "#f85149"
-                macd_label = "🚀 Crossover!" if td_macd_c else ("Bullish" if td_macd_b else "Bearish")
-                ti2.markdown(f'<div class="metric-card"><h3>MACD</h3>'
-                             f'<div class="value" style="color:{macd_color};">{macd_label}</div>'
-                             f'<div style="color:#8b949e;font-size:.75rem;">{result.get("td_macd_momentum","–")}</div>'
-                             f'</div>', unsafe_allow_html=True)
-
-                # Bollinger Bands
-                bb_color = "#d29922" if td_bb_sq else "#8b949e"
-                ti3.markdown(f'<div class="metric-card"><h3>BB Squeeze</h3>'
-                             f'<div class="value" style="color:{bb_color};">{"🔄 YES" if td_bb_sq else "No"}</div>'
-                             f'<div style="color:#8b949e;font-size:.75rem;">{td_bb_p}</div>'
-                             f'</div>', unsafe_allow_html=True)
-
-                # BB %B
-                bb_pct_color = "#3fb950" if td_bb_pctb and td_bb_pctb > 60 else "#f85149" if td_bb_pctb and td_bb_pctb < 20 else "#8b949e"
-                ti4.markdown(f'<div class="metric-card"><h3>BB %B</h3>'
-                             f'<div class="value" style="color:{bb_pct_color};">{f"{td_bb_pctb:.0f}%" if td_bb_pctb is not None else "–"}</div>'
-                             f'<div style="color:#8b949e;font-size:.75rem;">0=lower 100=upper</div>'
-                             f'</div>', unsafe_allow_html=True)
-
-                # ADX
-                adx_color = "#3fb950" if td_adx and td_adx > 25 else "#8b949e"
-                ti5.markdown(f'<div class="metric-card"><h3>ADX</h3>'
-                             f'<div class="value" style="color:{adx_color};">{f"{td_adx:.1f}" if td_adx else "–"}</div>'
-                             f'<div style="color:#8b949e;font-size:.75rem;">{td_tstr}</div>'
-                             f'</div>', unsafe_allow_html=True)
-
-                # TD signals list
-                if td_sigs:
-                    sigs_html = " &nbsp;|&nbsp; ".join(td_sigs)
-                    st.markdown(
-                        f'<div style="background:#161b22;border:1px solid #30363d;'
-                        f'border-radius:8px;padding:10px 16px;margin-top:6px;font-size:0.85rem;color:#c9d1d9;">'
-                        f'📡 <b>TD Signals:</b> {sigs_html} &nbsp; '
-                        f'<span style="color:#8b949e;">TD Score: {td_sc}/10</span></div>',
-                        unsafe_allow_html=True
-                    )
-
-                # BB Squeeze interpretation
-                if td_bb_sq:
-                    st.markdown('<div class="warn-box">🔄 <b>Bollinger Band Squeeze detected:</b> '
-                                'The bands are narrowing — this is compression before a significant '
-                                'directional move. Combined with volume and price action signals, '
-                                'this can precede powerful breakouts.</div>',
-                                unsafe_allow_html=True)
-                if td_macd_c:
-                    st.markdown('<div class="alert-box">🚀 <b>MACD Crossover:</b> '
-                                'The MACD line crossed above the signal line — '
-                                'a classic momentum buy signal. Most reliable when '
-                                'combined with Stage 2 and price above VWAP.</div>',
-                                unsafe_allow_html=True)
-                if td_rsi and td_rsi > 70:
-                    st.markdown(f'<div class="warn-box">⚡ <b>RSI {td_rsi:.0f} — Overbought:</b> '
-                                f'Strong momentum but extended. In powerful uptrends RSI can stay '
-                                f'overbought for weeks — but be cautious chasing at these levels.</div>',
-                                unsafe_allow_html=True)
-
-            st.markdown("---")
-
             # ── Pattern + Earnings ────────────────────────────────────────
             p1, p2 = st.columns(2)
             with p1:
@@ -2397,7 +1876,7 @@ with tabs[7]:
 # TAB 8 — OPTIONS FLOW
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[8]:
+with tabs[7]:
     st.markdown("### 🎯 Options Flow Scanner")
     st.caption("Scans for unusual options activity — large bets placed by smart money via yfinance options chain.")
 
@@ -2477,7 +1956,7 @@ with tabs[8]:
 # TAB 9 — INSIDER TRACKER
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[9]:
+with tabs[8]:
     st.markdown("### 🕵️ Insider Trading Tracker")
     st.caption("SEC Form 4 filings via OpenInsider — when executives buy their own stock, pay attention.")
 
@@ -2546,7 +2025,7 @@ with tabs[9]:
 # TAB 10 — DIVIDEND REINVESTMENT CALCULATOR
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[10]:
+with tabs[9]:
     st.markdown("### 📊 Dividend Reinvestment Calculator (DRIP)")
     st.caption("Shows the compounding power of reinvesting dividends over time.")
 
@@ -2684,7 +2163,7 @@ with tabs[10]:
 # TAB 11 — BACKTESTER
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[11]:
+with tabs[10]:
     st.markdown("### ⏱ Strategy Backtester")
     st.caption("Test the Apex Score strategy on historical data. Did it work? By how much?")
 
@@ -2799,7 +2278,7 @@ with tabs[11]:
 # TAB 12 — RISK CALCULATOR
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[12]:
+with tabs[11]:
     st.markdown("### ⚖️ Position Size & Risk Calculator")
     st.caption("Never risk more than 1–2% of your account on any single trade. This calculator tells you exactly how many shares to buy.")
 
@@ -2933,7 +2412,7 @@ with tabs[12]:
 # TAB 13 — AI DAILY BRIEFING
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[13]:
+with tabs[12]:
     st.markdown("### 🤖 AI Daily Briefing")
     st.caption("Claude reads your scan results and writes a plain-English morning briefing — like having a research analyst on call.")
 
@@ -3038,7 +2517,7 @@ with tabs[13]:
 # TAB 14 — WATCHLIST MANAGER
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[14]:
+with tabs[13]:
     st.markdown("### 📋 Watchlist Manager")
     st.caption("Save named watchlists and scan each one independently. Your lists persist between sessions.")
 
@@ -3194,7 +2673,7 @@ with tabs[14]:
 # TAB 15 — ALERT SETTINGS
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[15]:
+with tabs[14]:
     st.markdown("### 🔔 Alert Settings")
     st.caption("Configure Telegram and Email alerts. Both work simultaneously — alerts fire automatically after every scan.")
 
@@ -3383,221 +2862,29 @@ with tabs[15]:
 # TAB 16 — INTERPRETATION
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[16]:
-    st.markdown("### 🧠 Interpretation & Report Decoder")
-    st.caption("Plain-English breakdown of scan results — and a full explanation of every column in the report.")
+with tabs[15]:
+    st.markdown("### 🧠 Scan Interpretation")
+    st.caption("Plain-English breakdown of your scan results across all four signal views.")
 
-    # ── Mode selector ─────────────────────────────────────────────────────
-    interp_top_mode = st.radio(
-        "What do you want to do?",
-        ["📊 Interpret My Scan Results", "📋 Decode the Report Columns"],
-        horizontal=True,
-        key="interp_top_mode"
-    )
+    if df.empty:
+        st.info("Run a Live Scan or Load Last Report first, then come here for the interpretation.")
+    else:
+        # ── Ticker selector ───────────────────────────────────────────────
+        interp_mode = st.radio(
+            "Interpret",
+            ["Full Scan Summary", "Single Ticker Deep Read"],
+            horizontal=True
+        )
 
-    # ══════════════════════════════════════════════════════════════════════
-    # REPORT DECODER
-    # ══════════════════════════════════════════════════════════════════════
-
-    if interp_top_mode == "📋 Decode the Report Columns":
-        st.markdown("#### 📋 Complete Report Column Guide")
-        st.caption("Every column in your downloaded CSV explained in plain English — what it means and how to use it.")
-
-        DECODER = {
-            "🏷️ Identity & Classification": [
-                ("ticker",          "Stock symbol — the short code used to identify the stock (e.g. CAT = Caterpillar, NVDA = Nvidia)"),
-                ("company_name",    "Full company name"),
-                ("gics_sector",     "Official GICS industry sector — the broad category the company operates in (e.g. Information Technology, Health Care)"),
-                ("theme",           "ApexScan theme — which of our custom watchlist categories the stock belongs to (ai_semis, fintech_payments etc)"),
-                ("index",           "Which market index the stock came from — SP500, NASDAQ100, RUSSELL2000, SP400, or CUSTOM"),
-                ("market_cap_tier", "Size classification — large (>$10B), mid ($2B-$10B), small (<$2B)"),
-                ("market_cap_bn",   "Market capitalisation in billions of dollars — total value of all shares outstanding"),
-                ("mcap_category",   "Simplified size label — Mega Cap (>$200B), Large Cap, Mid Cap, Small Cap, Micro Cap"),
-                ("is_gem",          "TRUE = this is an Emerging Gem (small/micro-cap high-growth stock). These need smaller position sizes — max 0.5% account risk"),
-                ("scanned_at",      "Date and time this stock was analysed"),
-                ("market",          "US = United States market (all current stocks)"),
-            ],
-            "💰 Price & Performance": [
-                ("price",           "Current stock price in USD at time of scan"),
-                ("perf_1m_%",       "Price return over the last 1 month (21 trading days). +16.2% means the stock rose 16.2% in one month"),
-                ("perf_3m_%",       "Price return over the last 3 months — the CORE momentum signal. We require >15% for a setup to qualify. CAT at +50.6% is exceptional"),
-                ("perf_6m_%",       "Price return over the last 6 months. Confirms whether momentum is sustained or a short-term spike"),
-                ("pct_off_high_%",  "How far the stock is below its 52-week high. -5% means 5% below the high. Closer to 0% = nearer the top of its range = stronger"),
-                ("near_52wh",       "TRUE = stock is within 15% of its 52-week high. Leaders break out from near their highs — they don't rally from 50% below"),
-            ],
-            "📊 Relative Strength": [
-                ("rs_3m",           "Relative Strength vs S&P 500 over 3 months. 100 = matching the market. 372 (CAT) means CAT returned 3.72× what the S&P 500 returned — a market leader. Always buy RS leaders, never laggards"),
-                ("rs_6m",           "Same calculation over 6 months. Consistent high RS confirms the stock is a sustained leader, not a one-month wonder"),
-            ],
-            "📈 Stage Analysis (Moving Averages)": [
-                ("stage",           "Where the stock is in its price cycle: '2 ✅ Uptrend' = price above MA50 above MA200 = the ONLY stage worth buying. Stage 4 🔴 = downtrend = avoid entirely"),
-                ("above_50ma",      "TRUE = price is above its 50-day moving average. The 50MA is the key medium-term trend line institutions watch"),
-                ("above_200ma",     "TRUE = price is above its 200-day moving average. The 200MA separates long-term uptrends from downtrends"),
-                ("ma50_gt_ma200",   "TRUE = the 50-day MA is above the 200-day MA. This is the 'golden cross' structure — confirms Stage 2 uptrend"),
-                ("vs_50ma_%",       "How far price is above (+) or below (-) the 50-day MA in %. +18.7% (CAT) = extended, strong momentum. Negative = below the MA = weakness"),
-                ("vs_200ma_%",      "Same vs the 200-day MA. CAT at +55.3% means price is 55% above its long-term average — exceptional underlying strength"),
-            ],
-            "📦 Volume & Liquidity": [
-                ("volume",          "Number of shares traded today. Higher = more activity and interest"),
-                ("avg_volume_30d",  "Average daily volume over the last 30 days — the baseline for what 'normal' looks like for this stock"),
-                ("vol_surge_x",     "Today's volume divided by the 50-day average volume. 1.6x = 60% above normal. We flag anything above 1.4x as unusual — often signals institutional activity"),
-                ("adr_%",           "Average Daily Range % — how much the stock moves from high to low in a typical day. 3.23% (CAT) = moderate. Higher ADR = more volatile = wider stop needed"),
-                ("liquidity_score", "1 to 5 rating of how easily you can trade this stock. 5 = very liquid (large cap, high volume). 1 = illiquid (small cap, low volume — harder to exit quickly)"),
-                ("liquidity_warn",  "TRUE = this stock has low liquidity. Be careful with large position sizes — you may not be able to exit at your intended price"),
-            ],
-            "🔍 Chart Pattern": [
-                ("pattern",         "The current price consolidation or breakout pattern detected in the last 8 weeks. Examples: Cup Breakout (bullish), Flat Base Breakout (bullish), Handle Forming (watch), Deep Correction (avoid), Near High No Vol (watch for volume)"),
-                ("breaking_out",    "TRUE = the stock is actively breaking out right now — price at new highs with volume surge. This is the highest-priority actionable signal in the entire scan"),
-            ],
-            "🌊 Order Flow Persistence": [
-                ("of_bias",         "Directional bias of institutional buying over the last 10 sessions. 'Strong Bullish' = institutions are consistently and heavily accumulating. This is the signature of TWAP/VWAP algorithms splitting large buy orders"),
-                ("of_up_vol_ratio", "Volume on up-days divided by volume on down-days. 7.46 (CAT) means 7× more volume when the stock rises vs when it falls — clear institutional accumulation. 1.5x+ is significant, 3x+ is exceptional"),
-                ("of_bullish_days", "% of the last 10 sessions that closed higher. 90% means 9 out of 10 days were up-closes — sustained directional pressure"),
-                ("of_consec_up",    "Number of consecutive sessions the stock closed higher. 7 consecutive up-closes (CAT) = an active buying algorithm at work"),
-                ("of_score",        "Order flow score out of 8 points — your quick summary of institutional buying conviction"),
-            ],
-            "💧 VWAP & Fair Value": [
-                ("vwap",            "Volume Weighted Average Price over 20 days — the single most-watched price level by institutional traders. It represents 'fair value' where the most trading volume has occurred"),
-                ("vwap_upper",      "Upper VWAP band (1 standard deviation above). Price reaching here = stock is pricing at a premium to fair value"),
-                ("vwap_lower",      "Lower VWAP band (1 standard deviation below). Price here = discount to fair value — where value buyers step in"),
-                ("vs_vwap_%",       "How far price is above (+) or below (-) the VWAP. CAT at +12.55% = well above fair value. Extended Above = momentum strong but entry risk is higher"),
-                ("vwap_position",   "Where price sits relative to VWAP: 'Above VWAP' = buyers in control. 'Extended Above' = strong momentum but stretched. 'Below VWAP' = sellers in control. 'Extended Below' = avoid"),
-                ("vwap_slope",      "Whether the VWAP itself is rising, falling, or flat. Rising VWAP = the institutional fair value reference is moving higher — ideal condition for longs"),
-                ("vwap_score",      "VWAP signal score out of 4 points"),
-            ],
-            "🏗️ Market Structure": [
-                ("ms_structure",    "Whether the stock is making Higher Highs and Higher Lows (uptrend) or Lower Highs and Lower Lows (downtrend). 'Bullish (HH/HL)' = each pullback holds higher, each rally reaches higher — structurally healthy"),
-                ("ms_hh_hl",        "TRUE = confirmed Higher High + Higher Low pattern. This means the uptrend is intact at the price structure level — not just an indicator signal"),
-                ("ms_bos",          "Break of Structure — TRUE when price closes beyond a key swing high (bullish BOS) or swing low (bearish BOS). A bullish BOS in an uptrend confirms the move is accelerating"),
-                ("ms_swing_high",   "The most recent significant swing high price — acts as resistance. A close above this level = breakout confirmation"),
-                ("ms_swing_low",    "The most recent significant swing low price — acts as support. A close below this = trend deterioration signal, review your position"),
-            ],
-            "🕯️ Price Action Patterns": [
-                ("pa_patterns",     "Candle patterns detected on the most recent session. Multiple patterns in one day = higher conviction. Examples: Bullish Engulfing, Bullish SFP (Bear Trap), Inside Day (Compression), Bullish Context Candle, PA Confluence"),
-                ("pa_engulfing",    "Bullish Engulfing = a large green candle completely engulfs the previous red candle — buyers overwhelmed sellers decisively. Bearish Engulfing = opposite"),
-                ("pa_sfp",          "Swing Failure Pattern — the most powerful trap setup. Bullish SFP: price wicked below a recent swing low (stopping bears out), then reversed back above — shorts are now trapped and forced to buy"),
-                ("pa_inside_day",   "TRUE = today's entire price range fits within yesterday's range — compression and equilibrium. A directional break from an inside day often starts a strong move"),
-                ("pa_context",      "Bullish Context Candle = high-volume day that closed in the top 25% of its range. The market tested lower prices and buyers decisively rejected them"),
-                ("pa_score",        "Price action score out of 5 points"),
-            ],
-            "📊 Fundamentals (Alpha Vantage)": [
-                ("earn_momentum",   "Summary of earnings quality — Strong / Moderate / Weak. Based on EPS growth, beat history, and acceleration"),
-                ("eps_growth_%",    "Year-over-year earnings per share growth. How much more the company earned this year vs last year. 25%+ = strong growth stock territory"),
-                ("eps_surprise_%",  "How much the last quarter's actual EPS beat or missed analyst estimates. +20% = massive beat — institutions often re-rate (push price higher) after large beats"),
-                ("eps_accel",       "TRUE = EPS growth rate is accelerating quarter over quarter — the company is earning MORE each quarter, not just maintaining growth. Acceleration precedes the biggest stock moves"),
-                ("consec_beats",    "How many consecutive quarters the company has beaten analyst estimates. 4+ consecutive beats = management consistently delivers above expectations — high trust signal"),
-                ("rev_growth_%",    "Year-over-year revenue growth. Confirms earnings growth is from real business expansion, not just cost-cutting"),
-                ("eps_score",       "Fundamental score out of 15 points added to the Apex Score"),
-                ("eps_trend",       "Last 4 quarters of actual EPS values — shows the trajectory"),
-                ("analyst_target",  "Wall Street consensus price target. The average of what professional analysts think the stock is worth. Useful for gauging upside potential"),
-                ("pe_ratio",        "Price-to-Earnings ratio — how much investors pay per dollar of earnings. Growth stocks have higher PEs. Compare within the same sector"),
-                ("peg_ratio",       "PE ratio divided by EPS growth rate. Below 1.0 = potentially undervalued relative to growth. Above 2.0 = growth is fully priced in"),
-            ],
-            "🔔 Changes Tracker": [
-                ("changes",         "What changed for this stock since the previous scan. Examples: 'Score ▲+12', 'Entered Stage 2', 'Reclaimed VWAP', '🚀 NEW Breakout!', 'Flow flipped Bull'"),
-                ("is_new",          "TRUE = this stock was not in the previous scan — it just qualified for the first time"),
-                ("delta_score",     "How much the Apex Score changed since the last scan. Positive = improving. Negative = deteriorating. Useful for spotting momentum building"),
-            ],
-            "🏆 The Apex Score": [
-                ("apex_score",      "The composite score from 0 to 100 combining ALL signals. 70+ = strong setup worth researching. 40-70 = watchlist candidate. Below 40 = skip. CAT at 100 means it scored maximum across every signal layer: momentum, RS, stage, order flow, VWAP, market structure and price action all aligned"),
-            ],
-        }
-
-        # Display each section as an expander
-        for section_title, fields in DECODER.items():
-            with st.expander(section_title, expanded=False):
-                for col_name, explanation in fields:
-                    st.markdown(
-                        f'<div style="background:#0d1117;border-left:3px solid #388bfd;'
-                        f'border-radius:0 6px 6px 0;padding:10px 14px;margin:4px 0;">'
-                        f'<div style="font-family:monospace;color:#79c0ff;font-size:0.85rem;'
-                        f'font-weight:700;margin-bottom:4px;">{col_name}</div>'
-                        f'<div style="color:#c9d1d9;font-size:0.88rem;line-height:1.6;">'
-                        f'{explanation}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True
-                    )
+        if interp_mode == "Single Ticker Deep Read":
+            interp_ticker = st.selectbox("Choose ticker", df["ticker"].tolist(), key="interp_tk")
+            interp_df = df[df["ticker"] == interp_ticker]
+        else:
+            interp_ticker = None
+            interp_df = df.copy()
 
         st.markdown("---")
 
-        # Quick reference card
-        st.markdown("#### 🎯 Quick Decision Framework")
-        st.markdown("""
-        <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px 24px;">
-          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;font-size:0.88rem;color:#c9d1d9;line-height:1.8;">
-            <div>
-              <div style="color:#3fb950;font-weight:700;margin-bottom:6px;">✅ Signs of a STRONG setup</div>
-              • Stage = <b>2 ✅ Uptrend</b><br>
-              • rs_3m > 100 (beating the market)<br>
-              • of_bias = <b>Strong Bullish</b><br>
-              • of_up_vol_ratio > 2.0<br>
-              • vwap_position = <b>Above VWAP</b><br>
-              • vwap_slope = <b>Rising</b><br>
-              • ms_hh_hl = <b>TRUE</b><br>
-              • breaking_out = <b>TRUE</b><br>
-              • apex_score > 70
-            </div>
-            <div>
-              <div style="color:#f85149;font-weight:700;margin-bottom:6px;">❌ Signs to AVOID or WAIT</div>
-              • Stage = <b>4 🔴 Downtrend</b><br>
-              • rs_3m < 70 (lagging the market)<br>
-              • vwap_position = <b>Extended Below VWAP</b><br>
-              • ms_structure = <b>Bearish (LH/LL)</b><br>
-              • pa_sfp = <b>Bearish SFP</b> (bull trap)<br>
-              • pct_off_high < -40% (deep correction)<br>
-              • of_bias = <b>Bearish</b><br>
-              • apex_score < 40
-            </div>
-          </div>
-          <div style="margin-top:16px;padding:12px;background:#0d1117;border-radius:8px;
-                      color:#8b949e;font-size:0.82rem;">
-            💡 <b>The golden rule:</b> When apex_score > 70 AND of_bias is Strong Bullish
-            AND vwap_slope is Rising AND ms_hh_hl is TRUE — all four signal layers agree.
-            That is the highest-conviction setup. CAT in your report is a perfect example.
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Download glossary
-        glossary_lines = ["ApexScan Report Column Glossary\n" + "="*50 + "\n"]
-        for section_title, fields in DECODER.items():
-            glossary_lines.append(f"\n{section_title}\n" + "-"*40)
-            for col, exp in fields:
-                glossary_lines.append(f"\n{col}:\n  {exp}")
-        glossary_text = "\n".join(glossary_lines)
-        st.download_button(
-            "⬇ Download Full Glossary (.txt)",
-            glossary_text.encode("utf-8"),
-            file_name="apexscan_column_glossary.txt",
-            mime="text/plain",
-        )
-
-    # ══════════════════════════════════════════════════════════════════════
-    # SCAN INTERPRETATION (existing content)
-    # ══════════════════════════════════════════════════════════════════════
-
-    else:  # "📊 Interpret My Scan Results"
-        if df.empty:
-            st.info("Run a Live Scan or Load Last Report first, then come here for the interpretation.")
-        else:
-            # ── Ticker selector ────────────────────────────────────────────
-            interp_mode = st.radio(
-                "Interpret",
-                ["Full Scan Summary", "Single Ticker Deep Read"],
-                horizontal=True,
-                key="interp_scan_mode"
-            )
-
-            if interp_mode == "Single Ticker Deep Read":
-                interp_ticker = st.selectbox("Choose ticker", df["ticker"].tolist(), key="interp_tk")
-                interp_df = df[df["ticker"] == interp_ticker]
-            else:
-                interp_ticker = None
-                interp_df = df.copy()
-
-            st.markdown("---")
-
-    
         # ════════════════════════════════════════════════════════════════
         # HELPER: colour-coded signal pill
         # ════════════════════════════════════════════════════════════════
@@ -4472,7 +3759,7 @@ with tabs[16]:
 # TAB 17 — GUIDE
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[17]:
+with tabs[16]:
     st.markdown("""
 ### 📖 How to Use ApexScan — Complete Guide
 
