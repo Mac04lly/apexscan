@@ -44,10 +44,9 @@ def load_config(path: str = "config.yaml") -> dict:
     try:
         import streamlit as st
         if hasattr(st, "secrets") and st.secrets:
-            if "alpha_vantage_key" in st.secrets:
-                cfg["alpha_vantage_key"] = st.secrets["alpha_vantage_key"]
-            if "finnhub_key" in st.secrets:
-                cfg["finnhub_key"] = st.secrets["finnhub_key"]
+            for key in ["alpha_vantage_key", "finnhub_key", "twelve_data_key", "marketstack_key", "anthropic_api_key"]:
+                if key in st.secrets:
+                    cfg[key] = st.secrets[key]
     except Exception:
         pass  # Not running in Streamlit context (e.g. CLI), use config.yaml only
 
@@ -531,9 +530,9 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
 
         adr          = adr_pct(hist, 20)
         vol_today    = int(hist["Volume"].iloc[-1])
-        # Use average volume for filter — last day can be 0 for incomplete sessions
+        # Use avg volume for filter — last day can be 0 for incomplete sessions
         vol_avg_20   = int(hist["Volume"].rolling(20).mean().iloc[-1]) if len(hist) >= 20 else vol_today
-        vol_filter   = max(vol_today, vol_avg_20)  # use whichever is higher
+        vol_filter   = max(vol_today, vol_avg_20)
         vol_surge    = volume_surge_ratio(hist)
         breaking_out, pattern = detect_base_breakout(hist)
 
@@ -686,8 +685,16 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
 # FULL SCAN (two-pass: fast price scan then targeted AV enrichment)
 # ══════════════════════════════════════════════════════════════════════════════
 
-def run_scan(cfg: dict, markets: List[str] = None) -> pd.DataFrame:
-    tickers  = build_watchlist(cfg)
+def run_scan(cfg: dict, markets: List[str] = None, universe_override: list = None) -> pd.DataFrame:
+    # universe_override: list of dicts with "ticker" key, or list of ticker strings
+    if universe_override is not None:
+        # Support both list of dicts (from universe module) and list of strings
+        if universe_override and isinstance(universe_override[0], dict):
+            tickers = [t["ticker"] for t in universe_override if "ticker" in t]
+        else:
+            tickers = list(universe_override)
+    else:
+        tickers = build_watchlist(cfg)
     log.info(f"Scanning {len(tickers)} US tickers…")
 
     av_key   = cfg.get("alpha_vantage_key", "")
@@ -718,7 +725,7 @@ def run_scan(cfg: dict, markets: List[str] = None) -> pd.DataFrame:
 
         min_score = cfg["thresholds"]["us"]["score_filter"]
         min_vol   = cfg["thresholds"]["us"]["min_volume"]
-        if data["apex_score"] >= min_score and data["vol_filter"] >= min_vol:
+        if data["apex_score"] >= min_score and data.get("vol_filter", data["volume"]) >= min_vol:
             results.append(data)
 
     if not results:
