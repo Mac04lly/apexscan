@@ -186,6 +186,326 @@ def load_latest_report() -> pd.DataFrame:
     return pd.DataFrame()
 
 
+# ── Column metadata: display label + plain-English interpretation ──────────────
+COLUMN_META = {
+    "rank":            ("Rank",               "Position in this scan, sorted by Apex Score descending. #1 is the strongest setup right now."),
+    "ticker":          ("Ticker",             "Stock symbol. The unique identifier for this company on the exchange."),
+    "market":          ("Market",             "Market the ticker trades on. Currently US-only."),
+    "theme":           ("Theme",              "Thematic category this stock belongs to (e.g. ai_semis, cybersecurity, emerging_gems). Helps identify sector rotation."),
+    "price":           ("Price ($)",          "Last closing price in USD."),
+    "stage":           ("Stage",              "Weinstein Stage. Stage 2 ✅ = only buyable stage (price above both MAs, 50MA > 200MA). Stage 1 = basing. Stage 3 = topping. Stage 4 🔴 = downtrend — avoid."),
+    "perf_1m_%":       ("1M Return %",        "Price performance over the last 21 trading days (≈1 month). Captures recent momentum. >5% is positive."),
+    "perf_3m_%":       ("3M Return %",        "Price performance over the last 63 trading days (≈3 months). Core momentum filter. >15% is strong; >30% is exceptional."),
+    "perf_6m_%":       ("6M Return %",        "Price performance over 126 trading days (≈6 months). Confirms the trend has durability, not just a one-month spike."),
+    "rs_3m":           ("RS 3M",              "Relative Strength vs S&P 500 over 3 months. >100 = outperforming the index. >150 = massively outperforming. Buy leaders (>100), avoid laggards (<70)."),
+    "rs_6m":           ("RS 6M",              "Relative Strength vs S&P 500 over 6 months. Confirms the outperformance is sustained, not just a recent fluke."),
+    "adr_%":           ("ADR %",              "Average Daily Range % over the last 20 days. Measures volatility/movement potential. Higher ADR = bigger daily swings = wider stops needed but larger profit potential."),
+    "vs_50ma_%":       ("vs 50MA %",          "How far the current price is above or below the 50-day moving average. >10% above = extended, risk of pullback. Below = potential support or weakness."),
+    "vs_200ma_%":      ("vs 200MA %",         "How far price is above or below the 200-day moving average. The 200MA is the long-term trend line. Below 200MA = avoid for long entries."),
+    "volume":          ("Volume (Today)",     "Today's raw share volume. High volume on up days confirms institutional participation."),
+    "vol_filter":      ("Volume (Filter)",    "Max of today's volume and 20-day average volume. Used as the liquidity filter threshold to avoid illiquid setups."),
+    "vol_surge_x":     ("Vol Surge X",        "Ratio of 5-day average volume to 50-day average volume. >1.4x = elevated interest. >2x = significant surge, often accompanies breakouts."),
+    "above_50ma":      ("Above 50MA",         "True/False — price is above the 50-day moving average. A basic trend filter. False means the stock is below near-term trend support."),
+    "above_200ma":     ("Above 200MA",        "True/False — price is above the 200-day moving average. Core long-term trend filter. False = avoid for swing/position trades."),
+    "ma50_gt_ma200":   ("50MA > 200MA",       "True/False — the 50-day MA is above the 200-day MA (Golden Cross condition). Required for Stage 2 confirmation. False = trend not yet established."),
+    "near_52wh":       ("Near 52W High",      "True/False — price is within 15% of its 52-week high. Breakouts happen near highs, not at the bottom. True = stock is in the right zone for a breakout."),
+    "pct_off_high_%":  ("% Off 52W High",     "How far below the 52-week high the stock currently is. 0% = at all-time highs. -10% = 10% below highs. The best breakouts come from stocks less than 10–15% below highs."),
+    "pattern":         ("Pattern",            "Base/breakout pattern detected. E.g. 'Flat Base Breakout', 'Cup Breakout', 'Handle Forming', 'Tight Base'. Breakout = active trigger. Handle/Tight = watch for entry."),
+    "breaking_out":    ("Breaking Out",       "True/False — the stock is actively breaking out of a base on volume. True is the highest-priority actionable signal in the entire scan."),
+    "news_count":      ("News Count",         "Number of news articles in the last 7 days (via Finnhub). Higher count can indicate a catalyst event (earnings, product launch, analyst upgrade)."),
+    "sentiment":       ("Sentiment",          "News sentiment from Finnhub: Positive, Neutral, or N/A. Positive sentiment alongside technical strength is a confluence signal."),
+    "earn_momentum":   ("Earnings Momentum",  "Earnings quality signal: Strong / Moderate / Weak. Derived from EPS growth, surprise %, and acceleration (Alpha Vantage) or proxied from news + price when AV not available."),
+    "eps_growth_%":    ("EPS Growth %",       "Year-over-year EPS growth from Alpha Vantage. >25% = strong growth stock. >50% = exceptional. Negative = earnings declining — be cautious."),
+    "eps_surprise_%":  ("EPS Surprise %",     "How much the last quarterly EPS beat or missed analyst consensus. >5% beat = positive signal. Misses weigh on price even in uptrends."),
+    "eps_accel":       ("EPS Accelerating",   "True/False — earnings growth rate is accelerating quarter over quarter. Acceleration is the most powerful fundamental signal; it drives institutional re-rating and multiple expansion."),
+    "consec_beats":    ("Consec. Beats",      "Number of consecutive quarters where the company beat EPS estimates. 3+ beats = management is consistently under-promising and over-delivering — a trust signal for institutions."),
+    "rev_growth_%":    ("Revenue Growth %",   "Year-over-year revenue growth. Confirms earnings improvement is driven by real business expansion, not just cost cuts or financial engineering."),
+    "eps_score":       ("EPS Score /15",      "Composite earnings score from 0–15. Combines growth, surprise %, acceleration, consecutive beats, and revenue growth. >10 = very strong fundamental backdrop."),
+    "eps_trend":       ("EPS Trend",          "List of recent quarterly EPS values (most recent first). Shows whether earnings are growing, flat, or declining over recent quarters."),
+    "analyst_target":  ("Analyst Target",     "Consensus analyst price target from Alpha Vantage. Compare to current price to see implied upside. Use as a reference, not gospel."),
+    "pe_ratio":        ("P/E Ratio",          "Price-to-Earnings ratio. Growth stocks often trade at high P/Es (40–100x). A high P/E is fine if earnings are growing fast; what matters is whether the growth justifies the premium."),
+    "peg_ratio":       ("PEG Ratio",          "Price/Earnings-to-Growth ratio. PEG < 1.0 = potentially undervalued relative to growth rate. PEG > 2.0 = growth is fully or over-priced. The Goldilocks zone is 1.0–1.5."),
+    "eps_details":     ("EPS Details",        "Raw detail string from Alpha Vantage showing the last few quarters of EPS. Useful for verifying the trend behind the score."),
+    "next_earnings":   ("Next Earnings",      "Upcoming earnings date from Alpha Vantage or yfinance. Critical for risk management — stocks can gap 10–30% on earnings. Do not hold through earnings unless sized appropriately."),
+    "of_bias":         ("Order Flow Bias",    "Directional order flow assessment: Strong Bullish / Bullish / Neutral / Bearish / Strong Bearish. Measures whether institutions are persistently buying or selling over the last 10 sessions."),
+    "of_up_vol_ratio": ("OF Up/Down Vol",     "Ratio of total volume on up days vs down days over the last 10 sessions. >1.5x = institutional-level buying. >2.0x = heavy accumulation. <0.7x = distribution pattern."),
+    "of_bullish_days": ("OF Bullish Days %",  "Percentage of the last 10 sessions that closed higher than the previous day. >60% = persistent buying. >70% = strong institutional flow. <40% = bearish pressure."),
+    "of_consec_up":    ("OF Consec. Up",      "Maximum consecutive up-closes in the last 10 sessions. 4+ consecutive up-closes suggests an active TWAP/VWAP algorithm systematically working a large buy order."),
+    "of_score":        ("OF Score /8",        "Order Flow Persistence Score from 0–8. Combines bullish day %, up/down volume ratio, and consecutive up-closes. Score ≥6 = strong institutional flow. Added to Apex Score."),
+    "vwap":            ("VWAP ($)",           "Volume Weighted Average Price over the last 20 days. The fairest measure of where the market has agreed to transact. Institutional algorithms often anchor to VWAP for large order execution."),
+    "vwap_upper":      ("VWAP Upper Band",    "VWAP + 1 standard deviation. Acts as short-term resistance. Price extended above this band is overextended and likely to mean-revert. Consider tightening stops above this level."),
+    "vwap_lower":      ("VWAP Lower Band",    "VWAP - 1 standard deviation. Acts as short-term support. Strong stocks often find buyers at this level — it is a potential low-risk entry zone in an uptrend."),
+    "vs_vwap_%":       ("vs VWAP %",          "How far the current price is above or below VWAP. +5% = extended above. -5% = below VWAP. Ideal long entries are +1% to +4% above a rising VWAP."),
+    "vwap_position":   ("VWAP Position",      "Categorical VWAP relationship: 'Above VWAP', 'Extended Above VWAP' (overbought zone), 'Below VWAP' (weak), 'Extended Below VWAP' (avoid). Above a rising VWAP = strongest long scenario."),
+    "vwap_slope":      ("VWAP Slope",         "Direction of the VWAP trend: Rising / Flat / Falling. A Rising VWAP confirms buyers are in control and value is being accepted higher — ideal for longs. Falling VWAP = sellers in control."),
+    "vwap_score":      ("VWAP Score /4",      "VWAP contribution to Apex Score (0–4). Max score when price is above a rising VWAP with a recent VWAP reclaim. Added to total Apex Score."),
+    "ms_structure":    ("Market Structure",   "Overall market structure assessment: 'Bullish (HH/HL)' = uptrend confirmed. 'Bearish (LH/LL)' = downtrend. 'Transitioning' = structure is shifting. Only trade longs in Bullish structure."),
+    "ms_hh_hl":        ("HH/HL Confirmed",   "True/False — the stock is making Higher Highs and Higher Lows. This is the textbook definition of an uptrend. True = structure is intact for longs. False = do not buy the dip."),
+    "ms_bos":          ("Break of Structure", "True/False — a recent Break of Structure occurred (price broke above a prior swing high in a downtrend, or below a prior swing low in an uptrend). In an uptrend, BOS confirms trend acceleration."),
+    "ms_swing_high":   ("Last Swing High",    "Price of the most recent swing high pivot. Acts as near-term resistance. A close above this level on volume confirms the next leg of the uptrend."),
+    "ms_swing_low":    ("Last Swing Low",     "Price of the most recent swing low pivot. Acts as near-term support. A close below this level in an uptrend is a warning sign — consider tightening stops."),
+    "pa_patterns":     ("PA Patterns",        "Price Action patterns detected on the most recent candle(s). E.g. 'Bullish Engulfing', 'Bullish SFP (Bear Trap)', 'Inside Day (Compression)', 'PA Confluence'. Multiple signals = stronger setup."),
+    "pa_engulfing":    ("PA Engulfing",       "Engulfing candle signal: 'Bullish' = a large up candle fully engulfs the prior down candle — strong reversal/continuation signal. 'Bearish' = the opposite. None = no engulfing pattern."),
+    "pa_sfp":          ("PA SFP",            "Swing Failure Pattern: 'Bullish SFP (Bear Trap)' = price briefly dipped below a prior swing low but closed back above it, trapping short sellers. One of the most reliable reversal signals in technical analysis."),
+    "pa_inside_day":   ("PA Inside Day",      "True/False — today's high is lower than yesterday's high AND today's low is higher than yesterday's low. An Inside Day signals price compression and a potential explosive move. Watch for the breakout direction."),
+    "pa_context":      ("PA Context Candle",  "Context candle analysis: 'Bullish' = large-range up candle closing near the high on above-average volume. 'Bearish' = large-range down candle. Bullish context candle confirms strong buying intent."),
+    "pa_score":        ("PA Score /5",        "Price Action Score from 0–5. Combines engulfing, SFP, inside day, and context candle signals. Score ≥3 = meaningful price action confirmation. Added to total Apex Score."),
+    "apex_score":      ("Apex Score /100",    "The master composite score (0–100). Combines momentum (40 pts), RS (25 pts), stage/MAs (15 pts), 52W high (10 pts), breakout (10 pts), order flow (8 pts), price action (5 pts), VWAP (4 pts), structure (3 pts), EPS (15 pts). >70 = high conviction. 40–70 = watchlist."),
+    "scanned_at":      ("Scanned At",         "Timestamp of when this ticker was analysed. All results in a single scan share the same approximate timestamp."),
+    "market_cap":      ("Market Cap ($)",     "Total market capitalisation in dollars. Larger caps are more liquid; smaller caps (micro/small) have higher volatility and risk."),
+    "market_cap_bn":   ("Market Cap ($B)",    "Market cap in billions for easier reading. <$2B = small/micro cap. $2–10B = mid cap. $10–200B = large cap. >$200B = mega cap."),
+    "mcap_category":   ("MCap Category",      "Categorical size label: Micro Cap (<$300M), Small Cap ($300M–$2B), Mid Cap ($2B–$10B), Large Cap ($10B–$200B), Mega Cap (>$200B). Smaller = higher risk/reward."),
+    "is_gem":          ("Is Gem",             "True if the stock qualifies as an Emerging Gem ($100M–$5B market cap). Gems receive score boosts for strong OF and PA signals. Use smaller position sizes (0.5–1% max risk)."),
+    "liquidity_score": ("Liquidity Score",    "Liquidity rating 0–3 based on 30-day average volume. Score 3 = >1M shares/day (highly liquid). Score 2 = 300K–1M. Score 1 = 100K–300K. Score 0 = <100K (very illiquid, avoid large positions)."),
+    "liquidity_warn":  ("Liquidity Warning",  "True if 30-day average volume is below 300,000 shares/day. Low liquidity means wide bid-ask spreads and difficulty exiting large positions — size down significantly."),
+    "avg_volume_30d":  ("Avg Volume 30D",     "30-day average daily share volume from yfinance fast_info. The most reliable liquidity measure. Below 300K = tread carefully; below 100K = avoid unless small position size."),
+    "changes":         ("Changes",            "Plain-English summary of what changed since the last scan. E.g. 'Score ▲8 | Flow→Strong Bull | Reclaimed VWAP'. 🆕 = new entry. ↔ = no notable change."),
+    "is_new":          ("Is New",             "True if this ticker was not present in the previous scan. New entries have no delta comparison — treat them as fresh signals requiring your own confirmation."),
+    "delta_score":     ("Score Change",       "Apex Score change since the last scan (positive = improving, negative = deteriorating). A stock jumping +10 points between scans is gaining momentum and worth attention."),
+}
+
+
+def build_excel_download(ticker_row: pd.Series, ticker_name: str) -> bytes:
+    """
+    Build a fully-labelled Excel workbook for a single ticker deep read.
+    Sheet 1: Raw data with every column labelled + interpreted.
+    Sheet 2: Signal summary scorecard.
+    Returns bytes ready for st.download_button.
+    """
+    import io
+    try:
+        import openpyxl
+        from openpyxl.styles import (PatternFill, Font, Alignment, Border, Side)
+        from openpyxl.utils import get_column_letter
+    except ImportError:
+        # Fallback to CSV if openpyxl not available
+        buf = io.StringIO()
+        ticker_row.to_frame().T.to_csv(buf)
+        return buf.getvalue().encode("utf-8")
+
+    wb = openpyxl.Workbook()
+
+    # ── Colours ───────────────────────────────────────────────────────────────
+    BG_DARK   = "0D1117"
+    BG_CARD   = "161B22"
+    BG_GREEN  = "1A3A2A"
+    BG_AMBER  = "2A2200"
+    BG_RED    = "2A1010"
+    FG_GREEN  = "3FB950"
+    FG_AMBER  = "D29922"
+    FG_RED    = "F85149"
+    FG_BLUE   = "388BFD"
+    FG_WHITE  = "E6EDF3"
+    FG_GREY   = "8B949E"
+    BORDER_C  = "30363D"
+
+    def fill(hex_): return PatternFill("solid", fgColor=hex_)
+    def font(hex_, bold=False, sz=11): return Font(color=hex_, bold=bold, size=sz, name="Calibri")
+    def thin_border():
+        s = Side(border_style="thin", color=BORDER_C)
+        return Border(left=s, right=s, top=s, bottom=s)
+    def center(): return Alignment(horizontal="center", vertical="center", wrap_text=True)
+    def left():   return Alignment(horizontal="left",   vertical="top",    wrap_text=True)
+
+    # ════════════════════════════════════════════════════════════════════════
+    # SHEET 1 — Full Data Table
+    # ════════════════════════════════════════════════════════════════════════
+    ws1 = wb.active
+    ws1.title = f"{ticker_name} — Data"
+    ws1.sheet_view.showGridLines = False
+    ws1.freeze_panes = "A3"
+
+    # Title row
+    ws1.merge_cells("A1:D1")
+    t = ws1["A1"]
+    t.value = f"ApexScan — {ticker_name} Deep Read    |    Scanned: {ticker_row.get('scanned_at','–')}"
+    t.font      = font(FG_WHITE, bold=True, sz=14)
+    t.fill      = fill(BG_CARD)
+    t.alignment = center()
+    ws1.row_dimensions[1].height = 30
+
+    # Header row
+    headers = ["Field", "Label", "Value", "Interpretation"]
+    hdr_colours = [FG_BLUE, FG_BLUE, FG_AMBER, FG_WHITE]
+    for col_i, (h, c) in enumerate(zip(headers, hdr_colours), 1):
+        cell = ws1.cell(row=2, column=col_i, value=h)
+        cell.font      = font(c, bold=True, sz=10)
+        cell.fill      = fill(BG_CARD)
+        cell.alignment = center()
+        cell.border    = thin_border()
+    ws1.row_dimensions[2].height = 20
+
+    # Define column order (full list from your spec)
+    ORDERED_COLS = [
+        "rank","ticker","market","theme","price","stage",
+        "perf_1m_%","perf_3m_%","perf_6m_%","rs_3m","rs_6m",
+        "adr_%","vs_50ma_%","vs_200ma_%","volume","vol_filter","vol_surge_x",
+        "above_50ma","above_200ma","ma50_gt_ma200","near_52wh","pct_off_high_%",
+        "pattern","breaking_out","news_count","sentiment","earn_momentum",
+        "eps_growth_%","eps_surprise_%","eps_accel","consec_beats","rev_growth_%",
+        "eps_score","eps_trend","analyst_target","pe_ratio","peg_ratio","eps_details","next_earnings",
+        "of_bias","of_up_vol_ratio","of_bullish_days","of_consec_up","of_score",
+        "vwap","vwap_upper","vwap_lower","vs_vwap_%","vwap_position","vwap_slope","vwap_score",
+        "ms_structure","ms_hh_hl","ms_bos","ms_swing_high","ms_swing_low",
+        "pa_patterns","pa_engulfing","pa_sfp","pa_inside_day","pa_context","pa_score",
+        "apex_score","scanned_at","market_cap","market_cap_bn","mcap_category",
+        "is_gem","liquidity_score","liquidity_warn","avg_volume_30d",
+        "changes","is_new","delta_score",
+    ]
+
+    def fmt_val(col, raw):
+        """Format raw value for display."""
+        if raw is None or (isinstance(raw, float) and pd.isna(raw)):
+            return "–"
+        if col in ("price","vwap","vwap_upper","vwap_lower","ms_swing_high","ms_swing_low","analyst_target"):
+            try: return f"${float(raw):.2f}"
+            except: return str(raw)
+        if col in ("perf_1m_%","perf_3m_%","perf_6m_%","vs_50ma_%","vs_200ma_%",
+                   "vs_vwap_%","eps_growth_%","eps_surprise_%","rev_growth_%","pct_off_high_%"):
+            try:
+                v = float(raw)
+                return f"{v:+.1f}%"
+            except: return str(raw)
+        if col in ("adr_%",):
+            try: return f"{float(raw):.1f}%"
+            except: return str(raw)
+        if col in ("of_bullish_days",):
+            try: return f"{float(raw):.0f}%"
+            except: return str(raw)
+        if col in ("rs_3m","rs_6m"):
+            try: return f"{float(raw):.0f}"
+            except: return str(raw)
+        if col in ("vol_surge_x","of_up_vol_ratio"):
+            try: return f"{float(raw):.2f}x"
+            except: return str(raw)
+        if col in ("market_cap",):
+            try:
+                v = float(raw)
+                return f"${v/1e9:.2f}B" if v >= 1e9 else f"${v/1e6:.0f}M"
+            except: return str(raw)
+        if col in ("pe_ratio","peg_ratio"):
+            try: return f"{float(raw):.2f}"
+            except: return str(raw)
+        if col in ("eps_trend",) and isinstance(raw, list):
+            return " → ".join(str(x) for x in raw[:6])
+        return str(raw)
+
+    def row_bg(col, raw):
+        """Pick a background fill based on signal quality."""
+        col_green = {
+            "stage": lambda v: "2 ✅" in str(v),
+            "above_50ma": lambda v: v is True or str(v).lower() == "true",
+            "above_200ma": lambda v: v is True or str(v).lower() == "true",
+            "ma50_gt_ma200": lambda v: v is True or str(v).lower() == "true",
+            "near_52wh": lambda v: v is True or str(v).lower() == "true",
+            "breaking_out": lambda v: v is True or str(v).lower() == "true",
+            "ms_hh_hl": lambda v: v is True or str(v).lower() == "true",
+            "ms_bos": lambda v: v is True or str(v).lower() == "true",
+            "pa_inside_day": lambda v: v is True or str(v).lower() == "true",
+            "of_bias": lambda v: "Bullish" in str(v),
+            "vwap_position": lambda v: "Above" in str(v) and "Extended" not in str(v),
+            "ms_structure": lambda v: "Bullish" in str(v),
+            "earn_momentum": lambda v: "Strong" in str(v),
+            "eps_accel": lambda v: v is True or str(v).lower() == "true",
+            "is_gem": lambda v: v is True or str(v).lower() == "true",
+        }
+        col_red = {
+            "stage": lambda v: "4 🔴" in str(v),
+            "above_50ma": lambda v: v is False or str(v).lower() == "false",
+            "above_200ma": lambda v: v is False or str(v).lower() == "false",
+            "of_bias": lambda v: "Bearish" in str(v),
+            "vwap_position": lambda v: "Below" in str(v),
+            "ms_structure": lambda v: "Bearish" in str(v),
+            "liquidity_warn": lambda v: v is True or str(v).lower() == "true",
+        }
+        if col in col_green and col_green[col](raw):  return fill(BG_GREEN)
+        if col in col_red   and col_red[col](raw):    return fill(BG_RED)
+        return fill(BG_DARK)
+
+    # Data rows
+    for r_i, col_key in enumerate(ORDERED_COLS, 3):
+        raw = ticker_row.get(col_key)
+        if col_key == "rank":
+            # rank comes from the index
+            raw = ticker_row.name if hasattr(ticker_row, "name") else "–"
+
+        meta  = COLUMN_META.get(col_key, (col_key, "–"))
+        label = meta[0]
+        interp= meta[1]
+        val   = fmt_val(col_key, raw)
+        bg    = row_bg(col_key, raw)
+
+        row_data = [(col_key, FG_GREY), (label, FG_AMBER), (val, FG_WHITE), (interp, FG_GREY)]
+        for c_i, (text, fg) in enumerate(row_data, 1):
+            cell = ws1.cell(row=r_i, column=c_i, value=str(text))
+            cell.font      = font(fg, bold=(c_i == 3), sz=10)
+            cell.fill      = bg if c_i == 3 else fill(BG_DARK if r_i % 2 == 1 else BG_CARD)
+            cell.alignment = left()
+            cell.border    = thin_border()
+        ws1.row_dimensions[r_i].height = 48
+
+    # Column widths
+    ws1.column_dimensions["A"].width = 20
+    ws1.column_dimensions["B"].width = 22
+    ws1.column_dimensions["C"].width = 18
+    ws1.column_dimensions["D"].width = 80
+
+    # ════════════════════════════════════════════════════════════════════════
+    # SHEET 2 — Signal Scorecard
+    # ════════════════════════════════════════════════════════════════════════
+    ws2 = wb.create_sheet(title=f"{ticker_name} — Scorecard")
+    ws2.sheet_view.showGridLines = False
+
+    ws2.merge_cells("A1:C1")
+    t2 = ws2["A1"]
+    t2.value    = f"ApexScan — {ticker_name} Signal Scorecard"
+    t2.font     = font(FG_WHITE, bold=True, sz=14)
+    t2.fill     = fill(BG_CARD)
+    t2.alignment = center()
+    ws2.row_dimensions[1].height = 30
+
+    scorecard_items = [
+        ("📊 APEX SCORE",     ticker_row.get("apex_score","–"),       ">70 = High Conviction | 40–70 = Watchlist | <40 = Not Ready"),
+        ("📐 Stage",          ticker_row.get("stage","–"),             "Stage 2 ✅ is the only buyable stage"),
+        ("📈 3M Return",      fmt_val("perf_3m_%", ticker_row.get("perf_3m_%")), ">15% = strong momentum threshold"),
+        ("⚡ RS vs S&P500",   fmt_val("rs_3m", ticker_row.get("rs_3m")),        ">100 = outperforming the market"),
+        ("🚀 Breaking Out",   ticker_row.get("breaking_out","–"),       "True = active breakout — highest priority"),
+        ("🌊 Order Flow",     ticker_row.get("of_bias","–"),            "Strong Bullish = institutional accumulation"),
+        ("💧 VWAP Position",  ticker_row.get("vwap_position","–"),      "Above Rising VWAP = ideal long zone"),
+        ("🏗 MS Structure",   ticker_row.get("ms_structure","–"),       "Bullish HH/HL = uptrend confirmed"),
+        ("🎯 Price Action",   ticker_row.get("pa_patterns","None"),     "SFP / Confluence = highest PA signal"),
+        ("💎 Is Gem",         ticker_row.get("is_gem","–"),             "True = emerging gem — use half position size"),
+        ("📅 Next Earnings",  ticker_row.get("next_earnings","–"),      "Do not hold through earnings unless sized for gap risk"),
+        ("💰 EPS Growth",     fmt_val("eps_growth_%", ticker_row.get("eps_growth_%")), ">25% = strong growth stock"),
+        ("🎯 Analyst Target", fmt_val("analyst_target", ticker_row.get("analyst_target")), "Consensus price target"),
+        ("🔄 Since Last Scan",ticker_row.get("changes","–"),           "What changed vs previous scan"),
+    ]
+
+    for sc_i, (label, value, note) in enumerate(scorecard_items, 2):
+        ws2.cell(sc_i, 1, label).font      = font(FG_AMBER, bold=True, sz=10)
+        ws2.cell(sc_i, 1).fill             = fill(BG_CARD)
+        ws2.cell(sc_i, 1).alignment        = left()
+        ws2.cell(sc_i, 1).border           = thin_border()
+        ws2.cell(sc_i, 2, str(value)).font  = font(FG_WHITE, bold=True, sz=11)
+        ws2.cell(sc_i, 2).fill             = fill(BG_DARK)
+        ws2.cell(sc_i, 2).alignment        = center()
+        ws2.cell(sc_i, 2).border           = thin_border()
+        ws2.cell(sc_i, 3, note).font       = font(FG_GREY, sz=9)
+        ws2.cell(sc_i, 3).fill             = fill(BG_DARK)
+        ws2.cell(sc_i, 3).alignment        = left()
+        ws2.cell(sc_i, 3).border           = thin_border()
+        ws2.row_dimensions[sc_i].height    = 22
+
+    ws2.column_dimensions["A"].width = 24
+    ws2.column_dimensions["B"].width = 30
+    ws2.column_dimensions["C"].width = 55
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return buf.read()
+
+
 def load_previous_report() -> pd.DataFrame:
     """Load the second-most-recent scan report for delta comparison."""
     reports = sorted(Path("reports").glob("scan_*.csv"), reverse=True)
@@ -467,6 +787,14 @@ with st.sidebar:
     min_score = st.slider("Min Apex Score", 0, 100, 30, 5)
     min_3m    = st.slider("Min 3m Return %", -50, 100, 0, 5)
     st.divider()
+    st.markdown("**🌐 Scan Universe**")
+    universe_mode = st.radio(
+        "Ticker Universe",
+        ["📋 Theme Watchlist (Config)", "🌐 Extended Universe (S&P 500 + NASDAQ 100)"],
+        index=0, key="universe_mode",
+        help="Theme Watchlist = only tickers defined in config.yaml. Extended Universe = scans the full S&P 500 + NASDAQ 100 (slower, ~200+ tickers)."
+    )
+    st.divider()
     run_btn  = st.button("🚀 Run Live Scan", use_container_width=True)
     load_btn = st.button("📂 Load Last Report", use_container_width=True)
     st.divider()
@@ -543,7 +871,38 @@ if run_btn:
     with st.spinner("Running live scan… (2–5 min)"):
         cfg     = load_config("config.yaml")
         prev_df = load_latest_report()   # capture BEFORE saving new one
-        df_raw  = run_scan(cfg)
+
+        # ── Universal ticker universe ─────────────────────────────────────
+        _universe_override = None
+        if universe_mode == "🌐 Extended Universe (S&P 500 + NASDAQ 100)":
+            _EXTENDED_UNIVERSE = [
+                # S&P 500 large caps + NASDAQ 100 — curated list of liquid, scan-worthy tickers
+                "AAPL","MSFT","AMZN","NVDA","GOOGL","META","TSLA","AVGO","LLY","V",
+                "MA","COST","NFLX","ORCL","CRM","AMD","ADBE","QCOM","TXN","INTU",
+                "AMAT","LRCX","KLAC","MU","MRVL","ARM","ASML","TSM","SMCI","CDNS",
+                "SNPS","ANSS","FTNT","PANW","CRWD","ZS","CYBR","NET","DDOG","SNOW",
+                "PLTR","HOOD","SOFI","AFRM","SQ","PYPL","COIN","MSTR","RKLB","IONQ",
+                "ASTS","ACHR","JOBY","LUNR","SOUN","RXRX","HIMS","RDDT","CAVA","DAVE",
+                "UPST","OPEN","UWMC","BTDR","SMAR","DOCN","TMDX","CELH","ONON","LULU",
+                "NKE","DUOL","MNST","AXON","FICO","ISRG","DXCM","IDXX","VEEV","MTCH",
+                "ABNB","UBER","LYFT","DASH","SHOP","SPOT","ROKU","TTD","TRADE","WMT",
+                "HD","TGT","LOW","MCD","SBUX","YUM","CMG","RACE","F","GM","RIVN",
+                "XOM","CVX","COP","SLB","BKR","HAL","JPM","GS","MS","BAC","WFC",
+                "C","AXP","BLK","SCHW","ICE","CME","SPGI","MCO","AMP","PGR","MET",
+                "UNH","CI","CVS","HCA","MCK","ABC","CAH","DHR","TMO","A","BIO",
+                "MRNA","BNTX","REGN","BIIB","GILD","ABBV","BMY","PFE","JNJ","MRK",
+                "NVO","AZN","RPRX","VTRS","VTYX","ZBH","EW","BSX","MDT","SYK","ABT",
+                "BA","RTX","LMT","NOC","GD","HII","TDG","HWM","GE","HON","MMM",
+                "CAT","DE","EMR","ETN","PH","ITW","ROK","AME","CTAS","ROP","CPRT",
+                "WM","RSG","VRSK","IDEX","SHW","APD","LIN","ECL","IFF","PPG","NUE",
+                "FCX","SCCO","AA","X","CLF","MP","ALB","ENPH","FSLR","RUN","PLUG",
+                "NEE","D","SO","DUK","AEP","SRE","PCG","XEL","AWK","PLD","AMT",
+                "CCI","SBAC","EQIX","DLR","O","SPG","PSA","EXR","AVB","EQR",
+            ]
+            _universe_override = _EXTENDED_UNIVERSE
+            st.info(f"🌐 Extended Universe: scanning {len(_EXTENDED_UNIVERSE)} tickers (S&P 500 + NASDAQ 100 + growth names)…")
+
+        df_raw  = run_scan(cfg, universe_override=_universe_override)
         if not df_raw.empty:
             save_report(df_raw)
             try:
@@ -3694,6 +4053,181 @@ with tabs[15]:
                       </div>
                     </div>
                     """, unsafe_allow_html=True)
+
+        # ════════════════════════════════════════════════════════════════
+        # COMPLETE DATA TABLE — every column, labelled + interpreted
+        # Only shown for Single Ticker Deep Read
+        # ════════════════════════════════════════════════════════════════
+        if interp_mode == "Single Ticker Deep Read" and not interp_df.empty:
+            with st.expander("📋 Complete Data Table — All Columns with Interpretation", expanded=False):
+                row_data = interp_df.iloc[0]
+
+                ORDERED_COLS_DISPLAY = [
+                    "rank","ticker","market","theme","price","stage",
+                    "perf_1m_%","perf_3m_%","perf_6m_%","rs_3m","rs_6m",
+                    "adr_%","vs_50ma_%","vs_200ma_%","volume","vol_filter","vol_surge_x",
+                    "above_50ma","above_200ma","ma50_gt_ma200","near_52wh","pct_off_high_%",
+                    "pattern","breaking_out","news_count","sentiment","earn_momentum",
+                    "eps_growth_%","eps_surprise_%","eps_accel","consec_beats","rev_growth_%",
+                    "eps_score","eps_trend","analyst_target","pe_ratio","peg_ratio","eps_details","next_earnings",
+                    "of_bias","of_up_vol_ratio","of_bullish_days","of_consec_up","of_score",
+                    "vwap","vwap_upper","vwap_lower","vs_vwap_%","vwap_position","vwap_slope","vwap_score",
+                    "ms_structure","ms_hh_hl","ms_bos","ms_swing_high","ms_swing_low",
+                    "pa_patterns","pa_engulfing","pa_sfp","pa_inside_day","pa_context","pa_score",
+                    "apex_score","scanned_at","market_cap","market_cap_bn","mcap_category",
+                    "is_gem","liquidity_score","liquidity_warn","avg_volume_30d",
+                    "changes","is_new","delta_score",
+                ]
+
+                def _fmt_cell(col, raw):
+                    if raw is None or (isinstance(raw, float) and pd.isna(raw)):
+                        return "–"
+                    if col in ("price","vwap","vwap_upper","vwap_lower",
+                               "ms_swing_high","ms_swing_low","analyst_target"):
+                        try: return f"${float(raw):.2f}"
+                        except: return str(raw)
+                    if col in ("perf_1m_%","perf_3m_%","perf_6m_%","vs_50ma_%","vs_200ma_%",
+                               "vs_vwap_%","eps_growth_%","eps_surprise_%","rev_growth_%","pct_off_high_%"):
+                        try: return f"{float(raw):+.1f}%"
+                        except: return str(raw)
+                    if col == "adr_%":
+                        try: return f"{float(raw):.1f}%"
+                        except: return str(raw)
+                    if col == "of_bullish_days":
+                        try: return f"{float(raw):.0f}%"
+                        except: return str(raw)
+                    if col in ("rs_3m","rs_6m"):
+                        try: return f"{float(raw):.0f}"
+                        except: return str(raw)
+                    if col in ("vol_surge_x","of_up_vol_ratio"):
+                        try: return f"{float(raw):.2f}x"
+                        except: return str(raw)
+                    if col == "market_cap":
+                        try:
+                            v = float(raw)
+                            return f"${v/1e9:.2f}B" if v>=1e9 else f"${v/1e6:.0f}M"
+                        except: return str(raw)
+                    if col in ("pe_ratio","peg_ratio","apex_score"):
+                        try: return f"{float(raw):.1f}"
+                        except: return str(raw)
+                    if col == "eps_trend" and isinstance(raw, list):
+                        return " → ".join(str(x) for x in raw[:6])
+                    return str(raw)
+
+                def _signal_color(col, raw):
+                    """Return CSS colour string for a value."""
+                    pos_cols = {
+                        "stage":       lambda v: "2 ✅" in str(v),
+                        "above_50ma":  lambda v: str(v).lower() in ("true","1"),
+                        "above_200ma": lambda v: str(v).lower() in ("true","1"),
+                        "ma50_gt_ma200":lambda v: str(v).lower() in ("true","1"),
+                        "near_52wh":   lambda v: str(v).lower() in ("true","1"),
+                        "breaking_out":lambda v: str(v).lower() in ("true","1"),
+                        "ms_hh_hl":    lambda v: str(v).lower() in ("true","1"),
+                        "ms_bos":      lambda v: str(v).lower() in ("true","1"),
+                        "of_bias":     lambda v: "Bullish" in str(v),
+                        "vwap_position":lambda v: "Above" in str(v) and "Extended" not in str(v),
+                        "ms_structure":lambda v: "Bullish" in str(v),
+                        "earn_momentum":lambda v: "Strong" in str(v),
+                        "eps_accel":   lambda v: str(v).lower() in ("true","1"),
+                        "is_gem":      lambda v: str(v).lower() in ("true","1"),
+                        "breaking_out":lambda v: str(v).lower() in ("true","1"),
+                    }
+                    neg_cols = {
+                        "stage":       lambda v: "4 🔴" in str(v),
+                        "above_50ma":  lambda v: str(v).lower() in ("false","0"),
+                        "above_200ma": lambda v: str(v).lower() in ("false","0"),
+                        "of_bias":     lambda v: "Bearish" in str(v),
+                        "vwap_position":lambda v: "Below" in str(v),
+                        "ms_structure":lambda v: "Bearish" in str(v),
+                        "liquidity_warn":lambda v: str(v).lower() in ("true","1"),
+                    }
+                    try:
+                        if col in pos_cols and pos_cols[col](raw): return "#3fb950"
+                        if col in neg_cols and neg_cols[col](raw): return "#f85149"
+                    except: pass
+                    # Numeric coloring
+                    perf_cols = ("perf_1m_%","perf_3m_%","perf_6m_%","vs_50ma_%","vs_200ma_%",
+                                 "eps_growth_%","eps_surprise_%","rev_growth_%","delta_score")
+                    if col in perf_cols:
+                        try:
+                            v = float(raw)
+                            return "#3fb950" if v > 0 else ("#f85149" if v < 0 else "#8b949e")
+                        except: pass
+                    if col == "apex_score":
+                        try:
+                            v = float(raw)
+                            return "#3fb950" if v>=70 else ("#d29922" if v>=40 else "#f85149")
+                        except: pass
+                    if col in ("rs_3m","rs_6m"):
+                        try:
+                            v = float(raw)
+                            return "#3fb950" if v>=100 else ("#d29922" if v>=70 else "#f85149")
+                        except: pass
+                    return "#c9d1d9"
+
+                # Render the table
+                st.markdown("""
+                <div style="font-size:0.78rem;color:#8b949e;margin-bottom:8px;">
+                  Every field from the scan — what it means and how to read it.
+                  <span style="color:#3fb950;">Green</span> = bullish signal &nbsp;|&nbsp;
+                  <span style="color:#f85149;">Red</span> = bearish/caution &nbsp;|&nbsp;
+                  <span style="color:#d29922;">Amber</span> = neutral/watch
+                </div>
+                """, unsafe_allow_html=True)
+
+                for col_key in ORDERED_COLS_DISPLAY:
+                    raw = row_data.get(col_key)
+                    if col_key == "rank":
+                        raw = row_data.name if hasattr(row_data, "name") else "–"
+
+                    if raw is None and col_key not in ("delta_score","changes","is_new"):
+                        continue  # Skip columns with no data
+
+                    meta   = COLUMN_META.get(col_key, (col_key, "–"))
+                    label  = meta[0]
+                    interp = meta[1]
+                    val    = _fmt_cell(col_key, raw)
+                    vcolor = _signal_color(col_key, raw)
+
+                    st.markdown(
+                        f'<div style="display:flex;align-items:flex-start;gap:12px;'
+                        f'border-bottom:1px solid #21262d;padding:8px 0;">'
+                        f'<div style="min-width:160px;flex-shrink:0;">'
+                        f'<span style="color:#8b949e;font-size:0.72rem;text-transform:uppercase;'
+                        f'letter-spacing:0.06em;">{col_key}</span><br>'
+                        f'<span style="color:#d29922;font-size:0.82rem;font-weight:600;">{label}</span>'
+                        f'</div>'
+                        f'<div style="min-width:120px;flex-shrink:0;">'
+                        f'<span style="color:{vcolor};font-size:0.95rem;font-weight:700;">{val}</span>'
+                        f'</div>'
+                        f'<div style="flex:1;">'
+                        f'<span style="color:#8b949e;font-size:0.82rem;line-height:1.6;">{interp}</span>'
+                        f'</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+
+                # Excel Download
+                st.markdown("---")
+                try:
+                    xlsx_bytes = build_excel_download(interp_df.iloc[0], interp_ticker)
+                    st.download_button(
+                        "⬇ Download Excel — Full Deep Read",
+                        xlsx_bytes,
+                        file_name=f"apexscan_{interp_ticker}_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        help="Downloads a fully labelled Excel workbook: Sheet 1 = all data columns with interpretation, Sheet 2 = signal scorecard",
+                    )
+                except Exception as _xl_err:
+                    # Fallback to CSV
+                    st.download_button(
+                        "⬇ Download CSV — Deep Read",
+                        interp_df.to_csv().encode("utf-8"),
+                        file_name=f"apexscan_{interp_ticker}_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                        mime="text/csv",
+                    )
+                    st.caption(f"Excel export failed ({_xl_err}) — CSV downloaded instead. Install openpyxl for Excel output.")
 
         # ── Combined summary for single ticker ─────────────────────────
         if interp_mode == "Single Ticker Deep Read" and not interp_df.empty:
