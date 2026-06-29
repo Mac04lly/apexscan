@@ -1344,8 +1344,15 @@ with tabs[1]:
             # PA pattern annotations on last candle
             if not df.empty and sel in df["ticker"].values:
                 row_data = df[df["ticker"] == sel].iloc[0]
-                pa = row_data.get("pa_patterns", "")
-                if pa and pa != "None":
+                _pa_raw = row_data.get("pa_patterns", "")
+                # Guard: CSV reload can return NaN (float) for missing PA values
+                pa = (
+                    str(_pa_raw)
+                    if _pa_raw is not None
+                    and not (isinstance(_pa_raw, float) and pd.isna(_pa_raw))
+                    else ""
+                )
+                if pa and pa not in ("None", "nan", ""):
                     last_date  = hist_vwap.index[-1]
                     last_price = hist_vwap["High"].iloc[-1]
                     fig2.add_annotation(
@@ -1995,8 +2002,14 @@ with tabs[6]:
 
             # ── KPI row 7: Price Action Patterns (NEW) ───────────────────
             st.markdown("#### 🕯 Price Action Patterns")
-            pa_patterns = result.get("pa_patterns","None")
-            if pa_patterns and pa_patterns != "None":
+            _pa_raw2 = result.get("pa_patterns", "None")
+            pa_patterns = (
+                str(_pa_raw2)
+                if _pa_raw2 is not None
+                and not (isinstance(_pa_raw2, float) and pd.isna(_pa_raw2))
+                else "None"
+            )
+            if pa_patterns and pa_patterns not in ("None", "nan", ""):
                 pa_list = [p.strip() for p in pa_patterns.split("|")]
                 pa_cols = st.columns(min(len(pa_list),4))
                 pa_colors = {
