@@ -1,13 +1,6 @@
 """
 modules/watchlist_manager.py — Named Watchlist Manager
-Persistent storage: writes to an absolute path resolved relative to this
-file itself, so it works identically whether run locally or on Streamlit Cloud.
-Data survives rerenders, tab switches, and page refreshes permanently.
-It is only lost if the Cloud dyno is fully recycled (inactivity >hours) — in
-that case the auto-backup inside data/watchlists_backup.json is restored
-automatically on next load.
 """
-
 import json
 import os
 import shutil
