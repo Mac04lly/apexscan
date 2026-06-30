@@ -75,15 +75,107 @@ check_and_fire_alerts  = _al["check_and_fire_alerts"]
 build_daily_briefing_alert = _al["build_daily_briefing_alert"]
 get_upcoming_earnings_for_watchlist = _av["get_upcoming_earnings_for_watchlist"]
 
+# Watchlist helper stubs — only define if module didn't load them
+if scan_watchlist is None:
+    def scan_watchlist(list_name, tickers, cfg, analyze_fn):
+        import pandas as pd
+        rows = []
+        for tk in tickers:
+            try:
+                r = analyze_fn(tk, cfg)
+                if r: rows.append(r)
+            except Exception:
+                pass
+        return pd.DataFrame(rows) if rows else pd.DataFrame()
+
 # Fallback: if alert module missing, define minimal stubs so app doesn't crash
 if load_alert_settings is None:
     def load_alert_settings(): return {"alerts_enabled": False, "telegram_token": "", "telegram_chat_id": "", "email_from": "", "email_password": "", "email_to": "", "alert_breakouts": True, "alert_stop_breach": True, "alert_earnings": True, "alert_sfp_setup": True, "alert_persistent_flow": True, "alert_vwap_imbalance": True, "min_score_alert": 60}
 if save_alert_settings is None:
     def save_alert_settings(s): pass
-if load_watchlists is None:
-    def load_watchlists(): return {"High Conviction": [], "Monitoring": [], "Earnings Soon": [], "Swing Trades": []}
-if save_watchlists is None:
-    def save_watchlists(w): pass
+# ── Persistent Watchlist Engine ───────────────────────────────────────────────
+# Always override the module stubs with a robust JSON-backed implementation.
+# Streamlit Cloud: uses /tmp/apexscan_watchlists.json (survives rerenders,
+# clears on dyno restart — acceptable; users must re-add after server restarts).
+# Local / self-hosted: uses watchlists.json next to dashboard.py (permanent).
+import json as _json, os as _os
+
+_WL_LOCAL  = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "watchlists.json")
+_WL_TMP    = "/tmp/apexscan_watchlists.json"
+_WL_DEFAULTS = {
+    "High Conviction": [],
+    "Monitoring":      [],
+    "Earnings Soon":   [],
+    "Swing Trades":    [],
+}
+
+def _wl_path():
+    """Return a writable path — prefer local (persistent), fall back to /tmp."""
+    try:
+        _os.makedirs(_os.path.dirname(_WL_LOCAL), exist_ok=True)
+        # Test write access
+        with open(_WL_LOCAL, "a") as _f:
+            pass
+        return _WL_LOCAL
+    except Exception:
+        return _WL_TMP
+
+def load_watchlists():
+    """Load watchlists from JSON file, merging with defaults so new lists always appear."""
+    path = _wl_path()
+    data = dict(_WL_DEFAULTS)
+    if _os.path.exists(path):
+        try:
+            with open(path, "r") as _f:
+                saved = _json.load(_f)
+            if isinstance(saved, dict):
+                for k, v in saved.items():
+                    if isinstance(v, list):
+                        data[k] = v
+        except Exception:
+            pass
+    return data
+
+def save_watchlists(wls):
+    """Save watchlists to JSON file. Always writes to ensure persistence."""
+    path = _wl_path()
+    try:
+        with open(path, "w") as _f:
+            _json.dump(wls, _f, indent=2)
+    except Exception as _e:
+        import streamlit as _st
+        _st.error(f"⚠️ Could not save watchlists: {_e}")
+
+def add_ticker(wls, list_name, ticker):
+    ticker = ticker.upper().strip()
+    if list_name in wls and ticker and ticker not in wls[list_name]:
+        wls[list_name].append(ticker)
+    return wls
+
+def remove_ticker(wls, list_name, ticker):
+    if list_name in wls and ticker in wls[list_name]:
+        wls[list_name].remove(ticker)
+    return wls
+
+def create_list(wls, list_name):
+    if list_name and list_name not in wls:
+        wls[list_name] = []
+    return wls
+
+def delete_list(wls, list_name):
+    if list_name in wls:
+        del wls[list_name]
+    return wls
+
+def import_tickers(wls, list_name, comma_str):
+    tickers = [t.strip().upper() for t in comma_str.replace("\n", ",").split(",") if t.strip()]
+    for tk in tickers:
+        if tk and tk not in wls.get(list_name, []):
+            wls.setdefault(list_name, []).append(tk)
+    return wls
+
+def export_watchlist(wls, list_name):
+    return ", ".join(wls.get(list_name, []))
 
 # ── Page Config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -790,9 +882,9 @@ with st.sidebar:
     st.markdown("**🌐 Scan Universe**")
     universe_mode = st.radio(
         "Ticker Universe",
-        ["📋 Theme Watchlist (Config)", "🌐 Extended Universe (S&P 500 + NASDAQ 100)"],
+        ["📋 Theme Watchlist (Config)", "🌐 Extended Universe (NASDAQ + NYSE + NYSE American)"],
         index=0, key="universe_mode",
-        help="Theme Watchlist = only tickers defined in config.yaml. Extended Universe = scans the full S&P 500 + NASDAQ 100 (slower, ~200+ tickers)."
+        help="Theme Watchlist = only tickers in config.yaml. Extended Universe = scans NASDAQ 100, NYSE large/mid caps, and NYSE American growth stocks (~400+ tickers, takes ~5 min)."
     )
     st.divider()
     run_btn  = st.button("🚀 Run Live Scan", use_container_width=True)
@@ -874,33 +966,108 @@ if run_btn:
 
         # ── Universal ticker universe ─────────────────────────────────────
         _universe_override = None
-        if universe_mode == "🌐 Extended Universe (S&P 500 + NASDAQ 100)":
-            _EXTENDED_UNIVERSE = [
-                # S&P 500 large caps + NASDAQ 100 — curated list of liquid, scan-worthy tickers
-                "AAPL","MSFT","AMZN","NVDA","GOOGL","META","TSLA","AVGO","LLY","V",
-                "MA","COST","NFLX","ORCL","CRM","AMD","ADBE","QCOM","TXN","INTU",
-                "AMAT","LRCX","KLAC","MU","MRVL","ARM","ASML","TSM","SMCI","CDNS",
-                "SNPS","ANSS","FTNT","PANW","CRWD","ZS","CYBR","NET","DDOG","SNOW",
-                "PLTR","HOOD","SOFI","AFRM","SQ","PYPL","COIN","MSTR","RKLB","IONQ",
-                "ASTS","ACHR","JOBY","LUNR","SOUN","RXRX","HIMS","RDDT","CAVA","DAVE",
-                "UPST","OPEN","UWMC","BTDR","SMAR","DOCN","TMDX","CELH","ONON","LULU",
-                "NKE","DUOL","MNST","AXON","FICO","ISRG","DXCM","IDXX","VEEV","MTCH",
-                "ABNB","UBER","LYFT","DASH","SHOP","SPOT","ROKU","TTD","TRADE","WMT",
-                "HD","TGT","LOW","MCD","SBUX","YUM","CMG","RACE","F","GM","RIVN",
-                "XOM","CVX","COP","SLB","BKR","HAL","JPM","GS","MS","BAC","WFC",
-                "C","AXP","BLK","SCHW","ICE","CME","SPGI","MCO","AMP","PGR","MET",
-                "UNH","CI","CVS","HCA","MCK","ABC","CAH","DHR","TMO","A","BIO",
-                "MRNA","BNTX","REGN","BIIB","GILD","ABBV","BMY","PFE","JNJ","MRK",
-                "NVO","AZN","RPRX","VTRS","VTYX","ZBH","EW","BSX","MDT","SYK","ABT",
-                "BA","RTX","LMT","NOC","GD","HII","TDG","HWM","GE","HON","MMM",
-                "CAT","DE","EMR","ETN","PH","ITW","ROK","AME","CTAS","ROP","CPRT",
-                "WM","RSG","VRSK","IDEX","SHW","APD","LIN","ECL","IFF","PPG","NUE",
-                "FCX","SCCO","AA","X","CLF","MP","ALB","ENPH","FSLR","RUN","PLUG",
-                "NEE","D","SO","DUK","AEP","SRE","PCG","XEL","AWK","PLD","AMT",
-                "CCI","SBAC","EQIX","DLR","O","SPG","PSA","EXR","AVB","EQR",
+        if universe_mode == "🌐 Extended Universe (NASDAQ + NYSE + NYSE American)":
+            # ── Already in list (NASDAQ + mixed) ──────────────────────────
+            _NASDAQ_NAMES = [
+                # Mega-cap tech / NASDAQ 100 core
+                "AAPL","MSFT","AMZN","NVDA","GOOGL","GOOG","META","TSLA","AVGO","COST",
+                "NFLX","ORCL","ADBE","QCOM","TXN","INTU","AMD","ARM","ASML","TSM",
+                # Semiconductors
+                "AMAT","LRCX","KLAC","MU","MRVL","SMCI","CDNS","SNPS","ON","MPWR",
+                # Software / Cloud
+                "CRM","DDOG","SNOW","NET","ZS","PANW","FTNT","CRWD","PLTR","VEEV",
+                "WDAY","TEAM","HUBS","NOW","MDB","GTLB","BILL","PATH","AI","APPN",
+                # Fintech / Crypto
+                "PYPL","COIN","HOOD","SOFI","AFRM","MSTR","SQ","UPST","DAVE","SMAR",
+                # Biotech / Health (NASDAQ-listed)
+                "MRNA","BNTX","REGN","BIIB","GILD","IDXX","DXCM","ISRG","ILMN","VRTX",
+                "ALNY","SGEN","BMRN","INCY","EXAS","RARE","NTLA","BEAM","CRSP","EDIT",
+                # Consumer / Retail (NASDAQ)
+                "MNST","CELH","LULU","ONON","DUOL","ROST","DLTR","FAST","ODFL","CTAS",
+                # Growth / Emerging (NASDAQ)
+                "RKLB","IONQ","ASTS","ACHR","SOUN","RXRX","HIMS","RDDT","CAVA","TMDX",
+                "LUNR","BTDR","DOCN","OPEN","UWMC","JOBY","ABNB","DASH","LYFT","UBER",
+                "SHOP","SPOT","ROKU","TTD","MTCH","MELI","SE","GRAB","DKNG","RBLX",
             ]
+
+            # ── NYSE — Blue-chip, Industrials, Financials, Energy, Healthcare ─
+            _NYSE_NAMES = [
+                # Financials (NYSE)
+                "JPM","GS","MS","BAC","WFC","C","AXP","BLK","SCHW","ICE","CME",
+                "SPGI","MCO","AMP","PGR","MET","TRV","AFL","ALL","CB","HIG","L",
+                "BX","KKR","APO","CG","ARES","TPG","BN","BAM","TROW","IVZ","BEN",
+                "WTW","AON","MMC","USB","PNC","TFC","FITB","KEY","CFG","RF","HBAN",
+                # Healthcare (NYSE)
+                "UNH","CI","CVS","HCA","MCK","CAH","DHR","TMO","ABT","MDT","SYK",
+                "BSX","EW","ZBH","BDX","BAX","STE","HOLX","IQV","CRL","MTD","WAT",
+                "LH","DGX","CTLT","PKI","VTRS","RPRX","JAZZ","ALKS","ITCI","ACAD",
+                "LLY","ABBV","BMY","PFE","JNJ","MRK","AZN","NVO","GSK","SNY",
+                # Energy (NYSE)
+                "XOM","CVX","COP","SLB","BKR","HAL","PSX","VLO","MPC","EOG",
+                "PXD","DVN","OXY","FANG","HES","APA","NOV","WHD","TRGP","KMI",
+                "WMB","OKE","EPD","ET","PAA","MMP","LNG","AR","EQT","RRC",
+                # Industrials / Defence (NYSE)
+                "BA","RTX","LMT","NOC","GD","HII","TDG","HWM","GE","HON","MMM",
+                "CAT","DE","EMR","ETN","PH","ITW","ROK","AME","ROP","CPRT","EXPD",
+                "UPS","FDX","GXO","XPO","CHRW","JBHT","SAIA","TFII","ZTO","DAL",
+                "UAL","AAL","LUV","ALK","SAVE","H","MAR","HLT","WH","CHH","NCLH",
+                # Materials / Metals (NYSE)
+                "LIN","APD","SHW","ECL","IFF","PPG","RPM","FMC","CF","MOS","NTR",
+                "NUE","STLD","CMC","RS","ATI","FCX","SCCO","AA","CLF","MP","ALB",
+                "LAC","LTHM","SQM","VALE","RIO","BHP","GOLD","NEM","AEM","PAAS",
+                # Chemicals / Specialty Materials (NYSE)
+                "DOW","DD","LYB","HUN","CE","EMN","OLN","ASH","TROX","IOSP",
+                # Utilities (NYSE)
+                "NEE","D","SO","DUK","AEP","SRE","PCG","XEL","AWK","ES","EXC",
+                "ED","PPL","ETR","FE","AEE","CMS","DTE","LNT","PNW","WEC","NI",
+                # Real Estate / REITs (NYSE)
+                "PLD","AMT","CCI","SBAC","EQIX","DLR","O","SPG","PSA","EXR",
+                "AVB","EQR","UDR","ESS","MAA","CPT","NNN","VICI","MGM","WYNN","LVS",
+                "HST","RHP","PK","SHO","PLYA","APLE","CLDT","CPLG","RLJ","XHR",
+                # Consumer Staples (NYSE)
+                "WMT","PG","KO","PEP","PM","MO","CL","KMB","CHD","CLX","HRL",
+                "SJM","CAG","CPB","GIS","K","MKC","HSY","TR","MDLZ","KHC","STZ",
+                "BF-B","TAP","SAM","BUD","DEO","BTI","BURL","TJX","COST","DG","DLTR",
+                # Consumer Discretionary (NYSE)
+                "HD","TGT","LOW","MCD","SBUX","YUM","CMG","DPZ","QSR","EAT","DRI",
+                "TXRH","BLMN","BJRI","CAKE","SHAK","WING","PLNT","BJ","FIVE","OLLI",
+                "F","GM","STLA","HOG","RACE","TM","HMC","MGA","LEA","BWA","ALV",
+                "NKE","DECK","SKX","CROX","PVH","RL","TPR","TIF","VFC","HBI","UA",
+                # Technology (NYSE-listed)
+                "IBM","ORCL","HPQ","HPE","DELL","NCR","CDW","LDOS","SAIC","BAH",
+                "ACN","WIT","INFY","CTSH","EPAM","GLOB","MFAC","DXC","CSC","CACI",
+            ]
+
+            # ── NYSE American (AMEX) — small/mid growth and mining ────────
+            _NYSE_AMERICAN_NAMES = [
+                # Growth / Emerging (NYSE American)
+                "LUNR","ACHR","JOBY","ASTS","SOUN","RXRX","IONQ","BTBT","MARA",
+                "RIOT","HUT","BITF","CIFR","CLSK","IREN","WULF","BTDR",
+                # Mining / Resources (NYSE American)
+                "AG","EXK","PAAS","SILV","CDE","HL","GPL","MUX","AUY","KGC",
+                "GATO","MAG","SVM","FSM","ERO","ATX","VZLA","SAND","WPM","OR",
+                # Biotech / Pharma (NYSE American)
+                "ACAD","SAGE","INVA","PRTA","KYMR","ARQT","GOSS","AUPH","NKTR",
+                "AVXL","SNDX","PRAX","IMVT","DNLI","KRTX","VRNA","AKRO","TARS",
+                # Energy (NYSE American)
+                "CRC","SM","CIVI","MGY","ESTE","REX","FLNG","GMLP","SLNG",
+                # Special Situations / Growth (NYSE American)
+                "OPEN","UWMC","DAVE","HIMS","RDDT","CAVA","TMDX","MSTR",
+            ]
+
+            # Merge all, deduplicate, preserve order
+            _seen = set()
+            _EXTENDED_UNIVERSE = []
+            for _tk in (_NASDAQ_NAMES + _NYSE_NAMES + _NYSE_AMERICAN_NAMES):
+                if _tk not in _seen:
+                    _seen.add(_tk)
+                    _EXTENDED_UNIVERSE.append(_tk)
+
             _universe_override = _EXTENDED_UNIVERSE
-            st.info(f"🌐 Extended Universe: scanning {len(_EXTENDED_UNIVERSE)} tickers (S&P 500 + NASDAQ 100 + growth names)…")
+            st.info(
+                f"🌐 Extended Universe: scanning {len(_EXTENDED_UNIVERSE)} tickers "
+                f"(NASDAQ + NYSE + NYSE American)…"
+            )
 
         df_raw  = run_scan(cfg, universe_override=_universe_override)
         if not df_raw.empty:
