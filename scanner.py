@@ -1,10 +1,3 @@
-"""
-scanner.py — ApexScan Core Engine v10 (US Market Only)
-Momentum / Stage Analysis / Theme Rotation /
-Order Flow Persistence / Auction Market Theory /
-Market Structure / Price Action Patterns
-"""
-
 import yfinance as yf
 import requests
 import pandas as pd
@@ -512,8 +505,12 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
         perf_6m = performance_pct(close, 126)
 
         high_52w     = close.rolling(252).max().iloc[-1]
+        # Guard against NaN from rolling on short history
+        if pd.isna(high_52w) or high_52w == 0:
+            # Fallback: use the actual max of available close data
+            high_52w = float(close.max())
         near_52wh    = current_price >= high_52w * thresholds["near_52w_high"]
-        pct_off_high = round((current_price / high_52w - 1) * 100, 1) if high_52w else 0
+        pct_off_high = round((current_price / high_52w - 1) * 100, 1) if high_52w else 0.0
 
         ma50         = close.rolling(50).mean().iloc[-1]
         ma200        = close.rolling(200).mean().iloc[-1]
@@ -576,20 +573,56 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
 
         # ── Apex Score ────────────────────────────────────────────────────
         score = 0
+
+        # Momentum (max 40)
         if perf_3m > thresholds["min_3m_perf"]:    score += min(40, perf_3m)
+
+        # Relative Strength (max 25)
         if rs_3m > thresholds["rs_rating_min"]:     score += 25
         elif rs_3m > 50:                            score += 12
-        if above_200ma and ma50_gt_200:             score += 15
-        elif above_200ma:                           score += 7
+
+        # Trend / Stage (max 15) — Stage 2 REQUIRED for full credit
+        if above_200ma and ma50_gt_200:             score += 15   # Stage 2: price > 50MA > 200MA
+        elif above_200ma:                           score += 7    # Stage 1: above 200MA only
+
+        # 52-week high proximity (max 10)
         if near_52wh:                               score += 10
+
+        # Breakout (max 10)
         if breaking_out:                            score += 10
-        score += of_data["of_persistence_score"]    # 0-8
-        score += pa_data["pa_score"]                # 0-5
-        score += vwap_data["vwap_score"]            # 0-4
+
+        # Advanced signals
+        score += of_data["of_persistence_score"]    # 0–8
+        score += pa_data["pa_score"]                # 0–5
+        score += vwap_data["vwap_score"]            # 0–4
         if ms_data["ms_hh_hl"]:                    score += 2
         if ms_data["ms_break_of_struct"] and ms_data["ms_hh_hl"]: score += 1
-        if av_data:                                 score += av_data.get("eps_score", 0)  # 0-15
-        score = min(100, round(score, 1))
+
+        # Fundamentals (0–15)
+        if av_data:                                 score += av_data.get("eps_score", 0)
+
+        # ── DEDUCTIONS — penalise bearish conditions ──────────────────────
+        # Stage 4 downtrend: hard penalty — stock is in confirmed downtrend
+        if not above_200ma and not ma50_gt_200:     score -= 20   # Stage 4: below both MAs
+        elif not above_200ma:                       score -= 10   # below 200MA only
+
+        # Negative 3-month performance (going the wrong way)
+        if perf_3m < 0:                             score -= 10
+        elif perf_3m < thresholds["min_3m_perf"]:  score -= 5
+
+        # RS deeply negative (massive underperformer)
+        if rs_3m < 0:                               score -= 10
+        elif rs_3m < 50:                            score -= 5
+
+        # Bearish order flow
+        if of_data["of_directional_bias"] == "Strong Bearish": score -= 5
+        elif of_data["of_directional_bias"] == "Bearish":      score -= 2
+
+        # Far below 52-week high (>40% off = avoid)
+        if pct_off_high < -40:                      score -= 10
+        elif pct_off_high < -25:                    score -= 5
+
+        score = max(0, min(100, round(score, 1)))
 
         # Apply gem score boosts for emerging gems with strong signals
         if is_gem:
@@ -623,7 +656,7 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
             "above_200ma":     above_200ma,
             "ma50_gt_ma200":   ma50_gt_200,
             "near_52wh":       near_52wh,
-            "pct_off_high_%":  pct_off_high,
+            "pct_off_high_%":  float(pct_off_high) if pct_off_high is not None else 0.0,
             "pattern":         pattern,
             "breaking_out":    breaking_out,
             "news_count":      fh["news_count"],
@@ -725,6 +758,21 @@ def run_scan(cfg: dict, markets: List[str] = None, universe_override: list = Non
 
         min_score = cfg["thresholds"]["us"]["score_filter"]
         min_vol   = cfg["thresholds"]["us"]["min_volume"]
+
+        # ── Hard gates — reject regardless of score ────────────────────────
+        # Gate 1: Must be in Stage 2 (price > 50MA > 200MA) — the ONLY buyable stage
+        if not (data["above_200ma"] and data["ma50_gt_ma200"]):
+            continue   # Stage 1 / 3 / 4 — not actionable for longs
+
+        # Gate 2: Minimum 3-month performance (no negative momentum stocks)
+        if data["perf_3m_%"] < cfg["thresholds"]["us"].get("min_3m_perf", 5):
+            continue
+
+        # Gate 3: Must outperform or be close to benchmark (no RS <0)
+        if data["rs_3m"] < 0:
+            continue
+
+        # Gate 4: Volume and score
         if data["apex_score"] >= min_score and data.get("vol_filter", data["volume"]) >= min_vol:
             results.append(data)
 
