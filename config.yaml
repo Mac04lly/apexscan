@@ -2,41 +2,40 @@
 # ApexScan Config — US Market Only
 # ====================================================
 
-finnhub_key: "YOUR_FINNHUB_FREE_KEY_HERE"       # Get free at finnhub.io
-alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE" # Paste your key here
+finnhub_key: "YOUR_FINNHUB_FREE_KEY_HERE"
+alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE"
 
 # ---- ALPHA VANTAGE SETTINGS ----
 alpha_vantage:
-  # Free tier: 25 requests/day, 5 requests/minute
-  # Premium tier: higher limits — adjust rate_limit_pause and cache_hours below
-
-  eps_lookback_quarters: 4      # how many quarters of EPS to analyse
-  min_eps_growth: 15            # % minimum quarterly EPS growth to flag
-  min_surprise_pct: 5           # % minimum earnings beat to score positively
-
-  # KEY SETTING: cache for 7 days so you only burn 3 API calls per ticker
-  # on the first scan, then read from cache for the rest of the week
-  cache_hours: 168              # 168h = 7 days (FREE TIER MUST USE 168+)
-
-  rate_limit_pause: 13          # seconds between AV calls (free: 5/min max)
-
-  # Smart batching — only fetch AV data for top N tickers by price momentum
-  # This keeps you well within 25 calls/day on the free tier
-  # Set to 0 to fetch for ALL tickers (premium only)
-  max_av_calls_per_scan: 8      # fetch AV for top 8 tickers only (uses 24 calls)
+  eps_lookback_quarters: 4
+  min_eps_growth: 15
+  min_surprise_pct: 5
+  cache_hours: 168
+  rate_limit_pause: 13
+  max_av_calls_per_scan: 8
 
 # ---- THRESHOLDS ----
 thresholds:
   us:
-    min_3m_perf: 5        # lowered from 15 — captures more setups
-    min_volume: 300000    # lowered from 1,000,000 — avg volume check
-    rs_rating_min: 50     # lowered from 70 — less restrictive
+    min_3m_perf: 5
+    min_volume: 300000
+    rs_rating_min: 50
     near_52w_high: 0.85
-    score_filter: 25      # lowered from 30 — captures more results
+    score_filter: 25
 
 # ---- BENCHMARKS ----
+# Primary: S&P 500
+# Secondary: Russell 2500 (^R25I) — small/mid-cap growth benchmark
+#            Russell 3000 Growth (^RAG) — broad growth benchmark
+# yfinance ETF fallbacks if index symbols fail:
+#   ^R25I → SMMD (iShares Russell 2500 ETF)
+#   ^RAG  → IWZ  (iShares Russell 3000 Growth ETF)
 benchmarks:
-  us: "^GSPC"   # S&P 500
+  us: "^GSPC"
+  russell_2500: "^R25I"
+  russell_3000_growth: "^RAG"
+  russell_2500_fallback: "SMMD"
+  russell_3000_growth_fallback: "IWZ"
 
 # ---- US THEMES ----
 us_themes:
@@ -123,28 +122,19 @@ scan:
 
 # ---- ADVANCED SIGNAL THRESHOLDS ----
 advanced:
-  # Order Flow Persistence
-  of_lookback: 10              # days to measure directional persistence
-  of_min_bullish_days: 60      # % of up days to flag as persistent flow
-  of_min_vol_ratio: 1.5        # up-day volume / down-day volume minimum
-
-  # VWAP / Auction Market Theory
-  vwap_lookback: 20            # days for rolling VWAP calculation
-  vwap_reclaim_alert: true     # alert when price reclaims VWAP on volume
-
-  # Market Structure
-  swing_lookback: 5            # bars each side for swing pivot detection
-
-  # Price Action Patterns
-  pa_context_vol_mult: 1.2     # volume multiplier for context candle
-  pa_engulf_min_body: 0.5      # minimum body size as % of prior candle
-  pa_sfp_min_wick: 0.3         # minimum wick size as % of candle range
-
-  # Alert triggers (new signal types)
+  of_lookback: 10
+  of_min_bullish_days: 60
+  of_min_vol_ratio: 1.5
+  vwap_lookback: 20
+  vwap_reclaim_alert: true
+  swing_lookback: 5
+  pa_context_vol_mult: 1.2
+  pa_engulf_min_body: 0.5
+  pa_sfp_min_wick: 0.3
   alert_persistent_flow: true
   alert_sfp_setup: true
   alert_vwap_imbalance: true
-  alert_sfp_min_score: 50      # minimum apex score to fire SFP alert
+  alert_sfp_min_score: 50
 
 # ---- EMERGING GEMS SETTINGS ----
 emerging_gems:
