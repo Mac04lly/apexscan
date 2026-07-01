@@ -1,3 +1,10 @@
+"""
+scanner.py — ApexScan Core Engine v10 (US Market Only)
+Momentum / Stage Analysis / Theme Rotation /
+Order Flow Persistence / Auction Market Theory /
+Market Structure / Price Action Patterns
+"""
+
 import yfinance as yf
 import requests
 import pandas as pd
@@ -237,18 +244,42 @@ def gem_score_boost(score: float, rs3: float, breaking_out: bool,
     bonus += pa_score * (boosts.get("pa_patterns_multiplier", 1.20) - 1)
     return round(min(100, score + bonus), 1)
 
+# ETF fallbacks for Russell indices when yfinance index symbol is unavailable
+_BENCH_FALLBACKS = {
+    "^R25I": "SMMD",   # Russell 2500 → iShares Russell 2500 ETF
+    "^RAG":  "IWZ",    # Russell 3000 Growth → iShares Russell 3000 Growth ETF
+    "^RUA":  "IWV",    # Russell 3000 → iShares Russell 3000 ETF
+    "^RUT":  "IWM",    # Russell 2000 → iShares Russell 2000 ETF
+    "^RLG":  "IWF",    # Russell 1000 Growth → iShares Russell 1000 Growth ETF
+}
+
 def get_benchmark(symbol: str = "^GSPC", period: str = "1y") -> pd.Series:
     if symbol not in _bench_cache:
-        try:
-            data = yf.Ticker(symbol).history(period=period)["Close"]
-            if hasattr(data.index, 'tz') and data.index.tz is not None:
-                data.index = data.index.tz_convert(None)
-            data.index = pd.to_datetime(data.index).normalize()
-            _bench_cache[symbol] = data
-            log.info(f"Benchmark {symbol}: {len(data)} bars")
-        except Exception as e:
-            log.warning(f"Benchmark {symbol} failed: {e}")
+        # Try primary symbol first, then ETF fallback if it returns empty/fails
+        _symbols_to_try = [symbol]
+        if symbol in _BENCH_FALLBACKS:
+            _symbols_to_try.append(_BENCH_FALLBACKS[symbol])
+
+        _loaded = False
+        for _sym in _symbols_to_try:
+            try:
+                data = yf.Ticker(_sym).history(period=period)["Close"]
+                if hasattr(data.index, 'tz') and data.index.tz is not None:
+                    data.index = data.index.tz_convert(None)
+                data.index = pd.to_datetime(data.index).normalize()
+                if len(data) > 50:                       # must have meaningful history
+                    _bench_cache[symbol] = data
+                    _src = f"{_sym}" if _sym == symbol else f"{_sym} (fallback for {symbol})"
+                    log.info(f"Benchmark loaded: {_src} — {len(data)} bars")
+                    _loaded = True
+                    break
+            except Exception as e:
+                log.warning(f"Benchmark {_sym} failed: {e} — trying fallback…")
+
+        if not _loaded:
+            log.warning(f"All benchmark attempts failed for {symbol} — RS vs this benchmark will be None")
             _bench_cache[symbol] = pd.Series(dtype=float)
+
     return _bench_cache[symbol]
 
 
@@ -485,7 +516,12 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
     price action patterns, and Alpha Vantage EPS fundamentals.
     """
     thresholds   = cfg["thresholds"]["us"]
-    bench_symbol = cfg["benchmarks"]["us"]
+    bench_symbol  = cfg["benchmarks"]["us"]
+    # Secondary benchmarks — Russell 2500 and Russell 3000 Growth
+    # ^R25I = Russell 2500 index, ^RAG = Russell 3000 Growth index
+    # ETF fallbacks: SMMD (R2500 ETF), IWZ (R3000 Growth ETF)
+    bench_r2500   = cfg.get("benchmarks", {}).get("russell_2500",       "^R25I")
+    bench_r3000g  = cfg.get("benchmarks", {}).get("russell_3000_growth", "^RAG")
     finnhub_key  = cfg.get("finnhub_key", "")
     av_key       = cfg.get("alpha_vantage_key", "")
     av_cfg       = cfg.get("alpha_vantage", {})
@@ -521,9 +557,29 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
         vs_50ma_pct  = price_vs_ma(current_price, ma50)
         vs_200ma_pct = price_vs_ma(current_price, ma200)
 
-        bench = get_benchmark(bench_symbol)
-        rs_3m = compute_rs(close, bench, 63)
-        rs_6m = compute_rs(close, bench, 126)
+        # Primary benchmark — S&P 500
+        bench      = get_benchmark(bench_symbol)
+        rs_3m      = compute_rs(close, bench, 63)
+        rs_6m      = compute_rs(close, bench, 126)
+
+        # Secondary benchmarks — Russell 2500 and Russell 3000E Growth
+        _bench_r2500  = get_benchmark(bench_r2500,  cfg["scan"]["history_period"])
+        _bench_r3000g = get_benchmark(bench_r3000g, cfg["scan"]["history_period"])
+
+        # RS vs Russell 2500 (small/mid-cap benchmark — most relevant for emerging growth)
+        rs_r2500  = compute_rs(close, _bench_r2500,  63)   if len(_bench_r2500)  > 63  else None
+        rs_r2500_6m = compute_rs(close, _bench_r2500,  126) if len(_bench_r2500)  > 126 else None
+
+        # RS vs Russell 3000E Growth (broad growth benchmark — quality growth comparison)
+        rs_r3000g   = compute_rs(close, _bench_r3000g, 63)  if len(_bench_r3000g) > 63  else None
+        rs_r3000g_6m= compute_rs(close, _bench_r3000g, 126) if len(_bench_r3000g) > 126 else None
+
+        # Multi-benchmark RS leader flag: outperforming ALL three benchmarks = elite
+        rs_multi_leader = (
+            rs_3m is not None and rs_3m > 100 and
+            (rs_r2500  is None or rs_r2500  > 100) and
+            (rs_r3000g is None or rs_r3000g > 100)
+        )
 
         adr          = adr_pct(hist, 20)
         vol_today    = int(hist["Volume"].iloc[-1])
@@ -552,7 +608,152 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
                     if av_data and av_data.get("eps_momentum") not in (None, "Unknown")
                     else earnings_momentum_proxy(fh["news_count"], perf_3m))
 
-        theme    = next((k for k, v in cfg["us_themes"].items() if ticker in v), "other")
+        # ── Sector / Theme classification ────────────────────────────────────
+        # Priority 1: user-defined themes from config.yaml (e.g. ai_semis, cybersecurity)
+        _cfg_theme = next((k for k, v in cfg["us_themes"].items() if ticker in v), None)
+
+        # Priority 2: GICS sector map — 11 official GICS sectors
+        # Covers every ticker in the extended universe so "other" never appears
+        _GICS_MAP = {
+            # ── Energy ───────────────────────────────────────────────────────
+            "Energy": [
+                "XOM","CVX","COP","SLB","BKR","HAL","PSX","VLO","MPC","EOG",
+                "PXD","DVN","OXY","FANG","HES","APA","NOV","WHD","TRGP","KMI",
+                "WMB","OKE","EPD","ET","PAA","MMP","LNG","AR","EQT","RRC",
+                "CRC","SM","CIVI","MGY","ESTE","REX","FLNG","GMLP","SLNG",
+                "BP","SHEL","TTE","ENB","TRP","SU","CVE","IMO","CNQ","MEG",
+            ],
+            # ── Materials ────────────────────────────────────────────────────
+            "Materials": [
+                "LIN","APD","SHW","ECL","IFF","PPG","RPM","FMC","CF","MOS","NTR",
+                "NUE","STLD","CMC","RS","ATI","FCX","SCCO","AA","CLF","MP","ALB",
+                "LAC","LTHM","SQM","VALE","RIO","BHP","GOLD","NEM","AEM","PAAS",
+                "DOW","DD","LYB","HUN","CE","EMN","OLN","ASH","TROX","IOSP",
+                "AG","EXK","SILV","CDE","HL","GPL","MUX","AUY","KGC","GATO",
+                "MAG","SVM","FSM","ERO","ATX","VZLA","SAND","WPM","OR","RGLD",
+            ],
+            # ── Industrials ──────────────────────────────────────────────────
+            "Industrials": [
+                "BA","RTX","LMT","NOC","GD","HII","TDG","HWM","GE","HON","MMM",
+                "CAT","DE","EMR","ETN","PH","ITW","ROK","AME","ROP","CPRT","EXPD",
+                "UPS","FDX","GXO","XPO","CHRW","JBHT","SAIA","TFII","ZTO",
+                "DAL","UAL","AAL","LUV","ALK","SAVE","H","MAR","HLT","WH","CHH",
+                "NCLH","RCL","CCL","EXPE","BKNG","ABNB","TRIP","MTN","VAIL",
+                "WM","RSG","CTAS","VRSK","LDOS","SAIC","BAH","CACI","ACN",
+                "AXON","TDY","HXL","KTOS","DRS","RKLB","ACHR","JOBY","LUNR",
+            ],
+            # ── Utilities ────────────────────────────────────────────────────
+            "Utilities": [
+                "NEE","D","SO","DUK","AEP","SRE","PCG","XEL","AWK","ES","EXC",
+                "ED","PPL","ETR","FE","AEE","CMS","DTE","LNT","PNW","WEC","NI",
+                "BEP","BEPC","AES","NRG","CEG","VST","PEG","CNP","EVRG","AVA",
+                "IDACORP","OGE","SPWR","NOVA","RUN","ENPH","FSLR","PLUG",
+            ],
+            # ── Healthcare ───────────────────────────────────────────────────
+            "Healthcare": [
+                "UNH","CI","CVS","HCA","MCK","CAH","DHR","TMO","ABT","MDT","SYK",
+                "BSX","EW","ZBH","BDX","BAX","STE","HOLX","IQV","CRL","MTD","WAT",
+                "LH","DGX","CTLT","VTRS","RPRX","JAZZ","ALKS","ITCI","ACAD",
+                "LLY","ABBV","BMY","PFE","JNJ","MRK","AZN","NVO","GSK","SNY",
+                "MRNA","BNTX","REGN","BIIB","GILD","IDXX","DXCM","ISRG","ILMN","VRTX",
+                "ALNY","SGEN","BMRN","INCY","EXAS","RARE","NTLA","BEAM","CRSP","EDIT",
+                "HIMS","TMDX","RXRX","SAGE","AUPH","AVXL","SNDX","PRAX","IMVT",
+                "DNLI","KRTX","VRNA","AKRO","TARS","NKTR","ACAD","ARQT","GOSS",
+            ],
+            # ── Financials ───────────────────────────────────────────────────
+            "Financials": [
+                "JPM","GS","MS","BAC","WFC","C","AXP","BLK","SCHW","ICE","CME",
+                "SPGI","MCO","AMP","PGR","MET","TRV","AFL","ALL","CB","HIG","L",
+                "BX","KKR","APO","CG","ARES","TPG","BN","BAM","TROW","IVZ","BEN",
+                "WTW","AON","MMC","USB","PNC","TFC","FITB","KEY","CFG","RF","HBAN",
+                "COIN","HOOD","SOFI","AFRM","UPST","DAVE","OPEN","UWMC","MSTR",
+                "V","MA","PYPL","SQ","BILL","SMAR","INTL","IBKR","LPLA","RJF",
+            ],
+            # ── Consumer Discretionary ───────────────────────────────────────
+            "Consumer Discretionary": [
+                "AMZN","TSLA","HD","TGT","LOW","MCD","SBUX","YUM","CMG","DPZ",
+                "QSR","EAT","DRI","TXRH","BLMN","BJRI","CAKE","SHAK","WING","PLNT",
+                "BJ","FIVE","OLLI","F","GM","STLA","HOG","RACE","TM","HMC",
+                "MGA","LEA","BWA","ALV","NKE","DECK","SKX","CROX","PVH","RL",
+                "TPR","TIF","VFC","HBI","UA","LULU","ONON","CELH","RIVN",
+                "LYFT","UBER","DASH","DKNG","RBLX","MTCH","ABNB","BKNG","EXPE",
+                "ROST","DLTR","DG","BURL","TJX","COST","WMT","DUOL","CAVA",
+            ],
+            # ── Consumer Staples ─────────────────────────────────────────────
+            "Consumer Staples": [
+                "PG","KO","PEP","PM","MO","CL","KMB","CHD","CLX","HRL",
+                "SJM","CAG","CPB","GIS","K","MKC","HSY","TR","MDLZ","KHC",
+                "STZ","BF-B","TAP","SAM","BUD","DEO","BTI","MNST","CELH",
+                "WMT","COST","TGT","KR","SFM","GO","CASY","ATD",
+            ],
+            # ── Information Technology ───────────────────────────────────────
+            "Information Technology": [
+                "AAPL","MSFT","NVDA","AVGO","ORCL","CRM","ADBE","QCOM","TXN","INTU",
+                "AMD","ARM","AMAT","LRCX","KLAC","MU","MRVL","SMCI","CDNS","SNPS",
+                "PANW","CRWD","FTNT","ZS","NET","DDOG","SNOW","PLTR","NOW","WDAY",
+                "TEAM","HUBS","MDB","GTLB","PATH","AI","APPN","VEEV","BILL","TTD",
+                "IBM","HPQ","HPE","DELL","NCR","CDW","WIT","INFY","CTSH","EPAM",
+                "GLOB","DXC","CACI","LDOS","SAIC","BAH","ACN","IONQ","SOUN","BTDR",
+                "TSM","ASML","ON","MPWR","ADI","MCHP","SWKS","QRVO","WOLF","ONTO",
+            ],
+            # ── Communication Services ───────────────────────────────────────
+            "Communication Services": [
+                "META","GOOGL","GOOG","NFLX","SPOT","ROKU","TTD","SNAP","PINS","TWTR",
+                "RDDT","MTCH","IAC","ZG","DASH","LYFT","UBER","ABNB","BKNG","EXPE",
+                "DIS","PARA","WBD","FOXA","FOX","NWSA","NWS","NYT","SIRI","LSXMA",
+                "T","VZ","TMUS","LUMN","FYBR","ATUS","CABO","CHTR","CMCSA",
+                "EA","TTWO","ATVI","RBLX","U","DKNG","HOOD",
+            ],
+            # ── Real Estate ──────────────────────────────────────────────────
+            "Real Estate": [
+                "PLD","AMT","CCI","SBAC","EQIX","DLR","O","SPG","PSA","EXR",
+                "AVB","EQR","UDR","ESS","MAA","CPT","NNN","VICI","MGM","WYNN","LVS",
+                "HST","RHP","PK","SHO","PLYA","APLE","CLDT","CPLG","RLJ","XHR",
+                "ARE","BXP","SLG","VNO","KIM","REG","FRT","WRE","AIV","NHI",
+                "WELL","VTR","PEAK","HR","DOC","SBRA","LTC","NHC","CTRE","GMRE",
+            ],
+        }
+
+        # Build reverse lookup: ticker → GICS sector
+        _TICKER_TO_GICS = {}
+        for _sector, _tickers in _GICS_MAP.items():
+            for _t in _tickers:
+                _TICKER_TO_GICS[_t] = _sector
+
+        # Final theme assignment logic:
+        # 1. Use config theme if defined (ai_semis, cybersecurity, etc.) — most specific
+        # 2. Fall back to GICS sector — always one of the 11 official categories
+        # 3. Try yfinance fast_info sector as last resort
+        # "other" should NEVER appear in results
+        if _cfg_theme:
+            theme = _cfg_theme
+        elif ticker in _TICKER_TO_GICS:
+            theme = _TICKER_TO_GICS[ticker]
+        else:
+            # Dynamic lookup via yfinance for any ticker not in our static map
+            try:
+                _yf_info = yf.Ticker(ticker).fast_info
+                _yf_sector = getattr(_yf_info, "sector", None)
+                if not _yf_sector:
+                    _yf_info2 = yf.Ticker(ticker).info
+                    _yf_sector = _yf_info2.get("sector", None)
+                # Map yfinance sector names to our GICS labels
+                _SECTOR_ALIASES = {
+                    "Technology":               "Information Technology",
+                    "Financial Services":       "Financials",
+                    "Consumer Cyclical":        "Consumer Discretionary",
+                    "Consumer Defensive":       "Consumer Staples",
+                    "Basic Materials":          "Materials",
+                    "Communication Services":   "Communication Services",
+                    "Healthcare":               "Healthcare",
+                    "Industrials":              "Industrials",
+                    "Energy":                   "Energy",
+                    "Utilities":                "Utilities",
+                    "Real Estate":              "Real Estate",
+                }
+                theme = _SECTOR_ALIASES.get(_yf_sector, _yf_sector or "Information Technology")
+            except Exception:
+                theme = "Information Technology"  # safe default — never "other"
 
         # ── Market Cap & Liquidity (Emerging Gems) ────────────────────────
         gem_cfg   = cfg.get("emerging_gems", {})
@@ -577,9 +778,18 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
         # Momentum (max 40)
         if perf_3m > thresholds["min_3m_perf"]:    score += min(40, perf_3m)
 
-        # Relative Strength (max 25)
+        # Relative Strength vs S&P 500 (max 25)
         if rs_3m > thresholds["rs_rating_min"]:     score += 25
         elif rs_3m > 50:                            score += 12
+
+        # Bonus: outperforming Russell 2500 (small/mid growth benchmark) +3
+        if rs_r2500 is not None and rs_r2500 > 100: score += 3
+
+        # Bonus: outperforming Russell 3000 Growth (broad growth benchmark) +3
+        if rs_r3000g is not None and rs_r3000g > 100: score += 3
+
+        # Elite bonus: beating ALL three benchmarks simultaneously +4
+        if rs_multi_leader:                         score += 4
 
         # Trend / Stage (max 15) — Stage 2 REQUIRED for full credit
         if above_200ma and ma50_gt_200:             score += 15   # Stage 2: price > 50MA > 200MA
@@ -646,6 +856,12 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
             "perf_6m_%":       perf_6m,
             "rs_3m":           rs_3m,
             "rs_6m":           rs_6m,
+            # Russell benchmark RS
+            "rs_r2500_3m":     rs_r2500,
+            "rs_r2500_6m":     rs_r2500_6m,
+            "rs_r3000g_3m":    rs_r3000g,
+            "rs_r3000g_6m":    rs_r3000g_6m,
+            "rs_multi_leader": rs_multi_leader,
             "adr_%":           adr,
             "vs_50ma_%":       vs_50ma_pct,
             "vs_200ma_%":      vs_200ma_pct,
@@ -729,6 +945,16 @@ def run_scan(cfg: dict, markets: List[str] = None, universe_override: list = Non
     else:
         tickers = build_watchlist(cfg)
     log.info(f"Scanning {len(tickers)} US tickers…")
+
+    # Pre-warm all three benchmarks in parallel (all cached after first call)
+    _primary_bench   = cfg["benchmarks"]["us"]
+    _r2500_sym       = cfg.get("benchmarks", {}).get("russell_2500",       "^R25I")
+    _r3000g_sym      = cfg.get("benchmarks", {}).get("russell_3000_growth", "^RAG")
+    _period          = cfg["scan"]["history_period"]
+    get_benchmark(_primary_bench, _period)    # S&P 500
+    get_benchmark(_r2500_sym,     _period)    # Russell 2500
+    get_benchmark(_r3000g_sym,    _period)    # Russell 3000 Growth
+    log.info(f"Benchmarks loaded: {_primary_bench} | {_r2500_sym} | {_r3000g_sym}")
 
     av_key   = cfg.get("alpha_vantage_key", "")
     av_cfg   = cfg.get("alpha_vantage", {})
