@@ -94,6 +94,24 @@ if scan_watchlist is None:
 # Fallback: if alert module missing, define minimal stubs so app doesn't crash
 if load_alert_settings is None:
     def load_alert_settings(): return {"alerts_enabled": False, "telegram_token": "", "telegram_chat_id": "", "email_from": "", "email_password": "", "email_to": "", "alert_breakouts": True, "alert_stop_breach": True, "alert_earnings": True, "alert_sfp_setup": True, "alert_persistent_flow": True, "alert_vwap_imbalance": True, "min_score_alert": 60}
+
+# ── AI Briefing stubs — module may not exist; our built-in engine handles it ──
+if generate_briefing is None:
+    def generate_briefing(*args, **kwargs): return ""
+if load_latest_briefing is None:
+    def load_latest_briefing():
+        """Load last saved briefing from disk (all fallback paths)."""
+        _paths = [
+            Path(__file__).resolve().parent / "data" / "last_briefing.md",
+            Path("/tmp/apexscan_briefing.md"),
+        ]
+        for _p in _paths:
+            try:
+                if _p.exists() and _p.stat().st_size > 10:
+                    return _p.read_text(encoding="utf-8")
+            except Exception:
+                pass
+        return ""
 if save_alert_settings is None:
     def save_alert_settings(s): pass
 # ── Persistent Watchlist Engine ───────────────────────────────────────────────
@@ -1570,6 +1588,7 @@ tabs = st.tabs([
     "📋 Watchlists",
     "🔔 Alert Settings",
     "🧠 Interpretation",
+    "📊 Scan Delta",
     "📖 Guide",
 ])
 
@@ -5732,6 +5751,175 @@ with tabs[15]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 with tabs[16]:
+    st.markdown("### 📊 Scan Delta — Momentum Tracker")
+    st.caption("Compares scan results over time — stocks consistently improving Apex Score are the ones to watch.")
+
+    _reports_dir  = Path(__file__).resolve().parent / "reports"
+    _report_files = sorted(_reports_dir.glob("scan_*.csv"), reverse=True) if _reports_dir.exists() else []
+
+    if len(_report_files) < 2:
+        st.info(
+            f"Need at least **2 saved scans** to compare. "
+            f"Currently {len(_report_files)} scan(s) saved. "
+            "Run a scan now, then run another after the next session."
+        )
+    else:
+        _file_labels = [f.stem.replace("scan_","").replace("_"," ") for f in _report_files]
+        dc1,dc2,dc3 = st.columns(3)
+        with dc1:
+            _sel_new = st.selectbox("Newer Scan", _file_labels, index=0, key="delta_new")
+        with dc2:
+            _sel_old = st.selectbox("Older Scan", _file_labels, index=min(1,len(_file_labels)-1), key="delta_old")
+        with dc3:
+            _min_chg = st.number_input("Min Score Change to Flag", value=5, min_value=1, max_value=50, key="delta_min")
+
+        _nf = _report_files[_file_labels.index(_sel_new)]
+        _of = _report_files[_file_labels.index(_sel_old)]
+
+        if _nf == _of:
+            st.warning("Select two different scans to compare.")
+        else:
+            try:
+                _dn = pd.read_csv(_nf)
+                _do = pd.read_csv(_of)
+                for _d in [_dn, _do]:
+                    if "rank" in _d.columns: _d.drop(columns=["rank"], inplace=True, errors="ignore")
+
+                _rows = []
+                _all_tks = set(_dn["ticker"].tolist()) | set(_do["ticker"].tolist())
+
+                for _tk in _all_tks:
+                    _rn = _dn[_dn["ticker"]==_tk]
+                    _ro = _do[_do["ticker"]==_tk]
+                    _sn = float(_rn["apex_score"].iloc[0]) if not _rn.empty and "apex_score" in _rn.columns else None
+                    _so = float(_ro["apex_score"].iloc[0]) if not _ro.empty and "apex_score" in _ro.columns else None
+                    _dlt = round(_sn - _so, 1) if (_sn is not None and _so is not None) else None
+
+                    if _dlt is not None and abs(_dlt) < _min_chg and not _rn.empty and not _ro.empty:
+                        continue
+
+                    _r  = _rn.iloc[0] if not _rn.empty else _ro.iloc[0]
+                    _status = (
+                        "🆕 New Entry"   if _ro.empty else
+                        "❌ Dropped Out" if _rn.empty else
+                        ("🚀 Strong Rise" if (_dlt or 0) >= 10 else
+                         "📈 Rising"      if (_dlt or 0) >= _min_chg else
+                         ("📉 Falling"    if (_dlt or 0) <= -_min_chg else "📊 Steady"))
+                    )
+                    _rows.append({
+                        "Ticker":    _tk,
+                        "Theme":     str(_r.get("theme","–")),
+                        "Status":    _status,
+                        "New Score": _sn,
+                        "Old Score": _so,
+                        "Δ Score":   _dlt,
+                        "Stage":     str(_r.get("stage","–")),
+                        "3M %":      _r.get("perf_3m_%"),
+                        "RS (3m)":   _r.get("rs_3m"),
+                        "OF Bias":   str(_r.get("of_bias","–")),
+                        "Breaking":  "✅" if str(_r.get("breaking_out","")).lower()=="true" else "–",
+                        "Price":     _r.get("price"),
+                    })
+
+                if not _rows:
+                    st.info("No stocks changed beyond the minimum threshold.")
+                else:
+                    _ddf = pd.DataFrame(_rows).sort_values("Δ Score", ascending=False, na_position="last")
+
+                    # KPIs
+                    _ri = (_ddf["Δ Score"]>0).sum()
+                    _fa = (_ddf["Δ Score"]<0).sum()
+                    _ne = (_ddf["Status"]=="🆕 New Entry").sum()
+                    _dr = (_ddf["Status"]=="❌ Dropped Out").sum()
+                    _ac = _ddf["Δ Score"].dropna().mean()
+                    v1,v2,v3,v4,v5 = st.columns(5)
+                    v1.metric("📈 Rising", _ri)
+                    v2.metric("📉 Falling", _fa)
+                    v3.metric("🆕 New", _ne)
+                    v4.metric("❌ Dropped", _dr)
+                    v5.metric("Avg Δ Score", f"{_ac:+.1f}" if not pd.isna(_ac) else "–")
+
+                    st.markdown("---")
+
+                    def _fmt_delta(df_in):
+                        def _c(v):
+                            try: return "color:#3fb950;font-weight:700" if float(v)>0 else "color:#f85149;font-weight:700"
+                            except: return ""
+                        return df_in.style.map(_c, subset=[c for c in ["Δ Score","3M %"] if c in df_in.columns]).format({
+                            "New Score": lambda v: f"{v:.0f}" if pd.notna(v) else "–",
+                            "Old Score": lambda v: f"{v:.0f}" if pd.notna(v) else "–",
+                            "Δ Score":   lambda v: f"{v:+.1f}" if pd.notna(v) else "NEW",
+                            "3M %":      lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
+                            "RS (3m)":   lambda v: f"{v:.0f}" if pd.notna(v) else "–",
+                            "Price":     lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+                        }, na_rep="–")
+
+                    _t1,_t2,_t3,_t4,_t5 = st.tabs(["📈 Risers","📉 Fallers","🆕 New","❌ Dropped","📋 All"])
+
+                    with _t1:
+                        _rise = _ddf[_ddf["Δ Score"]>0]
+                        if _rise.empty: st.info("No risers.")
+                        else:
+                            for _,_gr in _rise.head(3).iterrows():
+                                _gc = "#3fb950" if float(_gr["Δ Score"] or 0)>=10 else "#d29922"
+                                st.markdown(
+                                    f'<div style="background:#0d1117;border-left:4px solid {_gc};padding:10px 16px;margin:4px 0;border-radius:4px;">'
+                                    f'<b style="color:#e6edf3">{_gr["Ticker"]}</b>'
+                                    f'<span style="color:{_gc};font-weight:700;margin-left:12px">{float(_gr["Δ Score"]):+.1f} pts</span>'
+                                    f'<span style="color:#8b949e;font-size:.85rem;margin-left:12px">'
+                                    f'{_gr["Old Score"]:.0f if pd.notna(_gr["Old Score"]) else "–"} → {_gr["New Score"]:.0f} | {_gr["Theme"]}</span></div>',
+                                    unsafe_allow_html=True
+                                )
+                            st.dataframe(_fmt_delta(_rise), use_container_width=True, hide_index=True)
+                    with _t2:
+                        _fall = _ddf[_ddf["Δ Score"]<0]
+                        if _fall.empty: st.info("No fallers.")
+                        else: st.dataframe(_fmt_delta(_fall), use_container_width=True, hide_index=True)
+                    with _t3:
+                        _new = _ddf[_ddf["Status"]=="🆕 New Entry"]
+                        if _new.empty: st.info("No new entries.")
+                        else: st.dataframe(_fmt_delta(_new), use_container_width=True, hide_index=True)
+                    with _t4:
+                        _drp = _ddf[_ddf["Status"]=="❌ Dropped Out"]
+                        if _drp.empty: st.info("No dropped stocks.")
+                        else: st.dataframe(_fmt_delta(_drp), use_container_width=True, hide_index=True)
+                    with _t5:
+                        st.dataframe(_fmt_delta(_ddf), use_container_width=True, hide_index=True)
+                        st.download_button(
+                            "⬇ Download Delta Report (CSV)",
+                            data=_ddf.to_csv(index=False).encode("utf-8"),
+                            file_name=f"apexscan_delta_{_sel_new.replace(' ','_')}_vs_{_sel_old.replace(' ','_')}.csv",
+                            mime="text/csv",
+                        )
+
+                    # Score trajectory chart
+                    st.markdown("---")
+                    st.markdown("#### 📈 Score Trajectory — Top Movers")
+                    _top_m = pd.concat([
+                        _ddf.dropna(subset=["Δ Score"]).nlargest(5,"Δ Score"),
+                        _ddf.dropna(subset=["Δ Score"]).nsmallest(5,"Δ Score"),
+                    ]).drop_duplicates("Ticker")
+                    if not _top_m.empty:
+                        _cd = []
+                        for _,_r in _top_m.iterrows():
+                            if pd.notna(_r.get("Old Score")): _cd.append({"Ticker":_r["Ticker"],"Score":_r["Old Score"],"Scan":f"Older ({_sel_old})"})
+                            if pd.notna(_r.get("New Score")): _cd.append({"Ticker":_r["Ticker"],"Score":_r["New Score"],"Scan":f"Newer ({_sel_new})"})
+                        _cdf = pd.DataFrame(_cd)
+                        if not _cdf.empty:
+                            _fig_t = px.line(_cdf, x="Scan", y="Score", color="Ticker",
+                                title="Apex Score — Before vs After", markers=True)
+                            _fig_t.update_layout(paper_bgcolor="#0d1117",plot_bgcolor="#0d1117",
+                                font_color="#e6edf3",height=360,
+                                yaxis=dict(gridcolor="#21262d",range=[0,100]),
+                                xaxis=dict(gridcolor="#21262d"),
+                                margin=dict(t=40,b=20,l=20,r=20))
+                            st.plotly_chart(_fig_t, use_container_width=True)
+
+            except Exception as _de:
+                st.error(f"Error comparing scans: {_de}")
+
+
+with tabs[17]:
     st.markdown("""
 ### 📖 How to Use ApexScan — Complete Guide
 
