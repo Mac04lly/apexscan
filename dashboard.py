@@ -582,6 +582,55 @@ def generate_narrative(row: pd.Series) -> str:
     lines.append(" ".join(o_sentences))
     lines.append("")
 
+    # ── 6b. WEEKLY TIMEFRAME ─────────────────────────────────────────────────
+    _wk_conf_n   = _bool(row.get("weekly_confirmed"))
+    _wk_contra_n = _bool(row.get("weekly_contradicts"))
+    _wk_stage_n  = str(row.get("weekly_stage","") or "")
+    _wk_tight_n  = _bool(row.get("weekly_base_tight"))
+    _wk_rs_n     = row.get("weekly_rs")
+    _wk_score_n  = row.get("weekly_score", 0)
+    _wk_hh_n     = _bool(row.get("weekly_hh_hl"))
+    _wk_depth_n  = row.get("weekly_base_depth_%")
+
+    lines.append("### 📅 Weekly Chart Confirmation")
+    wk_sentences = []
+
+    if _wk_conf_n:
+        wk_sentences.append(
+            f"✅ **Weekly chart confirmed.** The weekly timeframe is in {_wk_stage_n} — "
+            f"price is above both the 10-week and 40-week MAs with the 10WMA above the 40WMA. "
+            f"This is the single most important filter. A daily signal backed by a confirmed weekly "
+            f"uptrend has a dramatically higher success rate than one that isn't."
+        )
+    elif _wk_contra_n:
+        wk_sentences.append(
+            f"⚠️ **Weekly chart contradicts the daily setup.** The weekly is showing {_wk_stage_n}. "
+            f"Price is below the 40-week MA in a weekly downtrend. This is the trap — retail traders see "
+            f"a daily breakout and buy, not realising the weekly trend is still against them. "
+            f"If you trade this, use maximum half-size and be ready to exit quickly."
+        )
+    else:
+        wk_sentences.append(
+            f"📊 Weekly chart is **transitioning** ({_wk_stage_n}). "
+            f"Not yet confirmed but not contradicting either. Wait for the weekly to resolve above "
+            f"the 40WMA before committing full size."
+        )
+
+    if _wk_tight_n:
+        wk_sentences.append(
+            f"The weekly base is **tight** ({_val(_wk_depth_n,'.0f')}% depth over 8 weeks) — "
+            f"this is the compression before the explosion. Tight weekly bases precede the biggest moves."
+        )
+
+    if _wk_hh_n:
+        wk_sentences.append("The weekly chart is making **Higher Highs and Higher Lows** — the uptrend is healthy at the most important timeframe.")
+
+    if _wk_rs_n and try_f(_wk_rs_n) > 100:
+        wk_sentences.append(f"Weekly RS of **{_val(_wk_rs_n,'.0f')}** confirms outperformance is sustained over the medium term, not just a short-term spike.")
+
+    lines.append(" ".join(wk_sentences))
+    lines.append("")
+
     # ── 7. VWAP ──────────────────────────────────────────────────────────────
     lines.append("### 💧 VWAP Analysis")
     v_sentences = []
@@ -879,6 +928,30 @@ COLUMN_META = {
     "pa_inside_day":   ("PA Inside Day",      "True/False — today's high is lower than yesterday's high AND today's low is higher than yesterday's low. An Inside Day signals price compression and a potential explosive move. Watch for the breakout direction."),
     "pa_context":      ("PA Context Candle",  "Context candle analysis: 'Bullish' = large-range up candle closing near the high on above-average volume. 'Bearish' = large-range down candle. Bullish context candle confirms strong buying intent."),
     "pa_score":        ("PA Score /5",        "Price Action Score from 0–5. Combines engulfing, SFP, inside day, and context candle signals. Score ≥3 = meaningful price action confirmation. Added to total Apex Score."),
+    # ── Weekly Timeframe Confirmation ────────────────────────────────────────
+    "weekly_stage":          ("Weekly Stage",         "Weinstein Stage on the WEEKLY chart. This is the most important filter of all — a daily breakout inside a weekly Stage 4 downtrend is a trap that fails 70%+ of the time. You MUST see weekly Stage 2 or at minimum Stage 1 basing before acting on daily signals."),
+    "weekly_above_10wma":    ("Above 10WMA",          "True if price is above the 10-week moving average (equivalent to the 50-day MA on the weekly chart). Losing this level in an uptrend is the first warning sign of deteriorating momentum."),
+    "weekly_above_40wma":    ("Above 40WMA",          "True if price is above the 40-week moving average (equivalent to the 200-day MA on the weekly chart). This is the most important long-term trend line. Being above it is a non-negotiable requirement for swing positions."),
+    "weekly_10gt40":         ("10WMA > 40WMA",        "True if the 10-week MA is above the 40-week MA — the weekly golden cross. This confirms a proper weekly Stage 2 uptrend. When both MAs slope up and price is above both, the path of least resistance is higher."),
+    "weekly_rs":             ("Weekly RS",            "Relative Strength vs S&P 500 on the weekly timeframe (13-week lookback). A stock with positive weekly RS is genuinely outperforming the market over the medium term, not just a daily spike. >100 = outperforming."),
+    "weekly_base_tight":     ("Weekly Base Tight",    "True if the last 8 weeks show a price range of less than 15%. A tight weekly base = low volatility consolidation = energy coiling. The tightest weekly bases precede the most explosive moves. This is what you are looking for before a big breakout."),
+    "weekly_base_depth_%":   ("Weekly Base Depth %",  "How deep the last 8-week price range is as a percentage. <10% = extremely tight (rare, very bullish). 10–20% = healthy base. 20–30% = deeper correction but workable. >30% = too volatile, avoid."),
+    "weekly_hh_hl":          ("Weekly HH/HL",         "True if the weekly chart is making Higher Highs and Higher Lows over the last 6 weeks. This is the textbook definition of a healthy uptrend on the timeframe that matters most. When this is True on the weekly, daily dips are buying opportunities."),
+    "weekly_trending_up":    ("Weekly Trending Up",   "True if the stock closed higher for 2 or more consecutive weeks. Multiple consecutive up weeks signals sustained buying, not a one-day spike. 3+ consecutive up weeks = institutional conviction."),
+    "weekly_consec_up_wks":  ("Consec. Up Weeks",     "Number of consecutive weeks the stock closed higher. 1–2 = momentum building. 3–4 = strong trend in motion. 5+ = potentially extended — wait for a weekly pullback before adding."),
+    "weekly_confirmed":      ("Weekly Confirmed ✅",   "True when the weekly chart fully supports the daily setup: above 40WMA, 10WMA > 40WMA, and positive weekly RS. This is the green light — daily signal + weekly confirmation = highest probability trade. Never take a daily signal without checking this."),
+    "weekly_contradicts":    ("Weekly Contradicts ⚠️", "True when the weekly chart is in Stage 3 or 4 while the daily shows a Stage 2 setup. This is the most common trap for retail traders — a daily breakout inside a weekly downtrend. The weekly trend will win eventually. Avoid or use very small size."),
+    "weekly_score":          ("Weekly Score /10",      "Weekly timeframe contribution to Apex Score (0–10). Added to score when weekly is confirmed, subtracted (-15) when weekly contradicts daily. Max score when weekly Stage 2 + HH/HL + tight base + RS leader all align simultaneously."),
+
+    # ── Early Entry Signals ──────────────────────────────────────────────────
+    "early_entry":             ("Early Entry",         "True if the stock shows one or more early-stage entry signals — fresh MA cross, pullback to 50MA, low-ADR base, or inside day compression. These are the setups to buy BEFORE the move is obvious."),
+    "early_entry_type":        ("Entry Type",          "What type of early entry signal was detected: Fresh 200MA Cross (brand-new uptrend), Fresh 50MA Cross (momentum turning), Pullback to 50MA (low-risk add), Low-ADR Base (tight coiled spring), or Inside Day Compression (explosive move pending)."),
+    "fresh_200ma_cross":       ("Fresh 200MA Cross",   "True if price crossed above the 200-day MA within the last 10 bars. This is the single most powerful early entry signal — the stock is literally just entering a new uptrend. Buy zones are typically within 5% of the 200MA."),
+    "fresh_50ma_cross":        ("Fresh 50MA Cross",    "True if price crossed above the 50-day MA within the last 5 bars. Momentum is just turning. Earlier than waiting for a full Stage 2 confirmation."),
+    "pullback_to_50ma":        ("Pullback to 50MA",    "True if price is within 3% of the 50MA while above the 200MA. The classic low-risk add-to-winner entry — you're buying the dip within an established uptrend with the stop just below the 50MA."),
+    "low_adr_base":            ("Low-ADR Base",        "True if the 20-day Average Daily Range is below 3%. Low volatility during a base means the stock is coiling — energy is being stored for the eventual breakout. This is cheap entry in terms of stop distance."),
+    "early_entry_score":       ("Early Entry Score /10","Composite early-entry score from 0–10. Each signal type adds points: Fresh 200MA Cross (+8), Pullback to 50MA (+5), Fresh 50MA Cross (+4), Low-ADR Base (+3), Inside Day Compression (+2). Score ≥8 = textbook early entry."),
+    "days_since_200ma_cross":  ("Days Since 200MA Cross","How many days ago price crossed above the 200MA. 1–3 days = hottest possible signal. 4–10 days = still early. >10 days = momentum is established, no longer early entry."),
     "apex_score":      ("Apex Score /100",    "The master composite score (0–100). Combines momentum (40 pts), RS (25 pts), stage/MAs (15 pts), 52W high (10 pts), breakout (10 pts), order flow (8 pts), price action (5 pts), VWAP (4 pts), structure (3 pts), EPS (15 pts). >70 = high conviction. 40–70 = watchlist."),
     "scanned_at":      ("Scanned At",         "Timestamp of when this ticker was analysed. All results in a single scan share the same approximate timestamp."),
     "market_cap":      ("Market Cap ($)",     "Total market capitalisation in dollars. Larger caps are more liquid; smaller caps (micro/small) have higher volatility and risk."),
@@ -981,6 +1054,12 @@ def build_excel_download(ticker_row: pd.Series, ticker_name: str) -> bytes:
         "apex_score","scanned_at","market_cap","market_cap_bn","mcap_category",
         "is_gem","liquidity_score","liquidity_warn","avg_volume_30d",
         "changes","is_new","delta_score",
+        "weekly_stage","weekly_above_40wma","weekly_10gt40","weekly_rs",
+        "weekly_base_tight","weekly_base_depth_%","weekly_hh_hl",
+        "weekly_confirmed","weekly_contradicts","weekly_score",
+        "early_entry","early_entry_type","fresh_200ma_cross",
+        "fresh_50ma_cross","pullback_to_50ma","low_adr_base",
+        "early_entry_score","days_since_200ma_cross",
     ]
 
     def fmt_val(col, raw):
@@ -1509,9 +1588,17 @@ with st.sidebar:
     st.markdown("**🌐 Scan Universe**")
     universe_mode = st.radio(
         "Ticker Universe",
-        ["📋 Theme Watchlist (Config)", "🌐 Extended Universe (NASDAQ + NYSE + NYSE American)"],
+        [
+            "📋 Theme Watchlist (Config)",
+            "💎 Gems Only (Small/Mid-cap)",
+            "🌐 Extended Universe (NASDAQ + NYSE + NYSE American)",
+        ],
         index=0, key="universe_mode",
-        help="Theme Watchlist = only tickers in config.yaml (~59 tickers, ~2 min). Extended Universe = NASDAQ + NYSE + NYSE American (~500 tickers, ~8 min)."
+        help=(
+            "Theme Watchlist = tickers in config.yaml (~59, ~2 min). "
+            "Gems Only = micro/small/mid-cap growth stocks $100M–$5B mcap (~150 tickers, early entry focus). "
+            "Extended Universe = full NASDAQ + NYSE + NYSE American (~500 tickers, ~8 min)."
+        )
     )
     st.divider()
     # ── MANUAL SCAN ───────────────────────────────────────────────────────────
@@ -1654,7 +1741,53 @@ if run_btn or _auto_fired:
 
         # ── Universal ticker universe ─────────────────────────────────────
         _universe_override = None
-        if universe_mode == "🌐 Extended Universe (NASDAQ + NYSE + NYSE American)":
+        # ── 💎 GEMS ONLY universe ─────────────────────────────────────────────
+        if universe_mode == "💎 Gems Only (Small/Mid-cap)":
+            _GEMS_UNIVERSE = [
+                # ── Fintech / Crypto Gems ─────────────────────────────────────
+                "HOOD","SOFI","AFRM","UPST","DAVE","OPEN","UWMC","MSTR","COIN","DKNG",
+                "PSFE","RPAY","FLYW","RELY","STEP","PRCT","LPRO","QFIN","CURO","NU",
+                # ── Biotech / Health Gems ─────────────────────────────────────
+                "HIMS","TMDX","RXRX","ACAD","SAGE","AUPH","AVXL","KRTX","VRNA","AKRO",
+                "TARS","ARQT","GOSS","PRAX","IMVT","DNLI","SNDX","NKTR","BEAM","NTLA",
+                "CRSP","EDIT","RARE","EXAS","INVA","PRTA","KYMR","ITCI","ALKS","JAZZ",
+                "HALO","FOLD","VCEL","MGNX","AGIO","FATE","RCUS","ALLO","APLS","KPTI",
+                "VERV","SGMO","BLUE","ONCE","QURE","IRON","APGE","BPMC","KURA","MRUS",
+                # ── Space / Deep Tech Gems ────────────────────────────────────
+                "RKLB","IONQ","ASTS","ACHR","LUNR","JOBY","SOUN","KTOS","DRS","SPIR",
+                "BWXT","MNTS","ARQQ","QUBT","RGTI","QBTS","IQST","SATL","LOAR","FTAI",
+                # ── Software / SaaS Gems ──────────────────────────────────────
+                "APPN","DOCN","GTLB","PATH","BRZE","DOMO","WEAV","PCOR","ASAN","FRSH",
+                "TASK","ACMR","CFLT","ESTC","JAMF","BAND","SPSC","ALTR","TDNS","TOST",
+                "MAPS","RSKD","SMAR","CCSI","ALNT","PGNY","VNET","WIX","GETY","SHLX",
+                # ── Consumer / Lifestyle Gems ─────────────────────────────────
+                "CAVA","RDDT","BIRK","BROS","WING","SHAK","PLNT","DNUT","FAT","TXRH",
+                "EWCZ","ELF","SKIN","GOLI","PLTK","LOVE","CURV","FTCH","RENT","REAL",
+                "RVLV","SOSF","PTON","LAZY","XPOF","FORM","GIII","POWL","TILE","BOOT",
+                # ── Energy Transition Gems ────────────────────────────────────
+                "ENPH","FSLR","RUN","PLUG","NOVA","ARRY","SHLS","SPWR","CWEN","CLNE",
+                "EVGO","CHPT","BLNK","VLTA","AMPX","STEM","BSFC","FLUX","DCFC","AMRC",
+                "MP","LAC","LTHM","SQM","ALB","ALTM","OROCF","PMET","LIT","SGML",
+                # ── Industrials / Defence Micro-caps ─────────────────────────
+                "KTOS","RCAT","AVAV","HXSW","ATRO","AIR","CDRE","VSEC","HAYW","TDW",
+                "GNSS","MOOG","ARCB","ODFL","SAIA","HUBG","HTLD","LSTR","MRTN","PTSI",
+                # ── Mining / Commodities Gems ─────────────────────────────────
+                "AG","EXK","SILV","CDE","HL","MUX","GATO","MAG","FSM","ERO",
+                "VZLA","SAND","AUMN","USAS","LGDTF","SSRM","MRDDF","AUMN","GPL","SVM",
+                # ── Emerging Market / International Growth ────────────────────
+                "NU","MELI","SE","GRAB","BEKE","LU","BTBT","MARA","RIOT","HUT",
+                "BITF","CIFR","CLSK","IREN","WULF","ARBK","SDIG","BTDR","CORZ","AULT",
+            ]
+            # Deduplicate
+            _seen_g = set()
+            _GEMS_UNIVERSE = [t for t in _GEMS_UNIVERSE if not (_seen_g.add(t) or t in _seen_g - {t})]
+            _universe_override = _GEMS_UNIVERSE
+            st.info(
+                f"💎 Gems Only: scanning {len(_GEMS_UNIVERSE)} small/mid-cap growth stocks "
+                f"with relaxed thresholds to surface early-stage setups before they move."
+            )
+
+        elif universe_mode == "🌐 Extended Universe (NASDAQ + NYSE + NYSE American)":
             # ── Already in list (NASDAQ + mixed) ──────────────────────────
             _NASDAQ_NAMES = [
                 # Mega-cap tech / NASDAQ 100 core
@@ -1892,7 +2025,7 @@ with tabs[0]:
         # Quick-view buttons preserved
         theme_filter = st.radio(
             "📊 Quick Filter",
-            ["🌐 All", "🚀 Growth Leaders", "💎 Emerging Gems"],
+            ["🌐 All", "🚀 Growth Leaders", "💎 Emerging Gems", "🎯 Early Entry"],
             horizontal=True, key="lb_theme_filter"
         )
         if theme_filter == "💎 Emerging Gems":
@@ -1905,6 +2038,26 @@ with tabs[0]:
             if "market_cap" in df_filtered.columns:
                 mcap_num = pd.to_numeric(df_filtered["market_cap"], errors="coerce")
                 df_filtered = df_filtered[mcap_num >= 10_000_000_000]
+        elif theme_filter == "🎯 Early Entry":
+            # Show stocks at the START of a move — cheap entry zone
+            st.markdown(
+                '<div style="background:#1a2a1a;border:1px solid #3fb950;border-radius:8px;'
+                'padding:10px 16px;margin-bottom:10px;font-size:0.85rem;color:#3fb950;">'
+                '🎯 <b>Early Entry Filter</b> — stocks just crossing above MAs, '
+                'pulling back to 50MA, or forming tight low-ADR bases. '
+                'These are cheap entries BEFORE the move, not after.'
+                '</div>',
+                unsafe_allow_html=True
+            )
+            if "early_entry" in df_filtered.columns:
+                df_filtered = df_filtered[
+                    df_filtered["early_entry"].astype(str).str.lower().isin(["true","1"])
+                ]
+            else:
+                # Fallback: show stocks within 5% of 50MA or with fresh MA cross
+                if "vs_50ma_%" in df_filtered.columns:
+                    _vs50 = pd.to_numeric(df_filtered["vs_50ma_%"], errors="coerce")
+                    df_filtered = df_filtered[(_vs50.abs() <= 5) | (_vs50 >= 0)]
 
         # Column view toggle
         col_view = st.radio("Column View", ["Standard", "Order Flow", "VWAP & Structure", "Price Action", "Fundamentals"], horizontal=True)
@@ -3298,6 +3451,65 @@ with tabs[6]:
             )
             if _multi_val:
                 st.success("⭐ **Multi-Benchmark Leader** — this stock is outperforming the S&P 500, Russell 2500, and Russell 3000 Growth simultaneously. Extremely rare, highest-conviction RS signal.")
+
+            st.markdown("---")
+
+            # ── WEEKLY TIMEFRAME CONFIRMATION PANEL ──────────────────────────
+            st.markdown("#### 📅 Weekly Timeframe Confirmation")
+            _wk_conf   = result.get("weekly_confirmed", False)
+            _wk_contra = result.get("weekly_contradicts", False)
+            _wk_stage  = str(result.get("weekly_stage", "–") or "–")
+            _wk_score  = result.get("weekly_score", 0)
+            _wk_rs     = result.get("weekly_rs")
+            _wk_tight  = result.get("weekly_base_tight", False)
+            _wk_depth  = result.get("weekly_base_depth_%")
+            _wk_hh_hl  = result.get("weekly_hh_hl", False)
+            _wk_consec = result.get("weekly_consec_up_wks", 0)
+            _wk_10gt40 = result.get("weekly_10gt40", False)
+            _wk40      = result.get("weekly_above_40wma", False)
+
+            # Weekly verdict banner
+            if _wk_conf and not _wk_contra:
+                st.success(
+                    f"✅ **Weekly Confirmed** — the weekly chart supports this setup. "
+                    f"Weekly Stage: **{_wk_stage}** | Weekly Score: **{_wk_score}/10**. "
+                    f"Daily signal + weekly alignment = highest probability trade."
+                )
+            elif _wk_contra:
+                st.error(
+                    f"⚠️ **Weekly Contradiction** — the weekly chart is in Stage 3/4 downtrend "
+                    f"while the daily shows a setup. This is the most common retail trap. "
+                    f"**Avoid or use very small size (0.25% risk max).** Weekly Stage: {_wk_stage}"
+                )
+            else:
+                st.warning(
+                    f"📊 **Weekly Neutral/Transitioning** — weekly chart is not yet confirmed. "
+                    f"Stage: **{_wk_stage}**. Wait for weekly to resolve before sizing up."
+                )
+
+            # Weekly KPIs
+            ww1,ww2,ww3,ww4,ww5 = st.columns(5)
+            ww1.metric("Weekly Stage",    _wk_stage.split(" ")[0] + " " + " ".join(_wk_stage.split(" ")[1:2]) if _wk_stage != "–" else "–",
+                       help="Weinstein Stage on the weekly chart. Stage 2 = only buyable stage.")
+            ww2.metric("Weekly RS",       _rs_fmt(_wk_rs) if _wk_rs else "–",
+                       delta="▲ Leader" if (_wk_rs and float(_wk_rs)>100) else ("▼ Lagging" if (_wk_rs and float(_wk_rs)<70) else None),
+                       help="RS vs S&P 500 on the weekly chart (13-week lookback).")
+            ww3.metric("10WMA > 40WMA",   "✅ Yes" if _wk_10gt40 else "❌ No",
+                       help="Weekly golden cross — 10WMA above 40WMA = confirmed weekly uptrend.")
+            ww4.metric("Weekly Base",     f"{_wk_depth:.0f}% deep" if _wk_depth else "–",
+                       delta="Tight ✅" if _wk_tight else ("Deep ⚠️" if _wk_depth and _wk_depth > 25 else None),
+                       help="Depth of the last 8-week price range. <15% = tight base = pre-breakout coiling.")
+            ww5.metric("Consec. Up Wks",  f"{int(_wk_consec or 0)}",
+                       delta="Strong 🚀" if int(_wk_consec or 0) >= 3 else None,
+                       help="Consecutive weeks closing higher. 3+ = sustained institutional buying.")
+
+            ww6,ww7,ww8 = st.columns(3)
+            ww6.metric("Weekly HH/HL",    "✅ Yes" if _wk_hh_hl else "No",
+                       help="Weekly Higher Highs and Higher Lows — textbook uptrend on the important timeframe.")
+            ww7.metric("Weekly Score",    f"{int(_wk_score or 0)}/10",
+                       help="Weekly contribution to Apex Score. +0–10 when confirmed, –15 when contradicting.")
+            ww8.metric("Above 40WMA",     "✅ Yes" if _wk40 else "❌ No",
+                       help="Price above 40-week MA (equivalent to 200-day MA on weekly). Non-negotiable for swing longs.")
 
             st.markdown("---")
 
@@ -5533,6 +5745,16 @@ with tabs[15]:
                     "apex_score","scanned_at","market_cap","market_cap_bn","mcap_category",
                     "is_gem","liquidity_score","liquidity_warn","avg_volume_30d",
                     "changes","is_new","delta_score",
+                    # Weekly timeframe
+                    "weekly_stage","weekly_above_10wma","weekly_above_40wma",
+                    "weekly_10gt40","weekly_rs","weekly_base_tight",
+                    "weekly_base_depth_%","weekly_hh_hl","weekly_trending_up",
+                    "weekly_consec_up_wks","weekly_confirmed","weekly_contradicts",
+                    "weekly_score",
+                    # Early entry signals
+                    "early_entry","early_entry_type","fresh_200ma_cross",
+                    "fresh_50ma_cross","pullback_to_50ma","low_adr_base",
+                    "early_entry_score","days_since_200ma_cross",
                 ]
 
                 def _fmt_cell(col, raw):
@@ -5588,8 +5810,30 @@ with tabs[15]:
                         "eps_accel":   lambda v: str(v).lower() in ("true","1"),
                         "is_gem":         lambda v: str(v).lower() in ("true","1"),
                         "breaking_out":    lambda v: str(v).lower() in ("true","1"),
-                        "rs_multi_leader": lambda v: str(v).lower() in ("true","1"),
+                        "rs_multi_leader":    lambda v: str(v).lower() in ("true","1"),
+                        "early_entry":         lambda v: str(v).lower() in ("true","1"),
+                        "fresh_200ma_cross":   lambda v: str(v).lower() in ("true","1"),
+                        "fresh_50ma_cross":    lambda v: str(v).lower() in ("true","1"),
+                        "pullback_to_50ma":    lambda v: str(v).lower() in ("true","1"),
+                        "low_adr_base":        lambda v: str(v).lower() in ("true","1"),
+                        "weekly_confirmed":    lambda v: str(v).lower() in ("true","1"),
+                        "weekly_above_40wma":  lambda v: str(v).lower() in ("true","1"),
+                        "weekly_10gt40":       lambda v: str(v).lower() in ("true","1"),
+                        "weekly_hh_hl":        lambda v: str(v).lower() in ("true","1"),
+                        "weekly_base_tight":   lambda v: str(v).lower() in ("true","1"),
+                        "weekly_trending_up":  lambda v: str(v).lower() in ("true","1"),
                     }
+                    _neg_cols_extended = {
+                        "weekly_contradicts":  lambda v: str(v).lower() in ("true","1"),
+                    }
+                    try:
+                        if "weekly_contradicts" in disp.columns:
+                            styled = styled.map(
+                                lambda v: "color:#f85149;font-weight:700" if str(v).lower() in ("true","1") else "",
+                                subset=["weekly_contradicts"]
+                            )
+                    except Exception:
+                        pass
                     neg_cols = {
                         "stage":       lambda v: "4 🔴" in str(v),
                         "above_50ma":  lambda v: str(v).lower() in ("false","0"),
@@ -5841,17 +6085,28 @@ with tabs[16]:
 
                     st.markdown("---")
 
+                    def _safe_fmt(v, fmt, fallback="–"):
+                        """Safely format a value, returning fallback for NaN/None/non-numeric."""
+                        if v is None: return fallback
+                        try:
+                            f = float(v)
+                            import math
+                            if math.isnan(f): return fallback
+                            return fmt.format(f)
+                        except (TypeError, ValueError):
+                            return fallback
+
                     def _fmt_delta(df_in):
                         def _c(v):
                             try: return "color:#3fb950;font-weight:700" if float(v)>0 else "color:#f85149;font-weight:700"
                             except: return ""
                         return df_in.style.map(_c, subset=[c for c in ["Δ Score","3M %"] if c in df_in.columns]).format({
-                            "New Score": lambda v: f"{v:.0f}" if pd.notna(v) else "–",
-                            "Old Score": lambda v: f"{v:.0f}" if pd.notna(v) else "–",
-                            "Δ Score":   lambda v: f"{v:+.1f}" if pd.notna(v) else "NEW",
-                            "3M %":      lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
-                            "RS (3m)":   lambda v: f"{v:.0f}" if pd.notna(v) else "–",
-                            "Price":     lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+                            "New Score": lambda v: _safe_fmt(v, "{:.0f}"),
+                            "Old Score": lambda v: _safe_fmt(v, "{:.0f}"),
+                            "Δ Score":   lambda v: _safe_fmt(v, "{:+.1f}", "NEW"),
+                            "3M %":      lambda v: _safe_fmt(v, "{:+.1f}%"),
+                            "RS (3m)":   lambda v: _safe_fmt(v, "{:.0f}"),
+                            "Price":     lambda v: _safe_fmt(v, "${:.2f}"),
                         }, na_rep="–")
 
                     _t1,_t2,_t3,_t4,_t5 = st.tabs(["📈 Risers","📉 Fallers","🆕 New","❌ Dropped","📋 All"])
@@ -5862,12 +6117,14 @@ with tabs[16]:
                         else:
                             for _,_gr in _rise.head(3).iterrows():
                                 _gc = "#3fb950" if float(_gr["Δ Score"] or 0)>=10 else "#d29922"
+                                _old_s = f"{_gr['Old Score']:.0f}" if pd.notna(_gr.get("Old Score")) else "–"
+                                _new_s = f"{_gr['New Score']:.0f}" if pd.notna(_gr.get("New Score")) else "–"
                                 st.markdown(
                                     f'<div style="background:#0d1117;border-left:4px solid {_gc};padding:10px 16px;margin:4px 0;border-radius:4px;">'
                                     f'<b style="color:#e6edf3">{_gr["Ticker"]}</b>'
                                     f'<span style="color:{_gc};font-weight:700;margin-left:12px">{float(_gr["Δ Score"]):+.1f} pts</span>'
                                     f'<span style="color:#8b949e;font-size:.85rem;margin-left:12px">'
-                                    f'{_gr["Old Score"]:.0f if pd.notna(_gr["Old Score"]) else "–"} → {_gr["New Score"]:.0f} | {_gr["Theme"]}</span></div>',
+                                    f'{_old_s} → {_new_s} | {_gr["Theme"]}</span></div>',
                                     unsafe_allow_html=True
                                 )
                             st.dataframe(_fmt_delta(_rise), use_container_width=True, hide_index=True)
