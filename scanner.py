@@ -132,6 +132,105 @@ def detect_stage(price: float, ma50: float, ma200: float) -> str:
     return "? Unknown"
 
 
+def detect_early_entry(close: pd.Series, ma50: float, ma200: float,
+                       hist: pd.DataFrame) -> dict:
+    """
+    Detect early-stage entry setups — stocks at the START of a move, not extended.
+
+    Signals detected:
+    - fresh_200ma_cross: price crossed above 200MA within last 10 bars (brand new uptrend)
+    - fresh_50ma_cross:  price crossed above 50MA within last 5 bars
+    - low_adr_base:      ADR < 3% = tight, quiet base = coiled spring
+    - vwap_compression:  price within 3% of VWAP = institutional fair value = low risk entry
+    - early_stage2:      just entered Stage 2 from Stage 1 (freshest possible trend change)
+    - pullback_to_50ma:  price within 3% of 50MA in an uptrend = classic low-risk add point
+    - inside_compression: 3+ consecutive inside days = extreme compression before expansion
+    """
+    result = {
+        "early_entry":          False,
+        "early_entry_type":     "",
+        "fresh_200ma_cross":    False,
+        "fresh_50ma_cross":     False,
+        "pullback_to_50ma":     False,
+        "low_adr_base":         False,
+        "early_entry_score":    0,
+        "days_since_200ma_cross": None,
+    }
+
+    if len(close) < 15:
+        return result
+
+    current = close.iloc[-1]
+    signals = []
+    score   = 0
+
+    # ── Fresh 200MA cross (stock just entered or re-entered Stage 2) ──────────
+    close_arr  = close.values
+    ma200_arr  = close.rolling(200).mean().values
+    # Find where price was below 200MA then crossed above in last 15 bars
+    cross_day  = None
+    for i in range(max(1, len(close_arr)-15), len(close_arr)):
+        if (close_arr[i] > ma200_arr[i] and close_arr[i-1] <= ma200_arr[i-1]
+                and not pd.isna(ma200_arr[i]) and not pd.isna(ma200_arr[i-1])):
+            cross_day = len(close_arr) - i
+            break
+
+    if cross_day is not None and cross_day <= 10:
+        result["fresh_200ma_cross"]           = True
+        result["days_since_200ma_cross"]      = cross_day
+        signals.append(f"Fresh 200MA Cross ({cross_day}d ago)")
+        score += 8   # Most powerful early signal
+
+    # ── Fresh 50MA cross (momentum just turning) ──────────────────────────────
+    ma50_arr = close.rolling(50).mean().values
+    for i in range(max(1, len(close_arr)-5), len(close_arr)):
+        if (close_arr[i] > ma50_arr[i] and close_arr[i-1] <= ma50_arr[i-1]
+                and not pd.isna(ma50_arr[i]) and not pd.isna(ma50_arr[i-1])):
+            result["fresh_50ma_cross"] = True
+            signals.append("Fresh 50MA Cross")
+            score += 4
+            break
+
+    # ── Pullback to 50MA in uptrend (low-risk add point) ─────────────────────
+    if ma50 > 0 and current > ma200:  # must be in uptrend
+        dist_50 = abs(current / ma50 - 1) * 100
+        if dist_50 <= 3.0:
+            result["pullback_to_50ma"] = True
+            signals.append(f"Pullback to 50MA ({dist_50:.1f}% away)")
+            score += 5
+
+    # ── Low ADR = tight base = cheap volatility-adjusted entry ───────────────
+    if len(hist) >= 20:
+        _adr = ((hist["High"] - hist["Low"]) / hist["Close"] * 100).iloc[-20:].mean()
+        if _adr < 3.0:
+            result["low_adr_base"] = True
+            signals.append(f"Low-ADR Base ({_adr:.1f}%)")
+            score += 3
+
+    # ── Inside day compression ────────────────────────────────────────────────
+    if len(hist) >= 4:
+        consec_inside = 0
+        for k in range(-1, -4, -1):
+            try:
+                if (hist["High"].iloc[k] <= hist["High"].iloc[k-1] and
+                        hist["Low"].iloc[k] >= hist["Low"].iloc[k-1]):
+                    consec_inside += 1
+                else:
+                    break
+            except IndexError:
+                break
+        if consec_inside >= 2:
+            signals.append(f"{consec_inside}x Inside Day Compression")
+            score += 2
+
+    if score > 0:
+        result["early_entry"]       = True
+        result["early_entry_type"]  = " | ".join(signals) if signals else ""
+        result["early_entry_score"] = min(10, score)
+
+    return result
+
+
 def adr_pct(hist: pd.DataFrame, lookback: int = 20) -> float:
     if len(hist) < lookback:
         return 0.0
@@ -232,16 +331,46 @@ def get_market_cap_data(ticker: str) -> Dict:
 
 
 def gem_score_boost(score: float, rs3: float, breaking_out: bool,
-                    of_score: int, pa_score: int, gem_cfg: dict) -> float:
-    """Apply score boosts for emerging gems with strong signals."""
+                    of_score: int, pa_score: int, gem_cfg: dict,
+                    ee_score: int = 0, mcap: float = None) -> float:
+    """
+    Apply score boosts for emerging gems with strong signals.
+    Gems compete on a level playing field vs large caps by boosting:
+    - Early entry signals (most important for cheap entry)
+    - Order flow persistence (institutional accumulation in small caps)
+    - Price action quality
+    - Breakout confirmation on volume
+    - Extra boost for micro/small caps with strong RS vs R2500
+    """
     boosts = gem_cfg.get("score_boosts", {})
     bonus  = 0
+
+    # RS leadership among small/mid peers
     if rs3 >= boosts.get("rs_bonus_threshold", 150):
         bonus += boosts.get("rs_bonus_points", 5)
+    elif rs3 >= 100:
+        bonus += 3   # beating the market is meaningful even below 150
+
+    # Breakout on volume — most powerful gem signal
     if breaking_out:
-        bonus += boosts.get("breakout_bonus", 5)
-    bonus += of_score * (boosts.get("of_persistence_multiplier", 1.25) - 1)
-    bonus += pa_score * (boosts.get("pa_patterns_multiplier", 1.20) - 1)
+        bonus += boosts.get("breakout_bonus", 5) + 3   # 8 total (was 5)
+
+    # Order flow — in small caps, institutional accumulation is harder to fake
+    bonus += of_score * (boosts.get("of_persistence_multiplier", 1.5) - 1)  # multiplier raised
+
+    # Price action quality
+    bonus += pa_score * (boosts.get("pa_patterns_multiplier", 1.4) - 1)     # raised
+
+    # Early entry bonus — double reward for gems at the START of a move
+    # This is the key to finding gems cheap
+    bonus += ee_score * 1.5
+
+    # Size bonus: smaller = more upside potential = higher bonus ceiling
+    if mcap is not None:
+        if mcap < 300_000_000:       bonus += 6   # Micro cap: highest potential
+        elif mcap < 1_000_000_000:   bonus += 4   # Small cap < $1B
+        elif mcap < 2_000_000_000:   bonus += 2   # Small cap $1–2B
+
     return round(min(100, score + bonus), 1)
 
 # ETF fallbacks for Russell indices when yfinance index symbol is unavailable
@@ -503,6 +632,159 @@ def detect_price_action_patterns(hist: pd.DataFrame) -> Dict:
         "pa_context_candle": context_c,
         "pa_score":          min(5, score),
     }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# WEEKLY TIMEFRAME ANALYSIS
+# ══════════════════════════════════════════════════════════════════════════════
+
+_weekly_cache: Dict[str, dict] = {}
+
+def analyse_weekly(ticker: str, bench_close: pd.Series) -> dict:
+    """
+    Fetch and analyse the weekly chart for a ticker.
+    Returns weekly stage, RS, base tightness, trend quality, and a
+    weekly_score (0–10) that is added to Apex Score when aligned,
+    or subtracted when the weekly contradicts the daily.
+
+    Cached per session — only fetched once per ticker per scan.
+    """
+    if ticker in _weekly_cache:
+        return _weekly_cache[ticker]
+
+    result = {
+        "weekly_stage":          "Unknown",
+        "weekly_above_10wma":    False,
+        "weekly_above_40wma":    False,
+        "weekly_10gt40":         False,
+        "weekly_rs":             None,
+        "weekly_base_tight":     False,
+        "weekly_trending_up":    False,
+        "weekly_hh_hl":          False,
+        "weekly_confirmed":      False,
+        "weekly_contradicts":    False,
+        "weekly_score":          0,
+        "weekly_base_depth_%":   None,
+        "weekly_consec_up_wks":  0,
+    }
+
+    try:
+        # Fetch 2 years of weekly bars — enough for 40WMA + RS
+        hist_w = yf.Ticker(ticker).history(period="2y", interval="1wk")
+        if len(hist_w) < 40:
+            _weekly_cache[ticker] = result
+            return result
+
+        # Strip timezone
+        if hasattr(hist_w.index, "tz") and hist_w.index.tz is not None:
+            hist_w.index = hist_w.index.tz_convert(None)
+        hist_w.index = pd.to_datetime(hist_w.index).normalize()
+
+        close_w = hist_w["Close"]
+        cur_w   = float(close_w.iloc[-1])
+
+        # ── Weekly moving averages (10WMA = 50DMA equiv, 40WMA = 200DMA equiv)
+        ma10w = float(close_w.rolling(10).mean().iloc[-1])
+        ma40w = float(close_w.rolling(40).mean().iloc[-1])
+
+        above_10w = cur_w > ma10w
+        above_40w = cur_w > ma40w
+        ma10_gt40 = ma10w > ma40w
+
+        result["weekly_above_10wma"] = above_10w
+        result["weekly_above_40wma"] = above_40w
+        result["weekly_10gt40"]      = ma10_gt40
+
+        # ── Weekly stage (mirrors Weinstein daily stage logic)
+        if cur_w > ma10w > ma40w:
+            result["weekly_stage"] = "2 ✅ Weekly Uptrend"
+        elif cur_w > ma40w:
+            result["weekly_stage"] = "1 ⏳ Weekly Base"
+        elif cur_w < ma10w < ma40w:
+            result["weekly_stage"] = "4 🔴 Weekly Downtrend"
+        else:
+            result["weekly_stage"] = "3 ⚠️ Weekly Topping"
+
+        # ── Weekly RS vs benchmark
+        if bench_close is not None and len(bench_close) > 0:
+            try:
+                # Resample daily bench to weekly
+                bench_w = bench_close.resample("W").last().dropna()
+                common  = close_w.index.intersection(bench_w.index)
+                if len(common) >= 13:
+                    cw_a = close_w.reindex(common).dropna()
+                    bw_a = bench_w.reindex(common).dropna()
+                    if len(cw_a) >= 13:
+                        sr = float(cw_a.iloc[-1] / cw_a.iloc[-13] - 1)
+                        br = float(bw_a.iloc[-1] / bw_a.iloc[-13] - 1)
+                        result["weekly_rs"] = round((sr / abs(br)) * 100, 1) if br != 0 else None
+            except Exception:
+                pass
+
+        # ── Weekly base tightness (last 8 weeks)
+        last8w = hist_w.iloc[-8:]
+        if len(last8w) >= 5:
+            wk_high = float(last8w["High"].max())
+            wk_low  = float(last8w["Low"].min())
+            wk_depth = (wk_high - wk_low) / wk_high * 100 if wk_high > 0 else 100
+            result["weekly_base_depth_%"] = round(wk_depth, 1)
+            result["weekly_base_tight"]   = wk_depth < 15   # <15% weekly base = tight
+
+        # ── Weekly trend — consecutive up weeks
+        consec_up = 0
+        for i in range(-1, -min(6, len(hist_w)+1), -1):
+            try:
+                if float(hist_w["Close"].iloc[i]) > float(hist_w["Close"].iloc[i-1]):
+                    consec_up += 1
+                else:
+                    break
+            except IndexError:
+                break
+        result["weekly_consec_up_wks"] = consec_up
+        result["weekly_trending_up"]   = consec_up >= 2
+
+        # ── Weekly Higher Highs / Higher Lows (last 6 weeks)
+        if len(hist_w) >= 6:
+            highs6 = hist_w["High"].iloc[-6:].values
+            lows6  = hist_w["Low"].iloc[-6:].values
+            wk_hh  = highs6[-1] > highs6[-3] > highs6[-5]  # every 2 weeks making new high
+            wk_hl  = lows6[-1]  > lows6[-3]  > lows6[-5]   # every 2 weeks making higher low
+            result["weekly_hh_hl"] = bool(wk_hh and wk_hl)
+
+        # ── Weekly confirmation and contradiction assessment ──────────────────
+        # CONFIRMED: weekly Stage 2 + RS positive + above 40WMA
+        confirmed = (
+            above_40w and
+            ma10_gt40 and
+            (result["weekly_rs"] is None or result["weekly_rs"] > 0)
+        )
+        # CONTRADICTS: weekly is Stage 3 or 4 while daily is Stage 2
+        # This is the trap — daily breakout inside weekly downtrend
+        contradicts = (
+            not above_40w and
+            not above_10w and
+            ma10w < ma40w
+        )
+
+        result["weekly_confirmed"]   = confirmed
+        result["weekly_contradicts"] = contradicts
+
+        # ── Weekly score 0–10 ─────────────────────────────────────────────────
+        wscore = 0
+        if above_40w and ma10_gt40:          wscore += 4   # weekly Stage 2: core signal
+        elif above_40w:                       wscore += 2   # above 40WMA only
+        if result["weekly_hh_hl"]:           wscore += 2   # weekly HH/HL confirmed
+        if result["weekly_base_tight"]:      wscore += 2   # tight base = low risk
+        if result["weekly_trending_up"]:     wscore += 1   # consecutive up weeks
+        if result.get("weekly_rs") and result["weekly_rs"] > 100: wscore += 1  # RS leader on weekly
+
+        result["weekly_score"] = min(10, wscore)
+
+    except Exception as e:
+        log.debug(f"Weekly analysis failed {ticker}: {e}")
+
+    _weekly_cache[ticker] = result
+    return result
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -771,6 +1053,8 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
         vwap_data= compute_vwap(hist, cfg.get("advanced", {}).get("vwap_lookback", 20))
         ms_data  = detect_market_structure(hist, cfg.get("advanced", {}).get("swing_lookback", 5))
         pa_data  = detect_price_action_patterns(hist)
+        ee_data  = detect_early_entry(close, ma50, ma200, hist)
+        wk_data  = analyse_weekly(ticker, bench)   # weekly timeframe confirmation
 
         # ── Apex Score ────────────────────────────────────────────────────
         score = 0
@@ -808,6 +1092,14 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
         if ms_data["ms_hh_hl"]:                    score += 2
         if ms_data["ms_break_of_struct"] and ms_data["ms_hh_hl"]: score += 1
 
+        # Early entry bonus — reward stocks at the START of a move (cheap entry)
+        score += ee_data["early_entry_score"]       # 0–10
+
+        # ── WEEKLY TIMEFRAME LAYER ────────────────────────────────────────
+        # Weekly confirmation: daily setup aligned with weekly uptrend = highest quality
+        if wk_data["weekly_confirmed"]:
+            score += wk_data["weekly_score"]        # +0–10 when weekly aligned
+
         # Fundamentals (0–15)
         if av_data:                                 score += av_data.get("eps_score", 0)
 
@@ -832,6 +1124,13 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
         if pct_off_high < -40:                      score -= 10
         elif pct_off_high < -25:                    score -= 5
 
+        # ── WEEKLY CONTRADICTION PENALTY ──────────────────────────────────
+        # Daily breakout inside weekly downtrend = trap — significant penalty
+        if wk_data["weekly_contradicts"]:
+            score -= 15   # Hard deduction: do NOT buy daily breakouts in weekly downtrends
+        elif not wk_data["weekly_confirmed"] and not wk_data["weekly_contradicts"]:
+            score -= 3    # Neutral weekly (transitioning) — slight caution
+
         score = max(0, min(100, round(score, 1)))
 
         # Apply gem score boosts for emerging gems with strong signals
@@ -841,6 +1140,8 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
                 of_data["of_persistence_score"],
                 pa_data["pa_score"],
                 gem_cfg,
+                ee_score = ee_data["early_entry_score"],
+                mcap     = mcap_data.get("market_cap"),
             )
 
         pa_summary = " | ".join(pa_data["pa_patterns"]) if pa_data["pa_patterns"] else "None"
@@ -913,6 +1214,29 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
             "pa_inside_day":   pa_data["pa_inside_day"],
             "pa_context":      pa_data["pa_context_candle"],
             "pa_score":        pa_data["pa_score"],
+            # ── Early Entry Signals ───────────────────────────────────────
+            "early_entry":             ee_data["early_entry"],
+            "early_entry_type":        ee_data["early_entry_type"],
+            "fresh_200ma_cross":       ee_data["fresh_200ma_cross"],
+            "fresh_50ma_cross":        ee_data["fresh_50ma_cross"],
+            "pullback_to_50ma":        ee_data["pullback_to_50ma"],
+            "low_adr_base":            ee_data["low_adr_base"],
+            "early_entry_score":       ee_data["early_entry_score"],
+            "days_since_200ma_cross":  ee_data["days_since_200ma_cross"],
+            # ── Weekly Timeframe Confirmation ─────────────────────────────
+            "weekly_stage":            wk_data["weekly_stage"],
+            "weekly_above_10wma":      wk_data["weekly_above_10wma"],
+            "weekly_above_40wma":      wk_data["weekly_above_40wma"],
+            "weekly_10gt40":           wk_data["weekly_10gt40"],
+            "weekly_rs":               wk_data["weekly_rs"],
+            "weekly_base_tight":       wk_data["weekly_base_tight"],
+            "weekly_base_depth_%":     wk_data["weekly_base_depth_%"],
+            "weekly_hh_hl":            wk_data["weekly_hh_hl"],
+            "weekly_trending_up":      wk_data["weekly_trending_up"],
+            "weekly_consec_up_wks":    wk_data["weekly_consec_up_wks"],
+            "weekly_confirmed":        wk_data["weekly_confirmed"],
+            "weekly_contradicts":      wk_data["weekly_contradicts"],
+            "weekly_score":            wk_data["weekly_score"],
             "apex_score":      score,
             "scanned_at":      datetime.now().strftime("%Y-%m-%d %H:%M"),
             # ── Emerging Gems ─────────────────────────────────────────────
@@ -945,6 +1269,12 @@ def run_scan(cfg: dict, markets: List[str] = None, universe_override: list = Non
     else:
         tickers = build_watchlist(cfg)
     log.info(f"Scanning {len(tickers)} US tickers…")
+
+    # Clear per-session caches so each scan starts fresh
+    _bench_cache.clear()
+    _mcap_cache.clear()
+    _weekly_cache.clear()
+    log.info("Session caches cleared.")
 
     # Pre-warm all three benchmarks in parallel (all cached after first call)
     _primary_bench   = cfg["benchmarks"]["us"]
@@ -986,20 +1316,37 @@ def run_scan(cfg: dict, markets: List[str] = None, universe_override: list = Non
         min_vol   = cfg["thresholds"]["us"]["min_volume"]
 
         # ── Hard gates — reject regardless of score ────────────────────────
-        # Gate 1: Must be in Stage 2 (price > 50MA > 200MA) — the ONLY buyable stage
-        if not (data["above_200ma"] and data["ma50_gt_ma200"]):
-            continue   # Stage 1 / 3 / 4 — not actionable for longs
+        _is_gem_stock = data.get("is_gem", False)
+        _has_early    = data.get("early_entry", False)
 
-        # Gate 2: Minimum 3-month performance (no negative momentum stocks)
-        if data["perf_3m_%"] < cfg["thresholds"]["us"].get("min_3m_perf", 5):
+        # Gate 1: Stage — gems with fresh 200MA cross allowed through even if
+        # Stage 2 isn't fully confirmed yet (that's the whole point of early entry)
+        _stage_ok = data["above_200ma"] and data["ma50_gt_ma200"]
+        _gem_stage_ok = (
+            _is_gem_stock and
+            data["above_200ma"] and          # must be above 200MA
+            data.get("fresh_200ma_cross")    # but 50MA can lag — allowed for gems
+        )
+        if not _stage_ok and not _gem_stage_ok:
             continue
 
-        # Gate 3: Must outperform or be close to benchmark (no RS <0)
-        if data["rs_3m"] < 0:
+        # Gate 2: 3M performance — gems need only +2% (they're early, not extended)
+        _min_perf = 2.0 if _is_gem_stock else cfg["thresholds"]["us"].get("min_3m_perf", 5)
+        if data["perf_3m_%"] < _min_perf:
             continue
 
-        # Gate 4: Volume and score
-        if data["apex_score"] >= min_score and data.get("vol_filter", data["volume"]) >= min_vol:
+        # Gate 3: RS — gems can have RS > -20 (very early movers lag initially)
+        _min_rs = -20 if (_is_gem_stock and _has_early) else 0
+        if data["rs_3m"] < _min_rs:
+            continue
+
+        # Gate 4: Volume — gems use lower floor (100K vs 300K)
+        _min_vol_eff = 100_000 if _is_gem_stock else min_vol
+
+        # Gate 5: Score — gems use lower threshold (early setups haven't moved yet)
+        _min_score_eff = max(20, min_score - 15) if _is_gem_stock else min_score
+
+        if data["apex_score"] >= _min_score_eff and data.get("vol_filter", data["volume"]) >= _min_vol_eff:
             results.append(data)
 
     if not results:
