@@ -114,6 +114,78 @@ if load_latest_briefing is None:
         return ""
 if save_alert_settings is None:
     def save_alert_settings(s): pass
+if dispatch_alert is None:
+    def dispatch_alert(settings: dict, message: str, title: str = "") -> dict:
+        """Stub: send via Telegram if token configured, else return failure silently."""
+        result = {"telegram": False, "email": False}
+        try:
+            import urllib.request, urllib.parse
+            _tok = settings.get("telegram_token","")
+            _cid = settings.get("telegram_chat_id","")
+            if _tok and _cid:
+                _text = (f"*{title}*\n\n{message}" if title else message)
+                _body = urllib.parse.urlencode({
+                    "chat_id": _cid,
+                    "text": _text[:4096],
+                    "parse_mode": "Markdown",
+                }).encode()
+                _req = urllib.request.Request(
+                    f"https://api.telegram.org/bot{_tok}/sendMessage",
+                    data=_body, method="POST"
+                )
+                _req.add_header("Content-Type","application/x-www-form-urlencoded")
+                with urllib.request.urlopen(_req, timeout=8) as _resp:
+                    _js = json.loads(_resp.read().decode())
+                    result["telegram"] = _js.get("ok", False)
+        except Exception as _te:
+            pass
+        return result
+
+# ── Trade Journal storage (separate from trade log — captures checklist data) ──
+_JOURNAL_FILE = _PORT_DIR / "trade_journal.json"  if "_PORT_DIR" in dir() else Path("data/trade_journal.json")
+_JOURNAL_TMP  = Path("/tmp/apexscan_journal.json")
+
+def load_journal() -> list:
+    for _p in (_JOURNAL_FILE, _JOURNAL_TMP):
+        try:
+            if _p.exists() and _p.stat().st_size > 2:
+                with open(_p) as _f:
+                    _d = json.load(_f)
+                if isinstance(_d, list): return _d
+        except Exception: pass
+    return []
+
+def save_journal(journal: list):
+    for _p in (_JOURNAL_FILE, _JOURNAL_TMP):
+        try:
+            _p.parent.mkdir(parents=True, exist_ok=True)
+            _tmp = _p.with_suffix(".tmp")
+            with open(_tmp,"w") as _f: json.dump(journal, _f, indent=2, default=str)
+            import shutil; shutil.move(str(_tmp), str(_p))
+        except Exception: pass
+
+# ── Checklist watchlist storage (setups to monitor for status change) ──────────
+_CHKWATCH_FILE = _PORT_DIR / "checklist_watchlist.json" if "_PORT_DIR" in dir() else Path("data/checklist_watchlist.json")
+_CHKWATCH_TMP  = Path("/tmp/apexscan_chkwatch.json")
+
+def load_chk_watchlist() -> list:
+    for _p in (_CHKWATCH_FILE, _CHKWATCH_TMP):
+        try:
+            if _p.exists() and _p.stat().st_size > 2:
+                with open(_p) as _f:
+                    _d = json.load(_f)
+                if isinstance(_d, list): return _d
+        except Exception: pass
+    return []
+
+def save_chk_watchlist(items: list):
+    for _p in (_CHKWATCH_FILE, _CHKWATCH_TMP):
+        try:
+            _p.parent.mkdir(parents=True, exist_ok=True)
+            _tmp = _p.with_suffix(".tmp")
+            with open(_tmp,"w") as _f: json.dump(items, _f, indent=2, default=str)
+            import shutil; shutil.move(str(_tmp), str(_p))
+        except Exception: pass
 # ── Persistent Watchlist Engine ───────────────────────────────────────────────
 # Always override the module stubs with a robust JSON-backed implementation.
 # Streamlit Cloud: uses /tmp/apexscan_watchlists.json (survives rerenders,
@@ -1677,6 +1749,8 @@ tabs = st.tabs([
     "🧠 Interpretation",
     "📊 Scan Delta",
     "✅ Pre-Buy Checklist",
+    "📓 Trade Journal",
+    "👁 Setup Monitor",
     "📖 Guide",
 ])
 
@@ -6889,6 +6963,81 @@ with tabs[18]:
                     )
                 st.markdown("---")
 
+                # ── 📱 Mobile Summary Card ────────────────────────────────────
+                with st.expander("📱 Mobile Summary Card (tap to expand)", expanded=False):
+                    _vrd_emoji = "✅" if all_pass else "🚫" if fatal_fails else "⏳" if timing_only else "⚠️"
+                    _vrd_color = "#3fb950" if all_pass else "#f85149" if fatal_fails else "#d29922"
+                    st.markdown(
+                        f'<div style="background:#0d1117;border:2px solid {_vrd_color};'
+                        f'border-radius:16px;padding:24px;max-width:400px;margin:0 auto;">'
+
+                        # Header
+                        f'<div style="text-align:center;margin-bottom:16px;">'
+                        f'<div style="font-size:2rem;font-weight:900;color:{_vrd_color};">'
+                        f'{_vrd_emoji} {chk_ticker}</div>'
+                        f'<div style="color:{_vrd_color};font-size:1rem;font-weight:700;margin-top:4px;">'
+                        f'{_verdict_str}</div>'
+                        f'<div style="color:#8b949e;font-size:0.82rem;">'
+                        f'Conviction: {_conviction}/100 ({_conv_label})</div>'
+                        f'</div>'
+
+                        # Divider
+                        f'<div style="border-top:1px solid #30363d;margin:12px 0;"></div>'
+
+                        # Key numbers in 2×3 grid
+                        f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;'
+                        f'margin-bottom:12px;">'
+                        f'<div style="background:#161b22;border-radius:8px;padding:10px;text-align:center;">'
+                        f'<div style="color:#8b949e;font-size:0.7rem;">ENTRY</div>'
+                        f'<div style="color:#e6edf3;font-size:1.3rem;font-weight:800;">${price:.2f}</div>'
+                        f'</div>'
+                        f'<div style="background:#2a1010;border-radius:8px;padding:10px;text-align:center;">'
+                        f'<div style="color:#8b949e;font-size:0.7rem;">STOP</div>'
+                        f'<div style="color:#f85149;font-size:1.3rem;font-weight:800;">${_stop_price:.2f}</div>'
+                        f'</div>'
+                        f'<div style="background:#0d2a0d;border-radius:8px;padding:10px;text-align:center;">'
+                        f'<div style="color:#8b949e;font-size:0.7rem;">TARGET 1</div>'
+                        f'<div style="color:#3fb950;font-size:1.3rem;font-weight:800;">${_t1_use:.2f}</div>'
+                        f'</div>'
+                        f'<div style="background:#0d2a0d;border-radius:8px;padding:10px;text-align:center;">'
+                        f'<div style="color:#8b949e;font-size:0.7rem;">TARGET 2</div>'
+                        f'<div style="color:#3fb950;font-size:1.3rem;font-weight:800;">${_t2_use:.2f}</div>'
+                        f'</div>'
+                        f'<div style="background:#161b22;border-radius:8px;padding:10px;text-align:center;">'
+                        f'<div style="color:#8b949e;font-size:0.7rem;">SHARES</div>'
+                        f'<div style="color:#e6edf3;font-size:1.3rem;font-weight:800;">{_adj_shares}</div>'
+                        f'</div>'
+                        f'<div style="background:#161b22;border-radius:8px;padding:10px;text-align:center;">'
+                        f'<div style="color:#8b949e;font-size:0.7rem;">R:R</div>'
+                        f'<div style="color:{"#3fb950" if _rr_ratio>=2 else "#d29922"};'
+                        f'font-size:1.3rem;font-weight:800;">{_rr_ratio:.1f}:1</div>'
+                        f'</div>'
+                        f'</div>'
+
+                        # Divider
+                        f'<div style="border-top:1px solid #30363d;margin:12px 0;"></div>'
+
+                        # Fatal fails or timing
+                        + (
+                            f'<div style="color:#f85149;font-size:0.82rem;font-weight:700;">'
+                            f'🚫 Failed: {" | ".join(f"#{c["num"]} {c["label"]}" for c in fatal_fails[:2])}'
+                            f'</div>'
+                            if fatal_fails else
+                            f'<div style="color:#3fb950;font-size:0.82rem;">'
+                            f'✅ All gates clear · {_conviction}/100 conviction'
+                            f'</div>'
+                        )
+
+                        # Timing
+                        + f'<div style="color:#8b949e;font-size:0.78rem;margin-top:8px;">'
+                        + _tod_guidance.split(":")[0] + f'</div>'
+
+                        + f'</div>',
+                        unsafe_allow_html=True
+                    )
+
+                st.markdown("---")
+
                 # ══════════════════════════════════════════════════════════════
                 # CHECKLIST TABLE
                 # ══════════════════════════════════════════════════════════════
@@ -7037,9 +7186,9 @@ with tabs[18]:
                     unsafe_allow_html=True
                 )
 
-                # ── Direct buttons to related tabs ────────────────────────────
+                # ── Direct action buttons ─────────────────────────────────────
                 st.markdown("---")
-                ac1,ac2,ac3 = st.columns(3)
+                ac1,ac2,ac3,ac4 = st.columns(4)
                 with ac1:
                     if st.button("📊 View Full Deep Dive", key="chk_deepdive",
                                  use_container_width=True):
@@ -7055,6 +7204,47 @@ with tabs[18]:
                                  use_container_width=True):
                         st.session_state["port_add_ticker"] = chk_ticker
                         st.info(f"Go to 💼 Portfolio Tracker → ➕ Add / Manage to enter {chk_ticker}")
+                with ac4:
+                    if st.button("👁 Watch This Setup", key="chk_watch_setup",
+                                 use_container_width=True,
+                                 help="Monitor this setup — get alerted when checklist status improves to Ready"):
+                        _chkw = load_chk_watchlist()
+                        _existing = [x["ticker"] for x in _chkw]
+                        if chk_ticker not in _existing:
+                            _chkw.append({
+                                "ticker":        chk_ticker,
+                                "added":         pd.Timestamp.now().isoformat(),
+                                "last_verdict":  _verdict_str,
+                                "last_score":    apex_score,
+                                "last_conv":     _conviction,
+                                "last_checked":  pd.Timestamp.now().isoformat(),
+                                "alert_on":      "Ready to Buy",
+                                "theme":         theme,
+                            })
+                            save_chk_watchlist(_chkw)
+                            st.success(
+                                f"✅ {chk_ticker} added to Setup Monitor. "
+                                f"You'll be alerted when status improves to 'Ready to Buy'."
+                            )
+                        else:
+                            st.info(f"{chk_ticker} is already being monitored.")
+
+                # ── Setup Monitor status ───────────────────────────────────────
+                _chkw_all = load_chk_watchlist()
+                if _chkw_all:
+                    _this_watch = [x for x in _chkw_all if x["ticker"] == chk_ticker]
+                    if _this_watch:
+                        _witem = _this_watch[0]
+                        st.markdown(
+                            f'<div style="background:#161b22;border:1px solid #388bfd;'
+                            f'border-radius:8px;padding:10px 16px;margin-top:8px;'
+                            f'font-size:0.82rem;color:#8b949e;">'
+                            f'👁 <b style="color:#388bfd;">{chk_ticker} is being monitored.</b> '
+                            f'Last verdict: <b>{_witem.get("last_verdict","–")}</b> | '
+                            f'Added: {_witem.get("added","–")[:10]}'
+                            f'</div>',
+                            unsafe_allow_html=True
+                        )
 
                 # ── Download trade plan ───────────────────────────────────────
                 _verdict_str = (
@@ -7101,6 +7291,57 @@ CHECKLIST RESULTS ({len([c for c in checks if c["pass"]])}/{len(checks)} passed)
                     if not chk["pass"]:
                         _plan_text += f"    → {chk['action']}\n"
 
+                # ── Log to Trade Journal ─────────────────────────────────────
+                if st.button("📓 Log to Trade Journal", key="chk_log_journal",
+                             use_container_width=True,
+                             help="Save this checklist result to your trade journal for performance tracking"):
+                    _journal = load_journal()
+                    _journal.append({
+                        "date":           pd.Timestamp.now().isoformat(),
+                        "ticker":         chk_ticker,
+                        "theme":          theme,
+                        "mcap_category":  mcap_cat,
+                        "verdict":        _verdict_str,
+                        "conviction":     _conviction,
+                        "conviction_label": _conv_label,
+                        "apex_score":     apex_score,
+                        "fatal_fails":    len(fatal_fails),
+                        "quality_fails":  len(quality_fails),
+                        "market_ok":      _mkt["market_ok"],
+                        "market_stage":   _mkt.get("stage","–"),
+                        "sector_ok":      _sec["sector_ok"],
+                        "sector_etf":     _sec.get("etf","–"),
+                        "weekly_conf":    weekly_conf,
+                        "weekly_contra":  weekly_contra,
+                        "stage":          stage,
+                        "rs_3m":          rs_3m,
+                        "of_bias":        of_bias,
+                        "rr_ratio":       _rr_ratio,
+                        "entry_price":    price,
+                        "stop_price":     _stop_price,
+                        "target_1":       _t1_use,
+                        "target_2":       _t2_use,
+                        "shares":         _adj_shares,
+                        "position_value": _adj_value,
+                        "dollar_risk":    _adj_risk,
+                        "setup_type":     pattern,
+                        "early_entry":    early_entry,
+                        "breaking_out":   breaking_out,
+                        # Outcome fields (filled in later via Trade Journal tab)
+                        "outcome":        "",
+                        "exit_price":     None,
+                        "exit_date":      "",
+                        "pnl_pct":        None,
+                        "pnl_dollar":     None,
+                        "notes":          "",
+                    })
+                    save_journal(_journal)
+                    st.success(
+                        f"✅ {chk_ticker} logged to Trade Journal "
+                        f"(Conviction: {_conviction}/100, Verdict: {_verdict_str}). "
+                        f"Update the outcome in the 📓 Trade Journal tab after the trade."
+                    )
+
                 st.download_button(
                     f"⬇ Download Trade Plan — {chk_ticker}",
                     data=_plan_text.encode("utf-8"),
@@ -7110,6 +7351,346 @@ CHECKLIST RESULTS ({len([c for c in checks if c["pass"]])}/{len(checks)} passed)
 
 
 with tabs[19]:
+    st.markdown("### 📓 Trade Journal")
+    st.caption("Track every trade from checklist to outcome. Builds your personal edge statistics over time.")
+
+    _jnl = load_journal()
+    _jnl_j1, _jnl_j2 = st.tabs(["📋 All Entries", "📊 Performance Stats"])
+
+    with _jnl_j1:
+        if not _jnl:
+            st.info(
+                "No journal entries yet. Go to ✅ Pre-Buy Checklist → "
+                "run a checklist → click **📓 Log to Trade Journal**."
+            )
+        else:
+            st.markdown(f"**{len(_jnl)} journal entries**")
+            # Split: open (no outcome) vs closed (outcome filled)
+            _open_entries   = [e for e in _jnl if not e.get("outcome")]
+            _closed_entries = [e for e in _jnl if e.get("outcome")]
+
+            _jt1, _jt2 = st.tabs([
+                f"⏳ Open / Pending ({len(_open_entries)})",
+                f"✅ Closed ({len(_closed_entries)})"
+            ])
+
+            with _jt1:
+                if not _open_entries:
+                    st.info("No open journal entries. Log a trade from the Pre-Buy Checklist.")
+                else:
+                    for _i, _e in enumerate(_open_entries):
+                        _tk  = _e.get("ticker","–")
+                        _vrd = _e.get("verdict","–")
+                        _con = _e.get("conviction", 0)
+                        _ep  = _e.get("entry_price")
+                        _sp  = _e.get("stop_price")
+                        _t1  = _e.get("target_1")
+                        _dt  = str(_e.get("date",""))[:10]
+                        _col = "#3fb950" if "READY" in _vrd else "#d29922"
+
+                        with st.expander(
+                            f"**{_tk}** — {_vrd} | Conviction: {_con}/100 | {_dt}",
+                            expanded=False
+                        ):
+                            _ei1,_ei2,_ei3,_ei4 = st.columns(4)
+                            _ei1.metric("Entry",   f"${_ep:.2f}" if _ep else "–")
+                            _ei2.metric("Stop",    f"${_sp:.2f}" if _sp else "–")
+                            _ei3.metric("Target 1",f"${_t1:.2f}" if _t1 else "–")
+                            _ei4.metric("R:R",     f"{_e.get('rr_ratio',0):.1f}:1")
+
+                            st.markdown("**Update Outcome:**")
+                            _oc1,_oc2,_oc3 = st.columns(3)
+                            with _oc1:
+                                _outcome_sel = st.selectbox(
+                                    "Outcome",
+                                    ["","Winner — Target Hit","Winner — Partial","Loser — Stop Hit",
+                                     "Loser — Manual Exit","Break Even","Still Open"],
+                                    key=f"jnl_outcome_{_i}"
+                                )
+                            with _oc2:
+                                _exit_price = st.number_input(
+                                    "Exit Price ($)", min_value=0.0,
+                                    value=float(_ep or 0), step=0.01, format="%.2f",
+                                    key=f"jnl_exit_{_i}"
+                                )
+                            with _oc3:
+                                _exit_notes = st.text_input(
+                                    "Notes", placeholder="What happened?",
+                                    key=f"jnl_notes_{_i}"
+                                )
+
+                            if st.button("💾 Save Outcome", key=f"jnl_save_{_i}"):
+                                if _outcome_sel and _exit_price > 0 and _ep:
+                                    _pnl_pct = round((_exit_price/_ep - 1)*100, 2)
+                                    _pnl_dol = round((_exit_price - _ep) * (_e.get("shares") or 1), 2)
+                                    # Update entry in journal
+                                    for _je in _jnl:
+                                        if (_je.get("ticker")==_tk and
+                                                _je.get("date")==_e.get("date")):
+                                            _je["outcome"]    = _outcome_sel
+                                            _je["exit_price"] = _exit_price
+                                            _je["exit_date"]  = pd.Timestamp.now().isoformat()[:10]
+                                            _je["pnl_pct"]    = _pnl_pct
+                                            _je["pnl_dollar"] = _pnl_dol
+                                            _je["notes"]      = _exit_notes
+                                    save_journal(_jnl)
+                                    st.success(
+                                        f"✅ {_tk} outcome saved: {_outcome_sel} | "
+                                        f"P&L: ${_pnl_dol:+,.2f} ({_pnl_pct:+.1f}%)"
+                                    )
+                                    st.rerun()
+
+            with _jt2:
+                if not _closed_entries:
+                    st.info("No closed entries yet. Close trades by updating their outcome above.")
+                else:
+                    _cdf = pd.DataFrame(_closed_entries)
+                    _cdf["pnl_pct"]    = pd.to_numeric(_cdf["pnl_pct"],    errors="coerce")
+                    _cdf["pnl_dollar"] = pd.to_numeric(_cdf["pnl_dollar"], errors="coerce")
+                    _cdf["conviction"] = pd.to_numeric(_cdf["conviction"], errors="coerce")
+
+                    # Show table
+                    _disp_cols = ["date","ticker","verdict","conviction","entry_price",
+                                  "exit_price","pnl_pct","pnl_dollar","outcome","setup_type","notes"]
+                    _cdf_disp = _cdf[[c for c in _disp_cols if c in _cdf.columns]].copy()
+                    _cdf_disp.columns = [c.replace("_"," ").title() for c in _cdf_disp.columns]
+
+                    def _jc(v):
+                        try: return "color:#3fb950;font-weight:700" if float(v)>0 else "color:#f85149;font-weight:700"
+                        except: return ""
+
+                    st.dataframe(
+                        _cdf_disp.style.map(_jc, subset=[c for c in ["Pnl Pct","Pnl Dollar"] if c in _cdf_disp.columns])
+                        .format({
+                            "Entry Price":  lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+                            "Exit Price":   lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+                            "Pnl Pct":      lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
+                            "Pnl Dollar":   lambda v: f"${v:+,.2f}" if pd.notna(v) else "–",
+                            "Conviction":   lambda v: f"{v:.0f}/100" if pd.notna(v) else "–",
+                        }, na_rep="–"),
+                        use_container_width=True, hide_index=True, height=320
+                    )
+                    st.download_button(
+                        "⬇ Export Journal (CSV)",
+                        data=_cdf_disp.to_csv(index=False).encode("utf-8"),
+                        file_name=f"apexscan_journal_{pd.Timestamp.now().strftime('%Y%m%d')}.csv",
+                        mime="text/csv",
+                    )
+
+    with _jnl_j2:
+        if len(_jnl) < 3:
+            st.info("Log at least 3 trades to see performance statistics.")
+        else:
+            _all_df = pd.DataFrame(_jnl)
+            _all_df["pnl_pct"]    = pd.to_numeric(_all_df.get("pnl_pct"), errors="coerce")
+            _all_df["pnl_dollar"] = pd.to_numeric(_all_df.get("pnl_dollar"), errors="coerce")
+            _all_df["conviction"] = pd.to_numeric(_all_df.get("conviction"), errors="coerce")
+            _closed_df = _all_df[_all_df["outcome"].astype(str).str.len() > 0].copy()
+
+            if _closed_df.empty:
+                st.info("Close some trades first to see statistics.")
+            else:
+                _wins   = _closed_df[_closed_df["pnl_pct"] > 0]
+                _losses = _closed_df[_closed_df["pnl_pct"] <= 0]
+                _wr     = round(len(_wins)/len(_closed_df)*100, 1) if len(_closed_df) > 0 else 0
+                _avg_w  = _wins["pnl_pct"].mean()   if not _wins.empty   else 0
+                _avg_l  = _losses["pnl_pct"].mean() if not _losses.empty else 0
+                _exp    = round((_wr/100 * _avg_w) + ((1-_wr/100) * _avg_l), 2)
+                _total  = _closed_df["pnl_dollar"].sum()
+
+                st.markdown("#### 🏆 Your Edge Statistics")
+                _s1,_s2,_s3,_s4,_s5 = st.columns(5)
+                _s1.metric("Total Trades",    len(_closed_df))
+                _s2.metric("Win Rate",        f"{_wr:.1f}%")
+                _s3.metric("Avg Winner",      f"{_avg_w:+.1f}%")
+                _s4.metric("Avg Loser",       f"{_avg_l:+.1f}%")
+                _s5.metric("Expectancy",      f"{_exp:+.2f}%",
+                           help="(Win% × Avg Win) + (Loss% × Avg Loss). Positive = you have an edge.")
+
+                # Expectancy interpretation
+                _exp_col = "#3fb950" if _exp > 0.5 else "#d29922" if _exp > 0 else "#f85149"
+                st.markdown(
+                    f'<div style="background:#161b22;border-left:4px solid {_exp_col};'
+                    f'padding:12px 16px;border-radius:4px;margin:8px 0;">'
+                    f'<b style="color:{_exp_col};">System Expectancy: {_exp:+.2f}% per trade</b><br>'
+                    f'<span style="color:#8b949e;font-size:0.85rem;">'
+                    f'{"✅ Positive edge — your system makes money over time. Keep following the rules." if _exp > 0.5 else "⚠️ Marginal edge — improve win rate or cut losses faster." if _exp > 0 else "❌ Negative expectancy — your system loses money. Review what is failing."}'
+                    f'</span></div>',
+                    unsafe_allow_html=True
+                )
+
+                st.markdown("---")
+
+                # Performance by conviction bucket
+                st.markdown("#### 📊 Win Rate by Conviction Score")
+                _conv_buckets = []
+                for _label, _lo, _hi in [("A+ (85–100)",85,101),("A (75–84)",75,85),
+                                          ("B (60–74)",60,75),("C (45–59)",45,60),("D (<45)",0,45)]:
+                    _bucket = _closed_df[(_closed_df["conviction"]>=_lo) & (_closed_df["conviction"]<_hi)]
+                    if not _bucket.empty:
+                        _bwr = round((_bucket["pnl_pct"]>0).mean()*100, 1)
+                        _bexp= round((_bwr/100 * _bucket[_bucket["pnl_pct"]>0]["pnl_pct"].mean() or 0) +
+                                     ((1-_bwr/100) * (_bucket[_bucket["pnl_pct"]<=0]["pnl_pct"].mean() or 0)), 2)
+                        _conv_buckets.append({
+                            "Grade": _label, "Trades": len(_bucket),
+                            "Win %": f"{_bwr:.1f}%",
+                            "Expectancy": f"{_bexp:+.2f}%",
+                            "Avg P&L": f"{_bucket['pnl_pct'].mean():+.1f}%",
+                        })
+                if _conv_buckets:
+                    st.dataframe(pd.DataFrame(_conv_buckets), use_container_width=True, hide_index=True)
+                    st.caption(
+                        "This table tells you what conviction score threshold to use for full-size trades. "
+                        "If A+ setups win 70% and C setups win 35%, trade A+ at full size and skip C entirely."
+                    )
+
+                # Performance by setup type
+                if "setup_type" in _closed_df.columns:
+                    _setup_perf = _closed_df.groupby("setup_type").agg(
+                        Trades=("pnl_pct","count"),
+                        Win_Rate=("pnl_pct", lambda x: round((x>0).mean()*100,1)),
+                        Avg_PnL=("pnl_pct","mean"),
+                        Total_PnL=("pnl_dollar","sum"),
+                    ).reset_index().sort_values("Avg_PnL",ascending=False)
+                    _setup_perf.columns = ["Setup","Trades","Win %","Avg P&L %","Total P&L $"]
+                    st.markdown("#### 📋 Performance by Setup Type")
+                    st.dataframe(
+                        _setup_perf.style.format({
+                            "Avg P&L %": "{:+.1f}%",
+                            "Total P&L $": "${:+,.2f}",
+                            "Win %": "{:.1f}%",
+                        }),
+                        use_container_width=True, hide_index=True
+                    )
+
+                # Cumulative P&L
+                _closed_sorted = _closed_df.sort_values("exit_date")
+                _closed_sorted["cumulative"] = _closed_sorted["pnl_dollar"].cumsum()
+                if not _closed_sorted.empty:
+                    import plotly.express as _pxj
+                    _fig_j = _pxj.area(
+                        _closed_sorted, x="exit_date", y="cumulative",
+                        title="Cumulative Journal P&L ($)",
+                        color_discrete_sequence=["#3fb950"],
+                    )
+                    _fig_j.add_hline(y=0, line_dash="dot", line_color="#8b949e")
+                    _fig_j.update_layout(
+                        paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
+                        font_color="#e6edf3", height=300,
+                        margin=dict(t=40,b=20,l=20,r=20),
+                    )
+                    _fig_j.update_traces(fill="tozeroy", fillcolor="rgba(63,185,80,0.12)")
+                    st.plotly_chart(_fig_j, use_container_width=True)
+
+
+with tabs[20]:
+    st.markdown("### 👁 Setup Monitor")
+    st.caption(
+        "Stocks you're watching for checklist status improvement. "
+        "Get alerted via Telegram when a setup moves from 'Wait' to 'Ready to Buy'."
+    )
+
+    _chkw = load_chk_watchlist()
+
+    if not _chkw:
+        st.info(
+            "No setups being monitored yet. "
+            "Go to ✅ Pre-Buy Checklist → run a checklist → click **👁 Watch This Setup**."
+        )
+    else:
+        # ── Check all monitored setups against current scan ───────────────────
+        _chkw_rows = []
+        for _witem in _chkw:
+            _wtk    = _witem.get("ticker","–")
+            _wverd  = _witem.get("last_verdict","–")
+            _wconv  = _witem.get("last_conv", 0)
+            _wadd   = str(_witem.get("added",""))[:10]
+            _wdays  = (pd.Timestamp.now() - pd.to_datetime(_wadd)).days if _wadd else "–"
+
+            # Check if in current scan
+            _in_scan = not df.empty and _wtk in df.get("ticker", pd.Series()).values
+            _new_row  = df[df["ticker"]==_wtk].iloc[0] if _in_scan else None
+            _new_score = float(_new_row["apex_score"]) if _new_row is not None and "apex_score" in _new_row else None
+            _score_chg = round(_new_score - _witem.get("last_score",0), 1) if _new_score else None
+
+            _chkw_rows.append({
+                "Ticker":      _wtk,
+                "Theme":       _witem.get("theme","–"),
+                "Last Verdict":_wverd,
+                "Conviction":  f"{_wconv}/100",
+                "Added":       _wadd,
+                "Days Watched":_wdays,
+                "In Scan":     "✅ Yes" if _in_scan else "❌ Not in last scan",
+                "Score Now":   f"{_new_score:.0f}" if _new_score else "–",
+                "Score Δ":     f"{_score_chg:+.1f}" if _score_chg else "–",
+            })
+
+        _wdf = pd.DataFrame(_chkw_rows)
+        def _wc(v):
+            try:
+                _f = float(str(v).replace("+",""))
+                return "color:#3fb950;font-weight:700" if _f>0 else "color:#f85149;font-weight:700"
+            except: return ""
+        st.dataframe(
+            _wdf.style.map(_wc, subset=["Score Δ"]),
+            use_container_width=True, hide_index=True
+        )
+
+        # ── Manual check button ───────────────────────────────────────────────
+        st.markdown("---")
+        _mw1,_mw2 = st.columns(2)
+        with _mw1:
+            if st.button("🔄 Re-check All Setups Against Current Scan",
+                         key="recheck_monitor", use_container_width=True):
+                _alerts_sent  = 0
+                _cur_settings = load_alert_settings()
+                _updated      = []
+                for _witem in _chkw:
+                    _wtk = _witem.get("ticker","–")
+                    _in_scan = not df.empty and _wtk in df.get("ticker", pd.Series()).values
+                    if _in_scan:
+                        _nr = df[df["ticker"]==_wtk].iloc[0]
+                        _ns = float(_nr.get("apex_score",0) or 0)
+                        _old_s = _witem.get("last_score",0)
+                        _witem["last_score"]   = _ns
+                        _witem["last_checked"] = pd.Timestamp.now().isoformat()
+
+                        # Fire alert if score jumped ≥ 10 points or verdict improved
+                        if _ns - _old_s >= 10:
+                            _msg = (
+                                "\U0001F4C8 *Setup Improvement Alert*\n\n"
+                                f"*{_wtk}* Apex Score: {_old_s:.0f} pts\n"
+                                f"Score change: +{_ns - _old_s:.0f}\n"
+                                f"Stage: {str(_nr.get(chr(115)+chr(116)+chr(97)+chr(103)+chr(101),chr(45)))}\n"
+                                "Check Pre-Buy Checklist now"
+                            )
+                            if (_cur_settings.get("telegram_token") and
+                                    _cur_settings.get("telegram_chat_id")):
+                                dispatch_alert(_cur_settings, _msg, f"ApexScan — {_wtk}")
+                                _alerts_sent += 1
+                    _updated.append(_witem)
+                save_chk_watchlist(_updated)
+                st.success(
+                    f"✅ Re-checked {len(_chkw)} setups. "
+                    f"{_alerts_sent} Telegram alert(s) sent."
+                )
+                st.rerun()
+
+        with _mw2:
+            _rm_tk = st.selectbox(
+                "Remove from Monitor",
+                ["–"] + [x.get("ticker","–") for x in _chkw],
+                key="rm_monitor"
+            )
+            if st.button("🗑 Remove", key="rm_monitor_btn", use_container_width=True):
+                if _rm_tk != "–":
+                    _chkw = [x for x in _chkw if x.get("ticker") != _rm_tk]
+                    save_chk_watchlist(_chkw)
+                    st.success(f"Removed {_rm_tk} from monitor.")
+                    st.rerun()
+
+
+with tabs[21]:
     st.markdown("""
 ### 📖 How to Use ApexScan — Complete Guide
 
