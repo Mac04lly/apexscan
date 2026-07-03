@@ -1676,6 +1676,7 @@ tabs = st.tabs([
     "🔔 Alert Settings",
     "🧠 Interpretation",
     "📊 Scan Delta",
+    "✅ Pre-Buy Checklist",
     "📖 Guide",
 ])
 
@@ -6176,7 +6177,939 @@ with tabs[16]:
                 st.error(f"Error comparing scans: {_de}")
 
 
-with tabs[17]:
+with tabs[18]:
+    st.markdown("### ✅ Pre-Buy Checklist")
+    st.caption(
+        "Run every stock through this 15-point checklist before buying. "
+        "Fail items 1–5 = do not buy. Fail 6–9 = reduce size or wait. "
+        "Fail 10–12 = wait for better timing."
+    )
+
+    if df.empty:
+        st.info("Run a Live Scan or Load Last Report first to populate ticker list.")
+    else:
+        # ── Ticker selector ───────────────────────────────────────────────────
+        cb1, cb2 = st.columns([2, 1])
+        with cb1:
+            _chk_tickers = sorted(df["ticker"].dropna().unique().tolist()) if "ticker" in df.columns else []
+            chk_ticker = st.selectbox(
+                "Select Ticker to Evaluate",
+                _chk_tickers,
+                key="chk_ticker_sel",
+                help="Select any stock from the current scan results to run through the full pre-buy checklist."
+            )
+        with cb2:
+            chk_account = st.number_input(
+                "Portfolio Size ($)",
+                min_value=1000, value=10000, step=1000,
+                key="chk_portfolio_size",
+                help="Your total portfolio value — used to calculate maximum position size."
+            )
+
+        if chk_ticker:
+            _crow = df[df["ticker"] == chk_ticker]
+            if _crow.empty:
+                st.error(f"{chk_ticker} not found in scan results.")
+            else:
+                row = _crow.iloc[0]
+
+                # ── Live market context (S&P 500 stage + VIX) ────────────────────
+                @st.cache_data(ttl=900)   # cache 15 min
+                def _get_market_context():
+                    try:
+                        import yfinance as _yf
+                        _spx  = _yf.Ticker("^GSPC").history(period="1y")["Close"]
+                        _vix  = _yf.Ticker("^VIX").history(period="5d")["Close"]
+                        _spx_cur  = float(_spx.iloc[-1])
+                        _spx_50   = float(_spx.rolling(50).mean().iloc[-1])
+                        _spx_200  = float(_spx.rolling(200).mean().iloc[-1])
+                        _vix_cur  = float(_vix.iloc[-1])
+                        _spx_abv50  = _spx_cur > _spx_50
+                        _spx_abv200 = _spx_cur > _spx_200
+                        _spx_50gt200= _spx_50   > _spx_200
+                        if _spx_abv50 and _spx_abv200 and _spx_50gt200:
+                            _mkt_stage = "Stage 2 ✅ Uptrend"
+                        elif _spx_abv200:
+                            _mkt_stage = "Stage 1 ⏳ Basing"
+                        elif not _spx_abv200 and not _spx_50gt200:
+                            _mkt_stage = "Stage 4 🔴 Downtrend"
+                        else:
+                            _mkt_stage = "Stage 3 ⚠️ Topping"
+                        return {
+                            "stage": _mkt_stage, "price": _spx_cur,
+                            "ma50": _spx_50, "ma200": _spx_200,
+                            "above_50": _spx_abv50, "above_200": _spx_abv200,
+                            "ma50gt200": _spx_50gt200, "vix": _vix_cur,
+                            "market_ok": _spx_abv200 and _spx_50gt200,
+                        }
+                    except Exception:
+                        return {"stage": "Unknown", "market_ok": True, "vix": None,
+                                "above_50": True, "above_200": True, "ma50gt200": True}
+
+                @st.cache_data(ttl=900)
+                def _get_sector_strength(sector_theme: str):
+                    """Check if the stock's sector ETF is in an uptrend."""
+                    _SECTOR_ETFS = {
+                        "Information Technology": "XLK",
+                        "Healthcare":             "XLV",
+                        "Financials":             "XLF",
+                        "Consumer Discretionary": "XLY",
+                        "Consumer Staples":       "XLP",
+                        "Energy":                 "XLE",
+                        "Materials":              "XLB",
+                        "Industrials":            "XLI",
+                        "Utilities":              "XLU",
+                        "Real Estate":            "XLRE",
+                        "Communication Services": "XLC",
+                        "ai_semis":               "SOXX",
+                        "cybersecurity":          "CIBR",
+                        "biotech_health":         "XBI",
+                        "fintech_payments":       "ARKF",
+                        "cloud_infra":            "WCLD",
+                        "emerging_gems":          "IWM",
+                        "space_ev":               "ROKT",
+                    }
+                    _etf = _SECTOR_ETFS.get(sector_theme)
+                    if not _etf:
+                        return {"etf": None, "sector_ok": True, "sector_stage": "Unknown", "sector_rs": None}
+                    try:
+                        import yfinance as _yf
+                        _d = _yf.Ticker(_etf).history(period="1y")["Close"]
+                        _cur   = float(_d.iloc[-1])
+                        _ma50  = float(_d.rolling(50).mean().iloc[-1])
+                        _ma200 = float(_d.rolling(200).mean().iloc[-1])
+                        _above_both = _cur > _ma50 and _cur > _ma200 and _ma50 > _ma200
+                        _above_200  = _cur > _ma200
+                        _stage = (
+                            "Stage 2 ✅" if (_cur>_ma50>_ma200) else
+                            "Stage 1 ⏳" if _above_200 else
+                            "Stage 4 🔴" if (_cur<_ma50<_ma200) else
+                            "Stage 3 ⚠️"
+                        )
+                        # Sector RS vs SPY (3m)
+                        _spy = _yf.Ticker("SPY").history(period="6mo")["Close"]
+                        _etf_ret  = (_cur / float(_d.iloc[-63]) - 1) if len(_d) >= 63 else 0
+                        _spy_ret  = (float(_spy.iloc[-1]) / float(_spy.iloc[-63]) - 1) if len(_spy) >= 63 else 0
+                        _sec_rs   = round(_etf_ret / abs(_spy_ret) * 100, 1) if _spy_ret != 0 else None
+                        return {
+                            "etf": _etf, "sector_ok": _above_200,
+                            "sector_stage": _stage, "sector_rs": _sec_rs,
+                        }
+                    except Exception:
+                        return {"etf": None, "sector_ok": True, "sector_stage": "Unknown", "sector_rs": None}
+
+                _mkt = _get_market_context()
+                _sec = _get_sector_strength(theme)
+
+                # ── Helper functions ──────────────────────────────────────────
+                def _get(col, default=None):
+                    v = row.get(col, default)
+                    if v is None: return default
+                    if isinstance(v, float) and pd.isna(v): return default
+                    return v
+
+                def _bool_get(col):
+                    v = _get(col)
+                    if v is None: return False
+                    return str(v).lower() in ("true","1","yes")
+
+                def _num(col, default=0.0):
+                    try: return float(_get(col, default) or default)
+                    except: return default
+
+                def _str(col, default="–"):
+                    v = _get(col)
+                    return str(v) if v not in (None,"","None","nan") else default
+
+                # ── Pull all fields ───────────────────────────────────────────
+                price          = _num("price")
+                stage          = _str("stage")
+                above_200ma    = _bool_get("above_200ma")
+                ma50_gt_200    = _bool_get("ma50_gt_ma200")
+                apex_score     = _num("apex_score")
+                rs_3m          = _num("rs_3m", None)
+                rs_r2500       = _num("rs_r2500_3m", None)
+                rs_r3000g      = _num("rs_r3000g_3m", None)
+                rs_multi       = _bool_get("rs_multi_leader")
+                of_bias        = _str("of_bias", "Neutral")
+                of_ratio       = _num("of_up_vol_ratio", 0)
+                of_score       = _num("of_score", 0)
+                earn_mom       = _str("earn_momentum", "–")
+                eps_accel      = _bool_get("eps_accel")
+                eps_growth     = _num("eps_growth_%", None)
+                consec_beats   = _num("consec_beats", 0)
+                near_52wh      = _bool_get("near_52wh")
+                pct_off_high   = _num("pct_off_high_%", -100)
+                early_entry    = _bool_get("early_entry")
+                early_type     = _str("early_entry_type", "–")
+                breaking_out   = _bool_get("breaking_out")
+                pattern        = _str("pattern", "–")
+                vwap_pos       = _str("vwap_position", "–")
+                vwap_slope     = _str("vwap_slope", "–")
+                adr_pct        = _num("adr_%", 5)
+                next_earn      = _str("next_earnings", "–")
+                liq_warn       = _bool_get("liquidity_warn")
+                mcap_cat       = _str("mcap_category", "Unknown")
+                is_gem         = _bool_get("is_gem")
+                weekly_conf    = _bool_get("weekly_confirmed")
+                weekly_contra  = _bool_get("weekly_contradicts")
+                weekly_stage   = _str("weekly_stage", "–")
+                weekly_rs      = _num("weekly_rs", None)
+                weekly_tight   = _bool_get("weekly_base_tight")
+                weekly_score   = _num("weekly_score", 0)
+                vol_filter     = _num("vol_filter", 0)
+                theme          = _str("theme", "–")
+                changes        = _str("changes","–")
+
+                # ── Earnings days-away calculation ────────────────────────────
+                earn_days = None
+                if next_earn not in ("–","None","nan",""):
+                    try:
+                        earn_days = (pd.to_datetime(next_earn) - pd.Timestamp.now()).days
+                    except Exception:
+                        earn_days = None
+
+                # ── Max position size by market cap ───────────────────────────
+                _mcap_risk_pct = (
+                    0.005 if mcap_cat in ("Micro Cap",)   else
+                    0.01  if mcap_cat in ("Small Cap",)   else
+                    0.02  if mcap_cat in ("Mid Cap",)     else
+                    0.03  if mcap_cat in ("Large Cap",)   else
+                    0.05
+                )
+                _max_risk_dol     = round(chk_account * _mcap_risk_pct, 2)
+                _adr_stop_default = round(price * (1 - adr_pct / 100 * 1.25), 2)
+
+                # ── Manual stop override & measured move inputs ───────────────
+                st.markdown("---")
+                st.markdown("#### ⚙️ Trade Parameters")
+                _inp1, _inp2, _inp3 = st.columns(3)
+                with _inp1:
+                    _manual_stop = st.number_input(
+                        "Stop Loss ($) — override",
+                        min_value=0.0, max_value=float(price) if price else 9999.0,
+                        value=float(_adr_stop_default),
+                        step=0.01, format="%.2f",
+                        key=f"manual_stop_{chk_ticker}",
+                        help=(
+                            f"Default = 1.25× ADR below entry (${_adr_stop_default:.2f}). "
+                            "Override with your chart-based swing low for a more precise stop."
+                        )
+                    )
+                with _inp2:
+                    _base_low = st.number_input(
+                        "Base Low ($) — for measured move",
+                        min_value=0.0,
+                        value=float(round(price * 0.85, 2)),
+                        step=0.01, format="%.2f",
+                        key=f"base_low_{chk_ticker}",
+                        help=(
+                            "Enter the lowest price of the base the stock is breaking out from. "
+                            "Measured move target = Entry + (Entry − Base Low)."
+                        )
+                    )
+                with _inp3:
+                    _risk_override = st.number_input(
+                        "Risk % override",
+                        min_value=0.1, max_value=5.0,
+                        value=float(_mcap_risk_pct * 100),
+                        step=0.1, format="%.1f",
+                        key=f"risk_pct_{chk_ticker}",
+                        help=(
+                            f"Default = {_mcap_risk_pct*100:.1f}% for {mcap_cat}. "
+                            "Reduce for weaker setups, increase only for A+ setups with perfect checklist."
+                        )
+                    )
+
+                # Recalculate with overrides
+                _stop_price   = _manual_stop
+                _stop_dist    = (price - _stop_price) / price if price > 0 else adr_pct/100*1.25
+                _max_risk_dol = round(chk_account * _risk_override / 100, 2)
+                _max_shares   = int(_max_risk_dol / (price * _stop_dist)) if price > 0 and _stop_dist > 0 else 0
+                _pos_value    = round(_max_shares * price, 2)
+
+                # Measured move target (chart-based)
+                _base_depth   = price - _base_low
+                _mm_target    = round(price + _base_depth, 2)  # measured move
+                _rr_mm        = round(_base_depth / (price - _stop_price), 1) if (price - _stop_price) > 0 else 0
+
+                st.markdown("---")
+
+                # ══════════════════════════════════════════════════════════════
+                # BUILD THE 18-POINT CHECKLIST (expanded from 15)
+                # ══════════════════════════════════════════════════════════════
+                checks = []
+
+                # ── Pre-compute R:R with measured move target ─────────────────
+                _rr_ratio = _rr_mm   # chart-based measured move R:R
+                _rr_pass  = _rr_ratio >= 2.0
+
+                # ── GROUP 0: MARKET & SECTOR CONTEXT ─────────────────────────
+                checks.append({
+                    "group":   "🌍 Market & Sector Context — Check Before Everything Else",
+                    "num":     0,
+                    "label":   "Broad Market in Uptrend (S&P 500)",
+                    "pass":    _mkt["market_ok"],
+                    "value":   (
+                        f"S&P 500: {_mkt['stage']} | "
+                        f"VIX: {_mkt['vix']:.1f}" if _mkt.get('vix') else _mkt['stage']
+                    ),
+                    "why":     (
+                        "75% of stocks follow the market direction. Buying individual stocks "
+                        "during a market Stage 3/4 downtrend is fighting the tide — even great "
+                        "setups fail more often when the index is broken."
+                    ),
+                    "action":  (
+                        "Wait for the S&P 500 to reclaim its 50MA and 200MA before taking "
+                        "new long positions. Use this time to build your watchlist."
+                        if not _mkt["market_ok"] else
+                        "Market environment is supportive. Proceed with individual stock analysis."
+                    ),
+                    "fatal":   True,
+                })
+                checks.append({
+                    "group":   None,
+                    "num":     "0b",
+                    "label":   f"Sector Uptrend ({_sec.get('etf','–')})",
+                    "pass":    _sec["sector_ok"],
+                    "value":   (
+                        f"{_sec.get('etf','–')}: {_sec['sector_stage']} | "
+                        f"Sector RS: {_sec['sector_rs']:.0f}" if _sec.get('sector_rs') else
+                        f"{_sec.get('etf','–')}: {_sec['sector_stage']}"
+                    ),
+                    "why":     (
+                        f"A stock breaking out while its sector ETF ({_sec.get('etf','?')}) "
+                        "is in a downtrend has dramatically lower odds. Sector tailwind = "
+                        "institutions rotating into this area, lifting all boats."
+                    ),
+                    "action":  (
+                        f"Sector {_sec.get('etf','?')} is weak. Use half-size or wait for "
+                        "sector to recover above its 200MA before entering."
+                        if not _sec["sector_ok"] else
+                        "Sector is supportive — good tailwind for this trade."
+                    ),
+                    "fatal":   False,
+                })
+
+                # ── GROUP 1: NON-NEGOTIABLES (items 1–5) ─────────────────────
+                checks.append({
+                    "group":   "🚫 Non-Negotiables — Fail any = DO NOT BUY",
+                    "num":     1,
+                    "label":   "Weekly Stage 2 Confirmed",
+                    "pass":    weekly_conf and not weekly_contra,
+                    "value":   weekly_stage,
+                    "why":     "Weekly chart must show price above 40WMA with 10WMA > 40WMA. Trading against the weekly trend fails 70%+ of the time.",
+                    "action":  "Wait for weekly Stage 2 confirmation before entering.",
+                    "fatal":   True,
+                })
+                checks.append({
+                    "group":   None,
+                    "num":     2,
+                    "label":   "Daily Stage 2 Confirmed",
+                    "pass":    above_200ma and ma50_gt_200,
+                    "value":   stage,
+                    "why":     "Price must be above both the 50MA and 200MA, with 50MA > 200MA. This is the only Weinstein stage where you take long positions.",
+                    "action":  "Wait for price to reclaim both MAs before entering.",
+                    "fatal":   True,
+                })
+                checks.append({
+                    "group":   None,
+                    "num":     3,
+                    "label":   "RS vs S&P 500 Positive",
+                    "pass":    rs_3m is not None and rs_3m > 0,
+                    "value":   f"{rs_3m:.0f}" if rs_3m is not None else "–",
+                    "why":     "If the stock can't outperform a passive index, there is no reason to own it. RS > 100 = outperforming. The best trades have RS > 150.",
+                    "action":  "Wait for RS to turn positive vs the index before buying.",
+                    "fatal":   True,
+                })
+                checks.append({
+                    "group":   None,
+                    "num":     4,
+                    "label":   "No Weekly Contradiction",
+                    "pass":    not weekly_contra,
+                    "value":   "⚠️ CONTRADICTS" if weekly_contra else "✅ Clear",
+                    "why":     "A daily breakout inside a weekly downtrend is the most common retail trap. The weekly trend will eventually win. Avoid completely.",
+                    "action":  "Do not trade this setup until the weekly resolves into Stage 2.",
+                    "fatal":   True,
+                })
+                checks.append({
+                    "group":   None,
+                    "num":     5,
+                    "label":   "Adequate Liquidity",
+                    "pass":    not liq_warn and vol_filter >= 100_000,
+                    "value":   f"{vol_filter:,.0f} shares/day",
+                    "why":     "You must be able to exit at your price. Low liquidity = wide spreads + slippage that eats profits before they start.",
+                    "action":  "Only trade with limit orders. Consider skipping if volume < 100K/day.",
+                    "fatal":   True,
+                })
+
+                # ── GROUP 2: QUALITY FILTERS (items 6–9) ─────────────────────
+                checks.append({
+                    "group":   "📊 Quality Filters — Fail = Reduce Size or Wait",
+                    "num":     6,
+                    "label":   "Apex Score ≥ 65",
+                    "pass":    apex_score >= 65,
+                    "value":   f"{apex_score:.0f}/100",
+                    "why":     "Below 65 means multiple signals are missing or contradicting. The best trades score 70–90 before they make their move.",
+                    "action":  "Wait for score to reach 65+ or reduce size to 50% of normal.",
+                    "fatal":   False,
+                })
+                checks.append({
+                    "group":   None,
+                    "num":     7,
+                    "label":   "Institutional Order Flow Bullish",
+                    "pass":    "bullish" in of_bias.lower(),
+                    "value":   f"{of_bias} | Up/Down vol: {of_ratio:.2f}x",
+                    "why":     "Institutions leave footprints. Persistent up-day volume > down-day volume means large money is accumulating before the move becomes obvious to the crowd.",
+                    "action":  "Wait for OF bias to turn Bullish before entering.",
+                    "fatal":   False,
+                })
+                _fund_pass = (
+                    "strong" in earn_mom.lower() or
+                    eps_accel or
+                    (eps_growth is not None and eps_growth >= 25) or
+                    consec_beats >= 3
+                )
+                checks.append({
+                    "group":   None,
+                    "num":     8,
+                    "label":   "Earnings Momentum Positive",
+                    "pass":    _fund_pass,
+                    "value":   f"{earn_mom} | EPS growth: {eps_growth:+.0f}%" if eps_growth else earn_mom,
+                    "why":     "Price follows earnings long-term. Accelerating EPS or consecutive beats signals institutional re-rating. Pure technical setups without fundamental support fail more often.",
+                    "action":  "Accept if momentum is Moderate but reduce size. Avoid if declining EPS.",
+                    "fatal":   False,
+                })
+                checks.append({
+                    "group":   None,
+                    "num":     9,
+                    "label":   "Near 52-Week High (< 20% off)",
+                    "pass":    pct_off_high >= -20,
+                    "value":   f"{pct_off_high:+.1f}% from 52W high",
+                    "why":     "Breakouts happen near highs, not from the bottom. Stocks > 30% below their high have massive overhead resistance from prior buyers desperate to break even.",
+                    "action":  "Wait for stock to recover closer to highs before buying the breakout.",
+                    "fatal":   False,
+                })
+
+                # ── GROUP 3: ENTRY TIMING (items 10–12) ──────────────────────
+                _entry_pass = early_entry or breaking_out
+                checks.append({
+                    "group":   "🎯 Entry Timing — Fail = Wait for Better Moment",
+                    "num":     10,
+                    "label":   "Early Entry or Active Breakout",
+                    "pass":    _entry_pass,
+                    "value":   (
+                        "🚨 BREAKING OUT" if breaking_out else
+                        f"✅ {early_type}" if early_entry else
+                        "⏳ No signal yet"
+                    ),
+                    "why":     "Buying extended (10%+ past breakout) dramatically cuts your R:R. Early entry = cheap stock relative to where it's going. Breakout = highest-urgency entry.",
+                    "action":  "Wait for a pullback to 50MA, VWAP, or a new base to form before entering.",
+                    "fatal":   False,
+                })
+                _vwap_pass = "above" in vwap_pos.lower() and "extended" not in vwap_pos.lower()
+                checks.append({
+                    "group":   None,
+                    "num":     11,
+                    "label":   "Price Above Rising VWAP",
+                    "pass":    _vwap_pass,
+                    "value":   f"{vwap_pos} | Slope: {vwap_slope}",
+                    "why":     "Institutional algorithms anchor to VWAP for large order execution. Being above a rising VWAP means buyers are in control of the auction right now.",
+                    "action":  "Wait for a VWAP reclaim on volume — that is the entry trigger.",
+                    "fatal":   False,
+                })
+                _pattern_pass = pattern not in ("–","None","nan","") and "none" not in pattern.lower()
+                checks.append({
+                    "group":   None,
+                    "num":     12,
+                    "label":   "Recognisable Chart Pattern",
+                    "pass":    _pattern_pass,
+                    "value":   pattern,
+                    "why":     "Buying random price action is gambling. Buying a well-defined base breakout, cup, or pullback to support is a defined edge with a clear invalidation level.",
+                    "action":  "Wait for a proper base to form (3–8 weeks minimum) before entering.",
+                    "fatal":   False,
+                })
+
+                # ── R:R validation check (between quality and risk groups) ──────
+                checks.append({
+                    "group":   "📐 Risk:Reward — Minimum 2:1 Required",
+                    "num":     "12b",
+                    "label":   "Risk:Reward Ratio ≥ 2:1",
+                    "pass":    _rr_pass,
+                    "value":   (
+                        f"{_rr_ratio:.1f}:1 "
+                        f"(Entry ${price:.2f} → Target ${_mm_target:.2f} | Stop ${_stop_price:.2f})"
+                    ),
+                    "why":     (
+                        "With a 50% win rate you need at least 2:1 R:R to be profitable. "
+                        "Below 2:1 means you need a 67%+ win rate just to break even — "
+                        "no trader sustains that consistently. "
+                        f"Measured move target = Entry + Base Depth = ${_mm_target:.2f}."
+                    ),
+                    "action":  (
+                        f"Current R:R is {_rr_ratio:.1f}:1. "
+                        "Either tighten the stop (move closer to a real swing low) or "
+                        "wait for a lower entry to improve the ratio. "
+                        "Do not widen your stop to manufacture a better R:R."
+                        if not _rr_pass else
+                        f"R:R of {_rr_ratio:.1f}:1 is acceptable. Trim 50% at "
+                        f"1R gain (${round(price + (price - _stop_price), 2):.2f}), "
+                        "let the rest run to the measured move target."
+                    ),
+                    "fatal":   True,   # R:R < 2:1 is a hard no
+                })
+
+                # ── GROUP 4: RISK CONTROLS (items 13–15) ─────────────────────
+                _earn_pass = earn_days is None or earn_days > 14
+                checks.append({
+                    "group":   "⚠️ Risk Controls — Must Define Before Buying",
+                    "num":     13,
+                    "label":   "Earnings Not Imminent (> 14 days)",
+                    "pass":    _earn_pass,
+                    "value":   (
+                        f"⚠️ In {earn_days} days ({next_earn})" if earn_days is not None and earn_days <= 14
+                        else f"✅ {next_earn}" if next_earn != "–"
+                        else "✅ No date flagged"
+                    ),
+                    "why":     "Stocks can gap 10–40% on earnings. Holding through earnings with a full position is not trading — it's gambling on a binary event.",
+                    "action":  f"{'Reduce to 50% size before earnings.' if earn_days and earn_days <= 14 else 'Monitor as date approaches.'}",
+                    "fatal":   False,
+                })
+                checks.append({
+                    "group":   None,
+                    "num":     14,
+                    "label":   "Stop Loss Level Defined",
+                    "pass":    True,   # always informational
+                    "value":   f"${_stop_price:.2f}  ({_stop_dist*100:.1f}% below entry = 1.25× ADR)",
+                    "why":     "A stop loss is not optional. It is the price at which you admit you were wrong and exit before a small loss becomes a catastrophic one. Define it BEFORE you buy.",
+                    "action":  f"Place stop at ${_stop_price:.2f} (below 1.25× ADR). Move to break-even after +{adr_pct*2:.1f}% gain.",
+                    "fatal":   False,
+                })
+                checks.append({
+                    "group":   None,
+                    "num":     15,
+                    "label":   "Position Size Calculated",
+                    "pass":    True,   # always informational
+                    "value":   f"{_max_shares} shares × ${price:.2f} = ${_pos_value:,.0f} ({_mcap_risk_pct*100:.1f}% risk)",
+                    "why":     f"Maximum risk per trade is {_mcap_risk_pct*100:.1f}% of portfolio for a {mcap_cat}. This keeps any single loss from materially damaging your account.",
+                    "action":  f"Max position: {_max_shares} shares (${_pos_value:,.0f}). Max dollar risk: ${_max_risk_dol:,.0f}.",
+                    "fatal":   False,
+                })
+
+                # ══════════════════════════════════════════════════════════════
+                # VERDICT CALCULATION + CONVICTION SCORE
+                # ══════════════════════════════════════════════════════════════
+                fatal_fails   = [c for c in checks if c.get("fatal") and not c["pass"]]
+                quality_fails = [c for c in checks if not c.get("fatal") and not c["pass"]
+                                 and str(c.get("num","")).replace("b","").isdigit()
+                                 and int(str(c.get("num","0")).replace("b","0")) <= 12]
+                all_pass      = len(fatal_fails) == 0 and len(quality_fails) == 0
+                partial_pass  = len(fatal_fails) == 0 and len(quality_fails) <= 2
+                timing_only   = len(fatal_fails) == 0 and len([
+                    c for c in quality_fails
+                    if str(c.get("num","0")).replace("b","").isdigit()
+                    and int(str(c.get("num","0")).replace("b","0")) <= 9
+                ]) == 0
+
+                # ── Conviction Score 0–100 ────────────────────────────────────
+                # Measures HOW STRONGLY each check passed, not just whether it did
+                _conv = 0
+                # Market & sector (max 15)
+                if _mkt["market_ok"]:                         _conv += 8
+                if _sec["sector_ok"]:                         _conv += 7
+                # Weekly (max 15)
+                if weekly_conf and not weekly_contra:         _conv += 10
+                if weekly_tight:                              _conv += 5
+                # Stage & trend (max 10)
+                if above_200ma and ma50_gt_200:               _conv += 10
+                # RS strength (max 15)
+                _rs_val = rs_3m if rs_3m else 0
+                if _rs_val >= 150:                            _conv += 15
+                elif _rs_val >= 100:                          _conv += 10
+                elif _rs_val > 0:                             _conv += 5
+                # Order flow (max 10)
+                if "strong bullish" in of_bias.lower():       _conv += 10
+                elif "bullish" in of_bias.lower():            _conv += 6
+                # Fundamentals (max 10)
+                if eps_accel:                                 _conv += 5
+                if earn_mom and "strong" in earn_mom.lower(): _conv += 5
+                # Entry quality (max 10)
+                if breaking_out:                              _conv += 10
+                elif early_entry:                             _conv += 7
+                elif _vwap_pass:                              _conv += 4
+                # R:R (max 10)
+                if _rr_ratio >= 3.0:                          _conv += 10
+                elif _rr_ratio >= 2.0:                        _conv += 6
+                elif _rr_ratio >= 1.5:                        _conv += 3
+                # Apex score (max 5)
+                if apex_score >= 80:                          _conv += 5
+                elif apex_score >= 65:                        _conv += 3
+                _conviction = min(100, _conv)
+
+                # ── Adjusted position size by conviction ──────────────────────
+                # High conviction = full size. Low conviction = reduce.
+                _conv_mult = (
+                    1.0  if _conviction >= 75 else
+                    0.75 if _conviction >= 60 else
+                    0.50 if _conviction >= 45 else
+                    0.25
+                )
+                _adj_shares   = int(_max_shares * _conv_mult)
+                _adj_value    = round(_adj_shares * price, 2)
+                _adj_risk     = round(_adj_shares * price * _stop_dist, 2)
+
+                # ── Time-of-day guidance ──────────────────────────────────────
+                _now_est = pd.Timestamp.utcnow() - pd.Timedelta(hours=5)
+                _hour    = _now_est.hour
+                _minute  = _now_est.minute
+                _tod_guidance = (
+                    "⏰ PRE-MARKET: Do not chase pre-market moves. Wait for the first 15–30 min "
+                    "after open to see where price stabilises before entering."
+                    if _hour < 9 or (_hour == 9 and _minute < 30) else
+                    "⏰ FIRST 30 MIN (9:30–10:00 AM): High volatility window. "
+                    "Wait for the opening range to establish, then buy the first pullback to VWAP. "
+                    "Never buy a gap-up open blindly."
+                    if _hour == 9 or (_hour == 10 and _minute < 0) else
+                    "⏰ PRIME ENTRY WINDOW (10:00 AM–12:00 PM): Best time to enter. "
+                    "Direction is established, volume is liquid, institutions are active. "
+                    "Enter on a VWAP pullback or breakout continuation."
+                    if _hour < 12 else
+                    "⏰ MIDDAY DRIFT (12:00–2:00 PM): Avoid new entries. Low volume, "
+                    "choppy price action. Breakouts in this window have low follow-through."
+                    if _hour < 14 else
+                    "⏰ POWER HOUR SETUP (2:00–3:30 PM): Strong stocks accelerate into close. "
+                    "If stock is holding above VWAP with volume picking up, enter now. "
+                    "Set stop below today's low."
+                    if _hour < 15 or (_hour == 15 and _minute < 30) else
+                    "⏰ LAST 30 MIN (3:30–4:00 PM): Avoid new entries. Institutional "
+                    "window-dressing can cause erratic moves. Wait for next morning."
+                    if _hour < 16 else
+                    "⏰ AFTER HOURS: Market is closed. Review the setup for next session entry. "
+                    "Place a limit order for tomorrow's open if you want to be in early."
+                )
+
+                # ── Verdict Banner ────────────────────────────────────────────
+                st.markdown("---")
+
+                # Conviction score bar
+                _conv_color = "#3fb950" if _conviction >= 75 else "#d29922" if _conviction >= 50 else "#f85149"
+                _conv_label = (
+                    "A+ Setup" if _conviction >= 85 else
+                    "A Setup"  if _conviction >= 75 else
+                    "B Setup"  if _conviction >= 60 else
+                    "C Setup"  if _conviction >= 45 else
+                    "D Setup"
+                )
+                st.markdown(
+                    f'<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;'
+                    f'padding:14px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;">'
+                    f'<div style="flex:1;">'
+                    f'<div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;'
+                    f'letter-spacing:.06em;margin-bottom:4px;">CONVICTION SCORE</div>'
+                    f'<div style="background:#21262d;border-radius:4px;height:10px;width:100%;">'
+                    f'<div style="background:{_conv_color};height:10px;border-radius:4px;'
+                    f'width:{_conviction}%;transition:width .5s;"></div></div>'
+                    f'</div>'
+                    f'<div style="text-align:right;min-width:80px;">'
+                    f'<div style="color:{_conv_color};font-size:1.6rem;font-weight:800;">{_conviction}</div>'
+                    f'<div style="color:#8b949e;font-size:0.78rem;">{_conv_label}</div>'
+                    f'</div></div>',
+                    unsafe_allow_html=True
+                )
+
+                # Time-of-day guidance
+                st.info(_tod_guidance)
+
+                # Main verdict
+                if fatal_fails:
+                    _fail_list = "  |  ".join(
+                        f'#{c["num"]} {c["label"]}' for c in fatal_fails
+                    )
+                    st.markdown(
+                        f'<div style="background:#2a1010;border:2px solid #f85149;border-radius:12px;'
+                        f'padding:20px 24px;margin-bottom:16px;">'
+                        f'<div style="font-size:1.8rem;font-weight:800;color:#f85149;">🚫 DO NOT BUY</div>'
+                        f'<div style="color:#e6edf3;margin-top:8px;font-size:1rem;">'
+                        f'<b>{len(fatal_fails)} hard gate(s) failed.</b> No exceptions:<br>'
+                        f'{_fail_list}'
+                        f'</div></div>',
+                        unsafe_allow_html=True
+                    )
+                elif all_pass:
+                    st.markdown(
+                        f'<div style="background:#0d2a0d;border:2px solid #3fb950;border-radius:12px;'
+                        f'padding:20px 24px;margin-bottom:16px;">'
+                        f'<div style="font-size:1.8rem;font-weight:800;color:#3fb950;">✅ READY TO BUY</div>'
+                        f'<div style="color:#e6edf3;margin-top:8px;font-size:1rem;">'
+                        f'All checks passed. Conviction: <b>{_conviction}/100 ({_conv_label})</b>.<br>'
+                        f'Enter <b>{_adj_shares} shares</b> (conviction-adjusted from {_max_shares}) '
+                        f'at ${price:.2f}. Stop: <b>${_stop_price:.2f}</b>. '
+                        f'Target: <b>${_mm_target:.2f}</b> (R:R {_rr_ratio:.1f}:1).'
+                        f'</div></div>',
+                        unsafe_allow_html=True
+                    )
+                elif timing_only:
+                    _wait_for = "  |  ".join(c["action"].split(".")[0] for c in quality_fails[:2])
+                    st.markdown(
+                        f'<div style="background:#1a2a10;border:2px solid #d29922;border-radius:12px;'
+                        f'padding:20px 24px;margin-bottom:16px;">'
+                        f'<div style="font-size:1.8rem;font-weight:800;color:#d29922;">⏳ WAIT FOR ENTRY</div>'
+                        f'<div style="color:#e6edf3;margin-top:8px;font-size:1rem;">'
+                        f'Stock quality confirmed. Entry timing not yet ideal.<br>'
+                        f'Wait for: {_wait_for}'
+                        f'</div></div>',
+                        unsafe_allow_html=True
+                    )
+                elif partial_pass:
+                    _fail_list2 = "  |  ".join(
+                        f'#{c["num"]} {c["label"]}' for c in quality_fails
+                    )
+                    st.markdown(
+                        f'<div style="background:#1a1a10;border:2px solid #d29922;border-radius:12px;'
+                        f'padding:20px 24px;margin-bottom:16px;">'
+                        f'<div style="font-size:1.8rem;font-weight:800;color:#d29922;">⚠️ REDUCED SIZE — {_conv_label}</div>'
+                        f'<div style="color:#e6edf3;margin-top:8px;font-size:1rem;">'
+                        f'{len(quality_fails)} quality issue(s). '
+                        f'Conviction-adjusted size: <b>{_adj_shares} shares</b> '
+                        f'(${_adj_value:,.0f}, risk ${_adj_risk:,.0f}).<br>'
+                        f'Failed: {_fail_list2}'
+                        f'</div></div>',
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.markdown(
+                        f'<div style="background:#2a1010;border:2px solid #f85149;border-radius:12px;'
+                        f'padding:20px 24px;margin-bottom:16px;">'
+                        f'<div style="font-size:1.8rem;font-weight:800;color:#f85149;">❌ SKIP</div>'
+                        f'<div style="color:#e6edf3;margin-top:8px;font-size:1rem;">'
+                        f'{len(quality_fails)} quality checks failed. '
+                        f'Better opportunities exist in the scan right now.'
+                        f'</div></div>',
+                        unsafe_allow_html=True
+                    )
+                st.markdown("---")
+
+                # ══════════════════════════════════════════════════════════════
+                # CHECKLIST TABLE
+                # ══════════════════════════════════════════════════════════════
+                current_group = None
+                for chk in checks:
+                    # Print group header
+                    if chk.get("group") and chk["group"] != current_group:
+                        current_group = chk["group"]
+                        st.markdown(
+                            f'<div style="background:#161b22;padding:8px 14px;border-radius:6px;'
+                            f'margin:16px 0 8px 0;font-size:0.85rem;font-weight:700;'
+                            f'color:#8b949e;letter-spacing:0.05em;">{current_group}</div>',
+                            unsafe_allow_html=True
+                        )
+
+                    _pass    = chk["pass"]
+                    _icon    = "✅" if _pass else ("🚫" if chk.get("fatal") else "❌")
+                    _bg      = "#0d2a0d" if _pass else ("#2a1010" if chk.get("fatal") else "#1a1510")
+                    _border  = "#3fb950" if _pass else ("#f85149" if chk.get("fatal") else "#d29922")
+                    _val_col = "#3fb950" if _pass else ("#f85149" if chk.get("fatal") else "#d29922")
+
+                    st.markdown(
+                        f'<div style="background:{_bg};border-left:4px solid {_border};'
+                        f'border-radius:0 8px 8px 0;padding:12px 16px;margin:4px 0;'
+                        f'display:flex;gap:12px;align-items:flex-start;">'
+
+                        # Number + icon
+                        f'<div style="min-width:44px;text-align:center;">'
+                        f'<span style="font-size:1.1rem;">{_icon}</span><br>'
+                        f'<span style="color:#8b949e;font-size:0.72rem;">#{chk["num"]}</span>'
+                        f'</div>'
+
+                        # Label + value
+                        f'<div style="flex:1;">'
+                        f'<div style="color:#e6edf3;font-weight:700;font-size:0.92rem;">'
+                        f'{chk["label"]}</div>'
+                        f'<div style="color:{_val_col};font-size:0.88rem;margin-top:2px;">'
+                        f'{chk["value"]}</div>'
+                        f'</div>'
+
+                        # Why + action
+                        f'<div style="flex:2;border-left:1px solid #30363d;padding-left:14px;">'
+                        f'<div style="color:#8b949e;font-size:0.80rem;line-height:1.5;">'
+                        f'{chk["why"]}</div>'
+                        f'{"<div style=\"color:#d29922;font-size:0.78rem;margin-top:4px;\">" + "→ " + chk["action"] + "</div>" if not _pass else ""}'
+                        f'</div>'
+
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+
+                # ══════════════════════════════════════════════════════════════
+                # TRADE PLAN SUMMARY
+                # ══════════════════════════════════════════════════════════════
+                st.markdown("---")
+                st.markdown("#### 📋 Trade Plan Summary")
+                tp1,tp2,tp3 = st.columns(3)
+
+                with tp1:
+                    st.markdown(
+                        f'<div style="background:#161b22;border:1px solid #30363d;'
+                        f'border-radius:10px;padding:16px;">'
+                        f'<div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;'
+                        f'letter-spacing:.06em;margin-bottom:8px;">ENTRY</div>'
+                        f'<div style="color:#e6edf3;font-size:1.4rem;font-weight:800;">'
+                        f'${price:.2f}</div>'
+                        f'<div style="color:#8b949e;font-size:0.8rem;margin-top:4px;">'
+                        f'Current price — buy at open or on<br>VWAP pullback</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+
+                with tp2:
+                    st.markdown(
+                        f'<div style="background:#2a1010;border:1px solid #f85149;'
+                        f'border-radius:10px;padding:16px;">'
+                        f'<div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;'
+                        f'letter-spacing:.06em;margin-bottom:8px;">STOP LOSS</div>'
+                        f'<div style="color:#f85149;font-size:1.4rem;font-weight:800;">'
+                        f'${_stop_price:.2f}</div>'
+                        f'<div style="color:#8b949e;font-size:0.8rem;margin-top:4px;">'
+                        f'{_stop_dist*100:.1f}% below entry (1.25× ADR)<br>'
+                        f'Max loss: ${_max_risk_dol:,.0f}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+
+                with tp3:
+                    # Chart-based measured move target (primary)
+                    # ADR-based target (secondary)
+                    _t1_adr = round(price * (1 + adr_pct/100 * 4), 2)
+                    _t2_adr = round(price * (1 + adr_pct/100 * 8), 2)
+                    # Use the more conservative of measured move vs 4×ADR as T1
+                    _t1_use = min(_mm_target, _t1_adr) if _mm_target > price else _t1_adr
+                    _t2_use = max(_mm_target, _t2_adr)
+                    _rr_t1  = round((_t1_use - price) / (price - _stop_price), 1) if price > _stop_price else 0
+                    _rr_t2  = round((_t2_use - price) / (price - _stop_price), 1) if price > _stop_price else 0
+                    st.markdown(
+                        f'<div style="background:#0d2a0d;border:1px solid #3fb950;'
+                        f'border-radius:10px;padding:16px;">'
+                        f'<div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;'
+                        f'letter-spacing:.06em;margin-bottom:8px;">TARGETS</div>'
+                        f'<div style="color:#3fb950;font-size:1.1rem;font-weight:700;">'
+                        f'T1: ${_t1_use:.2f} '
+                        f'<span style="font-size:0.78rem;color:#8b949e;">'
+                        f'(R:R {_rr_t1:.1f}:1 · trim 50%)</span></div>'
+                        f'<div style="color:#3fb950;font-size:1.1rem;font-weight:700;margin-top:4px;">'
+                        f'T2: ${_t2_use:.2f} '
+                        f'<span style="font-size:0.78rem;color:#8b949e;">'
+                        f'(R:R {_rr_t2:.1f}:1 · trail stop)</span></div>'
+                        f'<div style="color:#388bfd;font-size:0.78rem;margin-top:6px;">'
+                        f'📐 Measured move: base depth = ${_base_depth:.2f} → T1 = ${_mm_target:.2f}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+
+                # ── Position sizing breakdown ──────────────────────────────────
+                st.markdown("---")
+                st.markdown("#### 💰 Position Sizing — Conviction Adjusted")
+                ps1,ps2,ps3,ps4,ps5,ps6 = st.columns(6)
+                ps1.metric("Entry Price",          f"${price:.2f}")
+                ps2.metric("Max Shares (full)",    f"{_max_shares}",
+                           help=f"Full size at {_risk_override:.1f}% risk with manual stop")
+                ps3.metric("Adj. Shares",          f"{_adj_shares}",
+                           delta=f"{_conv_mult*100:.0f}% of full size",
+                           help=f"Conviction {_conviction}/100 → {_conv_mult*100:.0f}% of max size")
+                ps4.metric("Position Value",       f"${_adj_value:,.0f}")
+                ps5.metric("Max $ Risk",           f"${_adj_risk:,.0f}",
+                           help=f"Stop at ${_stop_price:.2f} = {_stop_dist*100:.1f}% below entry")
+                ps6.metric("% of Portfolio",       f"{_adj_value/chk_account*100:.1f}%")
+
+                # Conviction breakdown bar
+                st.markdown(
+                    f'<div style="background:#161b22;border:1px solid #30363d;border-radius:8px;'
+                    f'padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#8b949e;">'
+                    f'<b style="color:#e6edf3;">Why conviction is {_conviction}/100 ({_conv_label}):</b> '
+                    f'Market {"✅" if _mkt["market_ok"] else "❌"} · '
+                    f'Sector {"✅" if _sec["sector_ok"] else "❌"} · '
+                    f'Weekly {"✅" if weekly_conf else "❌"} · '
+                    f'Stage {"✅" if (above_200ma and ma50_gt_200) else "❌"} · '
+                    f'RS {f"{rs_3m:.0f}" if rs_3m else "–"} · '
+                    f'Flow {of_bias} · '
+                    f'R:R {_rr_ratio:.1f}:1 · '
+                    f'Apex {apex_score:.0f}'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+                # ── Direct buttons to related tabs ────────────────────────────
+                st.markdown("---")
+                ac1,ac2,ac3 = st.columns(3)
+                with ac1:
+                    if st.button("📊 View Full Deep Dive", key="chk_deepdive",
+                                 use_container_width=True):
+                        st.session_state["deepdive_ticker"] = chk_ticker
+                        st.info(f"Go to 🔍 Stock Deep Dive tab → select {chk_ticker}")
+                with ac2:
+                    if st.button("📋 Add to Watchlist", key="chk_watchlist",
+                                 use_container_width=True):
+                        st.session_state["wl_add_ticker"] = chk_ticker
+                        st.info(f"Go to 📋 Watchlists tab to add {chk_ticker}")
+                with ac3:
+                    if st.button("💼 Log as Position", key="chk_portfolio",
+                                 use_container_width=True):
+                        st.session_state["port_add_ticker"] = chk_ticker
+                        st.info(f"Go to 💼 Portfolio Tracker → ➕ Add / Manage to enter {chk_ticker}")
+
+                # ── Download trade plan ───────────────────────────────────────
+                _verdict_str = (
+                    "READY TO BUY" if all_pass else
+                    "DO NOT BUY"   if fatal_fails else
+                    "WAIT FOR ENTRY" if timing_only else
+                    "REDUCED SIZE" if partial_pass else
+                    "SKIP"
+                )
+                _plan_text = f"""APEXSCAN PRE-BUY CHECKLIST — {chk_ticker}
+Generated:       {pd.Timestamp.now().strftime("%Y-%m-%d %H:%M")} EST
+Portfolio Size:  ${chk_account:,.0f}
+Ticker:          {chk_ticker} | {theme} | {mcap_cat}
+
+VERDICT:         {_verdict_str}
+CONVICTION:      {_conviction}/100 ({_conv_label})
+
+MARKET CONTEXT
+S&P 500 Stage:   {_mkt.get("stage","–")}
+VIX:             {f"{_mkt['vix']:.1f}" if _mkt.get("vix") else "–"}
+Sector ETF:      {_sec.get("etf","–")} — {_sec.get("sector_stage","–")}
+Market OK:       {"YES" if _mkt["market_ok"] else "NO — caution"}
+Sector OK:       {"YES" if _sec["sector_ok"] else "NO — weak sector"}
+
+TRADE PLAN
+Entry:           ${price:.2f}
+Stop Loss:       ${_stop_price:.2f} ({_stop_dist*100:.1f}% below entry)
+Target 1:        ${_t1_use:.2f} (R:R {_rr_t1:.1f}:1 — trim 50% here)
+Target 2:        ${_t2_use:.2f} (R:R {_rr_t2:.1f}:1 — trail stop)
+Measured Move:   ${_mm_target:.2f} (base depth ${_base_depth:.2f})
+Shares:          {_adj_shares} (conviction-adjusted) / {_max_shares} max
+Position Value:  ${_adj_value:,.0f}
+Dollar Risk:     ${_adj_risk:,.0f}
+% of Portfolio:  {_adj_value/chk_account*100:.1f}%
+
+TIMING
+{_tod_guidance}
+
+CHECKLIST RESULTS ({len([c for c in checks if c["pass"]])}/{len(checks)} passed)
+"""
+                for chk in checks:
+                    _status = "PASS" if chk["pass"] else ("FAIL-FATAL" if chk.get("fatal") else "FAIL")
+                    _plan_text += f"#{chk['num']:02d} [{_status}] {chk['label']}: {chk['value']}\n"
+                    if not chk["pass"]:
+                        _plan_text += f"    → {chk['action']}\n"
+
+                st.download_button(
+                    f"⬇ Download Trade Plan — {chk_ticker}",
+                    data=_plan_text.encode("utf-8"),
+                    file_name=f"apexscan_tradeplan_{chk_ticker}_{pd.Timestamp.now().strftime('%Y%m%d')}.txt",
+                    mime="text/plain",
+                )
+
+
+with tabs[19]:
     st.markdown("""
 ### 📖 How to Use ApexScan — Complete Guide
 
