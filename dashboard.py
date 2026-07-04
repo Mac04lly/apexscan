@@ -7298,7 +7298,8 @@ CHECKLIST RESULTS ({len([c for c in checks if c["pass"]])}/{len(checks)} passed)
 """
                 for chk in checks:
                     _status = "PASS" if chk["pass"] else ("FAIL-FATAL" if chk.get("fatal") else "FAIL")
-                    _plan_text += f"#{chk['num']:02d} [{_status}] {chk['label']}: {chk['value']}\n"
+                    _num_str = f"{chk['num']:02d}" if isinstance(chk['num'], int) else str(chk['num'])
+                    _plan_text += f"#{_num_str} [{_status}] {chk['label']}: {chk['value']}\n"
                     if not chk["pass"]:
                         _plan_text += f"    → {chk['action']}\n"
 
