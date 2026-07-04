@@ -6511,6 +6511,16 @@ with tabs[18]:
                 _mm_target    = round(price + _base_depth, 2)  # measured move
                 _rr_mm        = round(_base_depth / (price - _stop_price), 1) if (price - _stop_price) > 0 else 0
 
+                # ADR-based targets + final target selection (computed early so
+                # the Mobile Summary Card, which renders before the Trade Plan
+                # Summary section, can safely reference _t1_use / _t2_use)
+                _t1_adr = round(price * (1 + adr_pct/100 * 4), 2)
+                _t2_adr = round(price * (1 + adr_pct/100 * 8), 2)
+                _t1_use = min(_mm_target, _t1_adr) if _mm_target > price else _t1_adr
+                _t2_use = max(_mm_target, _t2_adr)
+                _rr_t1  = round((_t1_use - price) / (price - _stop_price), 1) if price > _stop_price else 0
+                _rr_t2  = round((_t2_use - price) / (price - _stop_price), 1) if price > _stop_price else 0
+
                 st.markdown("---")
 
                 # ══════════════════════════════════════════════════════════════
@@ -7139,15 +7149,9 @@ with tabs[18]:
                     )
 
                 with tp3:
-                    # Chart-based measured move target (primary)
-                    # ADR-based target (secondary)
-                    _t1_adr = round(price * (1 + adr_pct/100 * 4), 2)
-                    _t2_adr = round(price * (1 + adr_pct/100 * 8), 2)
-                    # Use the more conservative of measured move vs 4×ADR as T1
-                    _t1_use = min(_mm_target, _t1_adr) if _mm_target > price else _t1_adr
-                    _t2_use = max(_mm_target, _t2_adr)
-                    _rr_t1  = round((_t1_use - price) / (price - _stop_price), 1) if price > _stop_price else 0
-                    _rr_t2  = round((_t2_use - price) / (price - _stop_price), 1) if price > _stop_price else 0
+                    # Chart-based measured move target (primary) / ADR-based target
+                    # (secondary) — _t1_use, _t2_use, _rr_t1, _rr_t2 are computed
+                    # earlier (right after _rr_mm) so they're available wherever needed.
                     st.markdown(
                         f'<div style="background:#0d2a0d;border:1px solid #3fb950;'
                         f'border-radius:10px;padding:16px;">'
