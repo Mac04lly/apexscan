@@ -6837,7 +6837,7 @@ with tabs[18]:
                 _adj_risk     = round(_adj_shares * price * _stop_dist, 2)
 
                 # ── Time-of-day guidance ──────────────────────────────────────
-                _now_est = pd.Timestamp.utcnow() - pd.Timedelta(hours=5)
+                _now_est = pd.Timestamp.now("UTC").tz_convert(None) - pd.Timedelta(hours=5)
                 _hour    = _now_est.hour
                 _minute  = _now_est.minute
                 _tod_guidance = (
@@ -6966,6 +6966,15 @@ with tabs[18]:
                         unsafe_allow_html=True
                     )
                 st.markdown("---")
+
+                # Define _verdict_str here so it's available for mobile card AND download
+                _verdict_str = (
+                    "READY TO BUY"   if all_pass     else
+                    "DO NOT BUY"     if fatal_fails  else
+                    "WAIT FOR ENTRY" if timing_only  else
+                    "REDUCED SIZE"   if partial_pass else
+                    "SKIP"
+                )
 
                 # ── 📱 Mobile Summary Card ────────────────────────────────────
                 with st.expander("📱 Mobile Summary Card (tap to expand)", expanded=False):
@@ -7251,13 +7260,7 @@ with tabs[18]:
                         )
 
                 # ── Download trade plan ───────────────────────────────────────
-                _verdict_str = (
-                    "READY TO BUY" if all_pass else
-                    "DO NOT BUY"   if fatal_fails else
-                    "WAIT FOR ENTRY" if timing_only else
-                    "REDUCED SIZE" if partial_pass else
-                    "SKIP"
-                )
+                # (_verdict_str already defined above for mobile card)
                 _plan_text = f"""APEXSCAN PRE-BUY CHECKLIST — {chk_ticker}
 Generated:       {pd.Timestamp.now().strftime("%Y-%m-%d %H:%M")} EST
 Portfolio Size:  ${chk_account:,.0f}
