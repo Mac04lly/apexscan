@@ -6374,7 +6374,7 @@ with tabs[18]:
                         return {"etf": None, "sector_ok": True, "sector_stage": "Unknown", "sector_rs": None}
 
                 _mkt = _get_market_context()
-                _sec = _get_sector_strength(theme)
+                # _sec called after field extraction (theme needed first)
 
                 # ── Helper functions ──────────────────────────────────────────
                 def _get(col, default=None):
@@ -6435,6 +6435,9 @@ with tabs[18]:
                 vol_filter     = _num("vol_filter", 0)
                 theme          = _str("theme", "–")
                 changes        = _str("changes","–")
+
+                # Now theme is available — fetch sector strength
+                _sec = _get_sector_strength(theme)
 
                 # ── Earnings days-away calculation ────────────────────────────
                 earn_days = None
