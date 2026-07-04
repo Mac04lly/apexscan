@@ -21,6 +21,7 @@ import json
 
 from scanner import load_config, run_scan, save_report
 import time as _time
+from datetime import timezone as _timezone
 import threading as _threading
 import hashlib as _hashlib
 
@@ -401,11 +402,11 @@ def _autoscan_save(state: dict):
 
 def _is_market_day() -> bool:
     """Return True if today is Mon–Fri (US market day). Does not check holidays."""
-    return datetime.utcnow().weekday() < 5   # 0=Mon … 4=Fri
+    return datetime.now(_timezone.utc).replace(tzinfo=None).weekday() < 5   # 0=Mon … 4=Fri
 
 def _minutes_until(target_h: int, target_m: int) -> float:
     """Minutes until the next occurrence of target UTC time today or tomorrow."""
-    now = datetime.utcnow()
+    now = datetime.now(_timezone.utc).replace(tzinfo=None)
     target = now.replace(hour=target_h, minute=target_m, second=0, microsecond=0)
     if target <= now:
         target += timedelta(days=1)
@@ -419,7 +420,7 @@ def check_autoscan_trigger(state: dict) -> str | None:
     """
     if not state.get("enabled") or not _is_market_day():
         return None
-    now     = datetime.utcnow()
+    now     = datetime.now(_timezone.utc).replace(tzinfo=None)
     today   = now.strftime("%Y-%m-%d")
     h, m    = now.hour, now.minute
 
@@ -1795,7 +1796,7 @@ if _autoscan_trigger and not run_btn:
 # Auto-refresh polling: checks trigger every 5 minutes while auto-scan is on.
 # Only active when auto-scan is enabled — no unnecessary reruns otherwise.
 if _autoscan_state.get("enabled"):
-    _now_u  = datetime.utcnow()
+    _now_u  = datetime.now(_timezone.utc).replace(tzinfo=None)
     _min_5  = _now_u.minute % 5
     _sec    = _now_u.second
     # Rerun once at the top of each 5-minute boundary (seconds 0–8)
@@ -4599,7 +4600,7 @@ with tabs[12]:
             )
         with a3:
             st.markdown("**Next scans (EST):**")
-            _now_est = datetime.utcnow() - timedelta(hours=5)
+            _now_est = datetime.now(_timezone.utc).replace(tzinfo=None) - timedelta(hours=5)
             st.caption(f"🕤 Market open: 9:30 AM")
             st.caption(f"🕞 Pre-close:   3:30 PM")
             st.caption(f"🕐 Now (EST):   {_now_est.strftime('%I:%M %p')}")
@@ -7690,7 +7691,7 @@ with tabs[20]:
                     st.rerun()
 
 
-with tabs[21]:
+with tabs[20]:
     st.markdown("""
 ### 📖 How to Use ApexScan — Complete Guide
 
