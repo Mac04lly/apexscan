@@ -1782,6 +1782,15 @@ with st.sidebar:
     st.caption("Data: yfinance · Finnhub · Alpha Vantage")
     st.caption(f"Updated: {datetime.now().strftime('%H:%M:%S')}")
 
+    # ── 🌍 Always-visible market status badge ────────────────────────────
+    # Independent confirmation that the Correction Watchlist logic is live:
+    # this shows the S&P 500's stage every time, whether or not the
+    # Correction Watchlist banner itself is currently showing on the
+    # Leaderboard tab (that banner only appears during an actual downtrend).
+    _bmc_sidebar = get_broad_market_condition()
+    _bmc_color = "🟢" if _bmc_sidebar.get("uptrend") else "🟡"
+    st.caption(f"{_bmc_color} S&P 500: {_bmc_sidebar.get('stage','–')}")
+
 st.markdown("""
 <h1 style="margin:0 0 16px 0;font-size:1.5rem;">
   📡 ApexScan
