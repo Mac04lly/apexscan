@@ -373,6 +373,66 @@ def load_latest_report() -> pd.DataFrame:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# CORRECTION WATCHLIST — William O'Neil's basing-during-corrections lesson
+# "New bases form during market corrections. Don't spend corrections trying
+#  to predict the bottom. Spend them building your watchlist."
+# Purely additive: does not touch the Pre-Buy Checklist's own local market
+# context check, and does not alter any existing watchlist logic.
+# ══════════════════════════════════════════════════════════════════════════════
+
+@st.cache_data(ttl=900)  # 15 min cache, independent of the Pre-Buy Checklist's own cache
+def get_broad_market_condition() -> dict:
+    """Lightweight S&P 500 stage check used only by the Correction Watchlist feature."""
+    try:
+        import yfinance as _yf
+        _spx  = _yf.Ticker("^GSPC").history(period="1y")["Close"]
+        _cur   = float(_spx.iloc[-1])
+        _ma50  = float(_spx.rolling(50).mean().iloc[-1])
+        _ma200 = float(_spx.rolling(200).mean().iloc[-1])
+        _uptrend = _cur > _ma50 and _cur > _ma200 and _ma50 > _ma200
+        if _uptrend:
+            _stage = "Stage 2 ✅ Uptrend"
+        elif _cur > _ma200:
+            _stage = "Stage 1 ⏳ Basing"
+        elif _cur < _ma50 < _ma200:
+            _stage = "Stage 4 🔴 Downtrend"
+        else:
+            _stage = "Stage 3 ⚠️ Topping"
+        return {"uptrend": _uptrend, "stage": _stage}
+    except Exception:
+        # Fail safe: assume uptrend so the banner never falsely alarms on a data hiccup
+        return {"uptrend": True, "stage": "Unknown"}
+
+
+def find_correction_watchlist_candidates(scan_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Surface Stage 1 (basing) stocks with a tight/low-volatility base — the
+    stocks O'Neil says institutions quietly accumulate during corrections,
+    and which are often first to break out once the market confirms a new
+    uptrend. Read-only: never mutates scan_df.
+    """
+    if scan_df is None or scan_df.empty or "stage" not in scan_df.columns:
+        return pd.DataFrame()
+
+    cand = scan_df[scan_df["stage"].astype(str).str.contains("1 ⏳", na=False)].copy()
+    if cand.empty:
+        return cand
+
+    tight_mask = pd.Series(False, index=cand.index)
+    if "low_adr_base" in cand.columns:
+        tight_mask = tight_mask | cand["low_adr_base"].astype(str).str.lower().isin(["true", "1"])
+    if "weekly_base_tight" in cand.columns:
+        tight_mask = tight_mask | cand["weekly_base_tight"].astype(str).str.lower().isin(["true", "1"])
+    if "pattern" in cand.columns:
+        tight_mask = tight_mask | cand["pattern"].astype(str).str.contains("Tight|Handle", case=False, na=False)
+
+    cand = cand[tight_mask]
+    if "apex_score" in cand.columns:
+        cand = cand.sort_values("apex_score", ascending=False)
+    return cand
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # AUTO-SCAN ENGINE — no API key required, pure Streamlit state + time logic
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -2040,6 +2100,56 @@ with tabs[0]:
             st.markdown(f'<div class="metric-card"><h3>Themes Active</h3><div class="value green">{themes_n}</div></div>', unsafe_allow_html=True)
 
         st.markdown("---")
+
+        # ── 🌱 Correction Watchlist (William O'Neil basing lesson) ─────────
+        # "New bases form during market corrections. Don't spend corrections
+        #  trying to predict the bottom. Spend them building your watchlist."
+        _bmc = get_broad_market_condition()
+        _corr_candidates = find_correction_watchlist_candidates(df)
+
+        if not _bmc.get("uptrend", True):
+            st.markdown(
+                f'<div style="background:#1a1500;border:1px solid #d29922;border-radius:10px;'
+                f'padding:14px 18px;margin-bottom:12px;">'
+                f'<b style="color:#d29922;">🌱 Market Correction Detected</b> '
+                f'<span style="color:#8b949e;font-size:0.85rem;">— S&P 500: {_bmc.get("stage","–")}</span><br>'
+                f'<span style="color:#c9d1d9;font-size:0.88rem;">'
+                f'William O\'Neil\'s lesson: new bases form during corrections — institutions '
+                f'quietly accumulate leading stocks while weak holders exit. These are often the '
+                f'first to break out once the market confirms a new uptrend. '
+                f'Don\'t try to predict the bottom — build your watchlist instead.'
+                f'</span></div>',
+                unsafe_allow_html=True
+            )
+            if _corr_candidates.empty:
+                st.caption("No Stage 1 tight-base candidates found in the current scan.")
+            else:
+                st.markdown(f"**{len(_corr_candidates)} Stage 1 base-builder(s) found** — tight bases forming while the market corrects:")
+                _corr_show = [c for c in ["ticker","theme","price","perf_3m_%","adr_%","pattern","apex_score"]
+                              if c in _corr_candidates.columns]
+                _corr_disp = _corr_candidates[_corr_show].head(20).copy()
+                for _cc in ["apex_score","perf_3m_%","adr_%"]:
+                    if _cc in _corr_disp.columns:
+                        _corr_disp[_cc] = pd.to_numeric(_corr_disp[_cc], errors="coerce")
+                st.dataframe(
+                    _corr_disp.style.format({
+                        "price": "${:.2f}", "perf_3m_%": pct_fmt,
+                        "adr_%": lambda v: f"{v:.1f}%" if pd.notna(v) else "–",
+                        "apex_score": "{:.0f}",
+                    }, na_rep="–"),
+                    use_container_width=True, hide_index=True, height=min(300, 45 + 35*len(_corr_disp))
+                )
+                if st.button("🌱 Add All to 'Correction Watchlist'", key="add_correction_wl"):
+                    _wls_corr = load_watchlists()
+                    _wls_corr = create_list(_wls_corr, "Correction Watchlist")
+                    for _tk in _corr_candidates["ticker"].head(20).tolist():
+                        _wls_corr = add_ticker(_wls_corr, "Correction Watchlist", _tk)
+                    save_watchlists(_wls_corr)
+                    st.success(
+                        f"✅ Added {min(20, len(_corr_candidates))} ticker(s) to 'Correction Watchlist'. "
+                        f"Find it in the 📋 Watchlists tab."
+                    )
+            st.markdown("---")
 
         # ── New signal filters ─────────────────────────────────────────────
         with st.expander("🔬 Advanced Signal Filters", expanded=False):
