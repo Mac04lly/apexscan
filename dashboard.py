@@ -299,6 +299,14 @@ st.markdown("""
 div.stButton > button { background:#21262d; color:#e6edf3;
                         border:1px solid #30363d; border-radius:6px; }
 div.stButton > button:hover { border-color:#388bfd; color:#79c0ff; }
+
+/* ── Hide "🔍 Stock Deep Dive" tab (7th tab button) from the UI ──────────
+   This is a cosmetic-only toggle: it hides the clickable tab so users
+   can't navigate to it, but every line of that tab's Python code below
+   (with tabs[6]:) is untouched and still runs normally on every rerun.
+   To bring the tab back, just delete this one CSS rule — no other
+   changes needed, and no tab indices anywhere else in the file change. */
+div[data-baseweb="tab-list"] button:nth-of-type(7) { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -6263,7 +6271,15 @@ with tabs[16]:
                 if not _rows:
                     st.info("No stocks changed beyond the minimum threshold.")
                 else:
-                    _ddf = pd.DataFrame(_rows).sort_values("Δ Score", ascending=False, na_position="last")
+                    _ddf = pd.DataFrame(_rows)
+                    # Force numeric dtype — if every ticker in this comparison is a
+                    # new entry or dropped-out stock, "Δ Score" is all None, and
+                    # pandas would otherwise infer dtype=object for the whole
+                    # column (even once empty rows are dropped later), which
+                    # crashes .nlargest()/.nsmallest() downstream. to_numeric with
+                    # errors="coerce" guarantees a real float64 column either way.
+                    _ddf["Δ Score"] = pd.to_numeric(_ddf["Δ Score"], errors="coerce")
+                    _ddf = _ddf.sort_values("Δ Score", ascending=False, na_position="last")
 
                     # KPIs
                     _ri = (_ddf["Δ Score"]>0).sum()
@@ -7329,7 +7345,7 @@ with tabs[18]:
                     if st.button("📊 View Full Deep Dive", key="chk_deepdive",
                                  use_container_width=True):
                         st.session_state["deepdive_ticker"] = chk_ticker
-                        st.info(f"Go to 🔍 Stock Deep Dive tab → select {chk_ticker}")
+                        st.info(f"Go to 🧠 Interpretation tab → 'Single Ticker Deep Read' → select {chk_ticker}")
                 with ac2:
                     if st.button("📋 Add to Watchlist", key="chk_watchlist",
                                  use_container_width=True):
