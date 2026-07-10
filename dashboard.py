@@ -299,14 +299,6 @@ st.markdown("""
 div.stButton > button { background:#21262d; color:#e6edf3;
                         border:1px solid #30363d; border-radius:6px; }
 div.stButton > button:hover { border-color:#388bfd; color:#79c0ff; }
-
-/* ── Hide "🔍 Stock Deep Dive" tab (7th tab button) from the UI ──────────
-   This is a cosmetic-only toggle: it hides the clickable tab so users
-   can't navigate to it, but every line of that tab's Python code below
-   (with tabs[6]:) is untouched and still runs normally on every rerun.
-   To bring the tab back, just delete this one CSS rule — no other
-   changes needed, and no tab indices anywhere else in the file change. */
-div[data-baseweb="tab-list"] button:nth-of-type(7) { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -6271,15 +6263,7 @@ with tabs[16]:
                 if not _rows:
                     st.info("No stocks changed beyond the minimum threshold.")
                 else:
-                    _ddf = pd.DataFrame(_rows)
-                    # Force numeric dtype — if every ticker in this comparison is a
-                    # new entry or dropped-out stock, "Δ Score" is all None, and
-                    # pandas would otherwise infer dtype=object for the whole
-                    # column (even once empty rows are dropped later), which
-                    # crashes .nlargest()/.nsmallest() downstream. to_numeric with
-                    # errors="coerce" guarantees a real float64 column either way.
-                    _ddf["Δ Score"] = pd.to_numeric(_ddf["Δ Score"], errors="coerce")
-                    _ddf = _ddf.sort_values("Δ Score", ascending=False, na_position="last")
+                    _ddf = pd.DataFrame(_rows).sort_values("Δ Score", ascending=False, na_position="last")
 
                     # KPIs
                     _ri = (_ddf["Δ Score"]>0).sum()
@@ -6387,7 +6371,7 @@ with tabs[16]:
                 st.error(f"Error comparing scans: {_de}")
 
 
-with tabs[17]:
+with tabs[18]:
     st.markdown("### ✅ Pre-Buy Checklist")
     st.caption(
         "Run every stock through this 15-point checklist before buying. "
@@ -6398,15 +6382,209 @@ with tabs[17]:
     if df.empty:
         st.info("Run a Live Scan or Load Last Report first to populate ticker list.")
     else:
+        # ══════════════════════════════════════════════════════════════════════
+        # FILTER PANEL — pre-screen all scan stocks before opening checklist
+        # ══════════════════════════════════════════════════════════════════════
+        with st.expander("🔍 Filter Stocks Before Running Checklist", expanded=True):
+            _f1, _f2, _f3, _f4 = st.columns(4)
+            with _f1:
+                _chk_score_min = st.slider(
+                    "Min Apex Score", min_value=0, max_value=100,
+                    value=40, step=5, key="chk_score_filter",
+                    help="Only show stocks scoring above this threshold."
+                )
+            with _f2:
+                _chk_score_max = st.slider(
+                    "Max Apex Score", min_value=0, max_value=100,
+                    value=100, step=5, key="chk_score_max_filter",
+                    help="Only show stocks scoring below this threshold."
+                )
+            with _f3:
+                _chk_stage_filter = st.multiselect(
+                    "Stage Filter",
+                    ["Stage 2 ✅", "Stage 1 ⏳", "Stage 3 ⚠️", "Stage 4 🔴"],
+                    default=["Stage 2 ✅"],
+                    key="chk_stage_filter",
+                    help="Only show stocks in selected Weinstein stages. Stage 2 = uptrend only."
+                )
+            with _f4:
+                _chk_gem_only = st.checkbox(
+                    "💎 Gems Only", value=False, key="chk_gem_only",
+                    help="Only show emerging gem stocks (small/mid-cap)."
+                )
+
+            # ── Quick-verdict pre-screener ────────────────────────────────────
+            st.markdown("##### 🎯 Quick Verdict Pre-Screen")
+            st.caption(
+                "Runs a fast lightweight check on every stock in the scan to estimate "
+                "their verdict category — without opening each one individually."
+            )
+
+            _pv1, _pv2, _pv3, _pv4, _pv5 = st.columns(5)
+            _verdict_filter = _pv1.radio(
+                "Show Only",
+                ["All", "✅ Ready", "⏳ Wait", "⚠️ Reduced", "🚫 Skip/Avoid"],
+                index=0, key="chk_verdict_filter",
+                help="Filter by estimated verdict. 'All' = show everything."
+            )
+
+            # ── Pre-screen all tickers against fast rules ──────────────────────
+            def _quick_verdict(row_q):
+                """
+                Fast verdict estimate from scan columns — no live data needed.
+                Mirrors the full checklist logic at a high level.
+                """
+                try:
+                    _score  = float(row_q.get("apex_score", 0) or 0)
+                    _stage  = str(row_q.get("stage","") or "")
+                    _ab200  = str(row_q.get("above_200ma","")).lower() in ("true","1")
+                    _ma50g  = str(row_q.get("ma50_gt_ma200","")).lower() in ("true","1")
+                    _rs     = float(row_q.get("rs_3m", 0) or 0)
+                    _wconf  = str(row_q.get("weekly_confirmed","")).lower() in ("true","1")
+                    _wcontr = str(row_q.get("weekly_contradicts","")).lower() in ("true","1")
+                    _break  = str(row_q.get("breaking_out","")).lower() in ("true","1")
+                    _early  = str(row_q.get("early_entry","")).lower() in ("true","1")
+                    _of     = str(row_q.get("of_bias","") or "").lower()
+                    _liq    = str(row_q.get("liquidity_warn","")).lower() in ("true","1")
+                    _vwap_p = str(row_q.get("vwap_position","") or "").lower()
+
+                    # Hard fails → DO NOT BUY
+                    if not (_ab200 and _ma50g):    return "🚫 Do Not Buy", "#f85149"
+                    if _wcontr:                    return "🚫 Do Not Buy", "#f85149"
+                    if _rs < 0:                    return "🚫 Do Not Buy", "#f85149"
+                    if _liq:                       return "🚫 Do Not Buy", "#f85149"
+
+                    # Quality checks
+                    _quality_fails = 0
+                    if _score < 65:                _quality_fails += 1
+                    if "bullish" not in _of:       _quality_fails += 1
+                    if not _wconf:                 _quality_fails += 1
+
+                    # Entry timing
+                    _timing_ok = _break or _early or "above" in _vwap_p
+
+                    if _quality_fails == 0 and _timing_ok and _score >= 65:
+                        return "✅ Ready to Buy", "#3fb950"
+                    elif _quality_fails == 0 and not _timing_ok:
+                        return "⏳ Wait for Entry", "#388bfd"
+                    elif _quality_fails <= 2:
+                        return "⚠️ Reduced Size", "#d29922"
+                    else:
+                        return "🚫 Skip", "#f85149"
+                except Exception:
+                    return "– Unknown", "#8b949e"
+
+            # Build filtered ticker list
+            _all_tickers_df = df.copy() if not df.empty else pd.DataFrame()
+
+            # Apply score filter
+            if "apex_score" in _all_tickers_df.columns:
+                _sc = pd.to_numeric(_all_tickers_df["apex_score"], errors="coerce")
+                _all_tickers_df = _all_tickers_df[
+                    (_sc >= _chk_score_min) & (_sc <= _chk_score_max)
+                ]
+
+            # Apply stage filter
+            if _chk_stage_filter and "stage" in _all_tickers_df.columns:
+                _stage_mask = _all_tickers_df["stage"].astype(str).apply(
+                    lambda s: any(f.replace("Stage ","").split(" ")[0] in s for f in _chk_stage_filter)
+                )
+                _all_tickers_df = _all_tickers_df[_stage_mask]
+
+            # Apply gem filter
+            if _chk_gem_only and "is_gem" in _all_tickers_df.columns:
+                _all_tickers_df = _all_tickers_df[
+                    _all_tickers_df["is_gem"].astype(str).str.lower().isin(["true","1"])
+                ]
+
+            # Run quick verdict on all filtered rows
+            _verdict_data = []
+            for _, _qrow in _all_tickers_df.iterrows():
+                _qv, _qc = _quick_verdict(_qrow)
+                _verdict_data.append({
+                    "ticker":      _qrow.get("ticker","–"),
+                    "verdict":     _qv,
+                    "color":       _qc,
+                    "apex_score":  _qrow.get("apex_score","–"),
+                    "stage":       str(_qrow.get("stage","–")),
+                    "rs_3m":       _qrow.get("rs_3m","–"),
+                    "of_bias":     str(_qrow.get("of_bias","–")),
+                    "breaking_out":str(_qrow.get("breaking_out","–")),
+                    "theme":       str(_qrow.get("theme","–")),
+                    "early_entry": str(_qrow.get("early_entry","–")),
+                })
+
+            # Apply verdict filter
+            _filtered_verdicts = _verdict_data
+            if _verdict_filter != "All":
+                _vmap = {
+                    "✅ Ready":    "✅ Ready to Buy",
+                    "⏳ Wait":     "⏳ Wait for Entry",
+                    "⚠️ Reduced":  "⚠️ Reduced Size",
+                    "🚫 Skip/Avoid":"🚫 Skip",
+                }
+                _vkey = _vmap.get(_verdict_filter, "")
+                _filtered_verdicts = [v for v in _verdict_data
+                                       if _vkey.split(" ")[0] in v["verdict"]]
+
+            # ── Summary badges ────────────────────────────────────────────────
+            _ready_n   = sum(1 for v in _verdict_data if "Ready"   in v["verdict"])
+            _wait_n    = sum(1 for v in _verdict_data if "Wait"    in v["verdict"])
+            _reduced_n = sum(1 for v in _verdict_data if "Reduced" in v["verdict"])
+            _skip_n    = sum(1 for v in _verdict_data if "Skip" in v["verdict"] or "Do Not" in v["verdict"])
+
+            _b1,_b2,_b3,_b4 = st.columns(4)
+            _b1.metric("✅ Ready to Buy",  _ready_n,   help="Pass all hard gates + quality")
+            _b2.metric("⏳ Wait for Entry", _wait_n,   help="Good quality, timing not ideal")
+            _b3.metric("⚠️ Reduced Size",   _reduced_n, help="1–2 quality issues")
+            _b4.metric("🚫 Do Not Buy/Skip",_skip_n,   help="Hard gate failure or too many issues")
+
+            # ── Verdict grid ──────────────────────────────────────────────────
+            if _filtered_verdicts:
+                st.markdown(f"**{len(_filtered_verdicts)} stocks** match your filters:")
+
+                # Render as a clean colour-coded grid
+                _cols_per_row = 4
+                for _row_start in range(0, len(_filtered_verdicts), _cols_per_row):
+                    _row_items = _filtered_verdicts[_row_start:_row_start+_cols_per_row]
+                    _gcols = st.columns(_cols_per_row)
+                    for _gi, _gitem in enumerate(_row_items):
+                        _gc = _gitem["color"]
+                        _gs = _gitem["apex_score"]
+                        _gv = _gitem["verdict"]
+                        _gcols[_gi].markdown(
+                            f'<div style="background:#161b22;border:1px solid {_gc};'
+                            f'border-radius:8px;padding:10px;text-align:center;cursor:pointer;">'
+                            f'<div style="color:#e6edf3;font-weight:700;font-size:0.95rem;">'
+                            f'{_gitem["ticker"]}</div>'
+                            f'<div style="color:{_gc};font-size:0.75rem;font-weight:600;margin-top:2px;">'
+                            f'{_gv}</div>'
+                            f'<div style="color:#8b949e;font-size:0.72rem;margin-top:2px;">'
+                            f'Score: {_gs} | {_gitem["stage"].split()[0] if _gitem["stage"] != "–" else "–"}'
+                            f'</div></div>',
+                            unsafe_allow_html=True
+                        )
+            else:
+                st.info("No stocks match the current filters.")
+
+        st.markdown("---")
+
         # ── Ticker selector ───────────────────────────────────────────────────
+        # Pre-filter the dropdown to only show filtered tickers
+        _chk_tickers_filtered = (
+            [v["ticker"] for v in _filtered_verdicts]
+            if _filtered_verdicts else
+            (sorted(df["ticker"].dropna().unique().tolist()) if "ticker" in df.columns else [])
+        )
+
         cb1, cb2 = st.columns([2, 1])
         with cb1:
-            _chk_tickers = sorted(df["ticker"].dropna().unique().tolist()) if "ticker" in df.columns else []
+            _chk_tickers = _chk_tickers_filtered if _chk_tickers_filtered else                            (sorted(df["ticker"].dropna().unique().tolist()) if "ticker" in df.columns else [])
             chk_ticker = st.selectbox(
                 "Select Ticker to Evaluate",
                 _chk_tickers,
                 key="chk_ticker_sel",
-                help="Select any stock from the current scan results to run through the full pre-buy checklist."
+                help="Dropdown is pre-filtered by your filter settings above. Change filters to see more stocks."
             )
         with cb2:
             chk_account = st.number_input(
@@ -7345,7 +7523,7 @@ with tabs[17]:
                     if st.button("📊 View Full Deep Dive", key="chk_deepdive",
                                  use_container_width=True):
                         st.session_state["deepdive_ticker"] = chk_ticker
-                        st.info(f"Go to 🧠 Interpretation tab → 'Single Ticker Deep Read' → select {chk_ticker}")
+                        st.info(f"Go to 🔍 Stock Deep Dive tab → select {chk_ticker}")
                 with ac2:
                     if st.button("📋 Add to Watchlist", key="chk_watchlist",
                                  use_container_width=True):
@@ -7497,7 +7675,7 @@ CHECKLIST RESULTS ({len([c for c in checks if c["pass"]])}/{len(checks)} passed)
                 )
 
 
-with tabs[18]:
+with tabs[19]:
     st.markdown("### 📓 Trade Journal")
     st.caption("Track every trade from checklist to outcome. Builds your personal edge statistics over time.")
 
@@ -7730,7 +7908,7 @@ with tabs[18]:
                     st.plotly_chart(_fig_j, use_container_width=True)
 
 
-with tabs[19]:
+with tabs[20]:
     st.markdown("### 👁 Setup Monitor")
     st.caption(
         "Stocks you're watching for checklist status improvement. "
