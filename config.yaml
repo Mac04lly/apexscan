@@ -153,3 +153,93 @@ emerging_gems:
   alerts:
     gems_breakout: true
     gems_flow: true
+
+    # ====================================================
+# NGX (Nigerian Exchange) SETTINGS
+# ====================================================
+
+# ---- NGX THRESHOLDS ----
+# Note: NGX uses lower volume floors (thinner market)
+# Min 3m perf is lower (NGX moves slower than US)
+# score_filter same as US for quality control
+
+# ---- NGX BENCHMARK ----
+# ^NGXASI = NGX All-Share Index on yfinance
+# Fallback: use Nigeria ETF NGEFX or frontier ETF FM
+benchmarks:
+  ng: "^NGXASI"
+  ng_fallback: "FM"
+
+# ---- NGX THEMES ----
+# yfinance suffix for Lagos Stock Exchange = .LG
+ng_themes:
+  banking:
+    - GTCO.LG        # Guaranty Trust Holding
+    - ZENITHBA.LG    # Zenith Bank
+    - FBNH.LG        # FBN Holdings
+    - ACCESS.LG      # Access Holdings
+    - UBA.LG         # United Bank for Africa
+    - STANBIC.LG     # Stanbic IBTC
+    - FIDELITYBK.LG  # Fidelity Bank
+    - FCMB.LG        # FCMB Group
+    - JAIZBANK.LG    # Jaiz Bank
+    - WEMABANK.LG    # Wema Bank
+
+  cement_building:
+    - DANGCEM.LG     # Dangote Cement
+    - BUACEMENT.LG   # BUA Cement
+    - WAPCO.LG       # Lafarge Africa
+
+  food_beverages:
+    - BUAFOODS.LG    # BUA Foods
+    - NESTLE.LG      # Nestle Nigeria
+    - FLOURMILL.LG   # Flour Mills of Nigeria
+    - NNFM.LG        # Northern Nigeria Flour Mills
+    - DANGSUGAR.LG   # Dangote Sugar
+    - INTBREW.LG     # International Breweries
+    - NB.LG          # Nigerian Breweries
+    - CADBURY.LG     # Cadbury Nigeria
+    - HONYFLOUR.LG   # Honeywell Flour
+
+  telecoms_tech:
+    - MTNN.LG        # MTN Nigeria
+    - AIRTELAF.LG    # Airtel Africa
+    - CHAMS.LG       # Chams Holding
+
+  oil_gas:
+    - SEPLAT.LG      # Seplat Energy
+    - OANDO.LG       # Oando
+    - TOTAL.LG       # TotalEnergies Nigeria
+    - CONOIL.LG      # Conoil
+    - ARDOVA.LG      # Ardova
+    - ETERNA.LG      # Eterna
+
+  consumer_retail:
+    - UNILEVER.LG    # Unilever Nigeria
+    - PZ.LG          # PZ Cussons
+    - PRESCO.LG      # Presco
+    - OKOMUOIL.LG    # Okomu Oil Palm
+    - TRANSCORP.LG   # Transcorp
+
+  insurance_finance:
+    - AIICO.LG       # AIICO Insurance
+    - MANSARD.LG     # AXA Mansard
+    - CORNERST.LG    # Cornerstone Insurance
+    - SUNUASSUR.LG   # Sunu Assurances
+    - CUSTODIAN.LG   # Custodian Investment
+
+  healthcare_pharma:
+    - FIDSON.LG      # Fidson Healthcare
+    - MORISON.LG     # Morison Industries
+    
+
+  ngx_gems:
+    - CHAMS.LG       # Chams — fintech exposure
+    - JAIZBANK.LG    # Jaiz — Islamic banking growth
+    - GEREGU.LG      # Geregu — power sector
+    - TRANSCORP.LG   # Transcorp — conglomerate
+    - ARDOVA.LG      # Ardova — energy downstream
+    - FIDELITYBK.LG  # Fidelity — banking growth
+    - OKOMUOIL.LG    # Okomu — agric
+    - PRESCO.LG      # Presco — palm oil
+
