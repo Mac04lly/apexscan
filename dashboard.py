@@ -1776,7 +1776,8 @@ with st.sidebar:
     st.markdown(f"{'🟢' if _av_ok else '🔴'} Alpha Vantage {'✓ EPS data'  if _av_ok else '✗ Not set'}")
     st.markdown(f"{'🟢' if _td_ok else '🔴'} Twelve Data {'✓ Indicators' if _td_ok else '✗ Not set'}")
     st.markdown(f"{'🟢' if _ms_ok else '🟡'} MarketStack {'✓ Backup'     if _ms_ok else 'Optional'}")
-    _ngx_key_sb = cfg.get("ngx_pulse_key","")
+    cfg = _cfg_check  # keep a module-level `cfg` alias so later sections (e.g. NGX key expander) never hit NameError before a scan has run
+    _ngx_key_sb = _cfg_check.get("ngx_pulse_key","")
     _ngx_ok_sb  = bool(_ngx_key_sb and not _ngx_key_sb.startswith("YOUR_"))
     st.markdown(f"{'🟢' if _ngx_ok_sb else '🔴'} NGN Market {'✓ NGX data' if _ngx_ok_sb else '✗ Not set'}")
     st.markdown(f"{'🟢' if _fh_ok else '🟡'} Finnhub {'✓ News'          if _fh_ok else 'Optional'}")
