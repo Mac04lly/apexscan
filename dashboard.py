@@ -399,8 +399,12 @@ def get_broad_market_condition() -> dict:
         else:
             _stage = "Stage 3 ⚠️ Topping"
         return {"uptrend": _uptrend, "stage": _stage}
-    except Exception:
-        # Fail safe: assume uptrend so the banner never falsely alarms on a data hiccup
+    except Exception as _e:
+        import logging as _logging
+        _logging.getLogger("apexscan.dashboard").warning(f"get_broad_market_condition failed: {_e}")
+        # Fail safe: assume uptrend so the Correction Watchlist banner never falsely
+        # alarms on a data hiccup — but callers should treat stage=="Unknown" as
+        # "fetch failed", not as a genuine market read.
         return {"uptrend": True, "stage": "Unknown"}
 
 
@@ -1796,7 +1800,10 @@ with st.sidebar:
     # Correction Watchlist banner itself is currently showing on the
     # Leaderboard tab (that banner only appears during an actual downtrend).
     _bmc_sidebar = get_broad_market_condition()
-    _bmc_color = "🟢" if _bmc_sidebar.get("uptrend") else "🟡"
+    if _bmc_sidebar.get("stage") == "Unknown":
+        _bmc_color = "🔴"   # data fetch failed — not a real market read
+    else:
+        _bmc_color = "🟢" if _bmc_sidebar.get("uptrend") else "🟡"
     st.caption(f"{_bmc_color} S&P 500: {_bmc_sidebar.get('stage','–')}")
 
 st.markdown("""
