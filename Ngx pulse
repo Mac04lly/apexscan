@@ -123,7 +123,17 @@ def _get(endpoint: str, api_key: str, params: dict = None,
             time.sleep(60)
             return None
         elif resp.status_code in (401, 403):
-            log.error(f"NGN Market auth error {resp.status_code}: check Bearer token")
+            try:
+                _err = resp.json().get("error", {})
+            except Exception:
+                _err = {}
+            if _err.get("code") == "PLAN_REQUIRED":
+                log.warning(
+                    f"NGN Market {endpoint}: requires '{_err.get('required_plan')}' plan "
+                    f"(current: '{_err.get('current_plan')}') — {_err.get('message','')}"
+                )
+            else:
+                log.error(f"NGN Market auth error {resp.status_code}: check Bearer token")
             return None
         else:
             log.warning(f"NGN Market {endpoint}: HTTP {resp.status_code} — {resp.text[:200]}")
@@ -298,26 +308,13 @@ def get_equity_data(symbol: str, api_key: str,
     end   = datetime.now()
     start = end - timedelta(days=days)
 
-    # Try multiple endpoint patterns for historical OHLCV
-    endpoints = [
-        (f"/v1/equities/{clean}/history", {
-            "from": start.strftime("%Y-%m-%d"),
-            "to":   end.strftime("%Y-%m-%d"),
-        }),
-        (f"/v1/market/equities/{clean}/ohlcv", {
-            "startDate": start.strftime("%Y-%m-%d"),
-            "endDate":   end.strftime("%Y-%m-%d"),
-        }),
-        (f"/v1/stocks/{clean}/prices", {
-            "from": start.strftime("%Y-%m-%d"),
-            "to":   end.strftime("%Y-%m-%d"),
-        }),
-    ]
-
-    for ep, params in endpoints:
-        raw = _get(ep, api_key, params, ttl=NGX_CACHE_TTL)
-        if raw:
-            df = _parse_ohlcv(raw, clean)
+    # Real NGN Market historical price endpoint (requires Starter plan or higher)
+    raw = _get(f"/v1/companies/{clean}/chart", api_key,
+               {"period": "1y", "format": "detailed"}, ttl=NGX_CACHE_TTL)
+    if raw:
+        data = raw.get("data") if isinstance(raw, dict) else raw
+        if isinstance(data, dict):
+            df = _parse_ohlcv(data, clean)
             if df is not None and len(df) > 20:
                 _cwrite(cache_key, df.to_dict())
                 log.info(f"NGN Market: {clean} — {len(df)} bars")
