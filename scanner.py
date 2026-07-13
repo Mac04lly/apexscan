@@ -44,7 +44,7 @@ def load_config(path: str = "config.yaml") -> dict:
     try:
         import streamlit as st
         if hasattr(st, "secrets") and st.secrets:
-            for key in ["alpha_vantage_key", "finnhub_key", "twelve_data_key", "marketstack_key", "anthropic_api_key"]:
+            for key in ["alpha_vantage_key", "finnhub_key", "twelve_data_key", "marketstack_key", "anthropic_api_key", "ngx_pulse_key"]:
                 if key in st.secrets:
                     cfg[key] = st.secrets[key]
     except Exception:
