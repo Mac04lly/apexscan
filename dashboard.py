@@ -273,7 +273,7 @@ def export_watchlist(wls, list_name):
 
 # ── Page Config ───────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="ApexScan — US Stock Scanner",
+    page_title="ApexScan — US & NGX Stock Scanner",
     page_icon="📡",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -996,7 +996,7 @@ def generate_scan_briefing(df: pd.DataFrame) -> str:
 COLUMN_META = {
     "rank":            ("Rank",               "Position in this scan, sorted by Apex Score descending. #1 is the strongest setup right now."),
     "ticker":          ("Ticker",             "Stock symbol. The unique identifier for this company on the exchange."),
-    "market":          ("Market",             "Market the ticker trades on. Currently US-only."),
+    "market":          ("Market",             "Market the ticker trades on: US (NYSE/NASDAQ/NYSE American) or NGX (Nigerian Exchange). All scoring, stage analysis, and signals work identically across both markets."),
     "theme":           ("Sector / Theme",     "GICS sector or config theme this stock belongs to. GICS sectors: Energy, Materials, Industrials, Utilities, Healthcare, Financials, Consumer Discretionary, Consumer Staples, Information Technology, Communication Services, Real Estate. Config themes (ai_semis, cybersecurity etc.) take priority for stocks in your watchlist themes. Sector rotation: when a full GICS sector starts outperforming, it lifts all stocks within it."),
     "price":           ("Price ($)",          "Last closing price in USD."),
     "stage":           ("Stage",              "Weinstein Stage. Stage 2 ✅ = only buyable stage (price above both MAs, 50MA > 200MA). Stage 1 = basing. Stage 3 = topping. Stage 4 🔴 = downtrend — avoid."),
@@ -1722,15 +1722,19 @@ with st.sidebar:
     universe_mode = st.radio(
         "Ticker Universe",
         [
-            "📋 Theme Watchlist (Config)",
-            "💎 Gems Only (Small/Mid-cap)",
-            "🌐 Extended Universe (NASDAQ + NYSE + NYSE American)",
+            "📋 US — Theme Watchlist (Config)",
+            "💎 US — Gems Only (Small/Mid-cap)",
+            "🌐 US — Extended Universe (NASDAQ + NYSE + NYSE American)",
+            "🇳🇬 NGX — Nigerian Exchange (Theme Watchlist)",
+            "🌍 ALL — US + NGX Combined",
         ],
         index=0, key="universe_mode",
         help=(
-            "Theme Watchlist = tickers in config.yaml (~59, ~2 min). "
-            "Gems Only = micro/small/mid-cap growth stocks $100M–$5B mcap (~150 tickers, early entry focus). "
-            "Extended Universe = full NASDAQ + NYSE + NYSE American (~500 tickers, ~8 min)."
+            "US Theme Watchlist = tickers in config.yaml (~59, ~2 min). "
+            "US Gems Only = micro/small/mid-cap growth stocks (~150 tickers). "
+            "US Extended = full NASDAQ + NYSE + NYSE American (~500 tickers, ~8 min). "
+            "NGX = Nigerian Exchange stocks from ng_themes in config.yaml. "
+            "ALL = US + NGX combined scan."
         )
     )
     st.divider()
@@ -1772,6 +1776,9 @@ with st.sidebar:
     st.markdown(f"{'🟢' if _av_ok else '🔴'} Alpha Vantage {'✓ EPS data'  if _av_ok else '✗ Not set'}")
     st.markdown(f"{'🟢' if _td_ok else '🔴'} Twelve Data {'✓ Indicators' if _td_ok else '✗ Not set'}")
     st.markdown(f"{'🟢' if _ms_ok else '🟡'} MarketStack {'✓ Backup'     if _ms_ok else 'Optional'}")
+    _ngx_key_sb = cfg.get("ngx_pulse_key","")
+    _ngx_ok_sb  = bool(_ngx_key_sb and not _ngx_key_sb.startswith("YOUR_"))
+    st.markdown(f"{'🟢' if _ngx_ok_sb else '🔴'} NGN Market {'✓ NGX data' if _ngx_ok_sb else '✗ Not set'}")
     st.markdown(f"{'🟢' if _fh_ok else '🟡'} Finnhub {'✓ News'          if _fh_ok else 'Optional'}")
     if not _av_ok:
         st.caption("Add alpha_vantage_key to Streamlit Secrets")
@@ -1843,6 +1850,7 @@ gone_tickers = set()
 _autoscan_state   = _autoscan_load()
 _autoscan_trigger = check_autoscan_trigger(_autoscan_state)
 _auto_fired       = False   # flag: did auto-scan fire this rerun?
+_scan_market      = "us"    # default market; overridden by universe_mode block
 
 # Auto-scan fires ONLY when:
 #   1. Auto-scan is enabled in settings
@@ -1886,8 +1894,19 @@ if run_btn or _auto_fired:
 
         # ── Universal ticker universe ─────────────────────────────────────
         _universe_override = None
+        # ── 🇳🇬 NGX universe ──────────────────────────────────────────────────
+        if universe_mode == "🇳🇬 NGX — Nigerian Exchange (Theme Watchlist)":
+            _universe_override = None   # uses ng_themes from config
+            _scan_market       = "ng"
+            st.info("🇳🇬 NGX scan: Nigerian Exchange stocks from ng_themes in config.yaml.")
+
+        elif universe_mode == "🌍 ALL — US + NGX Combined":
+            _universe_override = None
+            _scan_market       = "all"
+            st.info("🌍 Combined scan: US Theme Watchlist + NGX themes (~2–4 min).")
+
         # ── 💎 GEMS ONLY universe ─────────────────────────────────────────────
-        if universe_mode == "💎 Gems Only (Small/Mid-cap)":
+        elif universe_mode == "💎 US — Gems Only (Small/Mid-cap)":
             _GEMS_UNIVERSE = [
                 # ── Fintech / Crypto Gems ─────────────────────────────────────
                 "HOOD","SOFI","AFRM","UPST","DAVE","OPEN","UWMC","MSTR","COIN","DKNG",
@@ -1932,7 +1951,8 @@ if run_btn or _auto_fired:
                 f"with relaxed thresholds to surface early-stage setups before they move."
             )
 
-        elif universe_mode == "🌐 Extended Universe (NASDAQ + NYSE + NYSE American)":
+        elif universe_mode == "🌐 US — Extended Universe (NASDAQ + NYSE + NYSE American)":
+            _scan_market = "us"
             # ── Already in list (NASDAQ + mixed) ──────────────────────────
             _NASDAQ_NAMES = [
                 # Mega-cap tech / NASDAQ 100 core
@@ -2035,7 +2055,8 @@ if run_btn or _auto_fired:
                 f"(NASDAQ + NYSE + NYSE American)…"
             )
 
-        df_raw  = run_scan(cfg, universe_override=_universe_override)
+        df_raw  = run_scan(cfg, universe_override=_universe_override,
+                           market=_scan_market)
         if not df_raw.empty:
             save_report(df_raw)
             try:
@@ -2671,7 +2692,7 @@ with tabs[2]:
         with h1:
             fig4 = px.scatter(agg, x="avg_3m", y="avg_score", size="count",
                 color="market", text="theme", title="Performance vs Score",
-                color_discrete_map={"US":"#388bfd"})
+                color_discrete_map={"US":"#388bfd","NGX":"#3fb950"})
             fig4.update_traces(textposition="top center")
             fig4.update_layout(paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
                 font_color="#e6edf3", height=380,
@@ -2682,7 +2703,7 @@ with tabs[2]:
             fig5 = px.bar(agg.sort_values("breakouts",ascending=False),
                 x="theme", y="breakouts", color="market", barmode="group",
                 title="Active Breakouts by Theme",
-                color_discrete_map={"US":"#388bfd"})
+                color_discrete_map={"US":"#388bfd","NGX":"#3fb950"})
             fig5.update_layout(paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
                 font_color="#e6edf3", height=380,
                 xaxis=dict(tickangle=-30,gridcolor="#21262d"),
@@ -4896,6 +4917,69 @@ with tabs[13]:
 
 with tabs[14]:
     st.markdown("### 🔔 Alert Settings")
+
+    # ── NGX Pulse API Key ─────────────────────────────────────────────────────
+    with st.expander("🇳🇬 NGX Pulse API Key", expanded=False):
+        st.markdown("""
+        **NGN Market API** provides official Nigerian Exchange (NGX) data —
+        prices, volume, OHLCV history, and the All-Share Index for all NGX-listed stocks.
+        Required for 🇳🇬 NGX scans.
+
+        **Free tier: 3,000 API calls/month** (resets 1st of each month).
+        Get your key at: [api.ngnmarket.com](https://api.ngnmarket.com)
+
+        Your key starts with `ngm_live_` — passed as a **Bearer token**.
+        """)
+        _saved_ngx_key = cfg.get("ngx_pulse_key","")
+        _ngx_key_input = st.text_input(
+            "NGN Market API Key (Bearer Token)",
+            value=_saved_ngx_key if (
+                _saved_ngx_key and
+                not _saved_ngx_key.startswith("YOUR_")
+            ) else "",
+            type="password",
+            key="ngx_pulse_key_input",
+            placeholder="ngm_live_xxxxxxxxxxxxxxxx",
+        )
+        if st.button("💾 Save NGX Pulse Key", key="save_ngx_key"):
+            if _ngx_key_input.strip():
+                cfg["ngx_pulse_key"] = _ngx_key_input.strip()
+                # Write back to config.yaml
+                try:
+                    import yaml as _yaml
+                    _cfg_path = Path(__file__).resolve().parent / "config.yaml"
+                    if _cfg_path.exists():
+                        with open(_cfg_path) as _cf:
+                            _raw_cfg = _cf.read()
+                        if "ngx_pulse_key:" in _raw_cfg:
+                            import re as _re
+                            _raw_cfg = _re.sub(
+                                r'ngx_pulse_key:.*',
+                                f'ngx_pulse_key: "{_ngx_key_input.strip()}"',
+                                _raw_cfg
+                            )
+                        else:
+                            _raw_cfg += f'\nngx_pulse_key: "{_ngx_key_input.strip()}"\n'
+                        with open(_cfg_path, "w") as _cf:
+                            _cf.write(_raw_cfg)
+                        st.success("✅ NGX Pulse key saved to config.yaml")
+                    else:
+                        st.warning("config.yaml not found — key saved for this session only")
+                except Exception as _ke:
+                    st.warning(f"Could not write to config.yaml: {_ke}. Key saved for session only.")
+
+                # Validate the key
+                try:
+                    from modules.ngx_pulse import validate_api_key as _ngx_val
+                    _val_result = _ngx_val(_ngx_key_input.strip())
+                    if _val_result.get("ok"):
+                        st.success(_val_result.get("message","✅ NGX Pulse connected"))
+                    else:
+                        st.error(_val_result.get("message","❌ Could not validate key"))
+                except ImportError:
+                    st.info("NGX Pulse module not found — place ngx_pulse.py in modules/ folder")
+            else:
+                st.warning("Please enter your API key")
     st.caption("Configure Telegram and Email alerts. Both work simultaneously — alerts fire automatically after every scan.")
 
     settings = load_alert_settings()
@@ -6431,46 +6515,87 @@ with tabs[18]:
             # ── Pre-screen all tickers against fast rules ──────────────────────
             def _quick_verdict(row_q):
                 """
-                Fast verdict estimate from scan columns — no live data needed.
-                Mirrors the full checklist logic at a high level.
+                Fast verdict — uses EXACTLY the same rules as the full 18-point
+                checklist so the grid and the detailed view never contradict each other.
+                Uses only columns already in the scan DataFrame (no live API calls).
                 """
                 try:
-                    _score  = float(row_q.get("apex_score", 0) or 0)
-                    _stage  = str(row_q.get("stage","") or "")
-                    _ab200  = str(row_q.get("above_200ma","")).lower() in ("true","1")
-                    _ma50g  = str(row_q.get("ma50_gt_ma200","")).lower() in ("true","1")
-                    _rs     = float(row_q.get("rs_3m", 0) or 0)
-                    _wconf  = str(row_q.get("weekly_confirmed","")).lower() in ("true","1")
-                    _wcontr = str(row_q.get("weekly_contradicts","")).lower() in ("true","1")
-                    _break  = str(row_q.get("breaking_out","")).lower() in ("true","1")
-                    _early  = str(row_q.get("early_entry","")).lower() in ("true","1")
-                    _of     = str(row_q.get("of_bias","") or "").lower()
-                    _liq    = str(row_q.get("liquidity_warn","")).lower() in ("true","1")
-                    _vwap_p = str(row_q.get("vwap_position","") or "").lower()
+                    def _b(col): return str(row_q.get(col,"")).lower() in ("true","1","yes")
+                    def _f(col, default=0.0):
+                        try: return float(row_q.get(col) or default)
+                        except: return default
+                    def _s(col): return str(row_q.get(col,"") or "")
 
-                    # Hard fails → DO NOT BUY
-                    if not (_ab200 and _ma50g):    return "🚫 Do Not Buy", "#f85149"
-                    if _wcontr:                    return "🚫 Do Not Buy", "#f85149"
-                    if _rs < 0:                    return "🚫 Do Not Buy", "#f85149"
-                    if _liq:                       return "🚫 Do Not Buy", "#f85149"
+                    _score   = _f("apex_score")
+                    _ab200   = _b("above_200ma")
+                    _ma50g   = _b("ma50_gt_ma200")
+                    _rs      = _f("rs_3m", 0)
+                    _wconf   = _b("weekly_confirmed")
+                    _wcontr  = _b("weekly_contradicts")
+                    _liq     = _b("liquidity_warn")
+                    _of      = _s("of_bias").lower()
+                    _earn_m  = _s("earn_momentum").lower()
+                    _eps_g   = _f("eps_growth_%", None)
+                    _eps_acc = _b("eps_accel")
+                    _beats   = _f("consec_beats", 0)
+                    _pct_hi  = _f("pct_off_high_%", -100)
+                    _break   = _b("breaking_out")
+                    _early   = _b("early_entry")
+                    _vwap_p  = _s("vwap_position").lower()
+                    _pattern = _s("pattern")
+                    _rr      = _f("weekly_score", 0)   # proxy — no stop/target in scan
 
-                    # Quality checks
-                    _quality_fails = 0
-                    if _score < 65:                _quality_fails += 1
-                    if "bullish" not in _of:       _quality_fails += 1
-                    if not _wconf:                 _quality_fails += 1
+                    # ── FATAL CHECKS (mirrors checklist items 0,1,2,3,4,12b) ──
+                    _fatal_fails = 0
 
-                    # Entry timing
-                    _timing_ok = _break or _early or "above" in _vwap_p
+                    # Check 0: market context — use weekly structure as proxy
+                    # (market_ok not stored per-row, skip in grid — only full checklist has live data)
 
-                    if _quality_fails == 0 and _timing_ok and _score >= 65:
+                    # Check 1: weekly confirmed
+                    if _wcontr:                           _fatal_fails += 1   # weekly contradiction
+                    # Check 2: daily Stage 2
+                    if not (_ab200 and _ma50g):           _fatal_fails += 1
+                    # Check 3: RS > 0
+                    if _rs < 0:                           _fatal_fails += 1
+                    # Check 4: no weekly contradiction (already counted above)
+                    # Check 5: liquidity
+                    if _liq:                              _fatal_fails += 1
+                    # Check 12b: R:R — no stop/target in scan row, skip in grid
+
+                    if _fatal_fails > 0:
+                        return "🚫 Do Not Buy", "#f85149"
+
+                    # ── QUALITY CHECKS (mirrors items 6–9) ─────────────────────
+                    _q_fails = 0
+                    if _score < 65:                       _q_fails += 1   # #6
+                    if "bullish" not in _of:              _q_fails += 1   # #7
+                    _fund_ok = (
+                        "strong" in _earn_m or _eps_acc or
+                        (_eps_g is not None and _eps_g >= 25) or _beats >= 3
+                    )
+                    if not _fund_ok:                      _q_fails += 1   # #8
+                    if _pct_hi < -20:                     _q_fails += 1   # #9
+
+                    # ── ENTRY TIMING (mirrors items 10–12) ─────────────────────
+                    _entry_ok  = _break or _early                          # #10
+                    _vwap_ok   = "above" in _vwap_p and "extended" not in _vwap_p  # #11
+                    _pat_ok    = _pattern not in ("–","None","nan","") and "none" not in _pattern.lower()  # #12
+                    _timing_fails = sum([not _entry_ok, not _vwap_ok, not _pat_ok])
+
+                    # ── VERDICT — identical logic to full checklist ─────────────
+                    _all_pass     = _q_fails == 0 and _timing_fails == 0
+                    _timing_only  = _q_fails == 0 and _timing_fails > 0
+                    _partial      = _q_fails <= 2 and _timing_fails <= 1
+
+                    if _all_pass:
                         return "✅ Ready to Buy", "#3fb950"
-                    elif _quality_fails == 0 and not _timing_ok:
+                    elif _timing_only:
                         return "⏳ Wait for Entry", "#388bfd"
-                    elif _quality_fails <= 2:
+                    elif _partial:
                         return "⚠️ Reduced Size", "#d29922"
                     else:
                         return "🚫 Skip", "#f85149"
+
                 except Exception:
                     return "– Unknown", "#8b949e"
 
@@ -6542,6 +6667,12 @@ with tabs[18]:
             # ── Verdict grid ──────────────────────────────────────────────────
             if _filtered_verdicts:
                 st.markdown(f"**{len(_filtered_verdicts)} stocks** match your filters:")
+                st.caption(
+                    "⚠️ Grid uses scan data only — same rules as the full checklist except "
+                    "live market context (S&P 500 stage) and R:R ratio which require "
+                    "the full checklist to compute. Verdicts will match exactly once you "
+                    "open the full checklist."
+                )
 
                 # Render as a clean colour-coded grid
                 _cols_per_row = 4
@@ -6608,6 +6739,14 @@ with tabs[18]:
                         import yfinance as _yf
                         _spx  = _yf.Ticker("^GSPC").history(period="1y")["Close"]
                         _vix  = _yf.Ticker("^VIX").history(period="5d")["Close"]
+                        # Also try NGX All-Share for context
+                        try:
+                            _ngx = _yf.Ticker("^NGXASI").history(period="1y")["Close"]
+                            _ngx_cur = float(_ngx.iloc[-1])
+                            _ngx_200 = float(_ngx.rolling(200).mean().iloc[-1])
+                            _ngx_ok  = _ngx_cur > _ngx_200
+                        except Exception:
+                            _ngx_ok = True   # default to ok if data unavailable
                         _spx_cur  = float(_spx.iloc[-1])
                         _spx_50   = float(_spx.rolling(50).mean().iloc[-1])
                         _spx_200  = float(_spx.rolling(200).mean().iloc[-1])
