@@ -3,6 +3,7 @@
 # ====================================================
 
 finnhub_key: "YOUR_FINNHUB_FREE_KEY_HERE"
+ngx_pulse_key: "YOUR_NGM_LIVE_KEY_HERE"   # Bearer token from api.ngnmarket.com
 alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE"
 
 # ---- ALPHA VANTAGE SETTINGS ----
@@ -22,6 +23,12 @@ thresholds:
     rs_rating_min: 50
     near_52w_high: 0.85
     score_filter: 25
+  ng:
+    min_3m_perf: 3          # NGX moves slower — 3% minimum 3m return
+    min_volume: 50000       # NGX has lower daily volumes
+    rs_rating_min: 50
+    near_52w_high: 0.85
+    score_filter: 25
 
 # ---- BENCHMARKS ----
 # Primary: S&P 500
@@ -36,6 +43,8 @@ benchmarks:
   russell_3000_growth: "^RAG"
   russell_2500_fallback: "SMMD"
   russell_3000_growth_fallback: "IWZ"
+  ng: "^NGXASI"             # NGX All-Share Index
+  ng_fallback: "FM"         # Frontier Markets ETF as last resort
 
 # ---- US THEMES ----
 us_themes:
@@ -154,7 +163,7 @@ emerging_gems:
     gems_breakout: true
     gems_flow: true
 
-    # ====================================================
+# ====================================================
 # NGX (Nigerian Exchange) SETTINGS
 # ====================================================
 
@@ -166,9 +175,8 @@ emerging_gems:
 # ---- NGX BENCHMARK ----
 # ^NGXASI = NGX All-Share Index on yfinance
 # Fallback: use Nigeria ETF NGEFX or frontier ETF FM
-benchmarks:
-  ng: "^NGXASI"
-  ng_fallback: "FM"
+# (values already set in the single `benchmarks:` block near the top of this file —
+#  duplicate block removed here because YAML overwrites rather than merges duplicate keys)
 
 # ---- NGX THEMES ----
 # yfinance suffix for Lagos Stock Exchange = .LG
@@ -231,7 +239,7 @@ ng_themes:
   healthcare_pharma:
     - FIDSON.LG      # Fidson Healthcare
     - MORISON.LG     # Morison Industries
-    
+    - GEREGU.LG      # Geregu Power
 
   ngx_gems:
     - CHAMS.LG       # Chams — fintech exposure
@@ -242,4 +250,3 @@ ng_themes:
     - FIDELITYBK.LG  # Fidelity — banking growth
     - OKOMUOIL.LG    # Okomu — agric
     - PRESCO.LG      # Presco — palm oil
-
