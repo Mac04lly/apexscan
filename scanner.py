@@ -304,10 +304,15 @@ try:
     from modules.ngx_pulse import get_ngx_history_for_scan, get_ngx_index, validate_api_key as ngx_validate
     _HAS_NGX_PULSE = True
 except ImportError:
-    _HAS_NGX_PULSE = False
-    def get_ngx_history_for_scan(ticker, api_key): return None
-    def get_ngx_index(api_key): return None
-    def ngx_validate(api_key): return {"ok": False, "message": "NGX Pulse module not installed"}
+    try:
+        # Fall back to project-root location (modules/ngx_pulse.py may not exist in this repo)
+        from ngx_pulse import get_ngx_history_for_scan, get_ngx_index, validate_api_key as ngx_validate
+        _HAS_NGX_PULSE = True
+    except ImportError:
+        _HAS_NGX_PULSE = False
+        def get_ngx_history_for_scan(ticker, api_key): return None
+        def get_ngx_index(api_key): return None
+        def ngx_validate(api_key): return {"ok": False, "message": "NGX Pulse module not installed"}
 
 # ── Market Cap Cache (Emerging Gems) ──────────────────────────────────────────
 _mcap_cache: Dict[str, dict] = {}
