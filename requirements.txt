@@ -1,7 +1,9 @@
-yfinance>=0.2.40
-pandas>=2.0.0
-numpy>=1.26.0
-requests>=2.31.0
-pyyaml>=6.0
-streamlit>=1.35.0
-plotly>=5.20.0
+yfinance==0.2.43
+pandas==2.2.2
+numpy==1.26.4
+requests==2.32.3
+pyyaml==6.0.1
+streamlit==1.38.0
+plotly==5.22.0
+curl_cffi==0.7.1
+pyarrow==16.1.0
