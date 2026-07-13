@@ -53,8 +53,11 @@ def load_config(path: str = "config.yaml") -> dict:
     return cfg
 
 
-def build_watchlist(cfg: dict) -> List[str]:
-    return list(set(t for theme in cfg["us_themes"].values() for t in theme))
+def build_watchlist(cfg: dict, market: str = "us") -> List[str]:
+    """Build ticker list for the given market from config themes."""
+    theme_key = "ng_themes" if market == "ng" else "us_themes"
+    themes    = cfg.get(theme_key, {})
+    return list(set(t for theme in themes.values() for t in theme))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -295,6 +298,16 @@ except (ModuleNotFoundError, ImportError):
 
 # ── Benchmark Cache ────────────────────────────────────────────────────────────
 _bench_cache: Dict[str, pd.Series] = {}
+
+# ── NGX Pulse module (optional — graceful fallback if missing) ────────────────
+try:
+    from modules.ngx_pulse import get_ngx_history_for_scan, get_ngx_index, validate_api_key as ngx_validate
+    _HAS_NGX_PULSE = True
+except ImportError:
+    _HAS_NGX_PULSE = False
+    def get_ngx_history_for_scan(ticker, api_key): return None
+    def get_ngx_index(api_key): return None
+    def ngx_validate(api_key): return {"ok": False, "message": "NGX Pulse module not installed"}
 
 # ── Market Cap Cache (Emerging Gems) ──────────────────────────────────────────
 _mcap_cache: Dict[str, dict] = {}
@@ -791,14 +804,32 @@ def analyse_weekly(ticker: str, bench_close: pd.Series) -> dict:
 # ANALYZE STOCK
 # ══════════════════════════════════════════════════════════════════════════════
 
-def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
+def analyze_stock(ticker: str, cfg: dict,
+                  market: str = "auto") -> Optional[Dict]:
     """
     Full ApexScan analysis for one ticker.
+    market="auto" detects from ticker suffix (.LG = NGX, else US).
     Includes: momentum, stage, RS, order flow, VWAP, market structure,
     price action patterns, and Alpha Vantage EPS fundamentals.
     """
-    thresholds   = cfg["thresholds"]["us"]
-    bench_symbol  = cfg["benchmarks"]["us"]
+    # ── Market detection ──────────────────────────────────────────────────
+    if market == "auto":
+        market = "ng" if ticker.upper().endswith(".LG") else "us"
+    _mkt_key     = "ng" if market == "ng" else "us"
+    _is_ngx      = (market == "ng")
+    _mkt_label   = "NGX" if _is_ngx else "US"
+    thresholds   = cfg["thresholds"].get(_mkt_key, cfg["thresholds"]["us"])
+    bench_symbol = cfg["benchmarks"].get(_mkt_key, cfg["benchmarks"]["us"])
+
+    # For NGX: initialise ngx_bench placeholder (fetched inside try block)
+    _ngx_bench   = None
+
+    # NGX: skip Russell benchmarks (not relevant for Nigerian market)
+    if not _is_ngx:
+        bench_r2500  = cfg.get("benchmarks", {}).get("russell_2500", "^R25I")
+        bench_r3000g = cfg.get("benchmarks", {}).get("russell_3000_growth", "^RAG")
+    else:
+        bench_r2500 = bench_r3000g = None
     # Secondary benchmarks — Russell 2500 and Russell 3000 Growth
     # ^R25I = Russell 2500 index, ^RAG = Russell 3000 Growth index
     # ETF fallbacks: SMMD (R2500 ETF), IWZ (R3000 Growth ETF)
@@ -810,7 +841,18 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
     use_av       = bool(av_key and not av_key.startswith("YOUR_"))
 
     try:
-        hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
+        # ── Fetch OHLCV history ──────────────────────────────────────────────
+        if _is_ngx and _HAS_NGX_PULSE:
+            _ngx_key   = cfg.get("ngx_pulse_key","")
+            hist       = get_ngx_history_for_scan(ticker, _ngx_key)
+            if hist is None or len(hist) == 0:
+                hist   = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
+            # Fetch NGX All-Share benchmark (cached — counts as 1 API call per session)
+            if _ngx_bench is None:
+                _ngx_idx   = get_ngx_index(_ngx_key)
+                _ngx_bench = _ngx_idx["df"]["Close"] if _ngx_idx else None
+        else:
+            hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
         if len(hist) < cfg["scan"]["min_history_bars"]:
             log.debug(f"{ticker}: only {len(hist)} bars, skipping")
             return None
@@ -839,25 +881,30 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
         vs_50ma_pct  = price_vs_ma(current_price, ma50)
         vs_200ma_pct = price_vs_ma(current_price, ma200)
 
-        # Primary benchmark — S&P 500
-        bench      = get_benchmark(bench_symbol)
+        # Primary benchmark — S&P 500 (US) or NGX All-Share (NGX)
+        if _is_ngx and _ngx_bench is not None and len(_ngx_bench) > 63:
+            bench = _ngx_bench
+            log.info(f"{ticker}: using NGX All-Share benchmark for RS")
+        else:
+            bench = get_benchmark(bench_symbol)
         rs_3m      = compute_rs(close, bench, 63)
         rs_6m      = compute_rs(close, bench, 126)
 
-        # Secondary benchmarks — Russell 2500 and Russell 3000E Growth
-        _bench_r2500  = get_benchmark(bench_r2500,  cfg["scan"]["history_period"])
-        _bench_r3000g = get_benchmark(bench_r3000g, cfg["scan"]["history_period"])
-
-        # RS vs Russell 2500 (small/mid-cap benchmark — most relevant for emerging growth)
-        rs_r2500  = compute_rs(close, _bench_r2500,  63)   if len(_bench_r2500)  > 63  else None
-        rs_r2500_6m = compute_rs(close, _bench_r2500,  126) if len(_bench_r2500)  > 126 else None
-
-        # RS vs Russell 3000E Growth (broad growth benchmark — quality growth comparison)
-        rs_r3000g   = compute_rs(close, _bench_r3000g, 63)  if len(_bench_r3000g) > 63  else None
-        rs_r3000g_6m= compute_rs(close, _bench_r3000g, 126) if len(_bench_r3000g) > 126 else None
+        # Secondary benchmarks — Russell 2500 and Russell 3000E Growth (US only)
+        if not _is_ngx and bench_r2500 and bench_r3000g:
+            _bench_r2500  = get_benchmark(bench_r2500,  cfg["scan"]["history_period"])
+            _bench_r3000g = get_benchmark(bench_r3000g, cfg["scan"]["history_period"])
+            rs_r2500      = compute_rs(close, _bench_r2500,  63)  if len(_bench_r2500)  > 63  else None
+            rs_r2500_6m   = compute_rs(close, _bench_r2500, 126)  if len(_bench_r2500)  > 126 else None
+            rs_r3000g     = compute_rs(close, _bench_r3000g, 63)  if len(_bench_r3000g) > 63  else None
+            rs_r3000g_6m  = compute_rs(close, _bench_r3000g, 126) if len(_bench_r3000g) > 126 else None
+        else:
+            # NGX: Russell benchmarks not applicable
+            rs_r2500 = rs_r2500_6m = rs_r3000g = rs_r3000g_6m = None
 
         # Multi-benchmark RS leader flag: outperforming ALL three benchmarks = elite
         rs_multi_leader = (
+            not _is_ngx and
             rs_3m is not None and rs_3m > 100 and
             (rs_r2500  is None or rs_r2500  > 100) and
             (rs_r3000g is None or rs_r3000g > 100)
@@ -1148,7 +1195,7 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
 
         return {
             "ticker":          ticker,
-            "market":          "US",
+            "market":          _mkt_label,
             "theme":           theme,
             "price":           round(current_price, 2),
             "stage":           stage,
@@ -1258,16 +1305,29 @@ def analyze_stock(ticker: str, cfg: dict) -> Optional[Dict]:
 # FULL SCAN (two-pass: fast price scan then targeted AV enrichment)
 # ══════════════════════════════════════════════════════════════════════════════
 
-def run_scan(cfg: dict, markets: List[str] = None, universe_override: list = None) -> pd.DataFrame:
-    # universe_override: list of dicts with "ticker" key, or list of ticker strings
+def run_scan(cfg: dict, markets: List[str] = None,
+             universe_override: list = None,
+             market: str = "us") -> pd.DataFrame:
+    """
+    Run the full ApexScan.
+    market="us"  → US stocks (default, existing behaviour)
+    market="ng"  → NGX stocks (Nigerian Exchange)
+    market="all" → Both US and NGX combined
+    universe_override → explicit ticker list (auto-detects market per ticker)
+    """
     if universe_override is not None:
-        # Support both list of dicts (from universe module) and list of strings
         if universe_override and isinstance(universe_override[0], dict):
             tickers = [t["ticker"] for t in universe_override if "ticker" in t]
         else:
             tickers = list(universe_override)
+    elif market == "all":
+        _us_ticks = build_watchlist(cfg, "us")
+        _ng_ticks = build_watchlist(cfg, "ng")
+        tickers   = _us_ticks + _ng_ticks
+    elif market == "ng":
+        tickers = build_watchlist(cfg, "ng")
     else:
-        tickers = build_watchlist(cfg)
+        tickers = build_watchlist(cfg, "us")
     log.info(f"Scanning {len(tickers)} US tickers…")
 
     # Clear per-session caches so each scan starts fresh
@@ -1308,12 +1368,15 @@ def run_scan(cfg: dict, markets: List[str] = None, universe_override: list = Non
             time.sleep(pause)
 
         cfg_no_av = {**cfg, "alpha_vantage_key": ""}
-        data = analyze_stock(ticker, cfg_no_av)
+        # Auto-detect market from ticker suffix
+        _ticker_market = "ng" if ticker.upper().endswith(".LG") else "us"
+        data = analyze_stock(ticker, cfg_no_av, market=_ticker_market)
         if data is None:
             continue
 
-        min_score = cfg["thresholds"]["us"]["score_filter"]
-        min_vol   = cfg["thresholds"]["us"]["min_volume"]
+        _fmkt     = "ng" if data.get("market") == "NGX" else "us"
+        min_score = cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"])["score_filter"]
+        min_vol   = cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"])["min_volume"]
 
         # ── Hard gates — reject regardless of score ────────────────────────
         _is_gem_stock = data.get("is_gem", False)
@@ -1331,7 +1394,7 @@ def run_scan(cfg: dict, markets: List[str] = None, universe_override: list = Non
             continue
 
         # Gate 2: 3M performance — gems need only +2% (they're early, not extended)
-        _min_perf = 2.0 if _is_gem_stock else cfg["thresholds"]["us"].get("min_3m_perf", 5)
+        _min_perf = 2.0 if _is_gem_stock else cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"]).get("min_3m_perf", 5)
         if data["perf_3m_%"] < _min_perf:
             continue
 
