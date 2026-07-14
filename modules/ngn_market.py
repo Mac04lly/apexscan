@@ -1,0 +1,444 @@
+"""
+modules/ngn_market.py — NGN Market API Data Provider
+=====================================================
+Official Nigerian Exchange data via api.ngnmarket.com
+Free tier: 3,000 API calls/month
+Auth: Bearer token (Authorization: Bearer ngm_live_xxxxx)
+
+Available endpoints (Free tier):
+  /v1/market/snapshot   — market-wide summary
+  /v1/market/asi        — All-Share Index data
+  /v1/market/companies  — company list & identifiers
+  /v1/market/indices    — indices list
+  /v1/equities/{symbol} — individual stock data
+  /v1/forex             — forex rates (NGN/USD etc.)
+
+Rate budget strategy (3,000/month = ~100/day):
+  - All OHLCV cached 24h to disk (1 call per ticker per day max)
+  - ASI benchmark cached 24h (1 call per day)
+  - Market snapshot cached 15min (used for context)
+  - Validates key on first use only
+"""
+
+import os
+import json
+import time
+import logging
+import requests
+import pandas as pd
+from pathlib import Path
+from datetime import datetime, timedelta
+from typing import Optional, Dict, List
+
+log = logging.getLogger("apexscan.ngnmarket")
+
+# ── Constants ──────────────────────────────────────────────────────────────────
+NGN_BASE_URL   = "https://api.ngnmarket.com"
+NGN_CACHE_DIR  = Path(__file__).resolve().parent.parent / "data" / "ngn_cache"
+NGN_CACHE_TTL  = 23 * 3600    # 23h — slightly under 24h to ensure freshness
+NGN_RATE_PAUSE = 1.0           # 1s between requests — generous for 3000/month
+NGN_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+# Session-level memory cache
+_mem: Dict[str, dict] = {}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CACHE HELPERS
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _cpath(key: str, ttl: int = None) -> Path:
+    safe = "".join(c if c.isalnum() else "_" for c in key.upper())
+    return NGN_CACHE_DIR / f"{safe}.json"
+
+def _cread(key: str, ttl: int = None) -> Optional[dict]:
+    ttl = ttl or NGN_CACHE_TTL
+    if key in _mem:
+        if time.time() - _mem[key].get("_ts", 0) < ttl:
+            return _mem[key].get("data")
+    path = _cpath(key)
+    try:
+        if path.exists():
+            with open(path) as f:
+                stored = json.load(f)
+            if time.time() - stored.get("_ts", 0) < ttl:
+                _mem[key] = stored
+                return stored.get("data")
+    except Exception:
+        pass
+    return None
+
+def _cwrite(key: str, data) -> None:
+    payload = {"_ts": time.time(), "data": data}
+    _mem[key] = payload
+    try:
+        path = _cpath(key)
+        tmp  = path.with_suffix(".tmp")
+        with open(tmp, "w") as f:
+            json.dump(payload, f, default=str)
+        import shutil
+        shutil.move(str(tmp), str(path))
+    except Exception as e:
+        log.debug(f"Cache write error {key}: {e}")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# HTTP HELPER
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _get(endpoint: str, api_key: str, params: dict = None,
+         ttl: int = None) -> Optional[dict]:
+    """
+    GET request to NGN Market API with caching and rate limiting.
+    Auth: Bearer token per the API docs.
+    """
+    if not api_key or api_key.startswith("YOUR_"):
+        return None
+
+    # Build cache key from endpoint + params
+    cache_key = endpoint + str(sorted((params or {}).items()))
+    cached    = _cread(cache_key, ttl)
+    if cached is not None:
+        log.debug(f"Cache hit: {endpoint}")
+        return cached
+
+    url     = f"{NGN_BASE_URL}{endpoint}"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Accept":        "application/json",
+        "Content-Type":  "application/json",
+    }
+
+    try:
+        time.sleep(NGN_RATE_PAUSE)
+        resp = requests.get(url, headers=headers, params=params or {},
+                           timeout=20)
+        if resp.status_code == 200:
+            data = resp.json()
+            _cwrite(cache_key, data)
+            log.info(f"NGN Market API: {endpoint} → {resp.status_code}")
+            return data
+        elif resp.status_code == 429:
+            log.warning("NGN Market rate limit — wait 60s")
+            time.sleep(60)
+            return None
+        elif resp.status_code in (401, 403):
+            try:
+                _err = resp.json().get("error", {})
+            except Exception:
+                _err = {}
+            if _err.get("code") == "PLAN_REQUIRED":
+                log.warning(
+                    f"NGN Market {endpoint}: requires '{_err.get('required_plan')}' plan "
+                    f"(current: '{_err.get('current_plan')}') — {_err.get('message','')}"
+                )
+            else:
+                log.error(f"NGN Market auth error {resp.status_code}: check Bearer token")
+            return None
+        else:
+            log.warning(f"NGN Market {endpoint}: HTTP {resp.status_code} — {resp.text[:200]}")
+            return None
+    except requests.exceptions.ConnectionError:
+        log.warning(f"NGN Market: connection error — offline or API down")
+        return None
+    except Exception as e:
+        log.debug(f"NGN Market request error {endpoint}: {e}")
+        return None
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PUBLIC FUNCTIONS
+# ══════════════════════════════════════════════════════════════════════════════
+
+def validate_api_key(api_key: str) -> Dict:
+    """
+    Validate the API key by hitting the companies endpoint.
+    Returns {"ok": bool, "message": str, "plan": str}
+    """
+    if not api_key or api_key.startswith("YOUR_"):
+        return {"ok": False, "message": "API key not configured"}
+
+    # Try multiple validation endpoints
+    for ep in ["/v1/market/companies", "/v1/market/snapshot",
+               "/v1/market/indices"]:
+        raw = _get(ep, api_key, ttl=300)
+        if raw is not None:
+            return {
+                "ok":      True,
+                "message": "✅ NGN Market API connected (Free: 3,000 calls/month)",
+                "plan":    "Free",
+            }
+
+    return {
+        "ok":      False,
+        "message": "❌ NGN Market: could not validate key — check Bearer token",
+    }
+
+
+def get_company_list(api_key: str) -> Optional[List[Dict]]:
+    """
+    Fetch the full list of NGX-listed companies with their symbols.
+    Cached for 24h. Returns list of {symbol, name, sector, ...}
+    """
+    raw = _get("/v1/market/companies", api_key, ttl=NGN_CACHE_TTL)
+    if raw:
+        return (raw.get("data") or raw.get("companies") or
+                raw.get("results") or (raw if isinstance(raw, list) else None))
+    return None
+
+
+def get_market_snapshot(api_key: str) -> Optional[Dict]:
+    """
+    Fetch market-wide snapshot: ASI value, market cap, volume, advancers/decliners.
+    Cached for 15 minutes. Used for dashboard market context.
+    """
+    raw = _get("/v1/market/snapshot", api_key, ttl=900)
+    if raw:
+        data = raw.get("data") or raw
+        return {
+            "asi":          _safe_float(data.get("asi") or data.get("all_share_index")),
+            "market_cap":   _safe_float(data.get("market_cap") or data.get("marketCap")),
+            "volume":       _safe_float(data.get("volume") or data.get("trade_volume")),
+            "advancers":    int(data.get("advancers", 0) or 0),
+            "decliners":    int(data.get("decliners", 0) or 0),
+            "unchanged":    int(data.get("unchanged", 0) or 0),
+            "deals":        int(data.get("deals", 0) or 0),
+            "source":       "ngnmarket",
+        }
+    return None
+
+
+def get_ngn_asi_history(api_key: str, days: int = 380) -> Optional[pd.Series]:
+    """
+    Fetch NGX All-Share Index historical values for RS computation.
+    Returns pd.Series with DatetimeIndex. Cached 24h.
+    """
+    cache_key = f"asi_history_{days}"
+    cached    = _cread(cache_key)
+    if cached:
+        try:
+            s = pd.Series(cached)
+            s.index = pd.to_datetime(s.index)
+            return s.sort_index()
+        except Exception:
+            pass
+
+    end   = datetime.now()
+    start = end - timedelta(days=days)
+
+    # Try multiple endpoint patterns
+    endpoints = [
+        ("/v1/market/asi", {
+            "from": start.strftime("%Y-%m-%d"),
+            "to":   end.strftime("%Y-%m-%d"),
+        }),
+        ("/v1/indices/ASI/history", {
+            "startDate": start.strftime("%Y-%m-%d"),
+            "endDate":   end.strftime("%Y-%m-%d"),
+        }),
+        ("/v1/market/indices/asi", {}),
+    ]
+
+    for ep, params in endpoints:
+        raw = _get(ep, api_key, params, ttl=NGN_CACHE_TTL)
+        if raw:
+            try:
+                records = (raw.get("data") or raw.get("history") or
+                          raw.get("values") or (raw if isinstance(raw, list) else None))
+                if records and isinstance(records, list):
+                    df = pd.DataFrame(records)
+                    date_col  = _find_col(df, ["date","time","datetime","trade_date"])
+                    close_col = _find_col(df, ["close","value","index","asi","closing"])
+                    if date_col and close_col:
+                        s = pd.Series(
+                            pd.to_numeric(df[close_col], errors="coerce").values,
+                            index=pd.to_datetime(df[date_col])
+                        ).dropna().sort_index()
+                        if len(s) > 50:
+                            _cwrite(cache_key, s.to_dict())
+                            log.info(f"NGN Market ASI: {len(s)} bars fetched")
+                            return s
+            except Exception as e:
+                log.debug(f"ASI parse error {ep}: {e}")
+
+    # Fallback: yfinance ^NGXASI
+    return _yf_asi_fallback(cache_key)
+
+
+def _yf_asi_fallback(cache_key: str) -> Optional[pd.Series]:
+    try:
+        import yfinance as yf
+        raw = yf.Ticker("^NGXASI").history(period="2y")["Close"]
+        if len(raw) > 50:
+            if hasattr(raw.index, "tz") and raw.index.tz:
+                raw.index = raw.index.tz_convert(None)
+            raw.index = pd.to_datetime(raw.index).normalize()
+            _cwrite(cache_key, raw.to_dict())
+            log.info(f"ASI fallback yfinance: {len(raw)} bars")
+            return raw
+    except Exception as e:
+        log.debug(f"ASI yfinance fallback failed: {e}")
+    return None
+
+
+def get_equity_data(symbol: str, api_key: str,
+                    days: int = 380) -> Optional[pd.DataFrame]:
+    """
+    Fetch OHLCV history for an NGX-listed equity.
+    Symbol: plain NGX symbol, e.g. "DANGCEM", "GTCO", "MTNN"
+    (strip .LG suffix if present)
+
+    Returns DataFrame with columns: Open, High, Low, Close, Volume
+    with DatetimeIndex. Cached 24h.
+    """
+    clean     = symbol.upper().replace(".LG","").strip()
+    cache_key = f"equity_{clean}_{days}"
+
+    cached = _cread(cache_key)
+    if cached:
+        try:
+            df = pd.DataFrame(cached)
+            df.index = pd.to_datetime(df.index)
+            if len(df) > 20:
+                log.debug(f"NGX cache hit: {clean}")
+                return df.sort_index()
+        except Exception:
+            pass
+
+    end   = datetime.now()
+    start = end - timedelta(days=days)
+
+    # Real NGN Market historical price endpoint (requires Starter plan or higher)
+    raw = _get(f"/v1/companies/{clean}/chart", api_key,
+               {"period": "1y", "format": "detailed"}, ttl=NGN_CACHE_TTL)
+    if raw:
+        data = raw.get("data") if isinstance(raw, dict) else raw
+        if isinstance(data, dict):
+            df = _parse_ohlcv(data, clean)
+            if df is not None and len(df) > 20:
+                _cwrite(cache_key, df.to_dict())
+                log.info(f"NGN Market: {clean} — {len(df)} bars")
+                return df
+
+    # Fallback: yfinance .LG suffix
+    return _yf_equity_fallback(clean, cache_key)
+
+
+def _parse_ohlcv(raw: dict, symbol: str) -> Optional[pd.DataFrame]:
+    """Parse various NGN Market OHLCV response formats into a clean DataFrame."""
+    try:
+        records = (
+            raw.get("data") or raw.get("history") or raw.get("ohlcv") or
+            raw.get("prices") or raw.get("results") or
+            (raw if isinstance(raw, list) else None)
+        )
+        if not records or not isinstance(records, list):
+            return None
+
+        df = pd.DataFrame(records)
+        date_col  = _find_col(df, ["date","time","datetime","trade_date","trading_date"])
+        open_col  = _find_col(df, ["open","open_price","opening"])
+        high_col  = _find_col(df, ["high","high_price"])
+        low_col   = _find_col(df, ["low","low_price"])
+        close_col = _find_col(df, ["close","close_price","closing","last","price"])
+        vol_col   = _find_col(df, ["volume","vol","trade_volume","quantity"])
+
+        if not date_col or not close_col:
+            return None
+
+        result = pd.DataFrame({
+            "Open":   pd.to_numeric(df.get(open_col,  df[close_col]), errors="coerce"),
+            "High":   pd.to_numeric(df.get(high_col,  df[close_col]), errors="coerce"),
+            "Low":    pd.to_numeric(df.get(low_col,   df[close_col]), errors="coerce"),
+            "Close":  pd.to_numeric(df[close_col],                     errors="coerce"),
+            "Volume": pd.to_numeric(df.get(vol_col,   0),              errors="coerce"),
+        }, index=pd.to_datetime(df[date_col]))
+
+        result.index.name = "Date"
+        result = result.dropna(subset=["Close"]).sort_index()
+        return result if len(result) > 10 else None
+
+    except Exception as e:
+        log.debug(f"OHLCV parse error for {symbol}: {e}")
+        return None
+
+
+def _yf_equity_fallback(clean: str,
+                         cache_key: str) -> Optional[pd.DataFrame]:
+    """Fallback: yfinance with .LG suffix for Lagos Stock Exchange."""
+    try:
+        import yfinance as yf
+        yf_sym = f"{clean}.LG"
+        df     = yf.Ticker(yf_sym).history(period="2y")
+        if len(df) > 20:
+            if hasattr(df.index, "tz") and df.index.tz:
+                df.index = df.index.tz_convert(None)
+            df.index = pd.to_datetime(df.index).normalize()
+            _cwrite(cache_key, df.to_dict())
+            log.info(f"yfinance fallback: {yf_sym} — {len(df)} bars")
+            return df[["Open","High","Low","Close","Volume"]]
+    except Exception as e:
+        log.debug(f"yfinance fallback failed {clean}: {e}")
+    return None
+
+
+def get_forex_rate(api_key: str,
+                   base: str = "USD") -> Optional[float]:
+    """
+    Get NGN/USD forex rate. Cached 1h.
+    Returns NGN per 1 USD.
+    """
+    raw = _get("/v1/forex", api_key, ttl=3600)
+    if raw:
+        try:
+            data = raw.get("data") or raw
+            if isinstance(data, list):
+                for item in data:
+                    if str(item.get("base","")).upper() == base.upper():
+                        return _safe_float(item.get("rate") or item.get("value"))
+            elif isinstance(data, dict):
+                return _safe_float(data.get(base) or data.get(f"NGN/{base}"))
+        except Exception:
+            pass
+    return None
+
+
+def get_ngn_equity_history(ticker: str,
+                              api_key: str) -> Optional[pd.DataFrame]:
+    """
+    Main entry point called by scanner.py for NGX stocks.
+    Handles both 'DANGCEM' and 'DANGCEM.LG' formats.
+    """
+    return get_equity_data(ticker, api_key, days=400)
+
+
+def get_ngn_asi_index(api_key: str, days: int = 380) -> Optional[Dict]:
+    """
+    Compatibility wrapper for scanner.py, which expects the NGX All-Share
+    Index as {"df": DataFrame-with-a-Close-column}. get_asi_history() returns
+    a bare pd.Series, so wrap it here rather than change the scanner's
+    call site / cache shape.
+    """
+    s = get_asi_history(api_key, days=days)
+    if s is not None and len(s) > 0:
+        return {"df": pd.DataFrame({"Close": s})}
+    return None
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# HELPERS
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _find_col(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
+    """Find the first matching column (case-insensitive)."""
+    for c in candidates:
+        for col in df.columns:
+            if col.lower().strip() == c:
+                return col
+    return None
+
+def _safe_float(v, default: float = 0.0) -> float:
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return default
