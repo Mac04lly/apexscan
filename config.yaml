@@ -2,41 +2,49 @@
 # ApexScan Config — US Market Only
 # ====================================================
 
-finnhub_key: "YOUR_FINNHUB_FREE_KEY_HERE"       # Get free at finnhub.io
-alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE" # Paste your key here
+finnhub_key: "YOUR_FINNHUB_FREE_KEY_HERE"
+ngx_pulse_key: "YOUR_NGM_LIVE_KEY_HERE"   # Bearer token from api.ngnmarket.com
+alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE"
 
 # ---- ALPHA VANTAGE SETTINGS ----
 alpha_vantage:
-  # Free tier: 25 requests/day, 5 requests/minute
-  # Premium tier: higher limits — adjust rate_limit_pause and cache_hours below
-
-  eps_lookback_quarters: 4      # how many quarters of EPS to analyse
-  min_eps_growth: 15            # % minimum quarterly EPS growth to flag
-  min_surprise_pct: 5           # % minimum earnings beat to score positively
-
-  # KEY SETTING: cache for 7 days so you only burn 3 API calls per ticker
-  # on the first scan, then read from cache for the rest of the week
-  cache_hours: 168              # 168h = 7 days (FREE TIER MUST USE 168+)
-
-  rate_limit_pause: 13          # seconds between AV calls (free: 5/min max)
-
-  # Smart batching — only fetch AV data for top N tickers by price momentum
-  # This keeps you well within 25 calls/day on the free tier
-  # Set to 0 to fetch for ALL tickers (premium only)
-  max_av_calls_per_scan: 8      # fetch AV for top 8 tickers only (uses 24 calls)
+  eps_lookback_quarters: 4
+  min_eps_growth: 15
+  min_surprise_pct: 5
+  cache_hours: 168
+  rate_limit_pause: 13
+  max_av_calls_per_scan: 8
 
 # ---- THRESHOLDS ----
 thresholds:
   us:
-    min_3m_perf: 15
-    min_volume: 1_000_000
-    rs_rating_min: 70
+    min_3m_perf: 5
+    min_volume: 300000
+    rs_rating_min: 50
     near_52w_high: 0.85
-    score_filter: 30
+    score_filter: 25
+  ng:
+    min_3m_perf: 3          # NGX moves slower — 3% minimum 3m return
+    min_volume: 50000       # NGX has lower daily volumes
+    rs_rating_min: 50
+    near_52w_high: 0.85
+    score_filter: 25
 
 # ---- BENCHMARKS ----
+# Primary: S&P 500
+# Secondary: Russell 2500 (^R25I) — small/mid-cap growth benchmark
+#            Russell 3000 Growth (^RAG) — broad growth benchmark
+# yfinance ETF fallbacks if index symbols fail:
+#   ^R25I → SMMD (iShares Russell 2500 ETF)
+#   ^RAG  → IWZ  (iShares Russell 3000 Growth ETF)
 benchmarks:
-  us: "^GSPC"   # S&P 500
+  us: "^GSPC"
+  russell_2500: "^R25I"
+  russell_3000_growth: "^RAG"
+  russell_2500_fallback: "SMMD"
+  russell_3000_growth_fallback: "IWZ"
+  ng: "^NGXASI"             # NGX All-Share Index
+  ng_fallback: "FM"         # Frontier Markets ETF as last resort
 
 # ---- US THEMES ----
 us_themes:
@@ -123,28 +131,19 @@ scan:
 
 # ---- ADVANCED SIGNAL THRESHOLDS ----
 advanced:
-  # Order Flow Persistence
-  of_lookback: 10              # days to measure directional persistence
-  of_min_bullish_days: 60      # % of up days to flag as persistent flow
-  of_min_vol_ratio: 1.5        # up-day volume / down-day volume minimum
-
-  # VWAP / Auction Market Theory
-  vwap_lookback: 20            # days for rolling VWAP calculation
-  vwap_reclaim_alert: true     # alert when price reclaims VWAP on volume
-
-  # Market Structure
-  swing_lookback: 5            # bars each side for swing pivot detection
-
-  # Price Action Patterns
-  pa_context_vol_mult: 1.2     # volume multiplier for context candle
-  pa_engulf_min_body: 0.5      # minimum body size as % of prior candle
-  pa_sfp_min_wick: 0.3         # minimum wick size as % of candle range
-
-  # Alert triggers (new signal types)
+  of_lookback: 10
+  of_min_bullish_days: 60
+  of_min_vol_ratio: 1.5
+  vwap_lookback: 20
+  vwap_reclaim_alert: true
+  swing_lookback: 5
+  pa_context_vol_mult: 1.2
+  pa_engulf_min_body: 0.5
+  pa_sfp_min_wick: 0.3
   alert_persistent_flow: true
   alert_sfp_setup: true
   alert_vwap_imbalance: true
-  alert_sfp_min_score: 50      # minimum apex score to fire SFP alert
+  alert_sfp_min_score: 50
 
 # ---- EMERGING GEMS SETTINGS ----
 emerging_gems:
@@ -164,77 +163,90 @@ emerging_gems:
     gems_breakout: true
     gems_flow: true
 
-# ---- NGN MARKET API (Nigerian Exchange) ----
-ngn_market_key: "YOUR_NGN_MARKET_KEY_HERE"
+# ====================================================
+# NGX (Nigerian Exchange) SETTINGS
+# ====================================================
 
-# ---- NGX THRESHOLDS (different from US — NGX stocks have lower volume/price) ----
-thresholds:
-  ngx:
-    min_3m_perf: 5        # Lower than US — NGX moves slower
-    min_volume: 50000     # Much lower — NGX is less liquid
-    rs_rating_min: 50     # vs NGX All-Share Index
-    near_52w_high: 0.85
-    score_filter: 20      # Lower score filter for NGX
-    min_price_ngn: 0.5    # Minimum price in Naira (filters out penny stocks)
+# ---- NGX THRESHOLDS ----
+# Note: NGX uses lower volume floors (thinner market)
+# Min 3m perf is lower (NGX moves slower than US)
+# score_filter same as US for quality control
 
-# ---- NGX BENCHMARKS ----
-benchmarks:
-  ngx: "^NGSE"           # NGX All-Share Index (yfinance)
-  ngx_fallback: "NGSENG.JA"
+# ---- NGX BENCHMARK ----
+# ^NGXASI = NGX All-Share Index on yfinance
+# Fallback: use Nigeria ETF NGEFX or frontier ETF FM
+# (values already set in the single `benchmarks:` block near the top of this file —
+#  duplicate block removed here because YAML overwrites rather than merges duplicate keys)
 
-# ---- NG THEMES (Nigerian Exchange tickers — .LA suffix for yfinance) ----
+# ---- NGX THEMES ----
+# yfinance suffix for Lagos Stock Exchange = .LG
 ng_themes:
-  ngx_banking:
-    - GTCO.LA
-    - ZENITHBANK.LA
-    - UBA.LA
-    - ACCESSCORP.LA
-    - STANBIC.LA
-    - FCMB.LA
-    - FIDELITYBK.LA
-    - WEMABANK.LA
-  ngx_telecoms:
-    - AIRTELAFRI.LA
-    - MTNN.LA
-  ngx_consumer:
-    - NESTLE.LA
-    - UNILEVER.LA
-    - NB.LA
-    - CADBURY.LA
-    - FLOURMILL.LA
-    - DANGSUGAR.LA
-    - HONYFLOUR.LA
-  ngx_oil_gas:
-    - SEPLAT.LA
-    - TOTAL.LA
-    - CONOIL.LA
-    - OANDO.LA
-    - ETERNA.LA
-  ngx_industrial:
-    - DANGCEM.LA
-    - LAFARGE.LA
-    - BUA.LA
-    - BUACEMENT.LA
-    - BERGER.LA
-  ngx_insurance:
-    - AIICO.LA
-    - MANSARD.LA
-    - NEM.LA
-    - CORNERST.LA
-  ngx_tech:
-    - CWG.LA
-    - NNFM.LA
-    - CHAMS.LA
-  ngx_realestate:
-    - UACN.LA
-    - REGALINS.LA
-    - JBERGER.LA
+  banking:
+    - GTCO.LG        # Guaranty Trust Holding
+    - ZENITHBA.LG    # Zenith Bank
+    - FBNH.LG        # FBN Holdings
+    - ACCESS.LG      # Access Holdings
+    - UBA.LG         # United Bank for Africa
+    - STANBIC.LG     # Stanbic IBTC
+    - FIDELITYBK.LG  # Fidelity Bank
+    - FCMB.LG        # FCMB Group
+    - JAIZBANK.LG    # Jaiz Bank
+    - WEMABANK.LG    # Wema Bank
 
-# ---- NGX SCAN SETTINGS ----
-ngx_scan:
-  enabled: true
-  rate_limit_pause: 2.0      # Slower — yfinance NGX data is less reliable
-  history_period: "1y"
-  min_history_bars: 50       # Lower — some NGX stocks have less history
-  use_ngn_market_api: true   # Use NGN Market API for real-time data
-  ngn_market_base: "https://api.ngnmarket.com/v1"
+  cement_building:
+    - DANGCEM.LG     # Dangote Cement
+    - BUACEMENT.LG   # BUA Cement
+    - WAPCO.LG       # Lafarge Africa
+
+  food_beverages:
+    - BUAFOODS.LG    # BUA Foods
+    - NESTLE.LG      # Nestle Nigeria
+    - FLOURMILL.LG   # Flour Mills of Nigeria
+    - NNFM.LG        # Northern Nigeria Flour Mills
+    - DANGSUGAR.LG   # Dangote Sugar
+    - INTBREW.LG     # International Breweries
+    - NB.LG          # Nigerian Breweries
+    - CADBURY.LG     # Cadbury Nigeria
+    - HONYFLOUR.LG   # Honeywell Flour
+
+  telecoms_tech:
+    - MTNN.LG        # MTN Nigeria
+    - AIRTELAF.LG    # Airtel Africa
+    - CHAMS.LG       # Chams Holding
+
+  oil_gas:
+    - SEPLAT.LG      # Seplat Energy
+    - OANDO.LG       # Oando
+    - TOTAL.LG       # TotalEnergies Nigeria
+    - CONOIL.LG      # Conoil
+    - ARDOVA.LG      # Ardova
+    - ETERNA.LG      # Eterna
+
+  consumer_retail:
+    - UNILEVER.LG    # Unilever Nigeria
+    - PZ.LG          # PZ Cussons
+    - PRESCO.LG      # Presco
+    - OKOMUOIL.LG    # Okomu Oil Palm
+    - TRANSCORP.LG   # Transcorp
+
+  insurance_finance:
+    - AIICO.LG       # AIICO Insurance
+    - MANSARD.LG     # AXA Mansard
+    - CORNERST.LG    # Cornerstone Insurance
+    - SUNUASSUR.LG   # Sunu Assurances
+    - CUSTODIAN.LG   # Custodian Investment
+
+  healthcare_pharma:
+    - FIDSON.LG      # Fidson Healthcare
+    - MORISON.LG     # Morison Industries
+    - GEREGU.LG      # Geregu Power
+
+  ngx_gems:
+    - CHAMS.LG       # Chams — fintech exposure
+    - JAIZBANK.LG    # Jaiz — Islamic banking growth
+    - GEREGU.LG      # Geregu — power sector
+    - TRANSCORP.LG   # Transcorp — conglomerate
+    - ARDOVA.LG      # Ardova — energy downstream
+    - FIDELITYBK.LG  # Fidelity — banking growth
+    - OKOMUOIL.LG    # Okomu — agric
+    - PRESCO.LG      # Presco — palm oil
