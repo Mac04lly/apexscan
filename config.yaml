@@ -1,10 +1,19 @@
 # ====================================================
-# ApexScan Config — US Market Only
+# ApexScan Config — US + NGX Markets
 # ====================================================
 
 finnhub_key: "YOUR_FINNHUB_FREE_KEY_HERE"
-ngx_pulse_key: "YOUR_NGM_LIVE_KEY_HERE"   # Bearer token from api.ngnmarket.com
 alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE"
+
+# ---- NGX DATA PROVIDERS (two SEPARATE services — do not confuse them) ----
+# NGX Pulse (ngxpulse.ng) — primary NGX source. 150+ equities in one bulk
+# call, full index history back to 1996, ETFs, disclosures, dividends.
+# Auth: X-API-Key header. Personal (free) tier: 100 req/day, 10/min.
+ngx_pulse_key: "YOUR_NGXPULSE_API_KEY_HERE"
+
+# NGN Market (api.ngnmarket.com) — secondary/backup NGX source.
+# Auth: Bearer token. Free tier: 3,000 req/month.
+ngn_market_key: "YOUR_NGM_LIVE_KEY_HERE"
 
 # ---- ALPHA VANTAGE SETTINGS ----
 alpha_vantage:
@@ -182,71 +191,187 @@ emerging_gems:
 # yfinance suffix for Lagos Stock Exchange = .LG
 ng_themes:
   banking:
-    - GTCO.LG        # Guaranty Trust Holding
-    - ZENITHBA.LG    # Zenith Bank
-    - FBNH.LG        # FBN Holdings
-    - ACCESS.LG      # Access Holdings
-    - UBA.LG         # United Bank for Africa
-    - STANBIC.LG     # Stanbic IBTC
-    - FIDELITYBK.LG  # Fidelity Bank
-    - FCMB.LG        # FCMB Group
-    - JAIZBANK.LG    # Jaiz Bank
-    - WEMABANK.LG    # Wema Bank
-
-  cement_building:
-    - DANGCEM.LG     # Dangote Cement
-    - BUACEMENT.LG   # BUA Cement
-    - WAPCO.LG       # Lafarge Africa
-
-  food_beverages:
-    - BUAFOODS.LG    # BUA Foods
-    - NESTLE.LG      # Nestle Nigeria
-    - FLOURMILL.LG   # Flour Mills of Nigeria
-    - NNFM.LG        # Northern Nigeria Flour Mills
-    - DANGSUGAR.LG   # Dangote Sugar
-    - INTBREW.LG     # International Breweries
-    - NB.LG          # Nigerian Breweries
-    - CADBURY.LG     # Cadbury Nigeria
-    - HONYFLOUR.LG   # Honeywell Flour
-
-  telecoms_tech:
-    - MTNN.LG        # MTN Nigeria
-    - AIRTELAF.LG    # Airtel Africa
-    - CHAMS.LG       # Chams Holding
-
-  oil_gas:
-    - SEPLAT.LG      # Seplat Energy
-    - OANDO.LG       # Oando
-    - TOTAL.LG       # TotalEnergies Nigeria
-    - CONOIL.LG      # Conoil
-    - ARDOVA.LG      # Ardova
-    - ETERNA.LG      # Eterna
-
-  consumer_retail:
-    - UNILEVER.LG    # Unilever Nigeria
-    - PZ.LG          # PZ Cussons
-    - PRESCO.LG      # Presco
-    - OKOMUOIL.LG    # Okomu Oil Palm
-    - TRANSCORP.LG   # Transcorp
+    - ABBEYBDS.LG        # Abbey Mortgage Bank Plc
+    - ACCESSCORP.LG        # Access Holdings Plc
+    - ETI.LG        # Ecobank Transnational Incorporated
+    - FCMB.LG        # FCMB Group Plc
+    - FIDELITYBK.LG        # Fidelity Bank Plc
+    - FIRSTHOLDCO.LG        # First HoldCo Plc
+    - GTCO.LG        # Guaranty Trust Holding Company Plc
+    - INFINITY.LG        # Infinity Trust Mortgage Bank Plc
+    - JAIZBANK.LG        # Jaiz Bank Plc
+    - LIVINGTRUST.LG        # Livingtrust Mortgage Bank PLC
+    - NPFMCRFBK.LG        # NPF Microfinance Bank Plc
+    - STANBIC.LG        # Stanbic IBTC Holdings PLC
+    - STERLINGNG.LG        # Sterling Financial Holdings Company Plc
+    - UBA.LG        # United Bank for Africa Plc
+    - UNITYBNK.LG        # Unity Bank Plc
+    - WEMABANK.LG        # Wema Bank PLC
+    - ZENITHBANK.LG        # Zenith Bank Plc
 
   insurance_finance:
-    - AIICO.LG       # AIICO Insurance
-    - MANSARD.LG     # AXA Mansard
-    - CORNERST.LG    # Cornerstone Insurance
-    - SUNUASSUR.LG   # Sunu Assurances
-    - CUSTODIAN.LG   # Custodian Investment
+    - AFRINSURE.LG        # African Alliance Insurance Plc
+    - AIICO.LG        # AIICO Insurance Plc
+    - CONHALLPLC.LG        # Consolidated Hallmark Holdings Plc
+    - CORNERST.LG        # Cornerstone Insurance Plc
+    - CUSTODIAN.LG        # Custodian Investment Plc
+    - FTGINSURE.LG        # Fortis Global Insurance Plc
+    - GUINEAINS.LG        # Guinea Insurance Plc
+    - INTENEGINS.LG        # International Energy Insurance Plc
+    - LASACO.LG        # LASACO Assurance Plc
+    - LINKASSURE.LG        # Linkage Assurance Plc
+    - MANSARD.LG        # AXA Mansard Insurance Plc
+    - MBENEFIT.LG        # Mutual Benefits Assurance Plc
+    - NEM.LG        # NEM Insurance Plc
+    - PRESTIGE.LG        # Prestige Assurance Plc
+    - REGALINS.LG        # Regency Alliance Insurance Plc
+    - ROYALEX.LG        # Royal Exchange Plc
+    - SOVRENINS.LG        # Sovereign Trust Insurance Plc
+    - STACO.LG        # STACO Insurance Plc
+    - SUNUASSUR.LG        # Sunu Assurances Nigeria Plc
+    - UNIVINSURE.LG        # Universal Insurance Plc
+    - VERITASKAP.LG        # Veritas Kapital Assurance Plc
+    - WAPIC.LG        # Coronation Insurance Plc
+
+  capital_markets:
+    - AFRIPRUD.LG        # Africa Prudential Plc
+    - DEAPCAP.LG        # DEAP Capital Management & Trust Plc
+    - NGXGROUP.LG        # The Nigerian Exchange Group Plc
+    - UCAP.LG        # United Capital Plc
+    - VFDGROUP.LG        # VFD Group PLC
+
+  cement_building:
+    - ALEX.LG        # Aluminium Extrusion Industries Plc
+    - BERGER.LG        # Berger Paints Nigeria Plc
+    - BETAGLAS.LG        # Beta Glass Plc
+    - BUACEMENT.LG        # BUA Cement Plc
+    - CAP.LG        # Chemical and Allied Products Plc
+    - DANGCEM.LG        # Dangote Cement Plc
+    - JBERGER.LG        # Julius Berger Nigeria Plc
+    - PREMPAINTS.LG        # Premier Paints Plc
+    - WAPCO.LG        # Lafarge Africa Plc
+
+  food_beverages:
+    - BUAFOODS.LG        # BUA Foods PLC
+    - CADBURY.LG        # Cadbury Nigeria Plc
+    - CHAMPION.LG        # Champion Breweries Plc
+    - DANGSUGAR.LG        # Dangote Sugar Refinery Plc
+    - FTNCOCOA.LG        # FTN Cocoa Processors Plc
+    - GOLDBREW.LG        # Golden Guinea Breweries Plc
+    - GUINNESS.LG        # Guinness Nigeria Plc
+    - HONYFLOUR.LG        # Honeywell Flour Mills Plc
+    - INTBREW.LG        # International Breweries Plc
+    - LIVESTOCK.LG        # Livestock Feeds Plc
+    - MULTITREX.LG        # Multi-Trex Integrated Foods Plc
+    - NASCON.LG        # Nascon Allied Industries Plc
+    - NB.LG        # Nigerian Breweries Plc
+    - NESTLE.LG        # Nestle Nigeria Plc
+    - NNFM.LG        # Northern Nigeria Flour Mills Plc
+    - TANTALIZER.LG        # Tantalizers PLC
+    - UNIONDICON.LG        # Union Dicon Salt Plc
+
+  consumer_retail:
+    - PZ.LG        # PZ Cussons Nigeria Plc
+    - UNILEVER.LG        # Unilever Nigeria Plc
+    - VITAFOAM.LG        # Vitafoam Nigeria Plc
+
+  telecoms_tech:
+    - AIRTELAFRI.LG        # Airtel Africa Plc
+    - CHAMS.LG        # Chams Holding Company Plc
+    - CWG.LG        # CWG Plc
+    - DAARCOMM.LG        # Daar Communications Plc
+    - ETRANZACT.LG        # eTranzact International Plc
+    - LEGENDINT.LG        # Legend Internet Plc
+    - MTNN.LG        # MTN Nigeria Communications PLC
+    - NCR.LG        # NCR (Nigeria) Plc
+    - NSLTECH.LG        # Secure Electronic Technology Plc
+    - OMATEK.LG        # Omatek Ventures Plc
+
+  oil_gas:
+    - ARADEL.LG        # Aradel Holdings Plc
+    - CONOIL.LG        # Conoil Plc
+    - ETERNA.LG        # Eterna Plc
+    - OANDO.LG        # Oando PLC
+    - SEPLAT.LG        # Seplat Energy Plc
+    - TOTAL.LG        # TotalEnergies Marketing Nigeria Plc
+
+  power_energy:
+    - GEREGU.LG        # Geregu Power Plc
+    - TRANSPOWER.LG        # Transcorp Power Plc
 
   healthcare_pharma:
-    - FIDSON.LG      # Fidson Healthcare
-    - MORISON.LG     # Morison Industries
-    - GEREGU.LG      # Geregu Power
+    - FIDSON.LG        # Fidson Healthcare Plc
+    - IMG.LG        # Industrial and Medical Gases Nigeria Plc
+    - MAYBAKER.LG        # May & Baker Nigeria plc
+    - MECURE.LG        # Mecure Industries PLC
+    - NEIMETH.LG        # Neimeth International Pharmaceuticals Plc
+    - PHARMDEKO.LG        # Pharma Deko Plc
+
+  real_estate_reits:
+    - SFSREIT.LG        # SFS Real Estate Investment Trust Fund
+    - UHOMREIT.LG        # UH Real Estate Investment Trust
+    - UPDC.LG        # UPDC Plc
+    - UPDCREIT.LG        # UPDC Real Estate Investment Trust
+
+  services_logistics:
+    - ABCTRANS.LG        # ABC Transport Plc
+    - CAVERTON.LG        # Caverton Offshore Support Group Plc
+    - CILEASING.LG        # C & I Leasing Plc
+    - IKEJAHOTEL.LG        # Ikeja Hotel Plc
+    - NAHCO.LG        # Nigerian Aviation Handling Company Plc
+    - REDSTAREX.LG        # Red Star Express Plc
+    - RTBRISCOE.LG        # R.T Briscoe (Nigeria) Plc
+    - SKYAVN.LG        # Skyway Aviation Handling Company Plc
+    - TRANSCOHOT.LG        # Transcorp Hotels Plc
+    - TRANSEXPR.LG        # Trans-Nationwide Express Plc
+
+  agric_mining:
+    - ELLAHLAKES.LG        # Ellah Lakes Plc
+    - JAPAULGOLD.LG        # Japaul Gold & Ventures Plc
+    - MULTIVERSE.LG        # Multiverse Mining and Exploration Plc
+    - OKOMUOIL.LG        # The Okomu Oil Palm Company Plc
+    - PRESCO.LG        # Presco Plc
+    - RONCHESS.LG        # Ronchess Global Resources PLC
+    - ZICHIS.LG        # Zichis Agro Allied Industries PLC
+
+  industrial_manufacturing:
+    - CUTIX.LG        # Cutix Plc
+    - ENAMELWA.LG        # Nigerian Enamelware PLC
+    - EUNISELL.LG        # Eunisell Interlinked Plc
+    - HMCALL.LG        # Haldane McCall Plc
+    - MORISON.LG        # Morison Industries Plc
+    - SCOA.LG        # SCOA Nigeria Plc
+    - TRIPPLEG.LG        # Tripple Gee & Company Plc
+
+  conglomerates_other:
+    - ACADEMY.LG        # Academy Press Plc
+    - AFROMEDIA.LG        # Afromedia Plc
+    - AUSTINLAZ.LG        # Austin Laz & Company Plc
+    - BAPLC.LG        # Briclinks Africa Plc
+    - CHELLARAM.LG        # Chellarams Plc
+    - EKOCORP.LG        # Ekocorp Plc
+    - JOHNHOLT.LG        # John Holt Plc
+    - JULI.LG        # Juli plc
+    - LEARNAFRCA.LG        # Learn Africa Plc
+    - MCNICHOLS.LG        # McNichols PLC
+    - THOMASWY.LG        # Thomas Wyatt Nigeria Plc
+    - TIP.LG        # The Initiates Plc
+    - TRANSCORP.LG        # Transnational Corporation Plc
+    - UACN.LG        # UAC of Nigeria PLC
+    - UPL.LG        # University Press Plc
 
   ngx_gems:
-    - CHAMS.LG       # Chams — fintech exposure
-    - JAIZBANK.LG    # Jaiz — Islamic banking growth
-    - GEREGU.LG      # Geregu — power sector
-    - TRANSCORP.LG   # Transcorp — conglomerate
-    - ARDOVA.LG      # Ardova — energy downstream
-    - FIDELITYBK.LG  # Fidelity — banking growth
-    - OKOMUOIL.LG    # Okomu — agric
-    - PRESCO.LG      # Presco — palm oil
+    - CHAMS.LG        # Chams — fintech/tech exposure
+    - JAIZBANK.LG     # Jaiz — Islamic banking growth
+    - GEREGU.LG       # Geregu — power sector
+    - TRANSCORP.LG    # Transcorp — conglomerate
+    - TRANSPOWER.LG   # Transcorp Power — power growth
+    - FIDELITYBK.LG   # Fidelity — banking growth
+    - OKOMUOIL.LG     # Okomu — agric
+    - PRESCO.LG       # Presco — palm oil
+    - ARADEL.LG       # Aradel — indigenous energy
+    - UCAP.LG         # United Capital — capital markets growth
+    - MECURE.LG       # Mecure — healthcare growth
+    - VFDGROUP.LG     # VFD Group — diversified fintech
+    - CAVERTON.LG     # Caverton — logistics/aviation services
+    - MULTIVERSE.LG   # Multiverse Mining — small-cap momentum
