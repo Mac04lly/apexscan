@@ -19,11 +19,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import json
 
-from scanner import load_config, run_scan, save_report
-import time as _time
-from datetime import timezone as _timezone
-import threading as _threading
-import hashlib as _hashlib
+from scanner import load_config, run_scan, save_report, run_ngx_scan
 
 # Import each module independently so one failure doesn't break everything
 def _safe_import(module_path, names):
@@ -43,6 +39,8 @@ _ab   = _safe_import("modules.ai_briefing",       ["generate_briefing", "load_la
 _wm   = _safe_import("modules.watchlist_manager", ["load_watchlists", "save_watchlists", "add_ticker",
                                                     "remove_ticker", "create_list", "delete_list",
                                                     "scan_watchlist", "import_tickers", "export_watchlist"])
+_ngx  = _safe_import("modules.ngx_data",         ["get_ngx_quote", "get_all_ngx_tickers",
+                                                    "get_ngx_benchmark", "get_ngx_fundamentals"])
 _al   = _safe_import("modules.alerts",            ["load_alert_settings", "save_alert_settings",
                                                     "test_telegram", "send_email", "dispatch_alert",
                                                     "check_and_fire_alerts", "build_daily_briefing_alert"])
@@ -79,201 +77,19 @@ check_and_fire_alerts  = _al["check_and_fire_alerts"]
 build_daily_briefing_alert = _al["build_daily_briefing_alert"]
 get_upcoming_earnings_for_watchlist = _av["get_upcoming_earnings_for_watchlist"]
 
-# Watchlist helper stubs — only define if module didn't load them
-if scan_watchlist is None:
-    def scan_watchlist(list_name, tickers, cfg, analyze_fn):
-        import pandas as pd
-        rows = []
-        for tk in tickers:
-            try:
-                r = analyze_fn(tk, cfg)
-                if r: rows.append(r)
-            except Exception:
-                pass
-        return pd.DataFrame(rows) if rows else pd.DataFrame()
-
 # Fallback: if alert module missing, define minimal stubs so app doesn't crash
 if load_alert_settings is None:
     def load_alert_settings(): return {"alerts_enabled": False, "telegram_token": "", "telegram_chat_id": "", "email_from": "", "email_password": "", "email_to": "", "alert_breakouts": True, "alert_stop_breach": True, "alert_earnings": True, "alert_sfp_setup": True, "alert_persistent_flow": True, "alert_vwap_imbalance": True, "min_score_alert": 60}
-
-# ── AI Briefing stubs — module may not exist; our built-in engine handles it ──
-if generate_briefing is None:
-    def generate_briefing(*args, **kwargs): return ""
-if load_latest_briefing is None:
-    def load_latest_briefing():
-        """Load last saved briefing from disk (all fallback paths)."""
-        _paths = [
-            Path(__file__).resolve().parent / "data" / "last_briefing.md",
-            Path("/tmp/apexscan_briefing.md"),
-        ]
-        for _p in _paths:
-            try:
-                if _p.exists() and _p.stat().st_size > 10:
-                    return _p.read_text(encoding="utf-8")
-            except Exception:
-                pass
-        return ""
 if save_alert_settings is None:
     def save_alert_settings(s): pass
-if dispatch_alert is None:
-    def dispatch_alert(settings: dict, message: str, title: str = "") -> dict:
-        """Stub: send via Telegram if token configured, else return failure silently."""
-        result = {"telegram": False, "email": False}
-        try:
-            import urllib.request, urllib.parse
-            _tok = settings.get("telegram_token","")
-            _cid = settings.get("telegram_chat_id","")
-            if _tok and _cid:
-                _text = (f"*{title}*\n\n{message}" if title else message)
-                _body = urllib.parse.urlencode({
-                    "chat_id": _cid,
-                    "text": _text[:4096],
-                    "parse_mode": "Markdown",
-                }).encode()
-                _req = urllib.request.Request(
-                    f"https://api.telegram.org/bot{_tok}/sendMessage",
-                    data=_body, method="POST"
-                )
-                _req.add_header("Content-Type","application/x-www-form-urlencoded")
-                with urllib.request.urlopen(_req, timeout=8) as _resp:
-                    _js = json.loads(_resp.read().decode())
-                    result["telegram"] = _js.get("ok", False)
-        except Exception as _te:
-            pass
-        return result
-
-# ── Trade Journal storage (separate from trade log — captures checklist data) ──
-_JOURNAL_FILE = _PORT_DIR / "trade_journal.json"  if "_PORT_DIR" in dir() else Path("data/trade_journal.json")
-_JOURNAL_TMP  = Path("/tmp/apexscan_journal.json")
-
-def load_journal() -> list:
-    for _p in (_JOURNAL_FILE, _JOURNAL_TMP):
-        try:
-            if _p.exists() and _p.stat().st_size > 2:
-                with open(_p) as _f:
-                    _d = json.load(_f)
-                if isinstance(_d, list): return _d
-        except Exception: pass
-    return []
-
-def save_journal(journal: list):
-    for _p in (_JOURNAL_FILE, _JOURNAL_TMP):
-        try:
-            _p.parent.mkdir(parents=True, exist_ok=True)
-            _tmp = _p.with_suffix(".tmp")
-            with open(_tmp,"w") as _f: json.dump(journal, _f, indent=2, default=str)
-            import shutil; shutil.move(str(_tmp), str(_p))
-        except Exception: pass
-
-# ── Checklist watchlist storage (setups to monitor for status change) ──────────
-_CHKWATCH_FILE = _PORT_DIR / "checklist_watchlist.json" if "_PORT_DIR" in dir() else Path("data/checklist_watchlist.json")
-_CHKWATCH_TMP  = Path("/tmp/apexscan_chkwatch.json")
-
-def load_chk_watchlist() -> list:
-    for _p in (_CHKWATCH_FILE, _CHKWATCH_TMP):
-        try:
-            if _p.exists() and _p.stat().st_size > 2:
-                with open(_p) as _f:
-                    _d = json.load(_f)
-                if isinstance(_d, list): return _d
-        except Exception: pass
-    return []
-
-def save_chk_watchlist(items: list):
-    for _p in (_CHKWATCH_FILE, _CHKWATCH_TMP):
-        try:
-            _p.parent.mkdir(parents=True, exist_ok=True)
-            _tmp = _p.with_suffix(".tmp")
-            with open(_tmp,"w") as _f: json.dump(items, _f, indent=2, default=str)
-            import shutil; shutil.move(str(_tmp), str(_p))
-        except Exception: pass
-# ── Persistent Watchlist Engine ───────────────────────────────────────────────
-# Always override the module stubs with a robust JSON-backed implementation.
-# Streamlit Cloud: uses /tmp/apexscan_watchlists.json (survives rerenders,
-# clears on dyno restart — acceptable; users must re-add after server restarts).
-# Local / self-hosted: uses watchlists.json next to dashboard.py (permanent).
-import json as _json, os as _os
-
-_WL_LOCAL  = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "watchlists.json")
-_WL_TMP    = "/tmp/apexscan_watchlists.json"
-_WL_DEFAULTS = {
-    "High Conviction": [],
-    "Monitoring":      [],
-    "Earnings Soon":   [],
-    "Swing Trades":    [],
-}
-
-def _wl_path():
-    """Return a writable path — prefer local (persistent), fall back to /tmp."""
-    try:
-        _os.makedirs(_os.path.dirname(_WL_LOCAL), exist_ok=True)
-        # Test write access
-        with open(_WL_LOCAL, "a") as _f:
-            pass
-        return _WL_LOCAL
-    except Exception:
-        return _WL_TMP
-
-def load_watchlists():
-    """Load watchlists from JSON file, merging with defaults so new lists always appear."""
-    path = _wl_path()
-    data = dict(_WL_DEFAULTS)
-    if _os.path.exists(path):
-        try:
-            with open(path, "r") as _f:
-                saved = _json.load(_f)
-            if isinstance(saved, dict):
-                for k, v in saved.items():
-                    if isinstance(v, list):
-                        data[k] = v
-        except Exception:
-            pass
-    return data
-
-def save_watchlists(wls):
-    """Save watchlists to JSON file. Always writes to ensure persistence."""
-    path = _wl_path()
-    try:
-        with open(path, "w") as _f:
-            _json.dump(wls, _f, indent=2)
-    except Exception as _e:
-        import streamlit as _st
-        _st.error(f"⚠️ Could not save watchlists: {_e}")
-
-def add_ticker(wls, list_name, ticker):
-    ticker = ticker.upper().strip()
-    if list_name in wls and ticker and ticker not in wls[list_name]:
-        wls[list_name].append(ticker)
-    return wls
-
-def remove_ticker(wls, list_name, ticker):
-    if list_name in wls and ticker in wls[list_name]:
-        wls[list_name].remove(ticker)
-    return wls
-
-def create_list(wls, list_name):
-    if list_name and list_name not in wls:
-        wls[list_name] = []
-    return wls
-
-def delete_list(wls, list_name):
-    if list_name in wls:
-        del wls[list_name]
-    return wls
-
-def import_tickers(wls, list_name, comma_str):
-    tickers = [t.strip().upper() for t in comma_str.replace("\n", ",").split(",") if t.strip()]
-    for tk in tickers:
-        if tk and tk not in wls.get(list_name, []):
-            wls.setdefault(list_name, []).append(tk)
-    return wls
-
-def export_watchlist(wls, list_name):
-    return ", ".join(wls.get(list_name, []))
+if load_watchlists is None:
+    def load_watchlists(): return {"High Conviction": [], "Monitoring": [], "Earnings Soon": [], "Swing Trades": []}
+if save_watchlists is None:
+    def save_watchlists(w): pass
 
 # ── Page Config ───────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="ApexScan — US & NGX Stock Scanner",
+    page_title="ApexScan — US Stock Scanner",
     page_icon="📡",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -370,986 +186,6 @@ def load_latest_report() -> pd.DataFrame:
     if reports:
         return pd.read_csv(reports[0], index_col="rank")
     return pd.DataFrame()
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# CORRECTION WATCHLIST — William O'Neil's basing-during-corrections lesson
-# "New bases form during market corrections. Don't spend corrections trying
-#  to predict the bottom. Spend them building your watchlist."
-# Purely additive: does not touch the Pre-Buy Checklist's own local market
-# context check, and does not alter any existing watchlist logic.
-# ══════════════════════════════════════════════════════════════════════════════
-
-@st.cache_data(ttl=900)  # 15 min cache, independent of the Pre-Buy Checklist's own cache
-def get_broad_market_condition() -> dict:
-    """Lightweight S&P 500 stage check used only by the Correction Watchlist feature."""
-    try:
-        import yfinance as _yf
-        _spx  = _yf.Ticker("^GSPC").history(period="1y")["Close"]
-        _cur   = float(_spx.iloc[-1])
-        _ma50  = float(_spx.rolling(50).mean().iloc[-1])
-        _ma200 = float(_spx.rolling(200).mean().iloc[-1])
-        _uptrend = _cur > _ma50 and _cur > _ma200 and _ma50 > _ma200
-        if _uptrend:
-            _stage = "Stage 2 ✅ Uptrend"
-        elif _cur > _ma200:
-            _stage = "Stage 1 ⏳ Basing"
-        elif _cur < _ma50 < _ma200:
-            _stage = "Stage 4 🔴 Downtrend"
-        else:
-            _stage = "Stage 3 ⚠️ Topping"
-        return {"uptrend": _uptrend, "stage": _stage}
-    except Exception as _e:
-        import logging as _logging
-        _logging.getLogger("apexscan.dashboard").warning(f"get_broad_market_condition failed: {_e}")
-        # Fail safe: assume uptrend so the Correction Watchlist banner never falsely
-        # alarms on a data hiccup — but callers should treat stage=="Unknown" as
-        # "fetch failed", not as a genuine market read.
-        return {"uptrend": True, "stage": "Unknown"}
-
-
-def find_correction_watchlist_candidates(scan_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Surface Stage 1 (basing) stocks with a tight/low-volatility base — the
-    stocks O'Neil says institutions quietly accumulate during corrections,
-    and which are often first to break out once the market confirms a new
-    uptrend. Read-only: never mutates scan_df.
-    """
-    if scan_df is None or scan_df.empty or "stage" not in scan_df.columns:
-        return pd.DataFrame()
-
-    cand = scan_df[scan_df["stage"].astype(str).str.contains("1 ⏳", na=False)].copy()
-    if cand.empty:
-        return cand
-
-    tight_mask = pd.Series(False, index=cand.index)
-    if "low_adr_base" in cand.columns:
-        tight_mask = tight_mask | cand["low_adr_base"].astype(str).str.lower().isin(["true", "1"])
-    if "weekly_base_tight" in cand.columns:
-        tight_mask = tight_mask | cand["weekly_base_tight"].astype(str).str.lower().isin(["true", "1"])
-    if "pattern" in cand.columns:
-        tight_mask = tight_mask | cand["pattern"].astype(str).str.contains("Tight|Handle", case=False, na=False)
-
-    cand = cand[tight_mask]
-    if "apex_score" in cand.columns:
-        cand = cand.sort_values("apex_score", ascending=False)
-    return cand
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# AUTO-SCAN ENGINE — no API key required, pure Streamlit state + time logic
-# ══════════════════════════════════════════════════════════════════════════════
-
-_AUTOSCAN_FILE   = Path(__file__).resolve().parent / "data" / "autoscan_state.json"
-_AUTOSCAN_FILE.parent.mkdir(parents=True, exist_ok=True)
-
-# US market open/close in UTC
-_MARKET_OPEN_UTC  = {"hour": 14, "minute": 30}   # 9:30 AM EST = 14:30 UTC
-_MARKET_CLOSE_UTC = {"hour": 20, "minute": 30}   # 3:30 PM EST = 20:30 UTC (30 min before close)
-
-def _autoscan_load() -> dict:
-    try:
-        if _AUTOSCAN_FILE.exists():
-            with open(_AUTOSCAN_FILE) as f:
-                return json.load(f)
-    except Exception:
-        pass
-    return {"last_open_scan": "", "last_close_scan": "", "enabled": False,
-            "universe": "theme", "next_scan": ""}
-
-def _autoscan_save(state: dict):
-    try:
-        with open(_AUTOSCAN_FILE, "w") as f:
-            json.dump(state, f, indent=2, default=str)
-    except Exception:
-        pass
-
-def _is_market_day() -> bool:
-    """Return True if today is Mon–Fri (US market day). Does not check holidays."""
-    return datetime.now(_timezone.utc).replace(tzinfo=None).weekday() < 5   # 0=Mon … 4=Fri
-
-def _minutes_until(target_h: int, target_m: int) -> float:
-    """Minutes until the next occurrence of target UTC time today or tomorrow."""
-    now = datetime.now(_timezone.utc).replace(tzinfo=None)
-    target = now.replace(hour=target_h, minute=target_m, second=0, microsecond=0)
-    if target <= now:
-        target += timedelta(days=1)
-    return (target - now).total_seconds() / 60
-
-def check_autoscan_trigger(state: dict) -> str | None:
-    """
-    Returns "open" or "close" if a scan should fire now, else None.
-    Uses a ±4-minute window around each target time to tolerate Streamlit's
-    rerun timing — the scan date is stamped so it never fires twice in one window.
-    """
-    if not state.get("enabled") or not _is_market_day():
-        return None
-    now     = datetime.now(_timezone.utc).replace(tzinfo=None)
-    today   = now.strftime("%Y-%m-%d")
-    h, m    = now.hour, now.minute
-
-    def _in_window(target_h, target_m):
-        target_total = target_h * 60 + target_m
-        now_total    = h * 60 + m
-        return abs(now_total - target_total) <= 4   # ±4 min window
-
-    if _in_window(_MARKET_OPEN_UTC["hour"], _MARKET_OPEN_UTC["minute"]):
-        key = f"{today}_open"
-        if state.get("last_open_scan") != key:
-            state["last_open_scan"] = key
-            _autoscan_save(state)
-            return "open"
-
-    if _in_window(_MARKET_CLOSE_UTC["hour"], _MARKET_CLOSE_UTC["minute"]):
-        key = f"{today}_close"
-        if state.get("last_close_scan") != key:
-            state["last_close_scan"] = key
-            _autoscan_save(state)
-            return "close"
-
-    return None
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# NARRATIVE GENERATOR — pure rule-based, zero API calls
-# Produces professional-quality plain-English analysis from scan data fields
-# ══════════════════════════════════════════════════════════════════════════════
-
-def _pct(v, decimals=1):
-    try: return f"{float(v):+.{decimals}f}%"
-    except: return "–"
-
-def _val(v, fmt=".1f"):
-    try: return f"{float(v):{fmt}}"
-    except: return "–"
-
-def _bool(v):
-    if v is None: return False
-    if isinstance(v, bool): return v
-    return str(v).lower() in ("true","1","yes")
-
-def generate_narrative(row: pd.Series) -> str:
-    """
-    Generate a full plain-English deep-read narrative for a single ticker
-    from its scan result row. No API required.
-    """
-    tk          = str(row.get("ticker","–"))
-    price       = row.get("price")
-    stage       = str(row.get("stage","–"))
-    apex        = row.get("apex_score", 0)
-    perf_1m     = row.get("perf_1m_%")
-    perf_3m     = row.get("perf_3m_%")
-    perf_6m     = row.get("perf_6m_%")
-    rs_3m       = row.get("rs_3m")
-    rs_r2500    = row.get("rs_r2500_3m")
-    rs_r3000g   = row.get("rs_r3000g_3m")
-    rs_multi    = _bool(row.get("rs_multi_leader"))
-    adr         = row.get("adr_%")
-    vs_50       = row.get("vs_50ma_%")
-    vs_200      = row.get("vs_200ma_%")
-    above_50    = _bool(row.get("above_50ma"))
-    above_200   = _bool(row.get("above_200ma"))
-    ma50_gt_200 = _bool(row.get("ma50_gt_ma200"))
-    near_52wh   = _bool(row.get("near_52wh"))
-    pct_off_hi  = row.get("pct_off_high_%")
-    pattern     = str(row.get("pattern","") or "")
-    breaking    = _bool(row.get("breaking_out"))
-    sentiment   = str(row.get("sentiment","") or "")
-    news_count  = row.get("news_count", 0)
-    earn_mom    = str(row.get("earn_momentum","") or "")
-    eps_growth  = row.get("eps_growth_%")
-    eps_surp    = row.get("eps_surprise_%")
-    eps_accel   = _bool(row.get("eps_accel"))
-    consec_beat = row.get("consec_beats", 0)
-    rev_growth  = row.get("rev_growth_%")
-    eps_score   = row.get("eps_score", 0)
-    analyst_tgt = row.get("analyst_target")
-    pe          = row.get("pe_ratio")
-    peg         = row.get("peg_ratio")
-    next_earn   = str(row.get("next_earnings","") or "")
-    of_bias     = str(row.get("of_bias","") or "Neutral")
-    of_ratio    = row.get("of_up_vol_ratio")
-    of_bull_days= row.get("of_bullish_days")
-    of_score    = row.get("of_score", 0)
-    vwap        = row.get("vwap")
-    vwap_pos    = str(row.get("vwap_position","") or "")
-    vwap_slope  = str(row.get("vwap_slope","") or "")
-    vs_vwap     = row.get("vs_vwap_%")
-    ms_struct   = str(row.get("ms_structure","") or "")
-    ms_hh_hl    = _bool(row.get("ms_hh_hl"))
-    ms_bos      = _bool(row.get("ms_bos"))
-    pa_patterns = str(row.get("pa_patterns","") or "")
-    pa_engulf   = str(row.get("pa_engulfing","") or "")
-    pa_sfp      = str(row.get("pa_sfp","") or "")
-    pa_inside   = _bool(row.get("pa_inside_day"))
-    pa_score_v  = row.get("pa_score", 0)
-    is_gem      = _bool(row.get("is_gem"))
-    mcap_cat    = str(row.get("mcap_category","") or "")
-    liq_warn    = _bool(row.get("liquidity_warn"))
-    theme       = str(row.get("theme","") or "")
-    changes     = str(row.get("changes","") or "")
-    delta_score = row.get("delta_score")
-
-    lines = []
-
-    # ── 1. HEADLINE ──────────────────────────────────────────────────────────
-    if try_f(apex) >= 70:
-        conviction = "HIGH CONVICTION"
-    elif try_f(apex) >= 50:
-        conviction = "MODERATE SETUP"
-    else:
-        conviction = "LOW PRIORITY"
-
-    stage_label = "Stage 2 ✅ (Uptrend)" if "2" in stage else                   "Stage 1 (Basing)"   if "1" in stage else                   "Stage 3 (Topping)"  if "3" in stage else                   "Stage 4 🔴 (Downtrend)"
-    price_str   = f"${float(price):.2f}" if price else "–"
-    lines.append(f"## {tk} — {conviction} | Apex Score: {_val(apex, '.0f')}/100")
-    lines.append(f"**Price:** {price_str}  |  **Stage:** {stage_label}  |  **Sector:** {theme}  |  **Size:** {mcap_cat}")
-    lines.append("")
-
-    # ── 2. MOMENTUM ──────────────────────────────────────────────────────────
-    lines.append("### 📈 Price Momentum")
-    m_sentences = []
-    if try_f(perf_3m) >= 20:
-        m_sentences.append(f"{tk} has surged **{_pct(perf_3m)}** over the last 3 months — this is exceptional momentum that puts it in the top tier of the market.")
-    elif try_f(perf_3m) >= 10:
-        m_sentences.append(f"{tk} has gained **{_pct(perf_3m)}** over the last 3 months, showing solid positive momentum.")
-    elif try_f(perf_3m) > 0:
-        m_sentences.append(f"{tk} is up **{_pct(perf_3m)}** over 3 months — modest but positive.")
-    else:
-        m_sentences.append(f"{tk} is down **{_pct(perf_3m)}** over 3 months — momentum is negative.")
-
-    if perf_6m is not None:
-        if try_f(perf_6m) > 0 and try_f(perf_3m) > 0:
-            m_sentences.append(f"The 6-month return of **{_pct(perf_6m)}** confirms the trend has durability beyond a single-month spike.")
-        elif try_f(perf_6m) < 0 and try_f(perf_3m) > 0:
-            m_sentences.append(f"Note: the 6-month return is **{_pct(perf_6m)}**, meaning recent strength is a recovery from a prior decline — not a new breakout from strength.")
-
-    if try_f(adr) > 5:
-        m_sentences.append(f"The Average Daily Range of **{_val(adr)}%** means {tk} typically moves ${float(price or 0)*float(adr or 0)/100:.2f} per day — size positions accordingly.")
-    lines.append(" ".join(m_sentences))
-    lines.append("")
-
-    # ── 3. RELATIVE STRENGTH ─────────────────────────────────────────────────
-    lines.append("### 💪 Relative Strength")
-    rs_sentences = []
-    if try_f(rs_3m) >= 150:
-        rs_sentences.append(f"RS vs S&P 500 is **{_val(rs_3m, '.0f')}** — this stock is massively outperforming the index. This level of RS is rare and is one of the strongest signals of institutional sponsorship.")
-    elif try_f(rs_3m) >= 100:
-        rs_sentences.append(f"RS vs S&P 500 is **{_val(rs_3m, '.0f')}** — outperforming the index. Leaders lead the market; followers follow it.")
-    elif try_f(rs_3m) >= 70:
-        rs_sentences.append(f"RS vs S&P 500 is **{_val(rs_3m, '.0f')}** — slightly below benchmark-beating threshold of 100, but still in acceptable range.")
-    else:
-        rs_sentences.append(f"RS vs S&P 500 is **{_val(rs_3m, '.0f')}** — underperforming the index. Caution: money is going elsewhere.")
-
-    if rs_r2500 is not None:
-        if try_f(rs_r2500) >= 100:
-            rs_sentences.append(f"Beating the Russell 2500 small/mid-cap benchmark (RS: **{_val(rs_r2500, '.0f')}**) confirms leadership within its natural peer group.")
-        else:
-            rs_sentences.append(f"RS vs Russell 2500 is **{_val(rs_r2500, '.0f')}** — lagging its small/mid-cap peers.")
-
-    if rs_r3000g is not None:
-        if try_f(rs_r3000g) >= 100:
-            rs_sentences.append(f"It is also outperforming the Russell 3000 Growth index (RS: **{_val(rs_r3000g, '.0f')}**) — the toughest growth benchmark — which places it among the elite growth leaders in the entire market.")
-
-    if rs_multi:
-        rs_sentences.append(f"**Multi-Benchmark Leader ⭐** — {tk} is simultaneously beating the S&P 500, Russell 2500, and Russell 3000 Growth. This is extremely rare and highly significant.")
-
-    lines.append(" ".join(rs_sentences))
-    lines.append("")
-
-    # ── 4. TREND & STRUCTURE ─────────────────────────────────────────────────
-    lines.append("### 🏗 Trend & Market Structure")
-    t_sentences = []
-    if above_50 and above_200 and ma50_gt_200:
-        t_sentences.append(f"{tk} is in a confirmed **Stage 2 uptrend** — price is above both the 50-day and 200-day moving averages, and the 50MA is above the 200MA. This is the only Weinstein stage where you should be holding long positions.")
-        if try_f(vs_50) and try_f(vs_50) > 0:
-            t_sentences.append(f"It is currently **{_pct(vs_50)}** above the 50MA and **{_pct(vs_200)}** above the 200MA.")
-        if try_f(vs_50) and try_f(vs_50) > 20:
-            t_sentences.append(f"At over 20% above the 50MA, the stock is extended — wait for a pullback to the 50MA or a tight base before adding exposure.")
-    elif above_200 and not ma50_gt_200:
-        t_sentences.append(f"{tk} is above the 200MA but the 50MA has not yet crossed above it — this is Stage 1 basing territory. The trend is improving but not yet confirmed for aggressive long positions.")
-    else:
-        t_sentences.append(f"⚠️ {tk} is below the 200-day moving average — this is a Stage 3 or 4 stock. Avoid new long entries; any bounce is likely a dead-cat until price reclaims the 200MA.")
-
-    if near_52wh:
-        t_sentences.append(f"Trading near its 52-week high (**{_val(pct_off_hi, '.1f')}%** off the high) — the best breakouts come from stocks near highs, not bottoms.")
-    elif try_f(pct_off_hi) and try_f(pct_off_hi) < -30:
-        t_sentences.append(f"Currently **{_val(pct_off_hi, '.1f')}%** below its 52-week high — still in significant recovery territory.")
-
-    if ms_hh_hl:
-        t_sentences.append(f"Market structure confirms an uptrend with **Higher Highs and Higher Lows** intact.")
-    if ms_bos:
-        t_sentences.append(f"A recent **Break of Structure** has occurred, signalling acceleration of the current trend direction.")
-    lines.append(" ".join(t_sentences))
-    lines.append("")
-
-    # ── 5. BREAKOUT / PATTERN ────────────────────────────────────────────────
-    if pattern or breaking:
-        lines.append("### 🚀 Pattern & Breakout")
-        p_sentences = []
-        if breaking:
-            p_sentences.append(f"🚨 **ACTIVE BREAKOUT** — {tk} is breaking out right now. This is the highest-priority actionable signal in the scan.")
-        if pattern and pattern not in ("None","nan",""):
-            p_sentences.append(f"Pattern detected: **{pattern}**.")
-            if "Breakout" in pattern:
-                p_sentences.append("A breakout from a proper base on volume is the classic Mark Minervini / William O'Neil entry signal. The key is to buy as close to the pivot as possible and not chase if price is more than 5% past the breakout point.")
-            elif "Handle" in pattern or "Tight" in pattern:
-                p_sentences.append("This is a high-quality base still forming. Watch for the pivot breakout — it has not triggered yet. Set a price alert at the base highs.")
-            elif "Pullback" in pattern or "50MA" in pattern:
-                p_sentences.append("A pullback to the 50MA in an uptrend is a lower-risk entry point than a breakout — closer to the stop, better R:R ratio.")
-        lines.append(" ".join(p_sentences))
-        lines.append("")
-
-    # ── 6. ORDER FLOW ────────────────────────────────────────────────────────
-    lines.append("### 🌊 Institutional Order Flow")
-    o_sentences = []
-    if "Strong Bullish" in of_bias:
-        o_sentences.append(f"Order flow is **Strong Bullish** — institutions are persistently and aggressively accumulating {tk}.")
-    elif "Bullish" in of_bias:
-        o_sentences.append(f"Order flow is **Bullish** — there is consistent buying pressure over the recent sessions.")
-    elif "Bearish" in of_bias:
-        o_sentences.append(f"Order flow is **Bearish** — selling pressure is dominating. Institutions may be distributing.")
-    else:
-        o_sentences.append(f"Order flow is **Neutral** — no clear directional bias from institutional activity.")
-
-    if try_f(of_ratio) >= 1.5:
-        o_sentences.append(f"Up-day volume is **{_val(of_ratio, '.2f')}×** higher than down-day volume — a ratio above 1.5× indicates institutional-level accumulation, not retail buying.")
-    if try_f(of_bull_days) >= 60:
-        o_sentences.append(f"**{_val(of_bull_days, '.0f')}%** of recent sessions closed higher — persistent directional bias is one of the most reliable leading indicators of a sustained move.")
-    lines.append(" ".join(o_sentences))
-    lines.append("")
-
-    # ── 6b. WEEKLY TIMEFRAME ─────────────────────────────────────────────────
-    _wk_conf_n   = _bool(row.get("weekly_confirmed"))
-    _wk_contra_n = _bool(row.get("weekly_contradicts"))
-    _wk_stage_n  = str(row.get("weekly_stage","") or "")
-    _wk_tight_n  = _bool(row.get("weekly_base_tight"))
-    _wk_rs_n     = row.get("weekly_rs")
-    _wk_score_n  = row.get("weekly_score", 0)
-    _wk_hh_n     = _bool(row.get("weekly_hh_hl"))
-    _wk_depth_n  = row.get("weekly_base_depth_%")
-
-    lines.append("### 📅 Weekly Chart Confirmation")
-    wk_sentences = []
-
-    if _wk_conf_n:
-        wk_sentences.append(
-            f"✅ **Weekly chart confirmed.** The weekly timeframe is in {_wk_stage_n} — "
-            f"price is above both the 10-week and 40-week MAs with the 10WMA above the 40WMA. "
-            f"This is the single most important filter. A daily signal backed by a confirmed weekly "
-            f"uptrend has a dramatically higher success rate than one that isn't."
-        )
-    elif _wk_contra_n:
-        wk_sentences.append(
-            f"⚠️ **Weekly chart contradicts the daily setup.** The weekly is showing {_wk_stage_n}. "
-            f"Price is below the 40-week MA in a weekly downtrend. This is the trap — retail traders see "
-            f"a daily breakout and buy, not realising the weekly trend is still against them. "
-            f"If you trade this, use maximum half-size and be ready to exit quickly."
-        )
-    else:
-        wk_sentences.append(
-            f"📊 Weekly chart is **transitioning** ({_wk_stage_n}). "
-            f"Not yet confirmed but not contradicting either. Wait for the weekly to resolve above "
-            f"the 40WMA before committing full size."
-        )
-
-    if _wk_tight_n:
-        wk_sentences.append(
-            f"The weekly base is **tight** ({_val(_wk_depth_n,'.0f')}% depth over 8 weeks) — "
-            f"this is the compression before the explosion. Tight weekly bases precede the biggest moves."
-        )
-
-    if _wk_hh_n:
-        wk_sentences.append("The weekly chart is making **Higher Highs and Higher Lows** — the uptrend is healthy at the most important timeframe.")
-
-    if _wk_rs_n and try_f(_wk_rs_n) > 100:
-        wk_sentences.append(f"Weekly RS of **{_val(_wk_rs_n,'.0f')}** confirms outperformance is sustained over the medium term, not just a short-term spike.")
-
-    lines.append(" ".join(wk_sentences))
-    lines.append("")
-
-    # ── 7. VWAP ──────────────────────────────────────────────────────────────
-    lines.append("### 💧 VWAP Analysis")
-    v_sentences = []
-    if "Above" in vwap_pos and "Extended" not in vwap_pos:
-        v_sentences.append(f"{tk} is trading **above a {'rising' if 'Rising' in vwap_slope else 'flat'} VWAP** — the ideal condition for long positions. Institutional algorithms anchor to VWAP; being above it means buyers are in control of the auction.")
-    elif "Extended Above" in vwap_pos:
-        v_sentences.append(f"{tk} is **extended above VWAP** ({_pct(vs_vwap)} above) — overbought relative to short-term fair value. Consider waiting for a VWAP pullback before adding.")
-    elif "Below" in vwap_pos:
-        v_sentences.append(f"{tk} is trading **below VWAP** — sellers are currently in control of the short-term auction. Watch for a VWAP reclaim on volume as a potential entry trigger.")
-    if vwap:
-        v_sentences.append(f"VWAP is at **${float(vwap):.2f}** and the slope is **{vwap_slope.lower()}**.")
-    lines.append(" ".join(v_sentences))
-    lines.append("")
-
-    # ── 8. PRICE ACTION ──────────────────────────────────────────────────────
-    if pa_patterns and pa_patterns not in ("None","nan",""):
-        lines.append("### 🕯 Price Action Signals")
-        pa_sentences = []
-        if "Bullish Engulfing" in pa_engulf:
-            pa_sentences.append("A **Bullish Engulfing** candle has formed — a large up candle fully engulfs the previous down candle, signalling strong reversal/continuation conviction from buyers.")
-        if "Bullish SFP" in pa_sfp or "Bear Trap" in pa_sfp:
-            pa_sentences.append("A **Swing Failure Pattern (Bear Trap)** has been detected — price briefly dipped below a prior swing low but closed back above it, trapping short sellers and typically triggering a sharp move higher. This is one of the highest-probability price action setups.")
-        if pa_inside:
-            pa_sentences.append("An **Inside Day** (price compression) is present — today's range is entirely within yesterday's, signalling a coiled spring. The breakout direction from this compression determines the next move.")
-        if pa_sentences:
-            lines.append(" ".join(pa_sentences))
-        lines.append("")
-
-    # ── 9. FUNDAMENTALS ──────────────────────────────────────────────────────
-    lines.append("### 📊 Fundamental Backdrop")
-    f_sentences = []
-    if earn_mom and earn_mom not in ("–","None","nan",""):
-        if "Strong" in earn_mom:
-            f_sentences.append(f"Earnings momentum is **Strong** — the fundamental engine is firing.")
-        elif "Moderate" in earn_mom:
-            f_sentences.append(f"Earnings momentum is **Moderate** — decent but not exceptional fundamentals.")
-        else:
-            f_sentences.append(f"Earnings momentum is **{earn_mom}** — fundamentals are not a tailwind here.")
-
-    if eps_growth is not None and not (isinstance(eps_growth, float) and pd.isna(eps_growth)):
-        if try_f(eps_growth) >= 50:
-            f_sentences.append(f"EPS is growing at **{_pct(eps_growth)}** YoY — this is the kind of earnings acceleration that attracts institutional fund managers.")
-        elif try_f(eps_growth) >= 25:
-            f_sentences.append(f"EPS growth of **{_pct(eps_growth)}** YoY meets the minimum threshold for a quality growth stock.")
-        elif try_f(eps_growth) < 0:
-            f_sentences.append(f"⚠️ EPS is declining at **{_pct(eps_growth)}** — earnings are moving in the wrong direction.")
-
-    if eps_accel:
-        f_sentences.append(f"Earnings are **accelerating** quarter over quarter — this is the single most powerful fundamental signal, as acceleration drives institutional re-rating and multiple expansion.")
-
-    if try_f(consec_beat) >= 3:
-        f_sentences.append(f"**{int(float(consec_beat))} consecutive earnings beats** — management is consistently under-promising and over-delivering, a hallmark of high-quality growth companies.")
-
-    if eps_surp is not None and not (isinstance(eps_surp, float) and pd.isna(eps_surp)):
-        if try_f(eps_surp) >= 10:
-            f_sentences.append(f"The last quarter came in **{_pct(eps_surp)}** above consensus estimates — a significant positive surprise.")
-
-    if analyst_tgt is not None and price is not None:
-        try:
-            upside = (float(analyst_tgt) / float(price) - 1) * 100
-            f_sentences.append(f"Analyst consensus target is **${float(analyst_tgt):.2f}**, implying **{upside:+.1f}%** upside from current levels.")
-        except: pass
-
-    if next_earn and next_earn not in ("–","None","nan",""):
-        f_sentences.append(f"⚠️ **Next earnings: {next_earn}** — be aware of binary event risk. Do not hold through earnings unless your position size accounts for a potential 10–30% gap.")
-
-    lines.append(" ".join(f_sentences) if f_sentences else "Fundamental data not yet available for this ticker (Alpha Vantage enrichment may not have run for this stock).")
-    lines.append("")
-
-    # ── 10. RISK & POSITION SIZING ───────────────────────────────────────────
-    lines.append("### ⚠️ Risk & Position Sizing")
-    r_sentences = []
-    if is_gem:
-        r_sentences.append(f"🔶 **Emerging Gem** — {tk} is classified as a small/mid-cap emerging growth stock. Use a maximum position size of 0.5–1% of portfolio risk. Higher potential reward comes with higher volatility.")
-    else:
-        r_sentences.append(f"Standard position sizing applies: risk no more than 0.5–2% of total portfolio on any single trade.")
-    if liq_warn:
-        r_sentences.append(f"⚠️ **Liquidity Warning** — average daily volume is below 300,000 shares. Use limit orders only; avoid market orders. Large positions may be difficult to exit quickly.")
-    if try_f(adr) > 6:
-        r_sentences.append(f"High ADR of **{_val(adr)}%** means wide intraday swings — set your stop below a meaningful level (swing low or base), not just a fixed percentage.")
-    if next_earn and next_earn not in ("–","None","nan",""):
-        r_sentences.append(f"Earnings risk on **{next_earn}** — consider reducing position size to half before the report.")
-    lines.append(" ".join(r_sentences))
-    lines.append("")
-
-    # ── 11. VERDICT ──────────────────────────────────────────────────────────
-    lines.append("### 🎯 ApexScan Verdict")
-    if try_f(apex) >= 70 and above_200 and ma50_gt_200:
-        if breaking:
-            verdict = f"**BUY ALERT** — {tk} is actively breaking out with an Apex Score of {_val(apex,'.0f')}/100. This is a high-conviction, time-sensitive setup. Enter as close to the breakout pivot as possible. Set your stop below the base lows."
-        elif near_52wh:
-            verdict = f"**STRONG WATCH** — {tk} scores {_val(apex,'.0f')}/100 and is near 52-week highs in a confirmed Stage 2 uptrend. Wait for the breakout trigger or a low-risk pullback entry."
-        else:
-            verdict = f"**ADD TO WATCHLIST** — {tk} scores {_val(apex,'.0f')}/100 and the technical structure is sound. Monitor for a cleaner entry trigger."
-    elif try_f(apex) >= 50:
-        verdict = f"**WATCHLIST CANDIDATE** — {tk} scores {_val(apex,'.0f')}/100. The setup has merit but lacks one or more key confirmations. Revisit after the next scan."
-    else:
-        verdict = f"**SKIP / AVOID** — {tk} scores {_val(apex,'.0f')}/100. Insufficient technical and/or fundamental alignment. Better opportunities exist elsewhere in the scan."
-
-    if changes and changes not in ("–","↔ No change","nan"):
-        verdict += f" **Recent changes:** {changes}."
-
-    lines.append(verdict)
-
-    return "\n".join(lines)
-
-
-def try_f(v, default=0.0):
-    """Safe float conversion for comparison."""
-    try:
-        f = float(v)
-        return f if not (f != f) else default   # NaN check
-    except: return default
-
-
-def generate_scan_briefing(df: pd.DataFrame) -> str:
-    """
-    Generate a full market briefing from a scan result DataFrame.
-    Covers: market summary, top setups, active breakouts, sector rotation,
-    risk reminders. No API required.
-    """
-    if df.empty:
-        return "No scan data available. Run a Live Scan first."
-
-    lines = []
-    today = datetime.now().strftime("%A, %B %d %Y")
-    lines.append(f"# 📡 ApexScan Morning Briefing — {today}")
-    lines.append("")
-
-    # ── Market overview ───────────────────────────────────────────────────────
-    total       = len(df)
-    stage2      = df[df.get("stage","").astype(str).str.contains("2") if "stage" in df.columns else pd.Series([True]*total)].shape[0]
-    breakouts   = df[df["breaking_out"].astype(str).str.lower()=="true"].shape[0] if "breaking_out" in df.columns else 0
-    avg_score   = round(df["apex_score"].mean(), 1) if "apex_score" in df.columns else 0
-    high_conv   = (df["apex_score"] >= 70).sum() if "apex_score" in df.columns else 0
-    bull_flow   = df[df.get("of_bias","").astype(str).str.contains("Bullish")].shape[0] if "of_bias" in df.columns else 0
-
-    lines.append("## 📊 Market Snapshot")
-    lines.append(
-        f"Today's scan identified **{total} qualifying setups** across the watchlist. "
-        f"**{stage2}** are in confirmed Stage 2 uptrends. "
-        f"Average Apex Score across all results is **{avg_score}/100**. "
-        f"**{high_conv}** stocks score 70+, indicating high-conviction setups. "
-        f"**{breakouts}** active breakouts detected. "
-        f"**{bull_flow}** stocks show bullish or strong-bullish institutional order flow."
-    )
-    lines.append("")
-
-    # ── Top 5 by Apex Score ───────────────────────────────────────────────────
-    lines.append("## 🏆 Top 5 Setups (by Apex Score)")
-    top5 = df.nlargest(5, "apex_score") if "apex_score" in df.columns else df.head(5)
-    for i, (_, r) in enumerate(top5.iterrows(), 1):
-        tk     = r.get("ticker","–")
-        sc     = r.get("apex_score","–")
-        stg    = r.get("stage","–")
-        p3m    = r.get("perf_3m_%")
-        rs     = r.get("rs_3m")
-        bo     = _bool(r.get("breaking_out"))
-        pat    = str(r.get("pattern","") or "")
-        of_b   = str(r.get("of_bias","") or "")
-        emoji  = "🚨" if bo else ("⭐" if try_f(sc) >= 70 else "📌")
-        bo_str = " **— BREAKING OUT NOW**" if bo else ""
-        lines.append(
-            f"{i}. {emoji} **{tk}** (Score: {_val(sc,'.0f')}/100 | Stage: {stg} | "
-            f"3M: {_pct(p3m)} | RS: {_val(rs,'.0f')} | Flow: {of_b}){bo_str}"
-        )
-        if pat and pat not in ("None","nan",""):
-            lines.append(f"   ↳ Pattern: {pat}")
-    lines.append("")
-
-    # ── Active breakouts ─────────────────────────────────────────────────────
-    if "breaking_out" in df.columns:
-        bo_df = df[df["breaking_out"].astype(str).str.lower()=="true"]
-        if not bo_df.empty:
-            lines.append("## 🚨 Active Breakouts — Time-Sensitive")
-            for _, r in bo_df.iterrows():
-                tk   = r.get("ticker","–")
-                sc   = r.get("apex_score","–")
-                p    = r.get("price")
-                pat  = r.get("pattern","")
-                vs   = r.get("vol_surge_x")
-                lines.append(
-                    f"- **{tk}** @ ${float(p):.2f if p else '–'} | Score: {_val(sc,'.0f')} | "
-                    f"Pattern: {pat} | Vol surge: {_val(vs,'.1f')}×"
-                )
-            lines.append("")
-
-    # ── Sector rotation ───────────────────────────────────────────────────────
-    if "theme" in df.columns and "apex_score" in df.columns:
-        lines.append("## 🔄 Sector Rotation — Where is Money Flowing?")
-        sec_grp = df.groupby("theme")["apex_score"].agg(["mean","count"]).sort_values("mean", ascending=False)
-        for sec, row_s in sec_grp.head(5).iterrows():
-            avg_s = round(row_s["mean"], 1)
-            cnt   = int(row_s["count"])
-            bar   = "█" * int(avg_s // 10)
-            lines.append(f"- **{sec}**: avg score {avg_s}/100 ({cnt} stocks)  {bar}")
-        lines.append("")
-
-    # ── Risk reminders ────────────────────────────────────────────────────────
-    lines.append("## ⚠️ Risk Reminders")
-    earn_soon = []
-    if "next_earnings" in df.columns:
-        for _, r in df.iterrows():
-            ne = str(r.get("next_earnings","") or "")
-            if ne and ne not in ("–","None","nan",""):
-                try:
-                    days_away = (pd.to_datetime(ne) - datetime.now()).days
-                    if 0 <= days_away <= 14:
-                        earn_soon.append((r.get("ticker","–"), ne, days_away))
-                except: pass
-    if earn_soon:
-        lines.append("**Earnings in the next 14 days — manage risk:**")
-        for tk, ne, d in sorted(earn_soon, key=lambda x: x[2]):
-            lines.append(f"- **{tk}** reports in {d} days ({ne}) — consider half-size positions")
-    else:
-        lines.append("No earnings events flagged within the next 14 days for scanned stocks.")
-
-    liq_warns = df[df.get("liquidity_warn","").astype(str).str.lower()=="true"]["ticker"].tolist() if "liquidity_warn" in df.columns else []
-    if liq_warns:
-        lines.append(f"**Low liquidity — use limit orders only:** {', '.join(liq_warns[:5])}")
-
-    lines.append("")
-    lines.append("---")
-    lines.append("*Generated by ApexScan rule-based narrative engine. Not financial advice.*")
-
-    return "\n".join(lines)
-
-
-# ── Column metadata: display label + plain-English interpretation ──────────────
-COLUMN_META = {
-    "rank":            ("Rank",               "Position in this scan, sorted by Apex Score descending. #1 is the strongest setup right now."),
-    "ticker":          ("Ticker",             "Stock symbol. The unique identifier for this company on the exchange."),
-    "market":          ("Market",             "Market the ticker trades on: US (NYSE/NASDAQ/NYSE American) or NGX (Nigerian Exchange). All scoring, stage analysis, and signals work identically across both markets."),
-    "theme":           ("Sector / Theme",     "GICS sector or config theme this stock belongs to. GICS sectors: Energy, Materials, Industrials, Utilities, Healthcare, Financials, Consumer Discretionary, Consumer Staples, Information Technology, Communication Services, Real Estate. Config themes (ai_semis, cybersecurity etc.) take priority for stocks in your watchlist themes. Sector rotation: when a full GICS sector starts outperforming, it lifts all stocks within it."),
-    "price":           ("Price ($)",          "Last closing price in USD."),
-    "stage":           ("Stage",              "Weinstein Stage. Stage 2 ✅ = only buyable stage (price above both MAs, 50MA > 200MA). Stage 1 = basing. Stage 3 = topping. Stage 4 🔴 = downtrend — avoid."),
-    "perf_1m_%":       ("1M Return %",        "Price performance over the last 21 trading days (≈1 month). Captures recent momentum. >5% is positive."),
-    "perf_3m_%":       ("3M Return %",        "Price performance over the last 63 trading days (≈3 months). Core momentum filter. >15% is strong; >30% is exceptional."),
-    "perf_6m_%":       ("6M Return %",        "Price performance over 126 trading days (≈6 months). Confirms the trend has durability, not just a one-month spike."),
-    "rs_3m":           ("RS 3M",              "Relative Strength vs S&P 500 over 3 months. >100 = outperforming the index. >150 = massively outperforming. Buy leaders (>100), avoid laggards (<70)."),
-    "rs_6m":           ("RS 6M",              "Relative Strength vs S&P 500 over 6 months. Confirms the outperformance is sustained, not just a recent fluke."),
-    "rs_r2500_3m":     ("RS vs R2500 (3M)",   "Relative Strength vs the Russell 2500 index over 3 months. The Russell 2500 covers small and mid-cap stocks — this tells you if the stock is beating its natural peer group. >100 = beating small/mid peers. Critical for emerging growth stocks."),
-    "rs_r2500_6m":     ("RS vs R2500 (6M)",   "Relative Strength vs Russell 2500 over 6 months. Confirms the stock has been a sustained leader within the small/mid-cap universe, not just a short-term spike."),
-    "rs_r3000g_3m":    ("RS vs R3000G (3M)",  "Relative Strength vs the Russell 3000 Growth index over 3 months. The R3000 Growth is the broadest growth benchmark covering all cap sizes. >100 = outperforming the entire growth universe. This is the toughest RS test."),
-    "rs_r3000g_6m":    ("RS vs R3000G (6M)",  "Relative Strength vs Russell 3000 Growth over 6 months. A stock beating the R3000G over 6 months is a genuine sustained growth leader across the entire market."),
-    "rs_multi_leader": ("Multi-Bench Leader",  "True if the stock is outperforming ALL three benchmarks (S&P 500, Russell 2500, Russell 3000 Growth) simultaneously on a 3-month basis. This is the highest RS signal — the stock is leading across every peer group. Extremely rare and extremely bullish."),
-    "adr_%":           ("ADR %",              "Average Daily Range % over the last 20 days. Measures volatility/movement potential. Higher ADR = bigger daily swings = wider stops needed but larger profit potential."),
-    "vs_50ma_%":       ("vs 50MA %",          "How far the current price is above or below the 50-day moving average. >10% above = extended, risk of pullback. Below = potential support or weakness."),
-    "vs_200ma_%":      ("vs 200MA %",         "How far price is above or below the 200-day moving average. The 200MA is the long-term trend line. Below 200MA = avoid for long entries."),
-    "volume":          ("Volume (Today)",     "Today's raw share volume. High volume on up days confirms institutional participation."),
-    "vol_filter":      ("Volume (Filter)",    "Max of today's volume and 20-day average volume. Used as the liquidity filter threshold to avoid illiquid setups."),
-    "vol_surge_x":     ("Vol Surge X",        "Ratio of 5-day average volume to 50-day average volume. >1.4x = elevated interest. >2x = significant surge, often accompanies breakouts."),
-    "above_50ma":      ("Above 50MA",         "True/False — price is above the 50-day moving average. A basic trend filter. False means the stock is below near-term trend support."),
-    "above_200ma":     ("Above 200MA",        "True/False — price is above the 200-day moving average. Core long-term trend filter. False = avoid for swing/position trades."),
-    "ma50_gt_ma200":   ("50MA > 200MA",       "True/False — the 50-day MA is above the 200-day MA (Golden Cross condition). Required for Stage 2 confirmation. False = trend not yet established."),
-    "near_52wh":       ("Near 52W High",      "True/False — price is within 15% of its 52-week high. Breakouts happen near highs, not at the bottom. True = stock is in the right zone for a breakout."),
-    "pct_off_high_%":  ("% Off 52W High",     "How far below the 52-week high the stock currently is. 0% = at all-time highs. -10% = 10% below highs. The best breakouts come from stocks less than 10–15% below highs."),
-    "pattern":         ("Pattern",            "Base/breakout pattern detected. E.g. 'Flat Base Breakout', 'Cup Breakout', 'Handle Forming', 'Tight Base'. Breakout = active trigger. Handle/Tight = watch for entry."),
-    "breaking_out":    ("Breaking Out",       "True/False — the stock is actively breaking out of a base on volume. True is the highest-priority actionable signal in the entire scan."),
-    "news_count":      ("News Count",         "Number of news articles in the last 7 days (via Finnhub). Higher count can indicate a catalyst event (earnings, product launch, analyst upgrade)."),
-    "sentiment":       ("Sentiment",          "News sentiment from Finnhub: Positive, Neutral, or N/A. Positive sentiment alongside technical strength is a confluence signal."),
-    "earn_momentum":   ("Earnings Momentum",  "Earnings quality signal: Strong / Moderate / Weak. Derived from EPS growth, surprise %, and acceleration (Alpha Vantage) or proxied from news + price when AV not available."),
-    "eps_growth_%":    ("EPS Growth %",       "Year-over-year EPS growth from Alpha Vantage. >25% = strong growth stock. >50% = exceptional. Negative = earnings declining — be cautious."),
-    "eps_surprise_%":  ("EPS Surprise %",     "How much the last quarterly EPS beat or missed analyst consensus. >5% beat = positive signal. Misses weigh on price even in uptrends."),
-    "eps_accel":       ("EPS Accelerating",   "True/False — earnings growth rate is accelerating quarter over quarter. Acceleration is the most powerful fundamental signal; it drives institutional re-rating and multiple expansion."),
-    "consec_beats":    ("Consec. Beats",      "Number of consecutive quarters where the company beat EPS estimates. 3+ beats = management is consistently under-promising and over-delivering — a trust signal for institutions."),
-    "rev_growth_%":    ("Revenue Growth %",   "Year-over-year revenue growth. Confirms earnings improvement is driven by real business expansion, not just cost cuts or financial engineering."),
-    "eps_score":       ("EPS Score /15",      "Composite earnings score from 0–15. Combines growth, surprise %, acceleration, consecutive beats, and revenue growth. >10 = very strong fundamental backdrop."),
-    "eps_trend":       ("EPS Trend",          "List of recent quarterly EPS values (most recent first). Shows whether earnings are growing, flat, or declining over recent quarters."),
-    "analyst_target":  ("Analyst Target",     "Consensus analyst price target from Alpha Vantage. Compare to current price to see implied upside. Use as a reference, not gospel."),
-    "pe_ratio":        ("P/E Ratio",          "Price-to-Earnings ratio. Growth stocks often trade at high P/Es (40–100x). A high P/E is fine if earnings are growing fast; what matters is whether the growth justifies the premium."),
-    "peg_ratio":       ("PEG Ratio",          "Price/Earnings-to-Growth ratio. PEG < 1.0 = potentially undervalued relative to growth rate. PEG > 2.0 = growth is fully or over-priced. The Goldilocks zone is 1.0–1.5."),
-    "eps_details":     ("EPS Details",        "Raw detail string from Alpha Vantage showing the last few quarters of EPS. Useful for verifying the trend behind the score."),
-    "next_earnings":   ("Next Earnings",      "Upcoming earnings date from Alpha Vantage or yfinance. Critical for risk management — stocks can gap 10–30% on earnings. Do not hold through earnings unless sized appropriately."),
-    "of_bias":         ("Order Flow Bias",    "Directional order flow assessment: Strong Bullish / Bullish / Neutral / Bearish / Strong Bearish. Measures whether institutions are persistently buying or selling over the last 10 sessions."),
-    "of_up_vol_ratio": ("OF Up/Down Vol",     "Ratio of total volume on up days vs down days over the last 10 sessions. >1.5x = institutional-level buying. >2.0x = heavy accumulation. <0.7x = distribution pattern."),
-    "of_bullish_days": ("OF Bullish Days %",  "Percentage of the last 10 sessions that closed higher than the previous day. >60% = persistent buying. >70% = strong institutional flow. <40% = bearish pressure."),
-    "of_consec_up":    ("OF Consec. Up",      "Maximum consecutive up-closes in the last 10 sessions. 4+ consecutive up-closes suggests an active TWAP/VWAP algorithm systematically working a large buy order."),
-    "of_score":        ("OF Score /8",        "Order Flow Persistence Score from 0–8. Combines bullish day %, up/down volume ratio, and consecutive up-closes. Score ≥6 = strong institutional flow. Added to Apex Score."),
-    "vwap":            ("VWAP ($)",           "Volume Weighted Average Price over the last 20 days. The fairest measure of where the market has agreed to transact. Institutional algorithms often anchor to VWAP for large order execution."),
-    "vwap_upper":      ("VWAP Upper Band",    "VWAP + 1 standard deviation. Acts as short-term resistance. Price extended above this band is overextended and likely to mean-revert. Consider tightening stops above this level."),
-    "vwap_lower":      ("VWAP Lower Band",    "VWAP - 1 standard deviation. Acts as short-term support. Strong stocks often find buyers at this level — it is a potential low-risk entry zone in an uptrend."),
-    "vs_vwap_%":       ("vs VWAP %",          "How far the current price is above or below VWAP. +5% = extended above. -5% = below VWAP. Ideal long entries are +1% to +4% above a rising VWAP."),
-    "vwap_position":   ("VWAP Position",      "Categorical VWAP relationship: 'Above VWAP', 'Extended Above VWAP' (overbought zone), 'Below VWAP' (weak), 'Extended Below VWAP' (avoid). Above a rising VWAP = strongest long scenario."),
-    "vwap_slope":      ("VWAP Slope",         "Direction of the VWAP trend: Rising / Flat / Falling. A Rising VWAP confirms buyers are in control and value is being accepted higher — ideal for longs. Falling VWAP = sellers in control."),
-    "vwap_score":      ("VWAP Score /4",      "VWAP contribution to Apex Score (0–4). Max score when price is above a rising VWAP with a recent VWAP reclaim. Added to total Apex Score."),
-    "ms_structure":    ("Market Structure",   "Overall market structure assessment: 'Bullish (HH/HL)' = uptrend confirmed. 'Bearish (LH/LL)' = downtrend. 'Transitioning' = structure is shifting. Only trade longs in Bullish structure."),
-    "ms_hh_hl":        ("HH/HL Confirmed",   "True/False — the stock is making Higher Highs and Higher Lows. This is the textbook definition of an uptrend. True = structure is intact for longs. False = do not buy the dip."),
-    "ms_bos":          ("Break of Structure", "True/False — a recent Break of Structure occurred (price broke above a prior swing high in a downtrend, or below a prior swing low in an uptrend). In an uptrend, BOS confirms trend acceleration."),
-    "ms_swing_high":   ("Last Swing High",    "Price of the most recent swing high pivot. Acts as near-term resistance. A close above this level on volume confirms the next leg of the uptrend."),
-    "ms_swing_low":    ("Last Swing Low",     "Price of the most recent swing low pivot. Acts as near-term support. A close below this level in an uptrend is a warning sign — consider tightening stops."),
-    "pa_patterns":     ("PA Patterns",        "Price Action patterns detected on the most recent candle(s). E.g. 'Bullish Engulfing', 'Bullish SFP (Bear Trap)', 'Inside Day (Compression)', 'PA Confluence'. Multiple signals = stronger setup."),
-    "pa_engulfing":    ("PA Engulfing",       "Engulfing candle signal: 'Bullish' = a large up candle fully engulfs the prior down candle — strong reversal/continuation signal. 'Bearish' = the opposite. None = no engulfing pattern."),
-    "pa_sfp":          ("PA SFP",            "Swing Failure Pattern: 'Bullish SFP (Bear Trap)' = price briefly dipped below a prior swing low but closed back above it, trapping short sellers. One of the most reliable reversal signals in technical analysis."),
-    "pa_inside_day":   ("PA Inside Day",      "True/False — today's high is lower than yesterday's high AND today's low is higher than yesterday's low. An Inside Day signals price compression and a potential explosive move. Watch for the breakout direction."),
-    "pa_context":      ("PA Context Candle",  "Context candle analysis: 'Bullish' = large-range up candle closing near the high on above-average volume. 'Bearish' = large-range down candle. Bullish context candle confirms strong buying intent."),
-    "pa_score":        ("PA Score /5",        "Price Action Score from 0–5. Combines engulfing, SFP, inside day, and context candle signals. Score ≥3 = meaningful price action confirmation. Added to total Apex Score."),
-    # ── Weekly Timeframe Confirmation ────────────────────────────────────────
-    "weekly_stage":          ("Weekly Stage",         "Weinstein Stage on the WEEKLY chart. This is the most important filter of all — a daily breakout inside a weekly Stage 4 downtrend is a trap that fails 70%+ of the time. You MUST see weekly Stage 2 or at minimum Stage 1 basing before acting on daily signals."),
-    "weekly_above_10wma":    ("Above 10WMA",          "True if price is above the 10-week moving average (equivalent to the 50-day MA on the weekly chart). Losing this level in an uptrend is the first warning sign of deteriorating momentum."),
-    "weekly_above_40wma":    ("Above 40WMA",          "True if price is above the 40-week moving average (equivalent to the 200-day MA on the weekly chart). This is the most important long-term trend line. Being above it is a non-negotiable requirement for swing positions."),
-    "weekly_10gt40":         ("10WMA > 40WMA",        "True if the 10-week MA is above the 40-week MA — the weekly golden cross. This confirms a proper weekly Stage 2 uptrend. When both MAs slope up and price is above both, the path of least resistance is higher."),
-    "weekly_rs":             ("Weekly RS",            "Relative Strength vs S&P 500 on the weekly timeframe (13-week lookback). A stock with positive weekly RS is genuinely outperforming the market over the medium term, not just a daily spike. >100 = outperforming."),
-    "weekly_base_tight":     ("Weekly Base Tight",    "True if the last 8 weeks show a price range of less than 15%. A tight weekly base = low volatility consolidation = energy coiling. The tightest weekly bases precede the most explosive moves. This is what you are looking for before a big breakout."),
-    "weekly_base_depth_%":   ("Weekly Base Depth %",  "How deep the last 8-week price range is as a percentage. <10% = extremely tight (rare, very bullish). 10–20% = healthy base. 20–30% = deeper correction but workable. >30% = too volatile, avoid."),
-    "weekly_hh_hl":          ("Weekly HH/HL",         "True if the weekly chart is making Higher Highs and Higher Lows over the last 6 weeks. This is the textbook definition of a healthy uptrend on the timeframe that matters most. When this is True on the weekly, daily dips are buying opportunities."),
-    "weekly_trending_up":    ("Weekly Trending Up",   "True if the stock closed higher for 2 or more consecutive weeks. Multiple consecutive up weeks signals sustained buying, not a one-day spike. 3+ consecutive up weeks = institutional conviction."),
-    "weekly_consec_up_wks":  ("Consec. Up Weeks",     "Number of consecutive weeks the stock closed higher. 1–2 = momentum building. 3–4 = strong trend in motion. 5+ = potentially extended — wait for a weekly pullback before adding."),
-    "weekly_confirmed":      ("Weekly Confirmed ✅",   "True when the weekly chart fully supports the daily setup: above 40WMA, 10WMA > 40WMA, and positive weekly RS. This is the green light — daily signal + weekly confirmation = highest probability trade. Never take a daily signal without checking this."),
-    "weekly_contradicts":    ("Weekly Contradicts ⚠️", "True when the weekly chart is in Stage 3 or 4 while the daily shows a Stage 2 setup. This is the most common trap for retail traders — a daily breakout inside a weekly downtrend. The weekly trend will win eventually. Avoid or use very small size."),
-    "weekly_score":          ("Weekly Score /10",      "Weekly timeframe contribution to Apex Score (0–10). Added to score when weekly is confirmed, subtracted (-15) when weekly contradicts daily. Max score when weekly Stage 2 + HH/HL + tight base + RS leader all align simultaneously."),
-
-    # ── Early Entry Signals ──────────────────────────────────────────────────
-    "early_entry":             ("Early Entry",         "True if the stock shows one or more early-stage entry signals — fresh MA cross, pullback to 50MA, low-ADR base, or inside day compression. These are the setups to buy BEFORE the move is obvious."),
-    "early_entry_type":        ("Entry Type",          "What type of early entry signal was detected: Fresh 200MA Cross (brand-new uptrend), Fresh 50MA Cross (momentum turning), Pullback to 50MA (low-risk add), Low-ADR Base (tight coiled spring), or Inside Day Compression (explosive move pending)."),
-    "fresh_200ma_cross":       ("Fresh 200MA Cross",   "True if price crossed above the 200-day MA within the last 10 bars. This is the single most powerful early entry signal — the stock is literally just entering a new uptrend. Buy zones are typically within 5% of the 200MA."),
-    "fresh_50ma_cross":        ("Fresh 50MA Cross",    "True if price crossed above the 50-day MA within the last 5 bars. Momentum is just turning. Earlier than waiting for a full Stage 2 confirmation."),
-    "pullback_to_50ma":        ("Pullback to 50MA",    "True if price is within 3% of the 50MA while above the 200MA. The classic low-risk add-to-winner entry — you're buying the dip within an established uptrend with the stop just below the 50MA."),
-    "low_adr_base":            ("Low-ADR Base",        "True if the 20-day Average Daily Range is below 3%. Low volatility during a base means the stock is coiling — energy is being stored for the eventual breakout. This is cheap entry in terms of stop distance."),
-    "early_entry_score":       ("Early Entry Score /10","Composite early-entry score from 0–10. Each signal type adds points: Fresh 200MA Cross (+8), Pullback to 50MA (+5), Fresh 50MA Cross (+4), Low-ADR Base (+3), Inside Day Compression (+2). Score ≥8 = textbook early entry."),
-    "days_since_200ma_cross":  ("Days Since 200MA Cross","How many days ago price crossed above the 200MA. 1–3 days = hottest possible signal. 4–10 days = still early. >10 days = momentum is established, no longer early entry."),
-    "apex_score":      ("Apex Score /100",    "The master composite score (0–100). Combines momentum (40 pts), RS (25 pts), stage/MAs (15 pts), 52W high (10 pts), breakout (10 pts), order flow (8 pts), price action (5 pts), VWAP (4 pts), structure (3 pts), EPS (15 pts). >70 = high conviction. 40–70 = watchlist."),
-    "scanned_at":      ("Scanned At",         "Timestamp of when this ticker was analysed. All results in a single scan share the same approximate timestamp."),
-    "market_cap":      ("Market Cap ($)",     "Total market capitalisation in dollars. Larger caps are more liquid; smaller caps (micro/small) have higher volatility and risk."),
-    "market_cap_bn":   ("Market Cap ($B)",    "Market cap in billions for easier reading. <$2B = small/micro cap. $2–10B = mid cap. $10–200B = large cap. >$200B = mega cap."),
-    "mcap_category":   ("MCap Category",      "Categorical size label: Micro Cap (<$300M), Small Cap ($300M–$2B), Mid Cap ($2B–$10B), Large Cap ($10B–$200B), Mega Cap (>$200B). Smaller = higher risk/reward."),
-    "is_gem":          ("Is Gem",             "True if the stock qualifies as an Emerging Gem ($100M–$5B market cap). Gems receive score boosts for strong OF and PA signals. Use smaller position sizes (0.5–1% max risk)."),
-    "liquidity_score": ("Liquidity Score",    "Liquidity rating 0–3 based on 30-day average volume. Score 3 = >1M shares/day (highly liquid). Score 2 = 300K–1M. Score 1 = 100K–300K. Score 0 = <100K (very illiquid, avoid large positions)."),
-    "liquidity_warn":  ("Liquidity Warning",  "True if 30-day average volume is below 300,000 shares/day. Low liquidity means wide bid-ask spreads and difficulty exiting large positions — size down significantly."),
-    "avg_volume_30d":  ("Avg Volume 30D",     "30-day average daily share volume from yfinance fast_info. The most reliable liquidity measure. Below 300K = tread carefully; below 100K = avoid unless small position size."),
-    "changes":         ("Changes",            "Plain-English summary of what changed since the last scan. E.g. 'Score ▲8 | Flow→Strong Bull | Reclaimed VWAP'. 🆕 = new entry. ↔ = no notable change."),
-    "is_new":          ("Is New",             "True if this ticker was not present in the previous scan. New entries have no delta comparison — treat them as fresh signals requiring your own confirmation."),
-    "delta_score":     ("Score Change",       "Apex Score change since the last scan (positive = improving, negative = deteriorating). A stock jumping +10 points between scans is gaining momentum and worth attention."),
-}
-
-
-def build_excel_download(ticker_row: pd.Series, ticker_name: str) -> bytes:
-    """
-    Build a fully-labelled Excel workbook for a single ticker deep read.
-    Sheet 1: Raw data with every column labelled + interpreted.
-    Sheet 2: Signal summary scorecard.
-    Returns bytes ready for st.download_button.
-    """
-    import io
-    try:
-        import openpyxl
-        from openpyxl.styles import (PatternFill, Font, Alignment, Border, Side)
-        from openpyxl.utils import get_column_letter
-    except ImportError:
-        # Fallback to CSV if openpyxl not available
-        buf = io.StringIO()
-        ticker_row.to_frame().T.to_csv(buf)
-        return buf.getvalue().encode("utf-8")
-
-    wb = openpyxl.Workbook()
-
-    # ── Colours ───────────────────────────────────────────────────────────────
-    BG_DARK   = "0D1117"
-    BG_CARD   = "161B22"
-    BG_GREEN  = "1A3A2A"
-    BG_AMBER  = "2A2200"
-    BG_RED    = "2A1010"
-    FG_GREEN  = "3FB950"
-    FG_AMBER  = "D29922"
-    FG_RED    = "F85149"
-    FG_BLUE   = "388BFD"
-    FG_WHITE  = "E6EDF3"
-    FG_GREY   = "8B949E"
-    BORDER_C  = "30363D"
-
-    def fill(hex_): return PatternFill("solid", fgColor=hex_)
-    def font(hex_, bold=False, sz=11): return Font(color=hex_, bold=bold, size=sz, name="Calibri")
-    def thin_border():
-        s = Side(border_style="thin", color=BORDER_C)
-        return Border(left=s, right=s, top=s, bottom=s)
-    def center(): return Alignment(horizontal="center", vertical="center", wrap_text=True)
-    def left():   return Alignment(horizontal="left",   vertical="top",    wrap_text=True)
-
-    # ════════════════════════════════════════════════════════════════════════
-    # SHEET 1 — Full Data Table
-    # ════════════════════════════════════════════════════════════════════════
-    ws1 = wb.active
-    ws1.title = f"{ticker_name} — Data"
-    ws1.sheet_view.showGridLines = False
-    ws1.freeze_panes = "A3"
-
-    # Title row
-    ws1.merge_cells("A1:D1")
-    t = ws1["A1"]
-    t.value = f"ApexScan — {ticker_name} Deep Read    |    Scanned: {ticker_row.get('scanned_at','–')}"
-    t.font      = font(FG_WHITE, bold=True, sz=14)
-    t.fill      = fill(BG_CARD)
-    t.alignment = center()
-    ws1.row_dimensions[1].height = 30
-
-    # Header row
-    headers = ["Field", "Label", "Value", "Interpretation"]
-    hdr_colours = [FG_BLUE, FG_BLUE, FG_AMBER, FG_WHITE]
-    for col_i, (h, c) in enumerate(zip(headers, hdr_colours), 1):
-        cell = ws1.cell(row=2, column=col_i, value=h)
-        cell.font      = font(c, bold=True, sz=10)
-        cell.fill      = fill(BG_CARD)
-        cell.alignment = center()
-        cell.border    = thin_border()
-    ws1.row_dimensions[2].height = 20
-
-    # Define column order (full list from your spec)
-    ORDERED_COLS = [
-        "rank","ticker","market","theme","price","stage",
-        "perf_1m_%","perf_3m_%","perf_6m_%","rs_3m","rs_6m",
-        "rs_r2500_3m","rs_r2500_6m","rs_r3000g_3m","rs_r3000g_6m","rs_multi_leader",
-        "adr_%","vs_50ma_%","vs_200ma_%","volume","vol_filter","vol_surge_x",
-        "above_50ma","above_200ma","ma50_gt_ma200","near_52wh","pct_off_high_%",
-        "pattern","breaking_out","news_count","sentiment","earn_momentum",
-        "eps_growth_%","eps_surprise_%","eps_accel","consec_beats","rev_growth_%",
-        "eps_score","eps_trend","analyst_target","pe_ratio","peg_ratio","eps_details","next_earnings",
-        "of_bias","of_up_vol_ratio","of_bullish_days","of_consec_up","of_score",
-        "vwap","vwap_upper","vwap_lower","vs_vwap_%","vwap_position","vwap_slope","vwap_score",
-        "ms_structure","ms_hh_hl","ms_bos","ms_swing_high","ms_swing_low",
-        "pa_patterns","pa_engulfing","pa_sfp","pa_inside_day","pa_context","pa_score",
-        "apex_score","scanned_at","market_cap","market_cap_bn","mcap_category",
-        "is_gem","liquidity_score","liquidity_warn","avg_volume_30d",
-        "changes","is_new","delta_score",
-        "weekly_stage","weekly_above_40wma","weekly_10gt40","weekly_rs",
-        "weekly_base_tight","weekly_base_depth_%","weekly_hh_hl",
-        "weekly_confirmed","weekly_contradicts","weekly_score",
-        "early_entry","early_entry_type","fresh_200ma_cross",
-        "fresh_50ma_cross","pullback_to_50ma","low_adr_base",
-        "early_entry_score","days_since_200ma_cross",
-    ]
-
-    def fmt_val(col, raw):
-        """Format raw value for display."""
-        if raw is None or (isinstance(raw, float) and pd.isna(raw)):
-            return "–"
-        if col in ("price","vwap","vwap_upper","vwap_lower","ms_swing_high","ms_swing_low","analyst_target"):
-            try: return f"${float(raw):.2f}"
-            except: return str(raw)
-        if col in ("perf_1m_%","perf_3m_%","perf_6m_%","vs_50ma_%","vs_200ma_%",
-                   "vs_vwap_%","eps_growth_%","eps_surprise_%","rev_growth_%","pct_off_high_%"):
-            try:
-                v = float(raw)
-                return f"{v:+.1f}%"
-            except: return str(raw)
-        if col in ("adr_%",):
-            try: return f"{float(raw):.1f}%"
-            except: return str(raw)
-        if col in ("of_bullish_days",):
-            try: return f"{float(raw):.0f}%"
-            except: return str(raw)
-        if col in ("rs_3m","rs_6m"):
-            try: return f"{float(raw):.0f}"
-            except: return str(raw)
-        if col in ("vol_surge_x","of_up_vol_ratio"):
-            try: return f"{float(raw):.2f}x"
-            except: return str(raw)
-        if col in ("market_cap",):
-            try:
-                v = float(raw)
-                return f"${v/1e9:.2f}B" if v >= 1e9 else f"${v/1e6:.0f}M"
-            except: return str(raw)
-        if col in ("pe_ratio","peg_ratio"):
-            try: return f"{float(raw):.2f}"
-            except: return str(raw)
-        if col in ("eps_trend",) and isinstance(raw, list):
-            return " → ".join(str(x) for x in raw[:6])
-        return str(raw)
-
-    def row_bg(col, raw):
-        """Pick a background fill based on signal quality."""
-        col_green = {
-            "stage": lambda v: "2 ✅" in str(v),
-            "above_50ma": lambda v: v is True or str(v).lower() == "true",
-            "above_200ma": lambda v: v is True or str(v).lower() == "true",
-            "ma50_gt_ma200": lambda v: v is True or str(v).lower() == "true",
-            "near_52wh": lambda v: v is True or str(v).lower() == "true",
-            "breaking_out": lambda v: v is True or str(v).lower() == "true",
-            "ms_hh_hl": lambda v: v is True or str(v).lower() == "true",
-            "ms_bos": lambda v: v is True or str(v).lower() == "true",
-            "pa_inside_day": lambda v: v is True or str(v).lower() == "true",
-            "of_bias": lambda v: "Bullish" in str(v),
-            "vwap_position": lambda v: "Above" in str(v) and "Extended" not in str(v),
-            "ms_structure": lambda v: "Bullish" in str(v),
-            "earn_momentum": lambda v: "Strong" in str(v),
-            "eps_accel": lambda v: v is True or str(v).lower() == "true",
-            "is_gem": lambda v: v is True or str(v).lower() == "true",
-        }
-        col_red = {
-            "stage": lambda v: "4 🔴" in str(v),
-            "above_50ma": lambda v: v is False or str(v).lower() == "false",
-            "above_200ma": lambda v: v is False or str(v).lower() == "false",
-            "of_bias": lambda v: "Bearish" in str(v),
-            "vwap_position": lambda v: "Below" in str(v),
-            "ms_structure": lambda v: "Bearish" in str(v),
-            "liquidity_warn": lambda v: v is True or str(v).lower() == "true",
-        }
-        if col in col_green and col_green[col](raw):  return fill(BG_GREEN)
-        if col in col_red   and col_red[col](raw):    return fill(BG_RED)
-        return fill(BG_DARK)
-
-    # Data rows
-    for r_i, col_key in enumerate(ORDERED_COLS, 3):
-        raw = ticker_row.get(col_key)
-        if col_key == "rank":
-            # rank comes from the index
-            raw = ticker_row.name if hasattr(ticker_row, "name") else "–"
-
-        meta  = COLUMN_META.get(col_key, (col_key, "–"))
-        label = meta[0]
-        interp= meta[1]
-        val   = fmt_val(col_key, raw)
-        bg    = row_bg(col_key, raw)
-
-        row_data = [(col_key, FG_GREY), (label, FG_AMBER), (val, FG_WHITE), (interp, FG_GREY)]
-        for c_i, (text, fg) in enumerate(row_data, 1):
-            cell = ws1.cell(row=r_i, column=c_i, value=str(text))
-            cell.font      = font(fg, bold=(c_i == 3), sz=10)
-            cell.fill      = bg if c_i == 3 else fill(BG_DARK if r_i % 2 == 1 else BG_CARD)
-            cell.alignment = left()
-            cell.border    = thin_border()
-        ws1.row_dimensions[r_i].height = 48
-
-    # Column widths
-    ws1.column_dimensions["A"].width = 20
-    ws1.column_dimensions["B"].width = 22
-    ws1.column_dimensions["C"].width = 18
-    ws1.column_dimensions["D"].width = 80
-
-    # ════════════════════════════════════════════════════════════════════════
-    # SHEET 2 — Signal Scorecard
-    # ════════════════════════════════════════════════════════════════════════
-    ws2 = wb.create_sheet(title=f"{ticker_name} — Scorecard")
-    ws2.sheet_view.showGridLines = False
-
-    ws2.merge_cells("A1:C1")
-    t2 = ws2["A1"]
-    t2.value    = f"ApexScan — {ticker_name} Signal Scorecard"
-    t2.font     = font(FG_WHITE, bold=True, sz=14)
-    t2.fill     = fill(BG_CARD)
-    t2.alignment = center()
-    ws2.row_dimensions[1].height = 30
-
-    scorecard_items = [
-        ("📊 APEX SCORE",     ticker_row.get("apex_score","–"),       ">70 = High Conviction | 40–70 = Watchlist | <40 = Not Ready"),
-        ("📐 Stage",          ticker_row.get("stage","–"),             "Stage 2 ✅ is the only buyable stage"),
-        ("📈 3M Return",      fmt_val("perf_3m_%", ticker_row.get("perf_3m_%")), ">15% = strong momentum threshold"),
-        ("⚡ RS vs S&P500",   fmt_val("rs_3m", ticker_row.get("rs_3m")),        ">100 = outperforming the market"),
-        ("🚀 Breaking Out",   ticker_row.get("breaking_out","–"),       "True = active breakout — highest priority"),
-        ("🌊 Order Flow",     ticker_row.get("of_bias","–"),            "Strong Bullish = institutional accumulation"),
-        ("💧 VWAP Position",  ticker_row.get("vwap_position","–"),      "Above Rising VWAP = ideal long zone"),
-        ("🏗 MS Structure",   ticker_row.get("ms_structure","–"),       "Bullish HH/HL = uptrend confirmed"),
-        ("🎯 Price Action",   ticker_row.get("pa_patterns","None"),     "SFP / Confluence = highest PA signal"),
-        ("💎 Is Gem",         ticker_row.get("is_gem","–"),             "True = emerging gem — use half position size"),
-        ("📅 Next Earnings",  ticker_row.get("next_earnings","–"),      "Do not hold through earnings unless sized for gap risk"),
-        ("💰 EPS Growth",     fmt_val("eps_growth_%", ticker_row.get("eps_growth_%")), ">25% = strong growth stock"),
-        ("🎯 Analyst Target", fmt_val("analyst_target", ticker_row.get("analyst_target")), "Consensus price target"),
-        ("🔄 Since Last Scan",ticker_row.get("changes","–"),           "What changed vs previous scan"),
-    ]
-
-    for sc_i, (label, value, note) in enumerate(scorecard_items, 2):
-        ws2.cell(sc_i, 1, label).font      = font(FG_AMBER, bold=True, sz=10)
-        ws2.cell(sc_i, 1).fill             = fill(BG_CARD)
-        ws2.cell(sc_i, 1).alignment        = left()
-        ws2.cell(sc_i, 1).border           = thin_border()
-        ws2.cell(sc_i, 2, str(value)).font  = font(FG_WHITE, bold=True, sz=11)
-        ws2.cell(sc_i, 2).fill             = fill(BG_DARK)
-        ws2.cell(sc_i, 2).alignment        = center()
-        ws2.cell(sc_i, 2).border           = thin_border()
-        ws2.cell(sc_i, 3, note).font       = font(FG_GREY, sz=9)
-        ws2.cell(sc_i, 3).fill             = fill(BG_DARK)
-        ws2.cell(sc_i, 3).alignment        = left()
-        ws2.cell(sc_i, 3).border           = thin_border()
-        ws2.row_dimensions[sc_i].height    = 22
-
-    ws2.column_dimensions["A"].width = 24
-    ws2.column_dimensions["B"].width = 30
-    ws2.column_dimensions["C"].width = 55
-
-    buf = io.BytesIO()
-    wb.save(buf)
-    buf.seek(0)
-    return buf.read()
 
 
 def load_previous_report() -> pd.DataFrame:
@@ -1611,104 +447,15 @@ def sector_performance() -> pd.DataFrame:
 # PORTFOLIO PERSISTENCE
 # ══════════════════════════════════════════════════════════════════════════════
 
-# ── Portfolio file paths (absolute, same pattern as watchlist_manager) ────────
-_PORT_DIR     = Path(__file__).resolve().parent / "data"
-_PORT_FILE    = _PORT_DIR / "portfolio.json"
-_PORT_BACKUP  = _PORT_DIR / "portfolio_backup.json"
-_PORT_TMP     = Path("/tmp/apexscan_portfolio.json")
-_PORT_DIR.mkdir(parents=True, exist_ok=True)
-
-# Trade log (closed positions history)
-_TRADELOG_FILE   = _PORT_DIR / "trade_log.json"
-_TRADELOG_TMP    = Path("/tmp/apexscan_tradelog.json")
-
-def _port_write(path: Path, data) -> bool:
-    """Atomic write — write to .tmp then rename."""
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_suffix(".tmp")
-        with open(tmp, "w") as f:
-            json.dump(data, f, indent=2, default=str)
-        import shutil; shutil.move(str(tmp), str(path))
-        return True
-    except Exception:
-        return False
-
-def _port_read(path: Path):
-    try:
-        if path.exists() and path.stat().st_size > 2:
-            with open(path) as f:
-                return json.load(f)
-    except Exception:
-        pass
-    return None
-
 def load_portfolio() -> list:
-    """Load holdings from primary file, /tmp mirror, or backup — never silently lose data."""
-    for src_path in (_PORT_FILE, _PORT_TMP, _PORT_BACKUP):
-        data = _port_read(src_path)
-        if data is not None and isinstance(data, list):
-            if src_path != _PORT_FILE:
-                _port_write(_PORT_FILE, data)   # restore primary
-            return data
+    if Path(PORTFOLIO_FILE).exists():
+        with open(PORTFOLIO_FILE) as f:
+            return json.load(f)
     return []
 
 def save_portfolio(holdings: list):
-    """Write to primary + /tmp mirror + backup simultaneously."""
-    _port_write(_PORT_FILE,   holdings)
-    _port_write(_PORT_TMP,    holdings)
-    _port_write(_PORT_BACKUP, holdings)
-
-def load_trade_log() -> list:
-    """Load closed-position trade history."""
-    for src_path in (_TRADELOG_FILE, _TRADELOG_TMP):
-        data = _port_read(src_path)
-        if data is not None and isinstance(data, list):
-            return data
-    return []
-
-def save_trade_log(log: list):
-    _port_write(_TRADELOG_FILE, log)
-    _port_write(_TRADELOG_TMP,  log)
-
-def close_position(holdings: list, trade_log: list, ticker: str,
-                   close_price: float, close_date: str, qty_close: float = None) -> tuple:
-    """
-    Partially or fully close a position.
-    Returns (updated_holdings, updated_trade_log).
-    """
-    new_holdings = []
-    for h in holdings:
-        if h["ticker"] != ticker:
-            new_holdings.append(h)
-            continue
-        qty_total = h["qty"]
-        qty_sold  = qty_close if qty_close and qty_close < qty_total else qty_total
-        pnl_pct   = round((close_price / h["buy_price"] - 1) * 100, 2)
-        pnl_dol   = round((close_price - h["buy_price"]) * qty_sold, 2)
-        hold_days = (pd.to_datetime(close_date) - pd.to_datetime(h["buy_date"])).days
-
-        trade_log.append({
-            "ticker":      ticker,
-            "qty":         qty_sold,
-            "buy_price":   h["buy_price"],
-            "buy_date":    h["buy_date"],
-            "close_price": close_price,
-            "close_date":  close_date,
-            "pnl_dol":     pnl_dol,
-            "pnl_pct":     pnl_pct,
-            "hold_days":   hold_days,
-            "setup":       h.get("setup", ""),
-            "notes":       h.get("notes", ""),
-        })
-        # If partial close, keep remainder
-        remaining = qty_total - qty_sold
-        if remaining > 0.001:
-            h_rem = dict(h)
-            h_rem["qty"] = round(remaining, 4)
-            new_holdings.append(h_rem)
-
-    return new_holdings, trade_log
+    with open(PORTFOLIO_FILE, "w") as f:
+        json.dump(holdings, f, indent=2)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1722,46 +469,10 @@ with st.sidebar:
     min_score = st.slider("Min Apex Score", 0, 100, 30, 5)
     min_3m    = st.slider("Min 3m Return %", -50, 100, 0, 5)
     st.divider()
-    st.markdown("**🌐 Scan Universe**")
-    universe_mode = st.radio(
-        "Ticker Universe",
-        [
-            "📋 US — Theme Watchlist (Config)",
-            "💎 US — Gems Only (Small/Mid-cap)",
-            "🌐 US — Extended Universe (NASDAQ + NYSE + NYSE American)",
-            "🇳🇬 NGX — Nigerian Exchange (Theme Watchlist)",
-            "🌍 ALL — US + NGX Combined",
-        ],
-        index=0, key="universe_mode",
-        help=(
-            "US Theme Watchlist = tickers in config.yaml (~59, ~2 min). "
-            "US Gems Only = micro/small/mid-cap growth stocks (~150 tickers). "
-            "US Extended = full NASDAQ + NYSE + NYSE American (~500 tickers, ~8 min). "
-            "NGX = Nigerian Exchange stocks from ng_themes in config.yaml. "
-            "ALL = US + NGX combined scan."
-        )
-    )
-    st.divider()
-    # ── MANUAL SCAN ───────────────────────────────────────────────────────────
-    st.markdown("**▶️ Manual Scan**")
-    run_btn = st.button("🚀 Run Live Scan Now", use_container_width=True,
-                        help="Run a scan immediately using the universe selected above.")
-    st.caption("Runs instantly on demand regardless of auto-scan schedule.")
-
-    # ── AUTO-SCAN STATUS INDICATOR ────────────────────────────────────────────
-    _as_state_sidebar = _autoscan_load()
-    if _as_state_sidebar.get("enabled"):
-        _min_o = _minutes_until(_MARKET_OPEN_UTC["hour"],  _MARKET_OPEN_UTC["minute"])
-        _min_c = _minutes_until(_MARKET_CLOSE_UTC["hour"], _MARKET_CLOSE_UTC["minute"])
-        st.success(
-            f"🤖 Auto-scan **ON**\n\n"
-            f"⏰ Next open scan: **{_min_o:.0f} min**\n\n"
-            f"⏰ Next pre-close: **{_min_c:.0f} min**"
-        )
-        st.caption("Configure in 🤖 AI Briefing → ⏰ Auto-Scan Schedule")
-    else:
-        st.info("🤖 Auto-scan **OFF** — configure in 🤖 AI Briefing tab.")
+    run_btn  = st.button("🚀 Run Live Scan", use_container_width=True)
     load_btn = st.button("📂 Load Last Report", use_container_width=True)
+    ngx_btn  = st.button("🇳🇬 Scan NGX Stocks", use_container_width=True,
+                          help="Scan Nigerian Exchange stocks using NGN Market API + yfinance")
     st.divider()
 
     # API Key Status — load_config reads from Streamlit secrets automatically
@@ -1771,40 +482,26 @@ with st.sidebar:
         v = _cfg_check.get(k, "")
         return bool(v and not str(v).startswith("YOUR_"))
 
-    _av_ok = _key_ok("alpha_vantage_key")
-    _fh_ok = _key_ok("finnhub_key")
-    _td_ok = _key_ok("twelve_data_key")
-    _ms_ok = _key_ok("marketstack_key")
+    _av_ok  = _key_ok("alpha_vantage_key")
+    _fh_ok  = _key_ok("finnhub_key")
+    _td_ok  = _key_ok("twelve_data_key")
+    _ms_ok  = _key_ok("marketstack_key")
+    _ngn_ok = _key_ok("ngn_market_key")
 
     st.markdown("**API Status**")
-    st.markdown(f"{'🟢' if _av_ok else '🔴'} Alpha Vantage {'✓ EPS data'  if _av_ok else '✗ Not set'}")
-    st.markdown(f"{'🟢' if _td_ok else '🔴'} Twelve Data {'✓ Indicators' if _td_ok else '✗ Not set'}")
-    st.markdown(f"{'🟢' if _ms_ok else '🟡'} MarketStack {'✓ Backup'     if _ms_ok else 'Optional'}")
-    cfg = _cfg_check  # keep a module-level `cfg` alias so later sections (e.g. NGX key expander) never hit NameError before a scan has run
-    _ngx_key_sb = _cfg_check.get("ngx_pulse_key","")
-    _ngx_ok_sb  = bool(_ngx_key_sb and not _ngx_key_sb.startswith("YOUR_"))
-    st.markdown(f"{'🟢' if _ngx_ok_sb else '🔴'} NGN Market {'✓ NGX data' if _ngx_ok_sb else '✗ Not set'}")
-    st.markdown(f"{'🟢' if _fh_ok else '🟡'} Finnhub {'✓ News'          if _fh_ok else 'Optional'}")
+    st.markdown(f"{'🟢' if _av_ok  else '🔴'} Alpha Vantage {'✓ EPS data'   if _av_ok  else '✗ Not set'}")
+    st.markdown(f"{'🟢' if _td_ok  else '🔴'} Twelve Data  {'✓ Indicators' if _td_ok  else '✗ Not set'}")
+    st.markdown(f"{'🟢' if _ms_ok  else '🟡'} MarketStack  {'✓ Backup'     if _ms_ok  else 'Optional'}")
+    st.markdown(f"{'🟢' if _ngn_ok else '🔴'} NGN Market   {'✓ NGX data'   if _ngn_ok else '✗ Not set'}")
+    st.markdown(f"{'🟢' if _fh_ok  else '🟡'} Finnhub      {'✓ News'       if _fh_ok  else 'Optional'}")
+    if not _ngn_ok:
+        st.caption("Add ngn_market_key to Streamlit Secrets")
     if not _av_ok:
         st.caption("Add alpha_vantage_key to Streamlit Secrets")
-    if not _td_ok:
-        st.caption("Add twelve_data_key to Streamlit Secrets")
 
     st.divider()
-    st.caption("Data: yfinance · Finnhub · Alpha Vantage")
+    st.caption("Data: yfinance · NGN Market · AV · Twelve Data")
     st.caption(f"Updated: {datetime.now().strftime('%H:%M:%S')}")
-
-    # ── 🌍 Always-visible market status badge ────────────────────────────
-    # Independent confirmation that the Correction Watchlist logic is live:
-    # this shows the S&P 500's stage every time, whether or not the
-    # Correction Watchlist banner itself is currently showing on the
-    # Leaderboard tab (that banner only appears during an actual downtrend).
-    _bmc_sidebar = get_broad_market_condition()
-    if _bmc_sidebar.get("stage") == "Unknown":
-        _bmc_color = "🔴"   # data fetch failed — not a real market read
-    else:
-        _bmc_color = "🟢" if _bmc_sidebar.get("uptrend") else "🟡"
-    st.caption(f"{_bmc_color} S&P 500: {_bmc_sidebar.get('stage','–')}")
 
 st.markdown("""
 <h1 style="margin:0 0 16px 0;font-size:1.5rem;">
@@ -1832,10 +529,6 @@ tabs = st.tabs([
     "📋 Watchlists",
     "🔔 Alert Settings",
     "🧠 Interpretation",
-    "📊 Scan Delta",
-    "✅ Pre-Buy Checklist",
-    "📓 Trade Journal",
-    "👁 Setup Monitor",
     "📖 Guide",
 ])
 
@@ -1852,219 +545,11 @@ df_raw       = pd.DataFrame()
 prev_df      = pd.DataFrame()
 gone_tickers = set()
 
-# ══════════════════════════════════════════════════════════════════════════════
-# SCAN TRIGGER LOGIC — manual and auto coexist independently
-# ══════════════════════════════════════════════════════════════════════════════
-_autoscan_state   = _autoscan_load()
-_autoscan_trigger = check_autoscan_trigger(_autoscan_state)
-_auto_fired       = False   # flag: did auto-scan fire this rerun?
-_scan_market      = "us"    # default market; overridden by universe_mode block
-
-# Auto-scan fires ONLY when:
-#   1. Auto-scan is enabled in settings
-#   2. The time trigger window is hit (±4 min of 9:30 or 15:30 EST)
-#   3. The user did NOT also click Run manually (manual takes priority)
-if _autoscan_trigger and not run_btn:
-    _auto_fired = True
-    # Use the universe saved in auto-scan settings (independent of sidebar)
-    _as_saved_universe = _autoscan_state.get("universe", "theme")
-    if _as_saved_universe == "extended":
-        universe_mode = "🌐 Extended Universe (NASDAQ + NYSE + NYSE American)"
-    else:
-        universe_mode = "📋 Theme Watchlist (Config)"
-    st.toast(
-        f"🤖 Auto-scan firing — {_autoscan_trigger.upper()} SESSION "
-        f"| Universe: {universe_mode}",
-        icon="⏰"
-    )
-
-# Auto-refresh polling: checks trigger every 5 minutes while auto-scan is on.
-# Only active when auto-scan is enabled — no unnecessary reruns otherwise.
-if _autoscan_state.get("enabled"):
-    _now_u  = datetime.now(_timezone.utc).replace(tzinfo=None)
-    _min_5  = _now_u.minute % 5
-    _sec    = _now_u.second
-    # Rerun once at the top of each 5-minute boundary (seconds 0–8)
-    if _min_5 == 0 and _sec < 9:
-        _time.sleep(1)
-        st.rerun()
-
-if run_btn or _auto_fired:
-    _scan_label = (
-        f"🤖 Auto-scan running ({_autoscan_trigger} session)… "
-        if _auto_fired else "🚀 Running live scan…"
-    )
-    _scan_universe_label = universe_mode
-
-    with st.spinner(f"{_scan_label} Universe: {_scan_universe_label}"):
+if run_btn:
+    with st.spinner("Running live scan… (2–5 min)"):
         cfg     = load_config("config.yaml")
         prev_df = load_latest_report()   # capture BEFORE saving new one
-
-        # ── Universal ticker universe ─────────────────────────────────────
-        _universe_override = None
-        # ── 🇳🇬 NGX universe ──────────────────────────────────────────────────
-        if universe_mode == "🇳🇬 NGX — Nigerian Exchange (Theme Watchlist)":
-            _universe_override = None   # uses ng_themes from config
-            _scan_market       = "ng"
-            st.info("🇳🇬 NGX scan: Nigerian Exchange stocks from ng_themes in config.yaml.")
-
-        elif universe_mode == "🌍 ALL — US + NGX Combined":
-            _universe_override = None
-            _scan_market       = "all"
-            st.info("🌍 Combined scan: US Theme Watchlist + NGX themes (~2–4 min).")
-
-        # ── 💎 GEMS ONLY universe ─────────────────────────────────────────────
-        elif universe_mode == "💎 US — Gems Only (Small/Mid-cap)":
-            _GEMS_UNIVERSE = [
-                # ── Fintech / Crypto Gems ─────────────────────────────────────
-                "HOOD","SOFI","AFRM","UPST","DAVE","OPEN","UWMC","MSTR","COIN","DKNG",
-                "PSFE","RPAY","FLYW","RELY","STEP","PRCT","LPRO","QFIN","CURO","NU",
-                # ── Biotech / Health Gems ─────────────────────────────────────
-                "HIMS","TMDX","RXRX","ACAD","SAGE","AUPH","AVXL","KRTX","VRNA","AKRO",
-                "TARS","ARQT","GOSS","PRAX","IMVT","DNLI","SNDX","NKTR","BEAM","NTLA",
-                "CRSP","EDIT","RARE","EXAS","INVA","PRTA","KYMR","ITCI","ALKS","JAZZ",
-                "HALO","FOLD","VCEL","MGNX","AGIO","FATE","RCUS","ALLO","APLS","KPTI",
-                "VERV","SGMO","BLUE","ONCE","QURE","IRON","APGE","BPMC","KURA","MRUS",
-                # ── Space / Deep Tech Gems ────────────────────────────────────
-                "RKLB","IONQ","ASTS","ACHR","LUNR","JOBY","SOUN","KTOS","DRS","SPIR",
-                "BWXT","MNTS","ARQQ","QUBT","RGTI","QBTS","IQST","SATL","LOAR","FTAI",
-                # ── Software / SaaS Gems ──────────────────────────────────────
-                "APPN","DOCN","GTLB","PATH","BRZE","DOMO","WEAV","PCOR","ASAN","FRSH",
-                "TASK","ACMR","CFLT","ESTC","JAMF","BAND","SPSC","ALTR","TDNS","TOST",
-                "MAPS","RSKD","SMAR","CCSI","ALNT","PGNY","VNET","WIX","GETY","SHLX",
-                # ── Consumer / Lifestyle Gems ─────────────────────────────────
-                "CAVA","RDDT","BIRK","BROS","WING","SHAK","PLNT","DNUT","FAT","TXRH",
-                "EWCZ","ELF","SKIN","GOLI","PLTK","LOVE","CURV","FTCH","RENT","REAL",
-                "RVLV","SOSF","PTON","LAZY","XPOF","FORM","GIII","POWL","TILE","BOOT",
-                # ── Energy Transition Gems ────────────────────────────────────
-                "ENPH","FSLR","RUN","PLUG","NOVA","ARRY","SHLS","SPWR","CWEN","CLNE",
-                "EVGO","CHPT","BLNK","VLTA","AMPX","STEM","BSFC","FLUX","DCFC","AMRC",
-                "MP","LAC","LTHM","SQM","ALB","ALTM","OROCF","PMET","LIT","SGML",
-                # ── Industrials / Defence Micro-caps ─────────────────────────
-                "KTOS","RCAT","AVAV","HXSW","ATRO","AIR","CDRE","VSEC","HAYW","TDW",
-                "GNSS","MOOG","ARCB","ODFL","SAIA","HUBG","HTLD","LSTR","MRTN","PTSI",
-                # ── Mining / Commodities Gems ─────────────────────────────────
-                "AG","EXK","SILV","CDE","HL","MUX","GATO","MAG","FSM","ERO",
-                "VZLA","SAND","AUMN","USAS","LGDTF","SSRM","MRDDF","AUMN","GPL","SVM",
-                # ── Emerging Market / International Growth ────────────────────
-                "NU","MELI","SE","GRAB","BEKE","LU","BTBT","MARA","RIOT","HUT",
-                "BITF","CIFR","CLSK","IREN","WULF","ARBK","SDIG","BTDR","CORZ","AULT",
-            ]
-            # Deduplicate
-            _seen_g = set()
-            _GEMS_UNIVERSE = [t for t in _GEMS_UNIVERSE if not (_seen_g.add(t) or t in _seen_g - {t})]
-            _universe_override = _GEMS_UNIVERSE
-            st.info(
-                f"💎 Gems Only: scanning {len(_GEMS_UNIVERSE)} small/mid-cap growth stocks "
-                f"with relaxed thresholds to surface early-stage setups before they move."
-            )
-
-        elif universe_mode == "🌐 US — Extended Universe (NASDAQ + NYSE + NYSE American)":
-            _scan_market = "us"
-            # ── Already in list (NASDAQ + mixed) ──────────────────────────
-            _NASDAQ_NAMES = [
-                # Mega-cap tech / NASDAQ 100 core
-                "AAPL","MSFT","AMZN","NVDA","GOOGL","GOOG","META","TSLA","AVGO","COST",
-                "NFLX","ORCL","ADBE","QCOM","TXN","INTU","AMD","ARM","ASML","TSM",
-                # Semiconductors
-                "AMAT","LRCX","KLAC","MU","MRVL","SMCI","CDNS","SNPS","ON","MPWR",
-                # Software / Cloud
-                "CRM","DDOG","SNOW","NET","ZS","PANW","FTNT","CRWD","PLTR","VEEV",
-                "WDAY","TEAM","HUBS","NOW","MDB","GTLB","BILL","PATH","AI","APPN",
-                # Fintech / Crypto
-                "PYPL","COIN","HOOD","SOFI","AFRM","MSTR","SQ","UPST","DAVE","SMAR",
-                # Biotech / Health (NASDAQ-listed)
-                "MRNA","BNTX","REGN","BIIB","GILD","IDXX","DXCM","ISRG","ILMN","VRTX",
-                "ALNY","SGEN","BMRN","INCY","EXAS","RARE","NTLA","BEAM","CRSP","EDIT",
-                # Consumer / Retail (NASDAQ)
-                "MNST","CELH","LULU","ONON","DUOL","ROST","DLTR","FAST","ODFL","CTAS",
-                # Growth / Emerging (NASDAQ)
-                "RKLB","IONQ","ASTS","ACHR","SOUN","RXRX","HIMS","RDDT","CAVA","TMDX",
-                "LUNR","BTDR","DOCN","OPEN","UWMC","JOBY","ABNB","DASH","LYFT","UBER",
-                "SHOP","SPOT","ROKU","TTD","MTCH","MELI","SE","GRAB","DKNG","RBLX",
-            ]
-
-            # ── NYSE — Blue-chip, Industrials, Financials, Energy, Healthcare ─
-            _NYSE_NAMES = [
-                # Financials (NYSE)
-                "JPM","GS","MS","BAC","WFC","C","AXP","BLK","SCHW","ICE","CME",
-                "SPGI","MCO","AMP","PGR","MET","TRV","AFL","ALL","CB","HIG","L",
-                "BX","KKR","APO","CG","ARES","TPG","BN","BAM","TROW","IVZ","BEN",
-                "WTW","AON","MMC","USB","PNC","TFC","FITB","KEY","CFG","RF","HBAN",
-                # Healthcare (NYSE)
-                "UNH","CI","CVS","HCA","MCK","CAH","DHR","TMO","ABT","MDT","SYK",
-                "BSX","EW","ZBH","BDX","BAX","STE","HOLX","IQV","CRL","MTD","WAT",
-                "LH","DGX","CTLT","PKI","VTRS","RPRX","JAZZ","ALKS","ITCI","ACAD",
-                "LLY","ABBV","BMY","PFE","JNJ","MRK","AZN","NVO","GSK","SNY",
-                # Energy (NYSE)
-                "XOM","CVX","COP","SLB","BKR","HAL","PSX","VLO","MPC","EOG",
-                "PXD","DVN","OXY","FANG","HES","APA","NOV","WHD","TRGP","KMI",
-                "WMB","OKE","EPD","ET","PAA","MMP","LNG","AR","EQT","RRC",
-                # Industrials / Defence (NYSE)
-                "BA","RTX","LMT","NOC","GD","HII","TDG","HWM","GE","HON","MMM",
-                "CAT","DE","EMR","ETN","PH","ITW","ROK","AME","ROP","CPRT","EXPD",
-                "UPS","FDX","GXO","XPO","CHRW","JBHT","SAIA","TFII","ZTO","DAL",
-                "UAL","AAL","LUV","ALK","SAVE","H","MAR","HLT","WH","CHH","NCLH",
-                # Materials / Metals (NYSE)
-                "LIN","APD","SHW","ECL","IFF","PPG","RPM","FMC","CF","MOS","NTR",
-                "NUE","STLD","CMC","RS","ATI","FCX","SCCO","AA","CLF","MP","ALB",
-                "LAC","LTHM","SQM","VALE","RIO","BHP","GOLD","NEM","AEM","PAAS",
-                # Chemicals / Specialty Materials (NYSE)
-                "DOW","DD","LYB","HUN","CE","EMN","OLN","ASH","TROX","IOSP",
-                # Utilities (NYSE)
-                "NEE","D","SO","DUK","AEP","SRE","PCG","XEL","AWK","ES","EXC",
-                "ED","PPL","ETR","FE","AEE","CMS","DTE","LNT","PNW","WEC","NI",
-                # Real Estate / REITs (NYSE)
-                "PLD","AMT","CCI","SBAC","EQIX","DLR","O","SPG","PSA","EXR",
-                "AVB","EQR","UDR","ESS","MAA","CPT","NNN","VICI","MGM","WYNN","LVS",
-                "HST","RHP","PK","SHO","PLYA","APLE","CLDT","CPLG","RLJ","XHR",
-                # Consumer Staples (NYSE)
-                "WMT","PG","KO","PEP","PM","MO","CL","KMB","CHD","CLX","HRL",
-                "SJM","CAG","CPB","GIS","K","MKC","HSY","TR","MDLZ","KHC","STZ",
-                "BF-B","TAP","SAM","BUD","DEO","BTI","BURL","TJX","COST","DG","DLTR",
-                # Consumer Discretionary (NYSE)
-                "HD","TGT","LOW","MCD","SBUX","YUM","CMG","DPZ","QSR","EAT","DRI",
-                "TXRH","BLMN","BJRI","CAKE","SHAK","WING","PLNT","BJ","FIVE","OLLI",
-                "F","GM","STLA","HOG","RACE","TM","HMC","MGA","LEA","BWA","ALV",
-                "NKE","DECK","SKX","CROX","PVH","RL","TPR","TIF","VFC","HBI","UA",
-                # Technology (NYSE-listed)
-                "IBM","ORCL","HPQ","HPE","DELL","NCR","CDW","LDOS","SAIC","BAH",
-                "ACN","WIT","INFY","CTSH","EPAM","GLOB","MFAC","DXC","CSC","CACI",
-            ]
-
-            # ── NYSE American (AMEX) — small/mid growth and mining ────────
-            _NYSE_AMERICAN_NAMES = [
-                # Growth / Emerging (NYSE American)
-                "LUNR","ACHR","JOBY","ASTS","SOUN","RXRX","IONQ","BTBT","MARA",
-                "RIOT","HUT","BITF","CIFR","CLSK","IREN","WULF","BTDR",
-                # Mining / Resources (NYSE American)
-                "AG","EXK","PAAS","SILV","CDE","HL","GPL","MUX","AUY","KGC",
-                "GATO","MAG","SVM","FSM","ERO","ATX","VZLA","SAND","WPM","OR",
-                # Biotech / Pharma (NYSE American)
-                "ACAD","SAGE","INVA","PRTA","KYMR","ARQT","GOSS","AUPH","NKTR",
-                "AVXL","SNDX","PRAX","IMVT","DNLI","KRTX","VRNA","AKRO","TARS",
-                # Energy (NYSE American)
-                "CRC","SM","CIVI","MGY","ESTE","REX","FLNG","GMLP","SLNG",
-                # Special Situations / Growth (NYSE American)
-                "OPEN","UWMC","DAVE","HIMS","RDDT","CAVA","TMDX","MSTR",
-            ]
-
-            # Merge all, deduplicate, preserve order
-            _seen = set()
-            _EXTENDED_UNIVERSE = []
-            for _tk in (_NASDAQ_NAMES + _NYSE_NAMES + _NYSE_AMERICAN_NAMES):
-                if _tk not in _seen:
-                    _seen.add(_tk)
-                    _EXTENDED_UNIVERSE.append(_tk)
-
-            _universe_override = _EXTENDED_UNIVERSE
-            st.info(
-                f"🌐 Extended Universe: scanning {len(_EXTENDED_UNIVERSE)} tickers "
-                f"(NASDAQ + NYSE + NYSE American)…"
-            )
-
-        df_raw  = run_scan(cfg, universe_override=_universe_override,
-                           market=_scan_market)
+        df_raw  = run_scan(cfg)
         if not df_raw.empty:
             save_report(df_raw)
             try:
@@ -2076,16 +561,81 @@ if run_btn or _auto_fired:
                         st.info(f"🔔 {len(fired)} alert(s) sent to your configured channels.")
             except Exception as ae:
                 pass
-            if _auto_fired:
-                st.success(
-                    f"🤖 Auto-scan complete ({_autoscan_trigger} session) — "
-                    f"{len(df_raw)} setups found. Results auto-saved."
-                )
-            else:
-                st.success(f"✅ Manual scan complete — {len(df_raw)} setups found!")
-            st.rerun()  # reload so Leaderboard tab populates from saved CSV
+            st.success(f"✅ Scan complete — {len(df_raw)} setups found! Loading results…")
+            st.rerun()
         else:
             st.warning("No setups found. Try lowering the Score or Volume thresholds in config.yaml.")
+
+elif ngx_btn:
+    # ── NGX Scan ──────────────────────────────────────────────────────────
+    with st.spinner("🇳🇬 Scanning Nigerian Exchange stocks… (may take 2–4 min)"):
+        cfg_ngx = load_config("config.yaml")
+        ng_themes_check = cfg_ngx.get("ng_themes", {})
+        if not ng_themes_check:
+            st.error("No ng_themes found in config.yaml. Add Nigerian tickers to ng_themes section.")
+        else:
+            ngn_key_check = cfg_ngx.get("ngn_market_key","")
+            try:
+                import streamlit as _st
+                if "ngn_market_key" in _st.secrets:
+                    ngn_key_check = _st.secrets["ngn_market_key"]
+            except Exception:
+                pass
+
+            if not ngn_key_check or ngn_key_check.startswith("YOUR_"):
+                st.warning("⚠️ NGN Market API key not set — scanning with yfinance (.LA suffix). "
+                           "Add ngn_market_key to Streamlit Secrets for real-time NGX data.")
+
+            total_ngx = sum(len(v) for v in ng_themes_check.values())
+            st.info(f"Scanning {total_ngx} NGX tickers across {len(ng_themes_check)} sectors…")
+
+            df_ngx = run_ngx_scan(cfg_ngx)
+
+            if not df_ngx.empty:
+                save_report(df_ngx)
+                st.session_state["ngx_result"] = df_ngx
+                st.success(f"✅ NGX scan complete — **{len(df_ngx)} setups** found from {total_ngx} tickers!")
+                df_raw = df_ngx.copy()
+
+                # Quick summary
+                nk1, nk2, nk3, nk4 = st.columns(4)
+                with nk1:
+                    st.markdown(f'<div class="metric-card"><h3>NGX Setups</h3>'
+                                f'<div class="value green">{len(df_ngx)}</div>'
+                                f'<div style="color:#8b949e;font-size:.75rem;">of {total_ngx} scanned</div>'
+                                f'</div>', unsafe_allow_html=True)
+                with nk2:
+                    ngx_bo = int((df_ngx.get("breaking_out", pd.Series([False]*len(df_ngx)))==True).sum()) if "breaking_out" in df_ngx.columns else 0
+                    st.markdown(f'<div class="metric-card"><h3>Breakouts</h3><div class="value amber">{ngx_bo}</div></div>', unsafe_allow_html=True)
+                with nk3:
+                    ngx_top = pd.to_numeric(df_ngx.get("apex_score",pd.Series()), errors="coerce").max()
+                    st.markdown(f'<div class="metric-card"><h3>Top Score</h3><div class="value green">{ngx_top:.0f}</div></div>', unsafe_allow_html=True)
+                with nk4:
+                    ngx_s2 = df_ngx["stage"].str.contains("2 ✅",na=False).sum() if "stage" in df_ngx.columns else 0
+                    st.markdown(f'<div class="metric-card"><h3>Stage 2</h3><div class="value blue">{ngx_s2}</div></div>', unsafe_allow_html=True)
+
+                # Preview top 10
+                ngx_preview_cols = [c for c in ["ticker","theme","price","currency","stage",
+                                                  "perf_3m_%","rs_3m","of_bias","pattern","apex_score"]
+                                     if c in df_ngx.columns]
+                st.dataframe(df_ngx[ngx_preview_cols].head(10), use_container_width=True, height=320)
+                st.download_button("⬇ Download NGX Results CSV",
+                    df_ngx.to_csv().encode("utf-8"),
+                    file_name=f"apexscan_ngx_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                    mime="text/csv")
+            else:
+                st.error(
+                    "**NGX scan returned 0 results.** Possible causes:\n\n"
+                    "1. **yfinance .LA data** — Nigerian tickers on yfinance return very limited history. "
+                    "This is the most common cause.\n\n"
+                    "2. **Thresholds too strict** — open config.yaml and lower these values:\n"
+                    "```yaml\nthresholds:\n  ngx:\n    score_filter: 15   # was 20\n"
+                    "    min_volume: 10000  # was 50000\n    min_3m_perf: 0    # was 5\n```\n\n"
+                    "3. **NGN Market API** — ensure `ngn_market_key` is in Streamlit Secrets. "
+                    "With the API active, real NGX price data replaces the unreliable yfinance .LA feed.\n\n"
+                    "4. **Check the logs** — click 'Manage app' → 'Logs' at the bottom right to see "
+                    "which tickers failed and why."
+                )
 else:
     prev_df = load_previous_report()
     df_raw  = load_latest_report()
@@ -2139,56 +689,6 @@ with tabs[0]:
 
         st.markdown("---")
 
-        # ── 🌱 Correction Watchlist (William O'Neil basing lesson) ─────────
-        # "New bases form during market corrections. Don't spend corrections
-        #  trying to predict the bottom. Spend them building your watchlist."
-        _bmc = get_broad_market_condition()
-        _corr_candidates = find_correction_watchlist_candidates(df)
-
-        if not _bmc.get("uptrend", True):
-            st.markdown(
-                f'<div style="background:#1a1500;border:1px solid #d29922;border-radius:10px;'
-                f'padding:14px 18px;margin-bottom:12px;">'
-                f'<b style="color:#d29922;">🌱 Market Correction Detected</b> '
-                f'<span style="color:#8b949e;font-size:0.85rem;">— S&P 500: {_bmc.get("stage","–")}</span><br>'
-                f'<span style="color:#c9d1d9;font-size:0.88rem;">'
-                f'William O\'Neil\'s lesson: new bases form during corrections — institutions '
-                f'quietly accumulate leading stocks while weak holders exit. These are often the '
-                f'first to break out once the market confirms a new uptrend. '
-                f'Don\'t try to predict the bottom — build your watchlist instead.'
-                f'</span></div>',
-                unsafe_allow_html=True
-            )
-            if _corr_candidates.empty:
-                st.caption("No Stage 1 tight-base candidates found in the current scan.")
-            else:
-                st.markdown(f"**{len(_corr_candidates)} Stage 1 base-builder(s) found** — tight bases forming while the market corrects:")
-                _corr_show = [c for c in ["ticker","theme","price","perf_3m_%","adr_%","pattern","apex_score"]
-                              if c in _corr_candidates.columns]
-                _corr_disp = _corr_candidates[_corr_show].head(20).copy()
-                for _cc in ["apex_score","perf_3m_%","adr_%"]:
-                    if _cc in _corr_disp.columns:
-                        _corr_disp[_cc] = pd.to_numeric(_corr_disp[_cc], errors="coerce")
-                st.dataframe(
-                    _corr_disp.style.format({
-                        "price": "${:.2f}", "perf_3m_%": pct_fmt,
-                        "adr_%": lambda v: f"{v:.1f}%" if pd.notna(v) else "–",
-                        "apex_score": "{:.0f}",
-                    }, na_rep="–"),
-                    use_container_width=True, hide_index=True, height=min(300, 45 + 35*len(_corr_disp))
-                )
-                if st.button("🌱 Add All to 'Correction Watchlist'", key="add_correction_wl"):
-                    _wls_corr = load_watchlists()
-                    _wls_corr = create_list(_wls_corr, "Correction Watchlist")
-                    for _tk in _corr_candidates["ticker"].head(20).tolist():
-                        _wls_corr = add_ticker(_wls_corr, "Correction Watchlist", _tk)
-                    save_watchlists(_wls_corr)
-                    st.success(
-                        f"✅ Added {min(20, len(_corr_candidates))} ticker(s) to 'Correction Watchlist'. "
-                        f"Find it in the 📋 Watchlists tab."
-                    )
-            st.markdown("---")
-
         # ── New signal filters ─────────────────────────────────────────────
         with st.expander("🔬 Advanced Signal Filters", expanded=False):
             af1, af2, af3, af4 = st.columns(4)
@@ -2218,38 +718,10 @@ with tabs[0]:
         if filter_pa != "All" and "pa_patterns" in df_filtered.columns:
             df_filtered = df_filtered[df_filtered["pa_patterns"].str.contains(filter_pa, na=False)]
 
-        # ── Sector / Theme Filter — GICS 11 sectors + config themes ─────
-        _GICS_SECTORS_11 = [
-            "Energy","Materials","Industrials","Utilities","Healthcare",
-            "Financials","Consumer Discretionary","Consumer Staples",
-            "Information Technology","Communication Services","Real Estate",
-        ]
-        _all_raw_themes   = sorted(df_filtered["theme"].dropna().unique().tolist()) if "theme" in df_filtered.columns else []
-        _sectors_present  = [s for s in _GICS_SECTORS_11 if s in _all_raw_themes]
-        _cfg_themes_pres  = [t for t in _all_raw_themes if t not in _GICS_SECTORS_11]
-
-        # Build a clean selectbox: All → GICS sectors → Config themes
-        _sector_options   = (
-            ["🌐 All Sectors"]
-            + [f"📊 {s}" for s in _sectors_present]
-            + ([f"── {t}" for t in _cfg_themes_pres] if _cfg_themes_pres else [])
-        )
-        sel_sector = st.selectbox(
-            "🏭 Sector / Theme",
-            _sector_options,
-            key="sector_theme_filter",
-            help="Filter by GICS sector (the 11 official market sectors) or by your config themes (ai_semis, cybersecurity etc.)"
-        )
-        # Apply sector filter (strip emoji prefix before matching)
-        if sel_sector != "🌐 All Sectors":
-            _sel_clean = sel_sector.lstrip("📊 ").lstrip("── ").strip()
-            if "theme" in df_filtered.columns:
-                df_filtered = df_filtered[df_filtered["theme"] == _sel_clean]
-
-        # Quick-view buttons preserved
+        # ── Theme Category Filter ─────────────────────────────────────────
         theme_filter = st.radio(
-            "📊 Quick Filter",
-            ["🌐 All", "🚀 Growth Leaders", "💎 Emerging Gems", "🎯 Early Entry"],
+            "📊 Theme Filter",
+            ["🌐 All Themes", "🚀 Growth Leaders", "💎 Emerging Gems"],
             horizontal=True, key="lb_theme_filter"
         )
         if theme_filter == "💎 Emerging Gems":
@@ -2262,26 +734,6 @@ with tabs[0]:
             if "market_cap" in df_filtered.columns:
                 mcap_num = pd.to_numeric(df_filtered["market_cap"], errors="coerce")
                 df_filtered = df_filtered[mcap_num >= 10_000_000_000]
-        elif theme_filter == "🎯 Early Entry":
-            # Show stocks at the START of a move — cheap entry zone
-            st.markdown(
-                '<div style="background:#1a2a1a;border:1px solid #3fb950;border-radius:8px;'
-                'padding:10px 16px;margin-bottom:10px;font-size:0.85rem;color:#3fb950;">'
-                '🎯 <b>Early Entry Filter</b> — stocks just crossing above MAs, '
-                'pulling back to 50MA, or forming tight low-ADR bases. '
-                'These are cheap entries BEFORE the move, not after.'
-                '</div>',
-                unsafe_allow_html=True
-            )
-            if "early_entry" in df_filtered.columns:
-                df_filtered = df_filtered[
-                    df_filtered["early_entry"].astype(str).str.lower().isin(["true","1"])
-                ]
-            else:
-                # Fallback: show stocks within 5% of 50MA or with fresh MA cross
-                if "vs_50ma_%" in df_filtered.columns:
-                    _vs50 = pd.to_numeric(df_filtered["vs_50ma_%"], errors="coerce")
-                    df_filtered = df_filtered[(_vs50.abs() <= 5) | (_vs50 >= 0)]
 
         # Column view toggle
         col_view = st.radio("Column View", ["Standard", "Order Flow", "VWAP & Structure", "Price Action", "Fundamentals"], horizontal=True)
@@ -2289,8 +741,7 @@ with tabs[0]:
         if col_view == "Standard":
             want = ["ticker","theme","price","mcap_category","stage",
                     "perf_1m_%","perf_3m_%","perf_6m_%",
-                    "rs_3m","rs_r2500_3m","rs_r3000g_3m","rs_multi_leader",
-                    "vol_surge_x","near_52wh","pattern",
+                    "rs_3m","vol_surge_x","near_52wh","pattern",
                     "earn_momentum","eps_growth_%","eps_surprise_%","consec_beats","apex_score"]
         elif col_view == "Order Flow":
             want = ["ticker","price","of_bias","of_up_vol_ratio",
@@ -2345,10 +796,7 @@ with tabs[0]:
         fmt_dict = {
             "price": "{:.2f}", "apex_score": "{:.0f}",
             "perf_1m_%": pct_fmt, "perf_3m_%": pct_fmt, "perf_6m_%": pct_fmt,
-            "rs_3m":        lambda v: f"{v:.0f}" if pd.notna(v) and v != 0 else "–",
-            "rs_r2500_3m":  lambda v: f"{v:.0f}" if pd.notna(v) and v not in (0, None) else "–",
-            "rs_r3000g_3m": lambda v: f"{v:.0f}" if pd.notna(v) and v not in (0, None) else "–",
-            "rs_multi_leader": lambda v: "✅" if v is True or str(v).lower()=="true" else "–",
+            "rs_3m": lambda v: f"{v:.0f}" if pd.notna(v) and v != 0 else "–",
             "adr_%": lambda v: f"{v:.1f}%" if pd.notna(v) else "–",
             "vs_50ma_%": pct_fmt, "vs_200ma_%": pct_fmt,
             "vol_surge_x": "{:.1f}x",
@@ -2380,9 +828,6 @@ with tabs[0]:
             styled = styled.map(color_perf, subset=[c for c in ["perf_1m_%","perf_3m_%","perf_6m_%","vs_50ma_%","vs_200ma_%","vs_vwap_%"] if c in disp.columns])
         if "rs_3m" in disp.columns:
             styled = styled.map(color_rs, subset=["rs_3m"])
-        for _rs_col in ["rs_r2500_3m","rs_r3000g_3m"]:
-            if _rs_col in disp.columns:
-                styled = styled.map(color_rs, subset=[_rs_col])
         if map_cols_of:   styled = styled.map(color_of_bias,  subset=map_cols_of)
         if map_cols_vwap: styled = styled.map(color_vwap_pos, subset=map_cols_vwap)
         if map_cols_ms:   styled = styled.map(color_ms,       subset=map_cols_ms)
@@ -2617,15 +1062,8 @@ with tabs[1]:
             # PA pattern annotations on last candle
             if not df.empty and sel in df["ticker"].values:
                 row_data = df[df["ticker"] == sel].iloc[0]
-                _pa_raw = row_data.get("pa_patterns", "")
-                # Guard: CSV reload can return NaN (float) for missing PA values
-                pa = (
-                    str(_pa_raw)
-                    if _pa_raw is not None
-                    and not (isinstance(_pa_raw, float) and pd.isna(_pa_raw))
-                    else ""
-                )
-                if pa and pa not in ("None", "nan", ""):
+                pa = row_data.get("pa_patterns", "")
+                if pa and pa != "None":
                     last_date  = hist_vwap.index[-1]
                     last_price = hist_vwap["High"].iloc[-1]
                     fig2.add_annotation(
@@ -2700,7 +1138,7 @@ with tabs[2]:
         with h1:
             fig4 = px.scatter(agg, x="avg_3m", y="avg_score", size="count",
                 color="market", text="theme", title="Performance vs Score",
-                color_discrete_map={"US":"#388bfd","NGX":"#3fb950"})
+                color_discrete_map={"US":"#388bfd"})
             fig4.update_traces(textposition="top center")
             fig4.update_layout(paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
                 font_color="#e6edf3", height=380,
@@ -2711,7 +1149,7 @@ with tabs[2]:
             fig5 = px.bar(agg.sort_values("breakouts",ascending=False),
                 x="theme", y="breakouts", color="market", barmode="group",
                 title="Active Breakouts by Theme",
-                color_discrete_map={"US":"#388bfd","NGX":"#3fb950"})
+                color_discrete_map={"US":"#388bfd"})
             fig5.update_layout(paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
                 font_color="#e6edf3", height=380,
                 xaxis=dict(tickangle=-30,gridcolor="#21262d"),
@@ -2784,557 +1222,149 @@ with tabs[2]:
 
 with tabs[3]:
     st.markdown("### 💼 Portfolio Tracker")
-    st.caption("Positions, P&L, stop management, and full trade history — saved permanently.")
+    st.caption("Your holdings are saved locally in data/portfolio.json")
 
-    holdings  = load_portfolio()
-    trade_log = load_trade_log()
+    holdings = load_portfolio()
 
-    # ══════════════════════════════════════════════════════════════════════════
-    # SUB-TABS: Open Positions | Close / Manage | Trade History | Analytics
-    # ══════════════════════════════════════════════════════════════════════════
-    pt1, pt2, pt3, pt4 = st.tabs([
-        "📂 Open Positions", "➕ Add / Manage", "📜 Trade History", "📊 Analytics"
-    ])
+    # ── Add new holding ───────────────────────────────────────────────────────
+    with st.expander("➕ Add a Holding", expanded=len(holdings)==0):
+        a1,a2,a3,a4 = st.columns(4)
+        with a1: new_ticker = st.text_input("Ticker", placeholder="e.g. NVDA").upper().strip()
+        with a2: new_qty    = st.number_input("Shares", min_value=0.01, value=1.0, step=1.0)
+        with a3: new_price  = st.number_input("Buy Price ($)", min_value=0.01, value=100.0, step=0.01)
+        with a4: new_date   = st.date_input("Buy Date", value=datetime.today())
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # SUB-TAB 1 — OPEN POSITIONS
-    # ─────────────────────────────────────────────────────────────────────────
-    with pt1:
-        if not holdings:
-            st.info("No open positions. Go to ➕ Add / Manage to add your first trade.")
-        else:
-            rows   = []
-            alerts = []
+        if st.button("Add to Portfolio") and new_ticker:
+            holdings.append({
+                "ticker":    new_ticker,
+                "qty":       new_qty,
+                "buy_price": new_price,
+                "buy_date":  str(new_date),
+            })
+            save_portfolio(holdings)
+            st.success(f"Added {new_ticker}")
+            st.rerun()
 
-            for h in holdings:
-                tk        = h["ticker"]
-                qty       = float(h["qty"])
-                cost      = float(h["buy_price"])
-                stop      = float(h.get("stop_loss", 0)) or None
-                target    = float(h.get("target", 0)) or None
-                live      = fetch_price(tk)
+    if not holdings:
+        st.info("No holdings yet. Add your first position above.")
+    else:
+        # ── Fetch live prices & compute P&L ──────────────────────────────────
+        rows = []
+        alerts = []
 
-                if not live:
-                    rows.append({
-                        "Ticker": tk, "Qty": qty, "Buy $": cost,
-                        "Current $": None, "Day %": None,
-                        "P&L $": None, "P&L %": None, "Value $": None,
-                        "Stop $": stop, "Target $": target,
-                        "R Multiple": None, "vs 50MA %": None,
-                        "vs 200MA %": None, "Days Held": None, "Signal": "No data",
-                    })
-                    continue
+        for h in holdings:
+            tk   = h["ticker"]
+            qty  = h["qty"]
+            cost = h["buy_price"]
+            live = fetch_price(tk)
 
-                price      = live["price"]
-                ma50       = live["ma50"]
-                ma200      = live["ma200"]
-                chg        = live["chg_pct"]
-                pnl_pct    = round((price / cost - 1) * 100, 2)
-                pnl_dol    = round((price - cost) * qty, 2)
-                value      = round(price * qty, 2)
-                vs50       = round((price / ma50 - 1) * 100, 1)   if ma50  else None
-                vs200      = round((price / ma200 - 1) * 100, 1)  if ma200 else None
-                hold_days  = (datetime.today() - pd.to_datetime(h["buy_date"])).days
+            if not live:
+                rows.append({"Ticker": tk, "Qty": qty, "Buy $": cost,
+                             "Current $": "–", "P&L $": "–", "P&L %": "–",
+                             "Value $": "–", "vs 50MA": "–", "Signal": "No data"})
+                continue
 
-                # R Multiple — how many R's of profit/loss relative to initial risk
-                risk_per_sh = (cost - stop) if stop else None
-                r_mult      = round(pnl_dol / (risk_per_sh * qty), 2) if risk_per_sh and risk_per_sh > 0 else None
+            price    = live["price"]
+            ma50     = live["ma50"]
+            ma200    = live["ma200"]
+            chg      = live["chg_pct"]
+            pnl_pct  = round((price / cost - 1) * 100, 2)
+            pnl_dol  = round((price - cost) * qty, 2)
+            value    = round(price * qty, 2)
+            vs50     = round((price / ma50 - 1) * 100, 1) if ma50 else 0
 
-                # ── Automated signal logic ─────────────────────────────────
-                if stop and price <= stop:
-                    signal = "🛑 STOP HIT"
-                    alerts.append(("danger", tk, f"Price ${price:.2f} has hit/breached stop ${stop:.2f}"))
-                elif target and price >= target:
-                    signal = "🎯 TARGET HIT"
-                    alerts.append(("success", tk, f"Price ${price:.2f} has reached target ${target:.2f}"))
-                elif ma50 and ma200 and price < ma50 and price < ma200:
-                    signal = "🔴 Below Both MAs"
-                    alerts.append(("danger", tk, f"${price:.2f} below 50MA (${ma50:.2f}) & 200MA (${ma200:.2f})"))
-                elif ma50 and price < ma50:
-                    signal = "⚠️ Below 50MA"
-                    alerts.append(("warn", tk, f"${price:.2f} dropped below 50MA (${ma50:.2f})"))
-                elif vs50 and vs50 > 25:
-                    signal = "⚡ Extended +25% above 50MA"
-                elif pnl_pct >= 20:
-                    signal = "🚀 +20%+ — Trail stop"
-                else:
-                    signal = "✅ Hold"
-
-                rows.append({
-                    "Ticker":    tk,
-                    "Qty":       qty,
-                    "Buy $":     cost,
-                    "Current $": price,
-                    "Day %":     chg,
-                    "P&L $":     pnl_dol,
-                    "P&L %":     pnl_pct,
-                    "Value $":   value,
-                    "Stop $":    stop,
-                    "Target $":  target,
-                    "R Mult":    r_mult,
-                    "vs 50MA %": vs50,
-                    "Days Held": hold_days,
-                    "Signal":    signal,
-                    "Setup":     h.get("setup",""),
-                })
-
-            port_df = pd.DataFrame(rows)
-
-            # ── 🚨 Alerts bar ──────────────────────────────────────────────
-            if alerts:
-                st.markdown("#### 🚨 Position Alerts")
-                for level, tk, msg in alerts:
-                    if level == "danger":
-                        st.error(f"**{tk}** — {msg}")
-                    elif level == "success":
-                        st.success(f"**{tk}** — {msg}")
-                    else:
-                        st.warning(f"**{tk}** — {msg}")
-                st.markdown("---")
-
-            # ── Summary KPIs ───────────────────────────────────────────────
-            _num = port_df.copy()
-            for _c in ["P&L $","P&L %","Value $","Day %"]:
-                _num[_c] = pd.to_numeric(_num[_c], errors="coerce")
-
-            total_value   = _num["Value $"].sum()
-            total_pnl     = _num["P&L $"].sum()
-            total_cost    = sum(float(h["qty"])*float(h["buy_price"]) for h in holdings)
-            total_pnl_pct = round((total_pnl / total_cost * 100), 2) if total_cost else 0
-            winners       = int((_num["P&L %"] > 0).sum())
-            losers        = int((_num["P&L %"] < 0).sum())
-            day_pnl       = sum(
-                float(r["Day %"] or 0)/100 * float(r["Value $"] or 0)
-                for r in rows if isinstance(r.get("Day %"),(int,float))
-            )
-
-            k1,k2,k3,k4,k5 = st.columns(5)
-            gc = "green" if total_pnl >= 0 else "red"
-            dc = "green" if day_pnl  >= 0 else "red"
-            k1.metric("Portfolio Value",  f"${total_value:,.0f}")
-            k2.metric("Total P&L",        f"${total_pnl:+,.0f}",  f"{total_pnl_pct:+.1f}%")
-            k3.metric("Today's P&L",      f"${day_pnl:+,.0f}")
-            k4.metric("Win / Loss",       f"{winners}W / {losers}L")
-            k5.metric("Open Positions",   len(holdings))
-
-            st.markdown("---")
-
-            # ── Holdings table ─────────────────────────────────────────────
-            def _cpnl(v):
-                try: return "color:#3fb950;font-weight:700" if float(v)>0 else ("color:#f85149;font-weight:700" if float(v)<0 else "")
-                except: return ""
-
-            disp_cols = ["Ticker","Qty","Buy $","Current $","Day %",
-                         "P&L $","P&L %","Value $","Stop $","Target $",
-                         "R Mult","vs 50MA %","Days Held","Signal","Setup"]
-            disp_df = port_df[[c for c in disp_cols if c in port_df.columns]]
-
-            styled_p = disp_df.style \
-                .map(_cpnl, subset=[c for c in ["P&L $","P&L %","Day %","R Mult"] if c in disp_df.columns]) \
-                .format({
-                    "Buy $":      lambda v: f"${v:.2f}" if isinstance(v,(int,float)) else "–",
-                    "Current $":  lambda v: f"${v:.2f}" if isinstance(v,(int,float)) else "–",
-                    "Stop $":     lambda v: f"${v:.2f}" if isinstance(v,(int,float)) else "–",
-                    "Target $":   lambda v: f"${v:.2f}" if isinstance(v,(int,float)) else "–",
-                    "Day %":      lambda v: f"{v:+.2f}%" if isinstance(v,(int,float)) else "–",
-                    "P&L $":      lambda v: f"${v:+,.2f}" if isinstance(v,(int,float)) else "–",
-                    "P&L %":      lambda v: f"{v:+.1f}%" if isinstance(v,(int,float)) else "–",
-                    "Value $":    lambda v: f"${v:,.2f}" if isinstance(v,(int,float)) else "–",
-                    "vs 50MA %":  lambda v: f"{v:+.1f}%" if isinstance(v,(int,float)) else "–",
-                    "R Mult":     lambda v: f"{v:+.2f}R" if isinstance(v,(int,float)) else "–",
-                    "Days Held":  lambda v: f"{int(v)}d"   if isinstance(v,(int,float)) else "–",
-                }, na_rep="–")
-            st.dataframe(styled_p, use_container_width=True, height=420)
-
-            # ── Allocation pie + Sector breakdown ─────────────────────────
-            pie_data = _num.dropna(subset=["Value $"])
-            if not pie_data.empty:
-                col_pie, col_sec = st.columns(2)
-                with col_pie:
-                    fig_pie = px.pie(
-                        pie_data, names="Ticker", values="Value $",
-                        title="Position Allocation",
-                        color_discrete_sequence=px.colors.sequential.Viridis,
-                        hole=0.35,
-                    )
-                    fig_pie.update_layout(
-                        paper_bgcolor="#0d1117", font_color="#e6edf3", height=340,
-                        margin=dict(t=40,b=10,l=10,r=10),
-                    )
-                    st.plotly_chart(fig_pie, use_container_width=True)
-
-                with col_sec:
-                    # P&L bar chart per position
-                    pnl_bar = _num.dropna(subset=["P&L $"]).copy()
-                    pnl_bar["Color"] = pnl_bar["P&L $"].apply(lambda v: "#3fb950" if v>=0 else "#f85149")
-                    fig_bar = px.bar(
-                        pnl_bar, x="Ticker", y="P&L $",
-                        title="P&L by Position ($)",
-                        color="Color", color_discrete_map="identity",
-                    )
-                    fig_bar.update_layout(
-                        paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
-                        font_color="#e6edf3", height=340, showlegend=False,
-                        margin=dict(t=40,b=10,l=10,r=10),
-                    )
-                    fig_bar.update_traces(marker_line_width=0)
-                    st.plotly_chart(fig_bar, use_container_width=True)
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # SUB-TAB 2 — ADD / MANAGE
-    # ─────────────────────────────────────────────────────────────────────────
-    with pt2:
-        manage_mode = st.radio(
-            "Action", ["➕ Add Position", "✏️ Edit Stop/Target", "📤 Close Position"],
-            horizontal=True
-        )
-
-        # ── ADD POSITION ───────────────────────────────────────────────────
-        if manage_mode == "➕ Add Position":
-            with st.form("add_position_form"):
-                st.markdown("#### ➕ Add a New Position")
-                c1,c2,c3 = st.columns(3)
-                with c1:
-                    n_tk    = st.text_input("Ticker *", placeholder="NVDA").upper().strip()
-                    n_qty   = st.number_input("Shares *", min_value=0.001, value=1.0, step=1.0, format="%.3f")
-                with c2:
-                    n_price = st.number_input("Buy Price ($) *", min_value=0.01, value=100.0, step=0.01)
-                    n_stop  = st.number_input("Stop Loss ($)", min_value=0.0, value=0.0, step=0.01,
-                                              help="Price at which you will exit if wrong. 0 = no stop set.")
-                with c3:
-                    n_target= st.number_input("Target Price ($)", min_value=0.0, value=0.0, step=0.01,
-                                              help="Price target for this trade. 0 = no target set.")
-                    n_date  = st.date_input("Buy Date *", value=datetime.today())
-
-                c4,c5 = st.columns(2)
-                with c4:
-                    n_setup = st.selectbox("Setup Type",
-                        ["", "Breakout", "Pullback to 50MA", "VWAP Reclaim",
-                         "SFP / Bear Trap", "Flat Base", "Cup & Handle",
-                         "Earnings Play", "Sector Rotation", "Other"])
-                with c5:
-                    n_notes = st.text_input("Notes", placeholder="e.g. Breaking out on 2x volume")
-
-                # Live risk preview
-                if n_price > 0 and n_stop > 0 and n_stop < n_price:
-                    risk_sh   = round(n_price - n_stop, 2)
-                    risk_pct  = round(risk_sh / n_price * 100, 2)
-                    risk_tot  = round(risk_sh * n_qty, 2)
-                    rr        = round((n_target - n_price) / risk_sh, 2) if n_target > n_price else None
-                    st.info(
-                        f"**Risk per share:** ${risk_sh:.2f} ({risk_pct:.1f}%)  |  "
-                        f"**Total risk:** ${risk_tot:,.2f}  |  "
-                        f"**R:R ratio:** {rr:.1f}:1" if rr else
-                        f"**Risk per share:** ${risk_sh:.2f} ({risk_pct:.1f}%)  |  "
-                        f"**Total risk:** ${risk_tot:,.2f}"
-                    )
-
-                submitted = st.form_submit_button("Add Position", use_container_width=True)
-                if submitted and n_tk:
-                    holdings.append({
-                        "ticker":    n_tk,
-                        "qty":       n_qty,
-                        "buy_price": n_price,
-                        "buy_date":  str(n_date),
-                        "stop_loss": n_stop if n_stop > 0 else None,
-                        "target":    n_target if n_target > 0 else None,
-                        "setup":     n_setup,
-                        "notes":     n_notes,
-                    })
-                    save_portfolio(holdings)
-                    st.success(f"✅ Added {n_tk} — {n_qty} shares @ ${n_price:.2f}")
-                    st.rerun()
-
-        # ── EDIT STOP / TARGET ─────────────────────────────────────────────
-        elif manage_mode == "✏️ Edit Stop/Target":
-            if not holdings:
-                st.info("No open positions to edit.")
+            # ── Signal logic ──────────────────────────────────────────────
+            if price < ma50 and price < ma200:
+                signal = "🔴 SELL — Below Both MAs"
+                alerts.append(("danger", tk, f"${price} is below both 50MA (${ma50}) and 200MA (${ma200})"))
+            elif price < ma50:
+                signal = "⚠️ WATCH — Below 50MA"
+                alerts.append(("warn", tk, f"${price} dropped below 50MA (${ma50})"))
+            elif vs50 > 20:
+                signal = "⚡ Extended — Consider Trimming"
             else:
-                st.markdown("#### ✏️ Update Stop Loss or Target")
-                edit_tk = st.selectbox("Select Position", [h["ticker"] for h in holdings])
-                h_edit  = next((h for h in holdings if h["ticker"] == edit_tk), None)
-                if h_edit:
-                    live_e  = fetch_price(edit_tk)
-                    cur_p   = live_e["price"] if live_e else h_edit["buy_price"]
-                    e1,e2   = st.columns(2)
-                    with e1:
-                        new_stop = st.number_input(
-                            "New Stop Loss ($)",
-                            min_value=0.0,
-                            value=float(h_edit.get("stop_loss") or 0),
-                            step=0.01,
-                        )
-                    with e2:
-                        new_tgt  = st.number_input(
-                            "New Target ($)",
-                            min_value=0.0,
-                            value=float(h_edit.get("target") or 0),
-                            step=0.01,
-                        )
-                    new_notes = st.text_input("Update Notes", value=h_edit.get("notes",""))
+                signal = "✅ Hold"
 
-                    # Show updated R:R
-                    if new_stop > 0 and new_stop < cur_p:
-                        _rs = cur_p - new_stop
-                        _rr = round((new_tgt - cur_p) / _rs, 2) if new_tgt > cur_p else None
-                        pnl_now = round((cur_p / h_edit["buy_price"] - 1) * 100, 2)
-                        st.info(
-                            f"Current Price: **${cur_p:.2f}**  |  "
-                            f"Open P&L: **{pnl_now:+.1f}%**  |  "
-                            f"New risk/share: **${_rs:.2f}**  |  "
-                            + (f"R:R: **{_rr:.1f}:1**" if _rr else "Set target for R:R")
-                        )
+            rows.append({
+                "Ticker":     tk,
+                "Qty":        qty,
+                "Buy $":      cost,
+                "Current $":  price,
+                "Day %":      chg,
+                "P&L $":      pnl_dol,
+                "P&L %":      pnl_pct,
+                "Value $":    value,
+                "vs 50MA %":  vs50,
+                "Signal":     signal,
+            })
 
-                    if st.button("💾 Save Changes"):
-                        for h in holdings:
-                            if h["ticker"] == edit_tk:
-                                h["stop_loss"] = new_stop if new_stop > 0 else None
-                                h["target"]    = new_tgt  if new_tgt  > 0 else None
-                                h["notes"]     = new_notes
-                        save_portfolio(holdings)
-                        st.success(f"Updated {edit_tk}")
-                        st.rerun()
+        port_df = pd.DataFrame(rows)
 
-        # ── CLOSE POSITION ─────────────────────────────────────────────────
-        elif manage_mode == "📤 Close Position":
-            if not holdings:
-                st.info("No open positions to close.")
-            else:
-                st.markdown("#### 📤 Close a Position")
-                close_tk = st.selectbox("Position to Close", [h["ticker"] for h in holdings])
-                h_close  = next((h for h in holdings if h["ticker"] == close_tk), None)
-                if h_close:
-                    live_c   = fetch_price(close_tk)
-                    def_price= live_c["price"] if live_c else float(h_close["buy_price"])
-                    max_qty  = float(h_close["qty"])
-
-                    cl1,cl2,cl3 = st.columns(3)
-                    with cl1:
-                        close_price = st.number_input(
-                            "Exit Price ($)", min_value=0.01, value=def_price, step=0.01
-                        )
-                    with cl2:
-                        close_qty = st.number_input(
-                            "Shares to Close",
-                            min_value=0.001, max_value=max_qty,
-                            value=max_qty, step=1.0, format="%.3f",
-                            help="Partial close: enter less than full qty"
-                        )
-                    with cl3:
-                        close_date = st.date_input("Exit Date", value=datetime.today())
-
-                    # P&L preview
-                    _pnl_prev = round((close_price / float(h_close["buy_price"]) - 1)*100, 2)
-                    _pnl_dol  = round((close_price - float(h_close["buy_price"])) * close_qty, 2)
-                    _hold_d   = (pd.to_datetime(str(close_date)) - pd.to_datetime(h_close["buy_date"])).days
-                    _stop_r   = float(h_close.get("stop_loss") or 0)
-                    _risk_sh  = (float(h_close["buy_price"]) - _stop_r) if _stop_r else None
-                    _r_mult   = round(_pnl_dol / (_risk_sh * close_qty), 2) if _risk_sh and _risk_sh > 0 else None
-
-                    col = "green" if _pnl_dol >= 0 else "red"
-                    st.markdown(
-                        f'<div style="background:#161b22;padding:14px;border-radius:8px;margin:8px 0;">'
-                        f'<b>Exit P&L:</b> <span style="color:{"#3fb950" if _pnl_dol>=0 else "#f85149"};font-size:1.2rem;font-weight:700;">'
-                        f'${_pnl_dol:+,.2f} ({_pnl_prev:+.1f}%)</span>'
-                        f'&nbsp;&nbsp;|&nbsp;&nbsp;<b>Days held:</b> {_hold_d}d'
-                        + (f'&nbsp;&nbsp;|&nbsp;&nbsp;<b>R multiple:</b> {_r_mult:+.2f}R' if _r_mult else '')
-                        + f'&nbsp;&nbsp;|&nbsp;&nbsp;<b>Closing:</b> {close_qty:.3f} of {max_qty:.3f} shares'
-                        + '</div>',
-                        unsafe_allow_html=True
-                    )
-
-                    close_notes = st.text_input("Exit Notes", placeholder="e.g. Stop hit / Target reached / Cutting loss")
-
-                    if st.button("📤 Confirm Close", type="primary"):
-                        h_close["notes"] = (h_close.get("notes","") + " | Exit: " + close_notes).strip(" | ")
-                        new_holdings, new_log = close_position(
-                            holdings, trade_log, close_tk,
-                            close_price, str(close_date), close_qty
-                        )
-                        save_portfolio(new_holdings)
-                        save_trade_log(new_log)
-                        partial = close_qty < max_qty
-                        msg = f"Partially closed {close_qty:.0f} shares of {close_tk}" if partial else f"Closed {close_tk}"
-                        st.success(f"✅ {msg} — P&L: ${_pnl_dol:+,.2f} ({_pnl_prev:+.1f}%)")
-                        st.rerun()
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # SUB-TAB 3 — TRADE HISTORY
-    # ─────────────────────────────────────────────────────────────────────────
-    with pt3:
-        st.markdown("#### 📜 Closed Trade History")
-        if not trade_log:
-            st.info("No closed trades yet. Close your first position in ➕ Add / Manage.")
-        else:
-            tlog_df = pd.DataFrame(trade_log)
-            # Summary stats
-            wins    = tlog_df[tlog_df["pnl_dol"] > 0]
-            losses  = tlog_df[tlog_df["pnl_dol"] <= 0]
-            win_rt  = round(len(wins)/len(tlog_df)*100,1) if tlog_df.shape[0] > 0 else 0
-            avg_win = wins["pnl_pct"].mean()  if not wins.empty  else 0
-            avg_los = losses["pnl_pct"].mean()if not losses.empty else 0
-            expectancy = round((win_rt/100 * avg_win) + ((1-win_rt/100) * avg_los), 2)
-            avg_r   = tlog_df["pnl_dol"].mean() / \
-                      ((tlog_df["buy_price"] - 0).mean()) if "stop" not in tlog_df.columns else None
-            total_closed_pnl = tlog_df["pnl_dol"].sum()
-            avg_hold = round(tlog_df["hold_days"].mean(), 1)
-
-            h1,h2,h3,h4,h5 = st.columns(5)
-            h1.metric("Total Closed P&L",  f"${total_closed_pnl:+,.2f}")
-            h2.metric("Win Rate",           f"{win_rt:.1f}%")
-            h3.metric("Avg Winner",         f"{avg_win:+.1f}%")
-            h4.metric("Avg Loser",          f"{avg_los:+.1f}%")
-            h5.metric("Avg Hold",           f"{avg_hold}d")
-
+        # ── Alerts ────────────────────────────────────────────────────────
+        if alerts:
+            st.markdown("#### 🚨 Position Alerts")
+            for level, tk, msg in alerts:
+                box = "danger-box" if level=="danger" else "warn-box"
+                icon = "🔴" if level=="danger" else "⚠️"
+                st.markdown(f'<div class="{box}">{icon} <b>{tk}</b> — {msg}</div>',
+                            unsafe_allow_html=True)
             st.markdown("---")
-            # Expectancy
-            exp_color = "#3fb950" if expectancy > 0 else "#f85149"
-            st.markdown(
-                f'<div style="background:#161b22;padding:12px;border-radius:8px;margin-bottom:12px;">'
-                f'📐 <b>System Expectancy:</b> '
-                f'<span style="color:{exp_color};font-size:1.1rem;font-weight:700;">{expectancy:+.2f}%</span>'
-                f' per trade &nbsp;|&nbsp; '
-                f'<span style="color:#8b949e;font-size:0.85rem;">'
-                f'Expectancy = (Win% × Avg Win) + (Loss% × Avg Loss). '
-                f'Positive = edge. Target: >0.5%</span></div>',
-                unsafe_allow_html=True
-            )
 
-            # Trade log table
-            def _cl(v):
-                try: return "color:#3fb950;font-weight:700" if float(v)>0 else "color:#f85149;font-weight:700"
-                except: return ""
+        # ── Summary KPIs ──────────────────────────────────────────────────
+        numeric_rows = port_df[pd.to_numeric(port_df["P&L $"], errors="coerce").notna()]
+        total_value  = pd.to_numeric(numeric_rows["Value $"], errors="coerce").sum()
+        total_pnl    = pd.to_numeric(numeric_rows["P&L $"],   errors="coerce").sum()
+        total_cost   = sum(h["qty"]*h["buy_price"] for h in holdings)
+        total_pnl_pct = round((total_pnl / total_cost * 100), 2) if total_cost else 0
+        winners = int((pd.to_numeric(numeric_rows["P&L %"], errors="coerce") > 0).sum())
 
-            display_log = tlog_df[["ticker","qty","buy_price","buy_date",
-                                    "close_price","close_date","pnl_dol","pnl_pct",
-                                    "hold_days","setup","notes"]].copy()
-            display_log.columns = ["Ticker","Qty","Buy $","Buy Date",
-                                    "Exit $","Exit Date","P&L $","P&L %",
-                                    "Days","Setup","Notes"]
+        k1,k2,k3,k4 = st.columns(4)
+        pnl_color = "green" if total_pnl >= 0 else "red"
+        with k1: st.markdown(f'<div class="metric-card"><h3>Portfolio Value</h3><div class="value white">${total_value:,.0f}</div></div>', unsafe_allow_html=True)
+        with k2: st.markdown(f'<div class="metric-card"><h3>Total P&L</h3><div class="value {pnl_color}">${total_pnl:+,.0f}</div></div>', unsafe_allow_html=True)
+        with k3: st.markdown(f'<div class="metric-card"><h3>Return</h3><div class="value {pnl_color}">{total_pnl_pct:+.1f}%</div></div>', unsafe_allow_html=True)
+        with k4: st.markdown(f'<div class="metric-card"><h3>Winners</h3><div class="value amber">{winners}/{len(numeric_rows)}</div></div>', unsafe_allow_html=True)
 
-            styled_log = display_log.style \
-                .map(_cl, subset=["P&L $","P&L %"]) \
-                .format({
-                    "Buy $":  "${:.2f}",
-                    "Exit $": "${:.2f}",
-                    "P&L $":  lambda v: f"${v:+,.2f}" if isinstance(v,(int,float)) else v,
-                    "P&L %":  lambda v: f"{v:+.1f}%"  if isinstance(v,(int,float)) else v,
-                    "Days":   lambda v: f"{int(v)}d"   if isinstance(v,(int,float)) else v,
-                }, na_rep="–")
-            st.dataframe(styled_log, use_container_width=True, height=400)
+        st.markdown("---")
 
-            # Cumulative P&L chart
-            st.markdown("---")
-            tlog_df_sorted = tlog_df.sort_values("close_date")
-            tlog_df_sorted["cumulative_pnl"] = tlog_df_sorted["pnl_dol"].cumsum()
-            fig_cum = px.area(
-                tlog_df_sorted, x="close_date", y="cumulative_pnl",
-                title="Cumulative Closed P&L ($)",
-                color_discrete_sequence=["#3fb950"],
-            )
-            fig_cum.add_hline(y=0, line_dash="dot", line_color="#8b949e")
-            fig_cum.update_layout(
-                paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
-                font_color="#e6edf3", height=320,
-                xaxis_title="Date", yaxis_title="Cumulative P&L ($)",
-                margin=dict(t=40,b=20,l=20,r=20),
-            )
-            fig_cum.update_traces(fill="tozeroy", fillcolor="rgba(63,185,80,0.15)")
-            st.plotly_chart(fig_cum, use_container_width=True)
+        # ── Holdings table ────────────────────────────────────────────────
+        def _color_pnl(v):
+            try: return "color:#3fb950" if float(v)>0 else ("color:#f85149" if float(v)<0 else "")
+            except: return ""
 
-            # Export trade log
-            st.download_button(
-                "⬇ Export Trade Log (CSV)",
-                data=display_log.to_csv(index=False).encode("utf-8"),
-                file_name=f"apexscan_trades_{datetime.now().strftime('%Y%m%d')}.csv",
-                mime="text/csv",
-            )
+        styled_p = port_df.style \
+            .map(_color_pnl, subset=["P&L $","P&L %","Day %","vs 50MA %"]) \
+            .format({
+                "Buy $":      "${:.2f}",
+                "Current $":  lambda v: f"${v:.2f}" if isinstance(v,(int,float)) else v,
+                "Day %":      lambda v: f"{v:+.2f}%" if isinstance(v,(int,float)) else v,
+                "P&L $":      lambda v: f"${v:+,.2f}" if isinstance(v,(int,float)) else v,
+                "P&L %":      lambda v: f"{v:+.1f}%" if isinstance(v,(int,float)) else v,
+                "Value $":    lambda v: f"${v:,.2f}" if isinstance(v,(int,float)) else v,
+                "vs 50MA %":  lambda v: f"{v:+.1f}%" if isinstance(v,(int,float)) else v,
+            }, na_rep="–")
+        st.dataframe(styled_p, use_container_width=True, height=400)
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # SUB-TAB 4 — ANALYTICS
-    # ─────────────────────────────────────────────────────────────────────────
-    with pt4:
-        st.markdown("#### 📊 Portfolio Analytics")
+        # ── Pie chart ─────────────────────────────────────────────────────
+        pie_data = port_df[pd.to_numeric(port_df["Value $"], errors="coerce").notna()].copy()
+        pie_data["Value $"] = pd.to_numeric(pie_data["Value $"])
+        if not pie_data.empty:
+            fig_pie = px.pie(pie_data, names="Ticker", values="Value $",
+                title="Portfolio Allocation",
+                color_discrete_sequence=px.colors.sequential.Viridis)
+            fig_pie.update_layout(paper_bgcolor="#0d1117", font_color="#e6edf3", height=350)
+            st.plotly_chart(fig_pie, use_container_width=True)
 
-        if not trade_log and not holdings:
-            st.info("Add positions and close some trades to see analytics.")
-        else:
-            all_trades = pd.DataFrame(trade_log) if trade_log else pd.DataFrame()
+        # ── Remove holding ────────────────────────────────────────────────
+        st.markdown("---")
+        tickers_in = [h["ticker"] for h in holdings]
+        remove_tk = st.selectbox("Remove a position", ["–"] + tickers_in)
+        if st.button("Remove") and remove_tk != "–":
+            holdings = [h for h in holdings if h["ticker"] != remove_tk]
+            save_portfolio(holdings)
+            st.success(f"Removed {remove_tk}")
+            st.rerun()
 
-            an1, an2 = st.columns(2)
-
-            with an1:
-                # Win/Loss distribution
-                if not all_trades.empty:
-                    fig_dist = px.histogram(
-                        all_trades, x="pnl_pct", nbins=20,
-                        title="P&L % Distribution (Closed Trades)",
-                        color_discrete_sequence=["#388bfd"],
-                    )
-                    fig_dist.add_vline(x=0, line_dash="dot", line_color="#f85149")
-                    fig_dist.update_layout(
-                        paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
-                        font_color="#e6edf3", height=300,
-                        margin=dict(t=40,b=20,l=20,r=20),
-                    )
-                    st.plotly_chart(fig_dist, use_container_width=True)
-
-                    # Best/Worst trades
-                    best  = all_trades.nlargest(3,"pnl_pct")[["ticker","pnl_pct","pnl_dol","hold_days"]]
-                    worst = all_trades.nsmallest(3,"pnl_pct")[["ticker","pnl_pct","pnl_dol","hold_days"]]
-                    st.markdown("**🏆 Best Trades**")
-                    st.dataframe(best.style.format({"pnl_pct":"{:+.1f}%","pnl_dol":"${:+,.2f}","hold_days":"{:.0f}d"}),
-                                 use_container_width=True, height=140)
-                    st.markdown("**💀 Worst Trades**")
-                    st.dataframe(worst.style.format({"pnl_pct":"{:+.1f}%","pnl_dol":"${:+,.2f}","hold_days":"{:.0f}d"}),
-                                 use_container_width=True, height=140)
-
-            with an2:
-                # Setup type breakdown
-                if not all_trades.empty and "setup" in all_trades.columns:
-                    setup_perf = all_trades.groupby("setup").agg(
-                        Trades=("pnl_dol","count"),
-                        Avg_PnL_pct=("pnl_pct","mean"),
-                        Total_PnL=("pnl_dol","sum"),
-                        Win_Rate=("pnl_dol", lambda x: (x>0).mean()*100)
-                    ).reset_index().sort_values("Avg_PnL_pct", ascending=False)
-                    setup_perf.columns = ["Setup","Trades","Avg P&L %","Total P&L $","Win %"]
-                    st.markdown("**📋 Performance by Setup Type**")
-                    st.dataframe(
-                        setup_perf.style.format({
-                            "Avg P&L %": "{:+.1f}%",
-                            "Total P&L $": "${:+,.2f}",
-                            "Win %": "{:.0f}%",
-                        }),
-                        use_container_width=True, height=280
-                    )
-
-                # Open positions R multiple chart
-                open_r = [(h["ticker"], h.get("stop_loss"), h.get("buy_price"))
-                          for h in holdings if h.get("stop_loss") and h.get("buy_price")]
-                if open_r:
-                    r_rows = []
-                    for tk, sl, bp in open_r:
-                        lv = fetch_price(tk)
-                        if lv:
-                            cur = lv["price"]
-                            risk = float(bp) - float(sl)
-                            if risk > 0:
-                                r_mult = round((cur - float(bp)) / risk, 2)
-                                r_rows.append({"Ticker": tk, "R Multiple": r_mult,
-                                               "Color": "#3fb950" if r_mult >= 0 else "#f85149"})
-                    if r_rows:
-                        r_df = pd.DataFrame(r_rows)
-                        fig_r = px.bar(r_df, x="Ticker", y="R Multiple",
-                            title="Open Positions — R Multiple",
-                            color="Color", color_discrete_map="identity")
-                        fig_r.add_hline(y=0, line_dash="dot", line_color="#8b949e")
-                        fig_r.update_layout(
-                            paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
-                            font_color="#e6edf3", height=280, showlegend=False,
-                            margin=dict(t=40,b=20,l=20,r=20),
-                        )
-                        st.plotly_chart(fig_r, use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 5 — EARNINGS CALENDAR
@@ -3620,120 +1650,11 @@ with tabs[6]:
             k6,k7,k8,k9,k10 = st.columns(5)
             rs3  = result.get("rs_3m", 0)
             rs6  = result.get("rs_6m", 0)
-            k6.metric("RS vs S&P500 (3m)",  f"{rs3:.0f}" if rs3 else "–")
-            k7.metric("RS vs S&P500 (6m)",  f"{rs6:.0f}" if rs6 else "–")
+            k6.metric("RS vs Benchmark (3m)",  f"{rs3:.0f}" if rs3 else "–")
+            k7.metric("RS vs Benchmark (6m)",  f"{rs6:.0f}" if rs6 else "–")
             k8.metric("vs 50MA",               pct_fmt(result.get("vs_50ma_%", 0)))
             k9.metric("vs 200MA",              pct_fmt(result.get("vs_200ma_%", 0)))
             k10.metric("ADR %",                f"{result.get('adr_%', 0):.1f}%")
-
-            # Russell benchmark RS row
-            _rr25_3  = result.get("rs_r2500_3m")
-            _rr25_6  = result.get("rs_r2500_6m")
-            _rr3g_3  = result.get("rs_r3000g_3m")
-            _rr3g_6  = result.get("rs_r3000g_6m")
-            _multi   = result.get("rs_multi_leader", False)
-
-            def _rs_fmt(v):
-                if v is None or (isinstance(v, float) and pd.isna(v)): return "–"
-                return f"{float(v):.0f}"
-
-            def _rs_delta(v):
-                if v is None or (isinstance(v, float) and pd.isna(v)): return None
-                return "▲ Leader" if float(v) > 100 else ("▼ Lagging" if float(v) < 70 else "≈ In-line")
-
-            rk1,rk2,rk3,rk4,rk5 = st.columns(5)
-            rk1.metric(
-                "RS vs R2500 (3m)",
-                _rs_fmt(_rr25_3),
-                delta=_rs_delta(_rr25_3),
-                help="Relative Strength vs Russell 2500 (small/mid-cap benchmark). >100 = beating small/mid peers."
-            )
-            rk2.metric(
-                "RS vs R2500 (6m)",
-                _rs_fmt(_rr25_6),
-                delta=_rs_delta(_rr25_6),
-                help="RS vs Russell 2500 over 6 months — sustained small/mid outperformance."
-            )
-            rk3.metric(
-                "RS vs R3000G (3m)",
-                _rs_fmt(_rr3g_3),
-                delta=_rs_delta(_rr3g_3),
-                help="Relative Strength vs Russell 3000 Growth (broadest growth benchmark). >100 = beating all growth stocks."
-            )
-            rk4.metric(
-                "RS vs R3000G (6m)",
-                _rs_fmt(_rr3g_6),
-                delta=_rs_delta(_rr3g_6),
-                help="RS vs Russell 3000 Growth over 6 months — elite sustained growth leadership."
-            )
-            _multi_val = bool(_multi) if _multi is not None and not (isinstance(_multi, float) and pd.isna(_multi)) else False
-            rk5.metric(
-                "Multi-Bench Leader",
-                "✅ YES" if _multi_val else "❌ NO",
-                delta="Beats ALL 3 benchmarks" if _multi_val else None,
-                help="True = outperforming S&P 500, Russell 2500 AND Russell 3000 Growth simultaneously. Extremely rare and highest-conviction RS signal."
-            )
-            if _multi_val:
-                st.success("⭐ **Multi-Benchmark Leader** — this stock is outperforming the S&P 500, Russell 2500, and Russell 3000 Growth simultaneously. Extremely rare, highest-conviction RS signal.")
-
-            st.markdown("---")
-
-            # ── WEEKLY TIMEFRAME CONFIRMATION PANEL ──────────────────────────
-            st.markdown("#### 📅 Weekly Timeframe Confirmation")
-            _wk_conf   = result.get("weekly_confirmed", False)
-            _wk_contra = result.get("weekly_contradicts", False)
-            _wk_stage  = str(result.get("weekly_stage", "–") or "–")
-            _wk_score  = result.get("weekly_score", 0)
-            _wk_rs     = result.get("weekly_rs")
-            _wk_tight  = result.get("weekly_base_tight", False)
-            _wk_depth  = result.get("weekly_base_depth_%")
-            _wk_hh_hl  = result.get("weekly_hh_hl", False)
-            _wk_consec = result.get("weekly_consec_up_wks", 0)
-            _wk_10gt40 = result.get("weekly_10gt40", False)
-            _wk40      = result.get("weekly_above_40wma", False)
-
-            # Weekly verdict banner
-            if _wk_conf and not _wk_contra:
-                st.success(
-                    f"✅ **Weekly Confirmed** — the weekly chart supports this setup. "
-                    f"Weekly Stage: **{_wk_stage}** | Weekly Score: **{_wk_score}/10**. "
-                    f"Daily signal + weekly alignment = highest probability trade."
-                )
-            elif _wk_contra:
-                st.error(
-                    f"⚠️ **Weekly Contradiction** — the weekly chart is in Stage 3/4 downtrend "
-                    f"while the daily shows a setup. This is the most common retail trap. "
-                    f"**Avoid or use very small size (0.25% risk max).** Weekly Stage: {_wk_stage}"
-                )
-            else:
-                st.warning(
-                    f"📊 **Weekly Neutral/Transitioning** — weekly chart is not yet confirmed. "
-                    f"Stage: **{_wk_stage}**. Wait for weekly to resolve before sizing up."
-                )
-
-            # Weekly KPIs
-            ww1,ww2,ww3,ww4,ww5 = st.columns(5)
-            ww1.metric("Weekly Stage",    _wk_stage.split(" ")[0] + " " + " ".join(_wk_stage.split(" ")[1:2]) if _wk_stage != "–" else "–",
-                       help="Weinstein Stage on the weekly chart. Stage 2 = only buyable stage.")
-            ww2.metric("Weekly RS",       _rs_fmt(_wk_rs) if _wk_rs else "–",
-                       delta="▲ Leader" if (_wk_rs and float(_wk_rs)>100) else ("▼ Lagging" if (_wk_rs and float(_wk_rs)<70) else None),
-                       help="RS vs S&P 500 on the weekly chart (13-week lookback).")
-            ww3.metric("10WMA > 40WMA",   "✅ Yes" if _wk_10gt40 else "❌ No",
-                       help="Weekly golden cross — 10WMA above 40WMA = confirmed weekly uptrend.")
-            ww4.metric("Weekly Base",     f"{_wk_depth:.0f}% deep" if _wk_depth else "–",
-                       delta="Tight ✅" if _wk_tight else ("Deep ⚠️" if _wk_depth and _wk_depth > 25 else None),
-                       help="Depth of the last 8-week price range. <15% = tight base = pre-breakout coiling.")
-            ww5.metric("Consec. Up Wks",  f"{int(_wk_consec or 0)}",
-                       delta="Strong 🚀" if int(_wk_consec or 0) >= 3 else None,
-                       help="Consecutive weeks closing higher. 3+ = sustained institutional buying.")
-
-            ww6,ww7,ww8 = st.columns(3)
-            ww6.metric("Weekly HH/HL",    "✅ Yes" if _wk_hh_hl else "No",
-                       help="Weekly Higher Highs and Higher Lows — textbook uptrend on the important timeframe.")
-            ww7.metric("Weekly Score",    f"{int(_wk_score or 0)}/10",
-                       help="Weekly contribution to Apex Score. +0–10 when confirmed, –15 when contradicting.")
-            ww8.metric("Above 40WMA",     "✅ Yes" if _wk40 else "❌ No",
-                       help="Price above 40-week MA (equivalent to 200-day MA on weekly). Non-negotiable for swing longs.")
 
             st.markdown("---")
 
@@ -3792,14 +1713,8 @@ with tabs[6]:
 
             # ── KPI row 7: Price Action Patterns (NEW) ───────────────────
             st.markdown("#### 🕯 Price Action Patterns")
-            _pa_raw2 = result.get("pa_patterns", "None")
-            pa_patterns = (
-                str(_pa_raw2)
-                if _pa_raw2 is not None
-                and not (isinstance(_pa_raw2, float) and pd.isna(_pa_raw2))
-                else "None"
-            )
-            if pa_patterns and pa_patterns not in ("None", "nan", ""):
+            pa_patterns = result.get("pa_patterns","None")
+            if pa_patterns and pa_patterns != "None":
                 pa_list = [p.strip() for p in pa_patterns.split("|")]
                 pa_cols = st.columns(min(len(pa_list),4))
                 pa_colors = {
@@ -4576,196 +2491,108 @@ with tabs[11]:
 
 with tabs[12]:
     st.markdown("### 🤖 AI Daily Briefing")
-    st.caption("Professional-grade market briefing and per-stock narrative — generated entirely from scan data. No API key required.")
+    st.caption("Claude reads your scan results and writes a plain-English morning briefing — like having a research analyst on call.")
 
-    ai_mode = st.radio(
-        "Briefing Type",
-        ["📊 Full Scan Briefing", "🔍 Single Stock Narrative"],
-        horizontal=True, key="ai_mode_sel"
-    )
+
+    ab1, ab2 = st.columns([3, 1])
+    with ab1:
+        st.markdown("""
+        The AI briefing analyses your latest scan results and tells you:
+        - Which setups matter most today and why
+        - Which themes have momentum
+        - Active breakouts and what to do
+        - A specific risk reminder based on today's data
+        """)
+    with ab2:
+        gen_btn  = st.button("🤖 Generate Briefing", use_container_width=True)
+        load_btn_ai = st.button("📂 Load Last Briefing", use_container_width=True)
+
     st.markdown("---")
 
-    # ── FULL SCAN BRIEFING ────────────────────────────────────────────────────
-    if ai_mode == "📊 Full Scan Briefing":
-        ab1, ab2 = st.columns([3,1])
-        with ab1:
-            st.markdown("""
-            Generates a complete morning briefing from your latest scan:
-            - Market snapshot (total setups, avg score, active breakouts)
-            - Top 5 highest-conviction setups with signal summary
-            - Active breakouts — time-sensitive entries
-            - Sector rotation heatmap — where money is flowing
-            - Earnings risk calendar for the next 14 days
-            - Liquidity warnings
-            """)
-        with ab2:
-            gen_briefing_btn = st.button("📊 Generate Briefing", use_container_width=True, key="gen_briefing")
-            load_briefing_btn = st.button("📂 Load Last Briefing", use_container_width=True, key="load_briefing")
+    briefing_text = ""
 
-        briefing_text = ""
-
-        if gen_briefing_btn:
-            if df.empty:
-                st.warning("No scan data loaded. Run a Live Scan or Load Last Report first.")
-            else:
-                with st.spinner("Analysing scan results…"):
-                    briefing_text = generate_scan_briefing(df)
-                    # Save briefing to disk
-                    _brief_path = Path(__file__).resolve().parent / "data" / "last_briefing.md"
-                    _brief_path.parent.mkdir(parents=True, exist_ok=True)
-                    try:
-                        _brief_path.write_text(briefing_text, encoding="utf-8")
-                    except Exception:
-                        pass
-                st.success("✅ Briefing generated!")
-
-        elif load_briefing_btn:
-            _brief_path = Path(__file__).resolve().parent / "data" / "last_briefing.md"
-            _tmp_brief  = Path("/tmp/apexscan_briefing.md")
-            for _bp in (_brief_path, _tmp_brief):
-                if _bp.exists():
-                    try:
-                        briefing_text = _bp.read_text(encoding="utf-8")
-                        break
-                    except Exception:
-                        pass
-            if not briefing_text:
-                try:
-                    briefing_text = load_latest_briefing() or ""
-                except Exception:
-                    briefing_text = ""
-            if not briefing_text:
-                st.info("No saved briefing found. Generate one first.")
-
-        if briefing_text:
-            # Render as styled markdown card
-            st.markdown(
-                f'<div style="background:#0d1117;border:1px solid #30363d;border-radius:12px;'
-                f'padding:28px 32px;line-height:1.85;font-size:0.95rem;color:#e6edf3;">'
-                f'{briefing_text.replace(chr(10),"<br>").replace("## ","<h3 style=\"color:#388bfd;margin-top:18px;\">").replace("### ","<h4 style=\"color:#d29922;\">").replace("# ","<h2 style=\"color:#e6edf3;\">")}'
-                f'</div>',
-                unsafe_allow_html=True
-            )
-            st.markdown("---")
-            col_dl1, col_dl2 = st.columns(2)
-            with col_dl1:
-                st.download_button(
-                    "⬇ Download Briefing (Markdown)",
-                    data=briefing_text.encode("utf-8"),
-                    file_name=f"apexscan_briefing_{datetime.now().strftime('%Y%m%d')}.md",
-                    mime="text/markdown",
-                )
-            with col_dl2:
-                if st.button("📲 Send to Telegram", key="send_briefing_tg"):
-                    _cur_settings = load_alert_settings()
-                    if _cur_settings.get("telegram_token") and _cur_settings.get("telegram_chat_id"):
-                        # Send first 4000 chars (Telegram message limit)
-                        _msg = briefing_text[:4000] + ("\n…[truncated]" if len(briefing_text) > 4000 else "")
-                        _res = dispatch_alert(_cur_settings, _msg, "ApexScan Briefing")
-                        if _res.get("telegram"):
-                            st.success("✅ Sent to Telegram!")
-                        else:
-                            st.error("❌ Telegram send failed. Check Alert Settings.")
-                    else:
-                        st.warning("Configure Telegram in 🔔 Alert Settings first.")
-
-    # ── SINGLE STOCK NARRATIVE ────────────────────────────────────────────────
-    else:
+    if gen_btn:
         if df.empty:
             st.warning("No scan data loaded. Run a Live Scan or Load Last Report first.")
         else:
-            narr_col1, narr_col2 = st.columns([2,1])
-            with narr_col1:
-                narr_ticker = st.selectbox(
-                    "Select Stock",
-                    sorted(df["ticker"].dropna().unique().tolist()) if "ticker" in df.columns else [],
-                    key="narr_ticker_sel"
-                )
-            with narr_col2:
-                gen_narr_btn = st.button("🔍 Generate Narrative", use_container_width=True, key="gen_narr")
-
-            if gen_narr_btn and narr_ticker:
-                narr_row = df[df["ticker"] == narr_ticker]
-                if narr_row.empty:
-                    st.warning(f"{narr_ticker} not found in scan results.")
+            with st.spinner("Claude is reading your scan results and writing the briefing…"):
+                try:
+                    sec_df = sector_performance()
+                except:
+                    sec_df = pd.DataFrame()
+                if generate_briefing is None:
+                    st.error("AI Briefing module not loaded. Check that modules/ai_briefing.py exists in your repo.")
+                    briefing_text = ""
                 else:
-                    with st.spinner(f"Building narrative for {narr_ticker}…"):
-                        narr_text = generate_narrative(narr_row.iloc[0])
+                    try:
+                        briefing_text = generate_briefing(df, sec_df, save=True)
+                    except TypeError:
+                        try:
+                            briefing_text = generate_briefing(df, save=True)
+                        except Exception as _be:
+                            st.error(f"Briefing error: {_be}")
+                            briefing_text = ""
+                    except Exception as _be:
+                        st.error(f"Briefing error: {_be}")
+                        briefing_text = ""
+            st.success("Briefing generated!")
 
-                    # Display
-                    st.markdown(
-                        f'<div style="background:#0d1117;border:1px solid #30363d;border-radius:12px;'
-                        f'padding:28px 32px;line-height:1.85;font-size:0.95rem;color:#e6edf3;">'
-                        f'{narr_text.replace(chr(10),"<br>").replace("## ","<h3 style=\"color:#388bfd;margin-top:18px;\">").replace("### ","<h4 style=\"color:#d29922;\">").replace("# ","<h2 style=\"color:#e6edf3;\">")}'
-                        f'</div>',
-                        unsafe_allow_html=True
-                    )
-                    st.markdown("---")
+    elif load_btn_ai:
+        briefing_text = load_latest_briefing()
+        if not briefing_text:
+            st.info("No saved briefings yet. Generate one first.")
 
-                    col_n1, col_n2 = st.columns(2)
-                    with col_n1:
-                        st.download_button(
-                            f"⬇ Download {narr_ticker} Narrative",
-                            data=narr_text.encode("utf-8"),
-                            file_name=f"apexscan_{narr_ticker}_{datetime.now().strftime('%Y%m%d')}.md",
-                            mime="text/markdown",
-                        )
-                    with col_n2:
-                        if st.button(f"📲 Send {narr_ticker} to Telegram", key="narr_tg"):
-                            _cur_s = load_alert_settings()
-                            if _cur_s.get("telegram_token"):
-                                _msg = f"📊 ApexScan — {narr_ticker} Deep Read\n\n" + narr_text[:3800]
-                                _r   = dispatch_alert(_cur_s, _msg, f"ApexScan — {narr_ticker}")
-                                st.success("✅ Sent!") if _r.get("telegram") else st.error("❌ Failed")
-                            else:
-                                st.warning("Configure Telegram in 🔔 Alert Settings first.")
+    if briefing_text:
+        # Display as a styled card
+        st.markdown(f"""
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;
+                    padding:28px 32px;line-height:1.8;font-size:0.97rem;">
+          <div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;
+                      letter-spacing:.1em;margin-bottom:16px;">
+            📡 ApexScan AI — {datetime.now().strftime("%A, %B %d %Y")}
+          </div>
+          {briefing_text.replace(chr(10), '<br>').replace('**','<b>').replace('**','</b>')}
+        </div>
+        """, unsafe_allow_html=True)
 
-    # ── AUTO-SCAN SCHEDULE SETTINGS ───────────────────────────────────────────
-    st.markdown("---")
-    with st.expander("⏰ Auto-Scan Schedule", expanded=False):
-        st.markdown("""
-        **How it works:** When enabled, ApexScan automatically runs a full scan
-        at **9:30 AM EST** (market open) and **3:30 PM EST** (30 min before close)
-        every trading day — Mon to Fri. Keep this browser tab open for it to fire.
-        Results save to the reports folder and are immediately available in all tabs.
-        """)
-        _as = _autoscan_load()
-        a1, a2, a3 = st.columns(3)
-        with a1:
-            as_enabled = st.toggle(
-                "Enable Auto-Scan",
-                value=_as.get("enabled", False),
-                key="as_toggle",
-                help="Fires at 9:30 AM and 3:30 PM EST Mon–Fri while this tab is open"
-            )
-        with a2:
-            as_universe = st.radio(
-                "Universe",
-                ["📋 Theme Watchlist", "🌐 Extended Universe"],
-                index=0 if _as.get("universe","theme")=="theme" else 1,
-                key="as_universe",
-                horizontal=True,
-            )
-        with a3:
-            st.markdown("**Next scans (EST):**")
-            _now_est = datetime.now(_timezone.utc).replace(tzinfo=None) - timedelta(hours=5)
-            st.caption(f"🕤 Market open: 9:30 AM")
-            st.caption(f"🕞 Pre-close:   3:30 PM")
-            st.caption(f"🕐 Now (EST):   {_now_est.strftime('%I:%M %p')}")
-
-        last_open  = _as.get("last_open_scan","Never")
-        last_close = _as.get("last_close_scan","Never")
-        st.caption(f"Last open scan: **{last_open}** | Last close scan: **{last_close}**")
-
-        if st.button("💾 Save Schedule Settings", key="save_sched"):
-            _as["enabled"]  = as_enabled
-            _as["universe"] = "theme" if "Theme" in as_universe else "extended"
-            _autoscan_save(_as)
-            if as_enabled:
-                st.success("✅ Auto-scan enabled. Keep this browser tab open for scans to fire automatically.")
+        # Send to Telegram option
+        st.markdown("---")
+        if st.button("📲 Send to Telegram"):
+            settings = load_alert_settings()
+            if not settings.get("telegram_token"):
+                st.warning("Configure Telegram in the 🔔 Alert Settings tab first.")
             else:
-                st.info("Auto-scan disabled.")
-            st.rerun()
+                msg = build_daily_briefing_alert(briefing_text)
+                result = dispatch_alert(settings, msg, "ApexScan Daily Briefing")
+                if result.get("telegram"):
+                    st.success("Briefing sent to Telegram!")
+                else:
+                    st.error("Failed to send. Check your Telegram settings.")
+
+        # Download
+        st.download_button(
+            "⬇ Download Briefing",
+            briefing_text,
+            file_name=f"apexscan_briefing_{datetime.now().strftime('%Y%m%d')}.txt",
+            mime="text/plain",
+        )
+
+    elif not gen_btn and not load_btn_ai:
+        st.markdown("""
+        <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;
+                    padding:32px;text-align:center;color:#8b949e;">
+          <div style="font-size:2rem;margin-bottom:8px;">🤖</div>
+          <div>Run a <b>Live Scan</b> first, then click <b>Generate Briefing</b></div>
+          <div style="font-size:0.85rem;margin-top:8px;">
+            The AI reads your results and writes a personalised morning briefing in seconds
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 14 — WATCHLIST MANAGER
+# ══════════════════════════════════════════════════════════════════════════════
 
 with tabs[13]:
     st.markdown("### 📋 Watchlist Manager")
@@ -4925,69 +2752,6 @@ with tabs[13]:
 
 with tabs[14]:
     st.markdown("### 🔔 Alert Settings")
-
-    # ── NGX Pulse API Key ─────────────────────────────────────────────────────
-    with st.expander("🇳🇬 NGX Pulse API Key", expanded=False):
-        st.markdown("""
-        **NGN Market API** provides official Nigerian Exchange (NGX) data —
-        prices, volume, OHLCV history, and the All-Share Index for all NGX-listed stocks.
-        Required for 🇳🇬 NGX scans.
-
-        **Free tier: 3,000 API calls/month** (resets 1st of each month).
-        Get your key at: [api.ngnmarket.com](https://api.ngnmarket.com)
-
-        Your key starts with `ngm_live_` — passed as a **Bearer token**.
-        """)
-        _saved_ngx_key = cfg.get("ngx_pulse_key","")
-        _ngx_key_input = st.text_input(
-            "NGN Market API Key (Bearer Token)",
-            value=_saved_ngx_key if (
-                _saved_ngx_key and
-                not _saved_ngx_key.startswith("YOUR_")
-            ) else "",
-            type="password",
-            key="ngx_pulse_key_input",
-            placeholder="ngm_live_xxxxxxxxxxxxxxxx",
-        )
-        if st.button("💾 Save NGX Pulse Key", key="save_ngx_key"):
-            if _ngx_key_input.strip():
-                cfg["ngx_pulse_key"] = _ngx_key_input.strip()
-                # Write back to config.yaml
-                try:
-                    import yaml as _yaml
-                    _cfg_path = Path(__file__).resolve().parent / "config.yaml"
-                    if _cfg_path.exists():
-                        with open(_cfg_path) as _cf:
-                            _raw_cfg = _cf.read()
-                        if "ngx_pulse_key:" in _raw_cfg:
-                            import re as _re
-                            _raw_cfg = _re.sub(
-                                r'ngx_pulse_key:.*',
-                                f'ngx_pulse_key: "{_ngx_key_input.strip()}"',
-                                _raw_cfg
-                            )
-                        else:
-                            _raw_cfg += f'\nngx_pulse_key: "{_ngx_key_input.strip()}"\n'
-                        with open(_cfg_path, "w") as _cf:
-                            _cf.write(_raw_cfg)
-                        st.success("✅ NGX Pulse key saved to config.yaml")
-                    else:
-                        st.warning("config.yaml not found — key saved for this session only")
-                except Exception as _ke:
-                    st.warning(f"Could not write to config.yaml: {_ke}. Key saved for session only.")
-
-                # Validate the key
-                try:
-                    from modules.ngx_pulse import validate_api_key as _ngx_val
-                    _val_result = _ngx_val(_ngx_key_input.strip())
-                    if _val_result.get("ok"):
-                        st.success(_val_result.get("message","✅ NGX Pulse connected"))
-                    else:
-                        st.error(_val_result.get("message","❌ Could not validate key"))
-                except ImportError:
-                    st.info("NGX Pulse module not found — place ngx_pulse.py in modules/ folder")
-            else:
-                st.warning("Please enter your API key")
     st.caption("Configure Telegram and Email alerts. Both work simultaneously — alerts fire automatically after every scan.")
 
     settings = load_alert_settings()
@@ -6008,215 +3772,6 @@ with tabs[15]:
                     </div>
                     """, unsafe_allow_html=True)
 
-        # ════════════════════════════════════════════════════════════════
-        # COMPLETE DATA TABLE — every column, labelled + interpreted
-        # Only shown for Single Ticker Deep Read
-        # ════════════════════════════════════════════════════════════════
-        if interp_mode == "Single Ticker Deep Read" and not interp_df.empty:
-            with st.expander("📋 Complete Data Table — All Columns with Interpretation", expanded=False):
-                row_data = interp_df.iloc[0]
-
-                ORDERED_COLS_DISPLAY = [
-                    "rank","ticker","market","theme","price","stage",
-                    "perf_1m_%","perf_3m_%","perf_6m_%","rs_3m","rs_6m",
-                    "rs_r2500_3m","rs_r2500_6m","rs_r3000g_3m","rs_r3000g_6m","rs_multi_leader",
-                    "adr_%","vs_50ma_%","vs_200ma_%","volume","vol_filter","vol_surge_x",
-                    "above_50ma","above_200ma","ma50_gt_ma200","near_52wh","pct_off_high_%",
-                    "pattern","breaking_out","news_count","sentiment","earn_momentum",
-                    "eps_growth_%","eps_surprise_%","eps_accel","consec_beats","rev_growth_%",
-                    "eps_score","eps_trend","analyst_target","pe_ratio","peg_ratio","eps_details","next_earnings",
-                    "of_bias","of_up_vol_ratio","of_bullish_days","of_consec_up","of_score",
-                    "vwap","vwap_upper","vwap_lower","vs_vwap_%","vwap_position","vwap_slope","vwap_score",
-                    "ms_structure","ms_hh_hl","ms_bos","ms_swing_high","ms_swing_low",
-                    "pa_patterns","pa_engulfing","pa_sfp","pa_inside_day","pa_context","pa_score",
-                    "apex_score","scanned_at","market_cap","market_cap_bn","mcap_category",
-                    "is_gem","liquidity_score","liquidity_warn","avg_volume_30d",
-                    "changes","is_new","delta_score",
-                    # Weekly timeframe
-                    "weekly_stage","weekly_above_10wma","weekly_above_40wma",
-                    "weekly_10gt40","weekly_rs","weekly_base_tight",
-                    "weekly_base_depth_%","weekly_hh_hl","weekly_trending_up",
-                    "weekly_consec_up_wks","weekly_confirmed","weekly_contradicts",
-                    "weekly_score",
-                    # Early entry signals
-                    "early_entry","early_entry_type","fresh_200ma_cross",
-                    "fresh_50ma_cross","pullback_to_50ma","low_adr_base",
-                    "early_entry_score","days_since_200ma_cross",
-                ]
-
-                def _fmt_cell(col, raw):
-                    if raw is None or (isinstance(raw, float) and pd.isna(raw)):
-                        return "–"
-                    if col in ("price","vwap","vwap_upper","vwap_lower",
-                               "ms_swing_high","ms_swing_low","analyst_target"):
-                        try: return f"${float(raw):.2f}"
-                        except: return str(raw)
-                    if col in ("perf_1m_%","perf_3m_%","perf_6m_%","vs_50ma_%","vs_200ma_%",
-                               "vs_vwap_%","eps_growth_%","eps_surprise_%","rev_growth_%","pct_off_high_%"):
-                        try: return f"{float(raw):+.1f}%"
-                        except: return str(raw)
-                    if col == "adr_%":
-                        try: return f"{float(raw):.1f}%"
-                        except: return str(raw)
-                    if col == "of_bullish_days":
-                        try: return f"{float(raw):.0f}%"
-                        except: return str(raw)
-                    if col in ("rs_3m","rs_6m","rs_r2500_3m","rs_r2500_6m","rs_r3000g_3m","rs_r3000g_6m"):
-                        try: return f"{float(raw):.0f}"
-                        except: return str(raw)
-                    if col in ("vol_surge_x","of_up_vol_ratio"):
-                        try: return f"{float(raw):.2f}x"
-                        except: return str(raw)
-                    if col == "market_cap":
-                        try:
-                            v = float(raw)
-                            return f"${v/1e9:.2f}B" if v>=1e9 else f"${v/1e6:.0f}M"
-                        except: return str(raw)
-                    if col in ("pe_ratio","peg_ratio","apex_score"):
-                        try: return f"{float(raw):.1f}"
-                        except: return str(raw)
-                    if col == "eps_trend" and isinstance(raw, list):
-                        return " → ".join(str(x) for x in raw[:6])
-                    return str(raw)
-
-                def _signal_color(col, raw):
-                    """Return CSS colour string for a value."""
-                    pos_cols = {
-                        "stage":       lambda v: "2 ✅" in str(v),
-                        "above_50ma":  lambda v: str(v).lower() in ("true","1"),
-                        "above_200ma": lambda v: str(v).lower() in ("true","1"),
-                        "ma50_gt_ma200":lambda v: str(v).lower() in ("true","1"),
-                        "near_52wh":   lambda v: str(v).lower() in ("true","1"),
-                        "breaking_out":lambda v: str(v).lower() in ("true","1"),
-                        "ms_hh_hl":    lambda v: str(v).lower() in ("true","1"),
-                        "ms_bos":      lambda v: str(v).lower() in ("true","1"),
-                        "of_bias":     lambda v: "Bullish" in str(v),
-                        "vwap_position":lambda v: "Above" in str(v) and "Extended" not in str(v),
-                        "ms_structure":lambda v: "Bullish" in str(v),
-                        "earn_momentum":lambda v: "Strong" in str(v),
-                        "eps_accel":   lambda v: str(v).lower() in ("true","1"),
-                        "is_gem":         lambda v: str(v).lower() in ("true","1"),
-                        "breaking_out":    lambda v: str(v).lower() in ("true","1"),
-                        "rs_multi_leader":    lambda v: str(v).lower() in ("true","1"),
-                        "early_entry":         lambda v: str(v).lower() in ("true","1"),
-                        "fresh_200ma_cross":   lambda v: str(v).lower() in ("true","1"),
-                        "fresh_50ma_cross":    lambda v: str(v).lower() in ("true","1"),
-                        "pullback_to_50ma":    lambda v: str(v).lower() in ("true","1"),
-                        "low_adr_base":        lambda v: str(v).lower() in ("true","1"),
-                        "weekly_confirmed":    lambda v: str(v).lower() in ("true","1"),
-                        "weekly_above_40wma":  lambda v: str(v).lower() in ("true","1"),
-                        "weekly_10gt40":       lambda v: str(v).lower() in ("true","1"),
-                        "weekly_hh_hl":        lambda v: str(v).lower() in ("true","1"),
-                        "weekly_base_tight":   lambda v: str(v).lower() in ("true","1"),
-                        "weekly_trending_up":  lambda v: str(v).lower() in ("true","1"),
-                    }
-                    _neg_cols_extended = {
-                        "weekly_contradicts":  lambda v: str(v).lower() in ("true","1"),
-                    }
-                    try:
-                        if "weekly_contradicts" in disp.columns:
-                            styled = styled.map(
-                                lambda v: "color:#f85149;font-weight:700" if str(v).lower() in ("true","1") else "",
-                                subset=["weekly_contradicts"]
-                            )
-                    except Exception:
-                        pass
-                    neg_cols = {
-                        "stage":       lambda v: "4 🔴" in str(v),
-                        "above_50ma":  lambda v: str(v).lower() in ("false","0"),
-                        "above_200ma": lambda v: str(v).lower() in ("false","0"),
-                        "of_bias":     lambda v: "Bearish" in str(v),
-                        "vwap_position":lambda v: "Below" in str(v),
-                        "ms_structure":lambda v: "Bearish" in str(v),
-                        "liquidity_warn":lambda v: str(v).lower() in ("true","1"),
-                    }
-                    try:
-                        if col in pos_cols and pos_cols[col](raw): return "#3fb950"
-                        if col in neg_cols and neg_cols[col](raw): return "#f85149"
-                    except: pass
-                    # Numeric coloring
-                    perf_cols = ("perf_1m_%","perf_3m_%","perf_6m_%","vs_50ma_%","vs_200ma_%",
-                                 "eps_growth_%","eps_surprise_%","rev_growth_%","delta_score")
-                    if col in perf_cols:
-                        try:
-                            v = float(raw)
-                            return "#3fb950" if v > 0 else ("#f85149" if v < 0 else "#8b949e")
-                        except: pass
-                    if col == "apex_score":
-                        try:
-                            v = float(raw)
-                            return "#3fb950" if v>=70 else ("#d29922" if v>=40 else "#f85149")
-                        except: pass
-                    if col in ("rs_3m","rs_6m","rs_r2500_3m","rs_r2500_6m","rs_r3000g_3m","rs_r3000g_6m"):
-                        try:
-                            v = float(raw)
-                            return "#3fb950" if v>=100 else ("#d29922" if v>=70 else "#f85149")
-                        except: pass
-                    return "#c9d1d9"
-
-                # Render the table
-                st.markdown("""
-                <div style="font-size:0.78rem;color:#8b949e;margin-bottom:8px;">
-                  Every field from the scan — what it means and how to read it.
-                  <span style="color:#3fb950;">Green</span> = bullish signal &nbsp;|&nbsp;
-                  <span style="color:#f85149;">Red</span> = bearish/caution &nbsp;|&nbsp;
-                  <span style="color:#d29922;">Amber</span> = neutral/watch
-                </div>
-                """, unsafe_allow_html=True)
-
-                for col_key in ORDERED_COLS_DISPLAY:
-                    raw = row_data.get(col_key)
-                    if col_key == "rank":
-                        raw = row_data.name if hasattr(row_data, "name") else "–"
-
-                    if raw is None and col_key not in ("delta_score","changes","is_new"):
-                        continue  # Skip columns with no data
-
-                    meta   = COLUMN_META.get(col_key, (col_key, "–"))
-                    label  = meta[0]
-                    interp = meta[1]
-                    val    = _fmt_cell(col_key, raw)
-                    vcolor = _signal_color(col_key, raw)
-
-                    st.markdown(
-                        f'<div style="display:flex;align-items:flex-start;gap:12px;'
-                        f'border-bottom:1px solid #21262d;padding:8px 0;">'
-                        f'<div style="min-width:160px;flex-shrink:0;">'
-                        f'<span style="color:#8b949e;font-size:0.72rem;text-transform:uppercase;'
-                        f'letter-spacing:0.06em;">{col_key}</span><br>'
-                        f'<span style="color:#d29922;font-size:0.82rem;font-weight:600;">{label}</span>'
-                        f'</div>'
-                        f'<div style="min-width:120px;flex-shrink:0;">'
-                        f'<span style="color:{vcolor};font-size:0.95rem;font-weight:700;">{val}</span>'
-                        f'</div>'
-                        f'<div style="flex:1;">'
-                        f'<span style="color:#8b949e;font-size:0.82rem;line-height:1.6;">{interp}</span>'
-                        f'</div>'
-                        f'</div>',
-                        unsafe_allow_html=True
-                    )
-
-                # Excel Download
-                st.markdown("---")
-                try:
-                    xlsx_bytes = build_excel_download(interp_df.iloc[0], interp_ticker)
-                    st.download_button(
-                        "⬇ Download Excel — Full Deep Read",
-                        xlsx_bytes,
-                        file_name=f"apexscan_{interp_ticker}_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        help="Downloads a fully labelled Excel workbook: Sheet 1 = all data columns with interpretation, Sheet 2 = signal scorecard",
-                    )
-                except Exception as _xl_err:
-                    # Fallback to CSV
-                    st.download_button(
-                        "⬇ Download CSV — Deep Read",
-                        interp_df.to_csv().encode("utf-8"),
-                        file_name=f"apexscan_{interp_ticker}_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-                        mime="text/csv",
-                    )
-                    st.caption(f"Excel export failed ({_xl_err}) — CSV downloaded instead. Install openpyxl for Excel output.")
-
         # ── Combined summary for single ticker ─────────────────────────
         if interp_mode == "Single Ticker Deep Read" and not interp_df.empty:
             st.markdown("---")
@@ -6282,1887 +3837,6 @@ with tabs[15]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 with tabs[16]:
-    st.markdown("### 📊 Scan Delta — Momentum Tracker")
-    st.caption("Compares scan results over time — stocks consistently improving Apex Score are the ones to watch.")
-
-    _reports_dir  = Path(__file__).resolve().parent / "reports"
-    _report_files = sorted(_reports_dir.glob("scan_*.csv"), reverse=True) if _reports_dir.exists() else []
-
-    if len(_report_files) < 2:
-        st.info(
-            f"Need at least **2 saved scans** to compare. "
-            f"Currently {len(_report_files)} scan(s) saved. "
-            "Run a scan now, then run another after the next session."
-        )
-    else:
-        _file_labels = [f.stem.replace("scan_","").replace("_"," ") for f in _report_files]
-        dc1,dc2,dc3 = st.columns(3)
-        with dc1:
-            _sel_new = st.selectbox("Newer Scan", _file_labels, index=0, key="delta_new")
-        with dc2:
-            _sel_old = st.selectbox("Older Scan", _file_labels, index=min(1,len(_file_labels)-1), key="delta_old")
-        with dc3:
-            _min_chg = st.number_input("Min Score Change to Flag", value=5, min_value=1, max_value=50, key="delta_min")
-
-        _nf = _report_files[_file_labels.index(_sel_new)]
-        _of = _report_files[_file_labels.index(_sel_old)]
-
-        if _nf == _of:
-            st.warning("Select two different scans to compare.")
-        else:
-            try:
-                _dn = pd.read_csv(_nf)
-                _do = pd.read_csv(_of)
-                for _d in [_dn, _do]:
-                    if "rank" in _d.columns: _d.drop(columns=["rank"], inplace=True, errors="ignore")
-
-                _rows = []
-                _all_tks = set(_dn["ticker"].tolist()) | set(_do["ticker"].tolist())
-
-                for _tk in _all_tks:
-                    _rn = _dn[_dn["ticker"]==_tk]
-                    _ro = _do[_do["ticker"]==_tk]
-                    _sn = float(_rn["apex_score"].iloc[0]) if not _rn.empty and "apex_score" in _rn.columns else None
-                    _so = float(_ro["apex_score"].iloc[0]) if not _ro.empty and "apex_score" in _ro.columns else None
-                    _dlt = round(_sn - _so, 1) if (_sn is not None and _so is not None) else None
-
-                    if _dlt is not None and abs(_dlt) < _min_chg and not _rn.empty and not _ro.empty:
-                        continue
-
-                    _r  = _rn.iloc[0] if not _rn.empty else _ro.iloc[0]
-                    _status = (
-                        "🆕 New Entry"   if _ro.empty else
-                        "❌ Dropped Out" if _rn.empty else
-                        ("🚀 Strong Rise" if (_dlt or 0) >= 10 else
-                         "📈 Rising"      if (_dlt or 0) >= _min_chg else
-                         ("📉 Falling"    if (_dlt or 0) <= -_min_chg else "📊 Steady"))
-                    )
-                    _rows.append({
-                        "Ticker":    _tk,
-                        "Theme":     str(_r.get("theme","–")),
-                        "Status":    _status,
-                        "New Score": _sn,
-                        "Old Score": _so,
-                        "Δ Score":   _dlt,
-                        "Stage":     str(_r.get("stage","–")),
-                        "3M %":      _r.get("perf_3m_%"),
-                        "RS (3m)":   _r.get("rs_3m"),
-                        "OF Bias":   str(_r.get("of_bias","–")),
-                        "Breaking":  "✅" if str(_r.get("breaking_out","")).lower()=="true" else "–",
-                        "Price":     _r.get("price"),
-                    })
-
-                if not _rows:
-                    st.info("No stocks changed beyond the minimum threshold.")
-                else:
-                    _ddf = pd.DataFrame(_rows).sort_values("Δ Score", ascending=False, na_position="last")
-
-                    # KPIs
-                    _ri = (_ddf["Δ Score"]>0).sum()
-                    _fa = (_ddf["Δ Score"]<0).sum()
-                    _ne = (_ddf["Status"]=="🆕 New Entry").sum()
-                    _dr = (_ddf["Status"]=="❌ Dropped Out").sum()
-                    _ac = _ddf["Δ Score"].dropna().mean()
-                    v1,v2,v3,v4,v5 = st.columns(5)
-                    v1.metric("📈 Rising", _ri)
-                    v2.metric("📉 Falling", _fa)
-                    v3.metric("🆕 New", _ne)
-                    v4.metric("❌ Dropped", _dr)
-                    v5.metric("Avg Δ Score", f"{_ac:+.1f}" if not pd.isna(_ac) else "–")
-
-                    st.markdown("---")
-
-                    def _safe_fmt(v, fmt, fallback="–"):
-                        """Safely format a value, returning fallback for NaN/None/non-numeric."""
-                        if v is None: return fallback
-                        try:
-                            f = float(v)
-                            import math
-                            if math.isnan(f): return fallback
-                            return fmt.format(f)
-                        except (TypeError, ValueError):
-                            return fallback
-
-                    def _fmt_delta(df_in):
-                        def _c(v):
-                            try: return "color:#3fb950;font-weight:700" if float(v)>0 else "color:#f85149;font-weight:700"
-                            except: return ""
-                        return df_in.style.map(_c, subset=[c for c in ["Δ Score","3M %"] if c in df_in.columns]).format({
-                            "New Score": lambda v: _safe_fmt(v, "{:.0f}"),
-                            "Old Score": lambda v: _safe_fmt(v, "{:.0f}"),
-                            "Δ Score":   lambda v: _safe_fmt(v, "{:+.1f}", "NEW"),
-                            "3M %":      lambda v: _safe_fmt(v, "{:+.1f}%"),
-                            "RS (3m)":   lambda v: _safe_fmt(v, "{:.0f}"),
-                            "Price":     lambda v: _safe_fmt(v, "${:.2f}"),
-                        }, na_rep="–")
-
-                    _t1,_t2,_t3,_t4,_t5 = st.tabs(["📈 Risers","📉 Fallers","🆕 New","❌ Dropped","📋 All"])
-
-                    with _t1:
-                        _rise = _ddf[_ddf["Δ Score"]>0]
-                        if _rise.empty: st.info("No risers.")
-                        else:
-                            for _,_gr in _rise.head(3).iterrows():
-                                _gc = "#3fb950" if float(_gr["Δ Score"] or 0)>=10 else "#d29922"
-                                _old_s = f"{_gr['Old Score']:.0f}" if pd.notna(_gr.get("Old Score")) else "–"
-                                _new_s = f"{_gr['New Score']:.0f}" if pd.notna(_gr.get("New Score")) else "–"
-                                st.markdown(
-                                    f'<div style="background:#0d1117;border-left:4px solid {_gc};padding:10px 16px;margin:4px 0;border-radius:4px;">'
-                                    f'<b style="color:#e6edf3">{_gr["Ticker"]}</b>'
-                                    f'<span style="color:{_gc};font-weight:700;margin-left:12px">{float(_gr["Δ Score"]):+.1f} pts</span>'
-                                    f'<span style="color:#8b949e;font-size:.85rem;margin-left:12px">'
-                                    f'{_old_s} → {_new_s} | {_gr["Theme"]}</span></div>',
-                                    unsafe_allow_html=True
-                                )
-                            st.dataframe(_fmt_delta(_rise), use_container_width=True, hide_index=True)
-                    with _t2:
-                        _fall = _ddf[_ddf["Δ Score"]<0]
-                        if _fall.empty: st.info("No fallers.")
-                        else: st.dataframe(_fmt_delta(_fall), use_container_width=True, hide_index=True)
-                    with _t3:
-                        _new = _ddf[_ddf["Status"]=="🆕 New Entry"]
-                        if _new.empty: st.info("No new entries.")
-                        else: st.dataframe(_fmt_delta(_new), use_container_width=True, hide_index=True)
-                    with _t4:
-                        _drp = _ddf[_ddf["Status"]=="❌ Dropped Out"]
-                        if _drp.empty: st.info("No dropped stocks.")
-                        else: st.dataframe(_fmt_delta(_drp), use_container_width=True, hide_index=True)
-                    with _t5:
-                        st.dataframe(_fmt_delta(_ddf), use_container_width=True, hide_index=True)
-                        st.download_button(
-                            "⬇ Download Delta Report (CSV)",
-                            data=_ddf.to_csv(index=False).encode("utf-8"),
-                            file_name=f"apexscan_delta_{_sel_new.replace(' ','_')}_vs_{_sel_old.replace(' ','_')}.csv",
-                            mime="text/csv",
-                        )
-
-                    # Score trajectory chart
-                    st.markdown("---")
-                    st.markdown("#### 📈 Score Trajectory — Top Movers")
-                    _top_m = pd.concat([
-                        _ddf.dropna(subset=["Δ Score"]).nlargest(5,"Δ Score"),
-                        _ddf.dropna(subset=["Δ Score"]).nsmallest(5,"Δ Score"),
-                    ]).drop_duplicates("Ticker")
-                    if not _top_m.empty:
-                        _cd = []
-                        for _,_r in _top_m.iterrows():
-                            if pd.notna(_r.get("Old Score")): _cd.append({"Ticker":_r["Ticker"],"Score":_r["Old Score"],"Scan":f"Older ({_sel_old})"})
-                            if pd.notna(_r.get("New Score")): _cd.append({"Ticker":_r["Ticker"],"Score":_r["New Score"],"Scan":f"Newer ({_sel_new})"})
-                        _cdf = pd.DataFrame(_cd)
-                        if not _cdf.empty:
-                            _fig_t = px.line(_cdf, x="Scan", y="Score", color="Ticker",
-                                title="Apex Score — Before vs After", markers=True)
-                            _fig_t.update_layout(paper_bgcolor="#0d1117",plot_bgcolor="#0d1117",
-                                font_color="#e6edf3",height=360,
-                                yaxis=dict(gridcolor="#21262d",range=[0,100]),
-                                xaxis=dict(gridcolor="#21262d"),
-                                margin=dict(t=40,b=20,l=20,r=20))
-                            st.plotly_chart(_fig_t, use_container_width=True)
-
-            except Exception as _de:
-                st.error(f"Error comparing scans: {_de}")
-
-
-with tabs[18]:
-    st.markdown("### ✅ Pre-Buy Checklist")
-    st.caption(
-        "Run every stock through this 15-point checklist before buying. "
-        "Fail items 1–5 = do not buy. Fail 6–9 = reduce size or wait. "
-        "Fail 10–12 = wait for better timing."
-    )
-
-    if df.empty:
-        st.info("Run a Live Scan or Load Last Report first to populate ticker list.")
-    else:
-        # ══════════════════════════════════════════════════════════════════════
-        # FILTER PANEL — pre-screen all scan stocks before opening checklist
-        # ══════════════════════════════════════════════════════════════════════
-        with st.expander("🔍 Filter Stocks Before Running Checklist", expanded=True):
-            _f1, _f2, _f3, _f4 = st.columns(4)
-            with _f1:
-                _chk_score_min = st.slider(
-                    "Min Apex Score", min_value=0, max_value=100,
-                    value=40, step=5, key="chk_score_filter",
-                    help="Only show stocks scoring above this threshold."
-                )
-            with _f2:
-                _chk_score_max = st.slider(
-                    "Max Apex Score", min_value=0, max_value=100,
-                    value=100, step=5, key="chk_score_max_filter",
-                    help="Only show stocks scoring below this threshold."
-                )
-            with _f3:
-                _chk_stage_filter = st.multiselect(
-                    "Stage Filter",
-                    ["Stage 2 ✅", "Stage 1 ⏳", "Stage 3 ⚠️", "Stage 4 🔴"],
-                    default=["Stage 2 ✅"],
-                    key="chk_stage_filter",
-                    help="Only show stocks in selected Weinstein stages. Stage 2 = uptrend only."
-                )
-            with _f4:
-                _chk_gem_only = st.checkbox(
-                    "💎 Gems Only", value=False, key="chk_gem_only",
-                    help="Only show emerging gem stocks (small/mid-cap)."
-                )
-
-            # ── Quick-verdict pre-screener ────────────────────────────────────
-            st.markdown("##### 🎯 Quick Verdict Pre-Screen")
-            st.caption(
-                "Runs a fast lightweight check on every stock in the scan to estimate "
-                "their verdict category — without opening each one individually."
-            )
-
-            _pv1, _pv2, _pv3, _pv4, _pv5 = st.columns(5)
-            _verdict_filter = _pv1.radio(
-                "Show Only",
-                ["All", "✅ Ready", "⏳ Wait", "⚠️ Reduced", "🚫 Skip/Avoid"],
-                index=0, key="chk_verdict_filter",
-                help="Filter by estimated verdict. 'All' = show everything."
-            )
-
-            # ── Pre-screen all tickers against fast rules ──────────────────────
-            def _quick_verdict(row_q):
-                """
-                Fast verdict — uses EXACTLY the same rules as the full 18-point
-                checklist so the grid and the detailed view never contradict each other.
-                Uses only columns already in the scan DataFrame (no live API calls).
-                """
-                try:
-                    def _b(col): return str(row_q.get(col,"")).lower() in ("true","1","yes")
-                    def _f(col, default=0.0):
-                        try: return float(row_q.get(col) or default)
-                        except: return default
-                    def _s(col): return str(row_q.get(col,"") or "")
-
-                    _score   = _f("apex_score")
-                    _ab200   = _b("above_200ma")
-                    _ma50g   = _b("ma50_gt_ma200")
-                    _rs      = _f("rs_3m", 0)
-                    _wconf   = _b("weekly_confirmed")
-                    _wcontr  = _b("weekly_contradicts")
-                    _liq     = _b("liquidity_warn")
-                    _of      = _s("of_bias").lower()
-                    _earn_m  = _s("earn_momentum").lower()
-                    _eps_g   = _f("eps_growth_%", None)
-                    _eps_acc = _b("eps_accel")
-                    _beats   = _f("consec_beats", 0)
-                    _pct_hi  = _f("pct_off_high_%", -100)
-                    _break   = _b("breaking_out")
-                    _early   = _b("early_entry")
-                    _vwap_p  = _s("vwap_position").lower()
-                    _pattern = _s("pattern")
-                    _rr      = _f("weekly_score", 0)   # proxy — no stop/target in scan
-
-                    # ── FATAL CHECKS (mirrors checklist items 0,1,2,3,4,12b) ──
-                    _fatal_fails = 0
-
-                    # Check 0: market context — use weekly structure as proxy
-                    # (market_ok not stored per-row, skip in grid — only full checklist has live data)
-
-                    # Check 1: weekly confirmed
-                    if _wcontr:                           _fatal_fails += 1   # weekly contradiction
-                    # Check 2: daily Stage 2
-                    if not (_ab200 and _ma50g):           _fatal_fails += 1
-                    # Check 3: RS > 0
-                    if _rs < 0:                           _fatal_fails += 1
-                    # Check 4: no weekly contradiction (already counted above)
-                    # Check 5: liquidity
-                    if _liq:                              _fatal_fails += 1
-                    # Check 12b: R:R — no stop/target in scan row, skip in grid
-
-                    if _fatal_fails > 0:
-                        return "🚫 Do Not Buy", "#f85149"
-
-                    # ── QUALITY CHECKS (mirrors items 6–9) ─────────────────────
-                    _q_fails = 0
-                    if _score < 65:                       _q_fails += 1   # #6
-                    if "bullish" not in _of:              _q_fails += 1   # #7
-                    _fund_ok = (
-                        "strong" in _earn_m or _eps_acc or
-                        (_eps_g is not None and _eps_g >= 25) or _beats >= 3
-                    )
-                    if not _fund_ok:                      _q_fails += 1   # #8
-                    if _pct_hi < -20:                     _q_fails += 1   # #9
-
-                    # ── ENTRY TIMING (mirrors items 10–12) ─────────────────────
-                    _entry_ok  = _break or _early                          # #10
-                    _vwap_ok   = "above" in _vwap_p and "extended" not in _vwap_p  # #11
-                    _pat_ok    = _pattern not in ("–","None","nan","") and "none" not in _pattern.lower()  # #12
-                    _timing_fails = sum([not _entry_ok, not _vwap_ok, not _pat_ok])
-
-                    # ── VERDICT — identical logic to full checklist ─────────────
-                    _all_pass     = _q_fails == 0 and _timing_fails == 0
-                    _timing_only  = _q_fails == 0 and _timing_fails > 0
-                    _partial      = _q_fails <= 2 and _timing_fails <= 1
-
-                    if _all_pass:
-                        return "✅ Ready to Buy", "#3fb950"
-                    elif _timing_only:
-                        return "⏳ Wait for Entry", "#388bfd"
-                    elif _partial:
-                        return "⚠️ Reduced Size", "#d29922"
-                    else:
-                        return "🚫 Skip", "#f85149"
-
-                except Exception:
-                    return "– Unknown", "#8b949e"
-
-            # Build filtered ticker list
-            _all_tickers_df = df.copy() if not df.empty else pd.DataFrame()
-
-            # Apply score filter
-            if "apex_score" in _all_tickers_df.columns:
-                _sc = pd.to_numeric(_all_tickers_df["apex_score"], errors="coerce")
-                _all_tickers_df = _all_tickers_df[
-                    (_sc >= _chk_score_min) & (_sc <= _chk_score_max)
-                ]
-
-            # Apply stage filter
-            if _chk_stage_filter and "stage" in _all_tickers_df.columns:
-                _stage_mask = _all_tickers_df["stage"].astype(str).apply(
-                    lambda s: any(f.replace("Stage ","").split(" ")[0] in s for f in _chk_stage_filter)
-                )
-                _all_tickers_df = _all_tickers_df[_stage_mask]
-
-            # Apply gem filter
-            if _chk_gem_only and "is_gem" in _all_tickers_df.columns:
-                _all_tickers_df = _all_tickers_df[
-                    _all_tickers_df["is_gem"].astype(str).str.lower().isin(["true","1"])
-                ]
-
-            # Run quick verdict on all filtered rows
-            _verdict_data = []
-            for _, _qrow in _all_tickers_df.iterrows():
-                _qv, _qc = _quick_verdict(_qrow)
-                _verdict_data.append({
-                    "ticker":      _qrow.get("ticker","–"),
-                    "verdict":     _qv,
-                    "color":       _qc,
-                    "apex_score":  _qrow.get("apex_score","–"),
-                    "stage":       str(_qrow.get("stage","–")),
-                    "rs_3m":       _qrow.get("rs_3m","–"),
-                    "of_bias":     str(_qrow.get("of_bias","–")),
-                    "breaking_out":str(_qrow.get("breaking_out","–")),
-                    "theme":       str(_qrow.get("theme","–")),
-                    "early_entry": str(_qrow.get("early_entry","–")),
-                })
-
-            # Apply verdict filter
-            _filtered_verdicts = _verdict_data
-            if _verdict_filter != "All":
-                _vmap = {
-                    "✅ Ready":    "✅ Ready to Buy",
-                    "⏳ Wait":     "⏳ Wait for Entry",
-                    "⚠️ Reduced":  "⚠️ Reduced Size",
-                    "🚫 Skip/Avoid":"🚫 Skip",
-                }
-                _vkey = _vmap.get(_verdict_filter, "")
-                _filtered_verdicts = [v for v in _verdict_data
-                                       if _vkey.split(" ")[0] in v["verdict"]]
-
-            # ── Summary badges ────────────────────────────────────────────────
-            _ready_n   = sum(1 for v in _verdict_data if "Ready"   in v["verdict"])
-            _wait_n    = sum(1 for v in _verdict_data if "Wait"    in v["verdict"])
-            _reduced_n = sum(1 for v in _verdict_data if "Reduced" in v["verdict"])
-            _skip_n    = sum(1 for v in _verdict_data if "Skip" in v["verdict"] or "Do Not" in v["verdict"])
-
-            _b1,_b2,_b3,_b4 = st.columns(4)
-            _b1.metric("✅ Ready to Buy",  _ready_n,   help="Pass all hard gates + quality")
-            _b2.metric("⏳ Wait for Entry", _wait_n,   help="Good quality, timing not ideal")
-            _b3.metric("⚠️ Reduced Size",   _reduced_n, help="1–2 quality issues")
-            _b4.metric("🚫 Do Not Buy/Skip",_skip_n,   help="Hard gate failure or too many issues")
-
-            # ── Verdict grid ──────────────────────────────────────────────────
-            if _filtered_verdicts:
-                st.markdown(f"**{len(_filtered_verdicts)} stocks** match your filters:")
-                st.caption(
-                    "⚠️ Grid uses scan data only — same rules as the full checklist except "
-                    "live market context (S&P 500 stage) and R:R ratio which require "
-                    "the full checklist to compute. Verdicts will match exactly once you "
-                    "open the full checklist."
-                )
-
-                # Render as a clean colour-coded grid
-                _cols_per_row = 4
-                for _row_start in range(0, len(_filtered_verdicts), _cols_per_row):
-                    _row_items = _filtered_verdicts[_row_start:_row_start+_cols_per_row]
-                    _gcols = st.columns(_cols_per_row)
-                    for _gi, _gitem in enumerate(_row_items):
-                        _gc = _gitem["color"]
-                        _gs = _gitem["apex_score"]
-                        _gv = _gitem["verdict"]
-                        _gcols[_gi].markdown(
-                            f'<div style="background:#161b22;border:1px solid {_gc};'
-                            f'border-radius:8px;padding:10px;text-align:center;cursor:pointer;">'
-                            f'<div style="color:#e6edf3;font-weight:700;font-size:0.95rem;">'
-                            f'{_gitem["ticker"]}</div>'
-                            f'<div style="color:{_gc};font-size:0.75rem;font-weight:600;margin-top:2px;">'
-                            f'{_gv}</div>'
-                            f'<div style="color:#8b949e;font-size:0.72rem;margin-top:2px;">'
-                            f'Score: {_gs} | {_gitem["stage"].split()[0] if _gitem["stage"] != "–" else "–"}'
-                            f'</div></div>',
-                            unsafe_allow_html=True
-                        )
-            else:
-                st.info("No stocks match the current filters.")
-
-        st.markdown("---")
-
-        # ── Ticker selector ───────────────────────────────────────────────────
-        # Pre-filter the dropdown to only show filtered tickers
-        _chk_tickers_filtered = (
-            [v["ticker"] for v in _filtered_verdicts]
-            if _filtered_verdicts else
-            (sorted(df["ticker"].dropna().unique().tolist()) if "ticker" in df.columns else [])
-        )
-
-        cb1, cb2 = st.columns([2, 1])
-        with cb1:
-            _chk_tickers = _chk_tickers_filtered if _chk_tickers_filtered else                            (sorted(df["ticker"].dropna().unique().tolist()) if "ticker" in df.columns else [])
-            chk_ticker = st.selectbox(
-                "Select Ticker to Evaluate",
-                _chk_tickers,
-                key="chk_ticker_sel",
-                help="Dropdown is pre-filtered by your filter settings above. Change filters to see more stocks."
-            )
-        with cb2:
-            chk_account = st.number_input(
-                "Portfolio Size ($)",
-                min_value=1000, value=10000, step=1000,
-                key="chk_portfolio_size",
-                help="Your total portfolio value — used to calculate maximum position size."
-            )
-
-        if chk_ticker:
-            _crow = df[df["ticker"] == chk_ticker]
-            if _crow.empty:
-                st.error(f"{chk_ticker} not found in scan results.")
-            else:
-                row = _crow.iloc[0]
-
-                # ── Live market context (S&P 500 stage + VIX) ────────────────────
-                @st.cache_data(ttl=900)   # cache 15 min
-                def _get_market_context():
-                    try:
-                        import yfinance as _yf
-                        _spx  = _yf.Ticker("^GSPC").history(period="1y")["Close"]
-                        _vix  = _yf.Ticker("^VIX").history(period="5d")["Close"]
-                        # Also try NGX All-Share for context
-                        try:
-                            _ngx = _yf.Ticker("^NGXASI").history(period="1y")["Close"]
-                            _ngx_cur = float(_ngx.iloc[-1])
-                            _ngx_200 = float(_ngx.rolling(200).mean().iloc[-1])
-                            _ngx_ok  = _ngx_cur > _ngx_200
-                        except Exception:
-                            _ngx_ok = True   # default to ok if data unavailable
-                        _spx_cur  = float(_spx.iloc[-1])
-                        _spx_50   = float(_spx.rolling(50).mean().iloc[-1])
-                        _spx_200  = float(_spx.rolling(200).mean().iloc[-1])
-                        _vix_cur  = float(_vix.iloc[-1])
-                        _spx_abv50  = _spx_cur > _spx_50
-                        _spx_abv200 = _spx_cur > _spx_200
-                        _spx_50gt200= _spx_50   > _spx_200
-                        if _spx_abv50 and _spx_abv200 and _spx_50gt200:
-                            _mkt_stage = "Stage 2 ✅ Uptrend"
-                        elif _spx_abv200:
-                            _mkt_stage = "Stage 1 ⏳ Basing"
-                        elif not _spx_abv200 and not _spx_50gt200:
-                            _mkt_stage = "Stage 4 🔴 Downtrend"
-                        else:
-                            _mkt_stage = "Stage 3 ⚠️ Topping"
-                        return {
-                            "stage": _mkt_stage, "price": _spx_cur,
-                            "ma50": _spx_50, "ma200": _spx_200,
-                            "above_50": _spx_abv50, "above_200": _spx_abv200,
-                            "ma50gt200": _spx_50gt200, "vix": _vix_cur,
-                            "market_ok": _spx_abv200 and _spx_50gt200,
-                        }
-                    except Exception:
-                        return {"stage": "Unknown", "market_ok": True, "vix": None,
-                                "above_50": True, "above_200": True, "ma50gt200": True}
-
-                @st.cache_data(ttl=900)
-                def _get_sector_strength(sector_theme: str):
-                    """Check if the stock's sector ETF is in an uptrend."""
-                    _SECTOR_ETFS = {
-                        "Information Technology": "XLK",
-                        "Healthcare":             "XLV",
-                        "Financials":             "XLF",
-                        "Consumer Discretionary": "XLY",
-                        "Consumer Staples":       "XLP",
-                        "Energy":                 "XLE",
-                        "Materials":              "XLB",
-                        "Industrials":            "XLI",
-                        "Utilities":              "XLU",
-                        "Real Estate":            "XLRE",
-                        "Communication Services": "XLC",
-                        "ai_semis":               "SOXX",
-                        "cybersecurity":          "CIBR",
-                        "biotech_health":         "XBI",
-                        "fintech_payments":       "ARKF",
-                        "cloud_infra":            "WCLD",
-                        "emerging_gems":          "IWM",
-                        "space_ev":               "ROKT",
-                    }
-                    _etf = _SECTOR_ETFS.get(sector_theme)
-                    if not _etf:
-                        return {"etf": None, "sector_ok": True, "sector_stage": "Unknown", "sector_rs": None}
-                    try:
-                        import yfinance as _yf
-                        _d = _yf.Ticker(_etf).history(period="1y")["Close"]
-                        _cur   = float(_d.iloc[-1])
-                        _ma50  = float(_d.rolling(50).mean().iloc[-1])
-                        _ma200 = float(_d.rolling(200).mean().iloc[-1])
-                        _above_both = _cur > _ma50 and _cur > _ma200 and _ma50 > _ma200
-                        _above_200  = _cur > _ma200
-                        _stage = (
-                            "Stage 2 ✅" if (_cur>_ma50>_ma200) else
-                            "Stage 1 ⏳" if _above_200 else
-                            "Stage 4 🔴" if (_cur<_ma50<_ma200) else
-                            "Stage 3 ⚠️"
-                        )
-                        # Sector RS vs SPY (3m)
-                        _spy = _yf.Ticker("SPY").history(period="6mo")["Close"]
-                        _etf_ret  = (_cur / float(_d.iloc[-63]) - 1) if len(_d) >= 63 else 0
-                        _spy_ret  = (float(_spy.iloc[-1]) / float(_spy.iloc[-63]) - 1) if len(_spy) >= 63 else 0
-                        _sec_rs   = round(_etf_ret / abs(_spy_ret) * 100, 1) if _spy_ret != 0 else None
-                        return {
-                            "etf": _etf, "sector_ok": _above_200,
-                            "sector_stage": _stage, "sector_rs": _sec_rs,
-                        }
-                    except Exception:
-                        return {"etf": None, "sector_ok": True, "sector_stage": "Unknown", "sector_rs": None}
-
-                _mkt = _get_market_context()
-                # _sec called after field extraction (theme needed first)
-
-                # ── Helper functions ──────────────────────────────────────────
-                def _get(col, default=None):
-                    v = row.get(col, default)
-                    if v is None: return default
-                    if isinstance(v, float) and pd.isna(v): return default
-                    return v
-
-                def _bool_get(col):
-                    v = _get(col)
-                    if v is None: return False
-                    return str(v).lower() in ("true","1","yes")
-
-                def _num(col, default=0.0):
-                    try: return float(_get(col, default) or default)
-                    except: return default
-
-                def _str(col, default="–"):
-                    v = _get(col)
-                    return str(v) if v not in (None,"","None","nan") else default
-
-                # ── Pull all fields ───────────────────────────────────────────
-                price          = _num("price")
-                stage          = _str("stage")
-                above_200ma    = _bool_get("above_200ma")
-                ma50_gt_200    = _bool_get("ma50_gt_ma200")
-                apex_score     = _num("apex_score")
-                rs_3m          = _num("rs_3m", None)
-                rs_r2500       = _num("rs_r2500_3m", None)
-                rs_r3000g      = _num("rs_r3000g_3m", None)
-                rs_multi       = _bool_get("rs_multi_leader")
-                of_bias        = _str("of_bias", "Neutral")
-                of_ratio       = _num("of_up_vol_ratio", 0)
-                of_score       = _num("of_score", 0)
-                earn_mom       = _str("earn_momentum", "–")
-                eps_accel      = _bool_get("eps_accel")
-                eps_growth     = _num("eps_growth_%", None)
-                consec_beats   = _num("consec_beats", 0)
-                near_52wh      = _bool_get("near_52wh")
-                pct_off_high   = _num("pct_off_high_%", -100)
-                early_entry    = _bool_get("early_entry")
-                early_type     = _str("early_entry_type", "–")
-                breaking_out   = _bool_get("breaking_out")
-                pattern        = _str("pattern", "–")
-                vwap_pos       = _str("vwap_position", "–")
-                vwap_slope     = _str("vwap_slope", "–")
-                adr_pct        = _num("adr_%", 5)
-                next_earn      = _str("next_earnings", "–")
-                liq_warn       = _bool_get("liquidity_warn")
-                mcap_cat       = _str("mcap_category", "Unknown")
-                is_gem         = _bool_get("is_gem")
-                weekly_conf    = _bool_get("weekly_confirmed")
-                weekly_contra  = _bool_get("weekly_contradicts")
-                weekly_stage   = _str("weekly_stage", "–")
-                weekly_rs      = _num("weekly_rs", None)
-                weekly_tight   = _bool_get("weekly_base_tight")
-                weekly_score   = _num("weekly_score", 0)
-                vol_filter     = _num("vol_filter", 0)
-                theme          = _str("theme", "–")
-                changes        = _str("changes","–")
-
-                # Now theme is available — fetch sector strength
-                _sec = _get_sector_strength(theme)
-
-                # ── Earnings days-away calculation ────────────────────────────
-                earn_days = None
-                if next_earn not in ("–","None","nan",""):
-                    try:
-                        earn_days = (pd.to_datetime(next_earn) - pd.Timestamp.now()).days
-                    except Exception:
-                        earn_days = None
-
-                # ── Max position size by market cap ───────────────────────────
-                _mcap_risk_pct = (
-                    0.005 if mcap_cat in ("Micro Cap",)   else
-                    0.01  if mcap_cat in ("Small Cap",)   else
-                    0.02  if mcap_cat in ("Mid Cap",)     else
-                    0.03  if mcap_cat in ("Large Cap",)   else
-                    0.05
-                )
-                _max_risk_dol     = round(chk_account * _mcap_risk_pct, 2)
-                _adr_stop_default = round(price * (1 - adr_pct / 100 * 1.25), 2)
-
-                # ── Manual stop override & measured move inputs ───────────────
-                st.markdown("---")
-                st.markdown("#### ⚙️ Trade Parameters")
-                _inp1, _inp2, _inp3 = st.columns(3)
-                with _inp1:
-                    _manual_stop = st.number_input(
-                        "Stop Loss ($) — override",
-                        min_value=0.0, max_value=float(price) if price else 9999.0,
-                        value=float(_adr_stop_default),
-                        step=0.01, format="%.2f",
-                        key=f"manual_stop_{chk_ticker}",
-                        help=(
-                            f"Default = 1.25× ADR below entry (${_adr_stop_default:.2f}). "
-                            "Override with your chart-based swing low for a more precise stop."
-                        )
-                    )
-                with _inp2:
-                    _base_low = st.number_input(
-                        "Base Low ($) — for measured move",
-                        min_value=0.0,
-                        value=float(round(price * 0.85, 2)),
-                        step=0.01, format="%.2f",
-                        key=f"base_low_{chk_ticker}",
-                        help=(
-                            "Enter the lowest price of the base the stock is breaking out from. "
-                            "Measured move target = Entry + (Entry − Base Low)."
-                        )
-                    )
-                with _inp3:
-                    _risk_override = st.number_input(
-                        "Risk % override",
-                        min_value=0.1, max_value=5.0,
-                        value=float(_mcap_risk_pct * 100),
-                        step=0.1, format="%.1f",
-                        key=f"risk_pct_{chk_ticker}",
-                        help=(
-                            f"Default = {_mcap_risk_pct*100:.1f}% for {mcap_cat}. "
-                            "Reduce for weaker setups, increase only for A+ setups with perfect checklist."
-                        )
-                    )
-
-                # Recalculate with overrides
-                _stop_price   = _manual_stop
-                _stop_dist    = (price - _stop_price) / price if price > 0 else adr_pct/100*1.25
-                _max_risk_dol = round(chk_account * _risk_override / 100, 2)
-                _max_shares   = int(_max_risk_dol / (price * _stop_dist)) if price > 0 and _stop_dist > 0 else 0
-                _pos_value    = round(_max_shares * price, 2)
-
-                # Measured move target (chart-based)
-                _base_depth   = price - _base_low
-                _mm_target    = round(price + _base_depth, 2)  # measured move
-                _rr_mm        = round(_base_depth / (price - _stop_price), 1) if (price - _stop_price) > 0 else 0
-
-                # ADR-based targets + final target selection (computed early so
-                # the Mobile Summary Card, which renders before the Trade Plan
-                # Summary section, can safely reference _t1_use / _t2_use)
-                _t1_adr = round(price * (1 + adr_pct/100 * 4), 2)
-                _t2_adr = round(price * (1 + adr_pct/100 * 8), 2)
-                _t1_use = min(_mm_target, _t1_adr) if _mm_target > price else _t1_adr
-                _t2_use = max(_mm_target, _t2_adr)
-                _rr_t1  = round((_t1_use - price) / (price - _stop_price), 1) if price > _stop_price else 0
-                _rr_t2  = round((_t2_use - price) / (price - _stop_price), 1) if price > _stop_price else 0
-
-                st.markdown("---")
-
-                # ══════════════════════════════════════════════════════════════
-                # BUILD THE 18-POINT CHECKLIST (expanded from 15)
-                # ══════════════════════════════════════════════════════════════
-                checks = []
-
-                # ── Pre-compute R:R with measured move target ─────────────────
-                _rr_ratio = _rr_mm   # chart-based measured move R:R
-                _rr_pass  = _rr_ratio >= 2.0
-
-                # ── GROUP 0: MARKET & SECTOR CONTEXT ─────────────────────────
-                checks.append({
-                    "group":   "🌍 Market & Sector Context — Check Before Everything Else",
-                    "num":     0,
-                    "label":   "Broad Market in Uptrend (S&P 500)",
-                    "pass":    _mkt["market_ok"],
-                    "value":   (
-                        f"S&P 500: {_mkt['stage']} | "
-                        f"VIX: {_mkt['vix']:.1f}" if _mkt.get('vix') else _mkt['stage']
-                    ),
-                    "why":     (
-                        "75% of stocks follow the market direction. Buying individual stocks "
-                        "during a market Stage 3/4 downtrend is fighting the tide — even great "
-                        "setups fail more often when the index is broken."
-                    ),
-                    "action":  (
-                        "Wait for the S&P 500 to reclaim its 50MA and 200MA before taking "
-                        "new long positions. Use this time to build your watchlist."
-                        if not _mkt["market_ok"] else
-                        "Market environment is supportive. Proceed with individual stock analysis."
-                    ),
-                    "fatal":   True,
-                })
-                checks.append({
-                    "group":   None,
-                    "num":     "0b",
-                    "label":   f"Sector Uptrend ({_sec.get('etf','–')})",
-                    "pass":    _sec["sector_ok"],
-                    "value":   (
-                        f"{_sec.get('etf','–')}: {_sec['sector_stage']} | "
-                        f"Sector RS: {_sec['sector_rs']:.0f}" if _sec.get('sector_rs') else
-                        f"{_sec.get('etf','–')}: {_sec['sector_stage']}"
-                    ),
-                    "why":     (
-                        f"A stock breaking out while its sector ETF ({_sec.get('etf','?')}) "
-                        "is in a downtrend has dramatically lower odds. Sector tailwind = "
-                        "institutions rotating into this area, lifting all boats."
-                    ),
-                    "action":  (
-                        f"Sector {_sec.get('etf','?')} is weak. Use half-size or wait for "
-                        "sector to recover above its 200MA before entering."
-                        if not _sec["sector_ok"] else
-                        "Sector is supportive — good tailwind for this trade."
-                    ),
-                    "fatal":   False,
-                })
-
-                # ── GROUP 1: NON-NEGOTIABLES (items 1–5) ─────────────────────
-                checks.append({
-                    "group":   "🚫 Non-Negotiables — Fail any = DO NOT BUY",
-                    "num":     1,
-                    "label":   "Weekly Stage 2 Confirmed",
-                    "pass":    weekly_conf and not weekly_contra,
-                    "value":   weekly_stage,
-                    "why":     "Weekly chart must show price above 40WMA with 10WMA > 40WMA. Trading against the weekly trend fails 70%+ of the time.",
-                    "action":  "Wait for weekly Stage 2 confirmation before entering.",
-                    "fatal":   True,
-                })
-                checks.append({
-                    "group":   None,
-                    "num":     2,
-                    "label":   "Daily Stage 2 Confirmed",
-                    "pass":    above_200ma and ma50_gt_200,
-                    "value":   stage,
-                    "why":     "Price must be above both the 50MA and 200MA, with 50MA > 200MA. This is the only Weinstein stage where you take long positions.",
-                    "action":  "Wait for price to reclaim both MAs before entering.",
-                    "fatal":   True,
-                })
-                checks.append({
-                    "group":   None,
-                    "num":     3,
-                    "label":   "RS vs S&P 500 Positive",
-                    "pass":    rs_3m is not None and rs_3m > 0,
-                    "value":   f"{rs_3m:.0f}" if rs_3m is not None else "–",
-                    "why":     "If the stock can't outperform a passive index, there is no reason to own it. RS > 100 = outperforming. The best trades have RS > 150.",
-                    "action":  "Wait for RS to turn positive vs the index before buying.",
-                    "fatal":   True,
-                })
-                checks.append({
-                    "group":   None,
-                    "num":     4,
-                    "label":   "No Weekly Contradiction",
-                    "pass":    not weekly_contra,
-                    "value":   "⚠️ CONTRADICTS" if weekly_contra else "✅ Clear",
-                    "why":     "A daily breakout inside a weekly downtrend is the most common retail trap. The weekly trend will eventually win. Avoid completely.",
-                    "action":  "Do not trade this setup until the weekly resolves into Stage 2.",
-                    "fatal":   True,
-                })
-                checks.append({
-                    "group":   None,
-                    "num":     5,
-                    "label":   "Adequate Liquidity",
-                    "pass":    not liq_warn and vol_filter >= 100_000,
-                    "value":   f"{vol_filter:,.0f} shares/day",
-                    "why":     "You must be able to exit at your price. Low liquidity = wide spreads + slippage that eats profits before they start.",
-                    "action":  "Only trade with limit orders. Consider skipping if volume < 100K/day.",
-                    "fatal":   True,
-                })
-
-                # ── GROUP 2: QUALITY FILTERS (items 6–9) ─────────────────────
-                checks.append({
-                    "group":   "📊 Quality Filters — Fail = Reduce Size or Wait",
-                    "num":     6,
-                    "label":   "Apex Score ≥ 65",
-                    "pass":    apex_score >= 65,
-                    "value":   f"{apex_score:.0f}/100",
-                    "why":     "Below 65 means multiple signals are missing or contradicting. The best trades score 70–90 before they make their move.",
-                    "action":  "Wait for score to reach 65+ or reduce size to 50% of normal.",
-                    "fatal":   False,
-                })
-                checks.append({
-                    "group":   None,
-                    "num":     7,
-                    "label":   "Institutional Order Flow Bullish",
-                    "pass":    "bullish" in of_bias.lower(),
-                    "value":   f"{of_bias} | Up/Down vol: {of_ratio:.2f}x",
-                    "why":     "Institutions leave footprints. Persistent up-day volume > down-day volume means large money is accumulating before the move becomes obvious to the crowd.",
-                    "action":  "Wait for OF bias to turn Bullish before entering.",
-                    "fatal":   False,
-                })
-                _fund_pass = (
-                    "strong" in earn_mom.lower() or
-                    eps_accel or
-                    (eps_growth is not None and eps_growth >= 25) or
-                    consec_beats >= 3
-                )
-                checks.append({
-                    "group":   None,
-                    "num":     8,
-                    "label":   "Earnings Momentum Positive",
-                    "pass":    _fund_pass,
-                    "value":   f"{earn_mom} | EPS growth: {eps_growth:+.0f}%" if eps_growth else earn_mom,
-                    "why":     "Price follows earnings long-term. Accelerating EPS or consecutive beats signals institutional re-rating. Pure technical setups without fundamental support fail more often.",
-                    "action":  "Accept if momentum is Moderate but reduce size. Avoid if declining EPS.",
-                    "fatal":   False,
-                })
-                checks.append({
-                    "group":   None,
-                    "num":     9,
-                    "label":   "Near 52-Week High (< 20% off)",
-                    "pass":    pct_off_high >= -20,
-                    "value":   f"{pct_off_high:+.1f}% from 52W high",
-                    "why":     "Breakouts happen near highs, not from the bottom. Stocks > 30% below their high have massive overhead resistance from prior buyers desperate to break even.",
-                    "action":  "Wait for stock to recover closer to highs before buying the breakout.",
-                    "fatal":   False,
-                })
-
-                # ── GROUP 3: ENTRY TIMING (items 10–12) ──────────────────────
-                _entry_pass = early_entry or breaking_out
-                checks.append({
-                    "group":   "🎯 Entry Timing — Fail = Wait for Better Moment",
-                    "num":     10,
-                    "label":   "Early Entry or Active Breakout",
-                    "pass":    _entry_pass,
-                    "value":   (
-                        "🚨 BREAKING OUT" if breaking_out else
-                        f"✅ {early_type}" if early_entry else
-                        "⏳ No signal yet"
-                    ),
-                    "why":     "Buying extended (10%+ past breakout) dramatically cuts your R:R. Early entry = cheap stock relative to where it's going. Breakout = highest-urgency entry.",
-                    "action":  "Wait for a pullback to 50MA, VWAP, or a new base to form before entering.",
-                    "fatal":   False,
-                })
-                _vwap_pass = "above" in vwap_pos.lower() and "extended" not in vwap_pos.lower()
-                checks.append({
-                    "group":   None,
-                    "num":     11,
-                    "label":   "Price Above Rising VWAP",
-                    "pass":    _vwap_pass,
-                    "value":   f"{vwap_pos} | Slope: {vwap_slope}",
-                    "why":     "Institutional algorithms anchor to VWAP for large order execution. Being above a rising VWAP means buyers are in control of the auction right now.",
-                    "action":  "Wait for a VWAP reclaim on volume — that is the entry trigger.",
-                    "fatal":   False,
-                })
-                _pattern_pass = pattern not in ("–","None","nan","") and "none" not in pattern.lower()
-                checks.append({
-                    "group":   None,
-                    "num":     12,
-                    "label":   "Recognisable Chart Pattern",
-                    "pass":    _pattern_pass,
-                    "value":   pattern,
-                    "why":     "Buying random price action is gambling. Buying a well-defined base breakout, cup, or pullback to support is a defined edge with a clear invalidation level.",
-                    "action":  "Wait for a proper base to form (3–8 weeks minimum) before entering.",
-                    "fatal":   False,
-                })
-
-                # ── R:R validation check (between quality and risk groups) ──────
-                checks.append({
-                    "group":   "📐 Risk:Reward — Minimum 2:1 Required",
-                    "num":     "12b",
-                    "label":   "Risk:Reward Ratio ≥ 2:1",
-                    "pass":    _rr_pass,
-                    "value":   (
-                        f"{_rr_ratio:.1f}:1 "
-                        f"(Entry ${price:.2f} → Target ${_mm_target:.2f} | Stop ${_stop_price:.2f})"
-                    ),
-                    "why":     (
-                        "With a 50% win rate you need at least 2:1 R:R to be profitable. "
-                        "Below 2:1 means you need a 67%+ win rate just to break even — "
-                        "no trader sustains that consistently. "
-                        f"Measured move target = Entry + Base Depth = ${_mm_target:.2f}."
-                    ),
-                    "action":  (
-                        f"Current R:R is {_rr_ratio:.1f}:1. "
-                        "Either tighten the stop (move closer to a real swing low) or "
-                        "wait for a lower entry to improve the ratio. "
-                        "Do not widen your stop to manufacture a better R:R."
-                        if not _rr_pass else
-                        f"R:R of {_rr_ratio:.1f}:1 is acceptable. Trim 50% at "
-                        f"1R gain (${round(price + (price - _stop_price), 2):.2f}), "
-                        "let the rest run to the measured move target."
-                    ),
-                    "fatal":   True,   # R:R < 2:1 is a hard no
-                })
-
-                # ── GROUP 4: RISK CONTROLS (items 13–15) ─────────────────────
-                _earn_pass = earn_days is None or earn_days > 14
-                checks.append({
-                    "group":   "⚠️ Risk Controls — Must Define Before Buying",
-                    "num":     13,
-                    "label":   "Earnings Not Imminent (> 14 days)",
-                    "pass":    _earn_pass,
-                    "value":   (
-                        f"⚠️ In {earn_days} days ({next_earn})" if earn_days is not None and earn_days <= 14
-                        else f"✅ {next_earn}" if next_earn != "–"
-                        else "✅ No date flagged"
-                    ),
-                    "why":     "Stocks can gap 10–40% on earnings. Holding through earnings with a full position is not trading — it's gambling on a binary event.",
-                    "action":  f"{'Reduce to 50% size before earnings.' if earn_days and earn_days <= 14 else 'Monitor as date approaches.'}",
-                    "fatal":   False,
-                })
-                checks.append({
-                    "group":   None,
-                    "num":     14,
-                    "label":   "Stop Loss Level Defined",
-                    "pass":    True,   # always informational
-                    "value":   f"${_stop_price:.2f}  ({_stop_dist*100:.1f}% below entry = 1.25× ADR)",
-                    "why":     "A stop loss is not optional. It is the price at which you admit you were wrong and exit before a small loss becomes a catastrophic one. Define it BEFORE you buy.",
-                    "action":  f"Place stop at ${_stop_price:.2f} (below 1.25× ADR). Move to break-even after +{adr_pct*2:.1f}% gain.",
-                    "fatal":   False,
-                })
-                checks.append({
-                    "group":   None,
-                    "num":     15,
-                    "label":   "Position Size Calculated",
-                    "pass":    True,   # always informational
-                    "value":   f"{_max_shares} shares × ${price:.2f} = ${_pos_value:,.0f} ({_mcap_risk_pct*100:.1f}% risk)",
-                    "why":     f"Maximum risk per trade is {_mcap_risk_pct*100:.1f}% of portfolio for a {mcap_cat}. This keeps any single loss from materially damaging your account.",
-                    "action":  f"Max position: {_max_shares} shares (${_pos_value:,.0f}). Max dollar risk: ${_max_risk_dol:,.0f}.",
-                    "fatal":   False,
-                })
-
-                # ══════════════════════════════════════════════════════════════
-                # VERDICT CALCULATION + CONVICTION SCORE
-                # ══════════════════════════════════════════════════════════════
-                fatal_fails   = [c for c in checks if c.get("fatal") and not c["pass"]]
-                quality_fails = [c for c in checks if not c.get("fatal") and not c["pass"]
-                                 and str(c.get("num","")).replace("b","").isdigit()
-                                 and int(str(c.get("num","0")).replace("b","0")) <= 12]
-                all_pass      = len(fatal_fails) == 0 and len(quality_fails) == 0
-                partial_pass  = len(fatal_fails) == 0 and len(quality_fails) <= 2
-                timing_only   = len(fatal_fails) == 0 and len([
-                    c for c in quality_fails
-                    if str(c.get("num","0")).replace("b","").isdigit()
-                    and int(str(c.get("num","0")).replace("b","0")) <= 9
-                ]) == 0
-
-                # ── Conviction Score 0–100 ────────────────────────────────────
-                # Measures HOW STRONGLY each check passed, not just whether it did
-                _conv = 0
-                # Market & sector (max 15)
-                if _mkt["market_ok"]:                         _conv += 8
-                if _sec["sector_ok"]:                         _conv += 7
-                # Weekly (max 15)
-                if weekly_conf and not weekly_contra:         _conv += 10
-                if weekly_tight:                              _conv += 5
-                # Stage & trend (max 10)
-                if above_200ma and ma50_gt_200:               _conv += 10
-                # RS strength (max 15)
-                _rs_val = rs_3m if rs_3m else 0
-                if _rs_val >= 150:                            _conv += 15
-                elif _rs_val >= 100:                          _conv += 10
-                elif _rs_val > 0:                             _conv += 5
-                # Order flow (max 10)
-                if "strong bullish" in of_bias.lower():       _conv += 10
-                elif "bullish" in of_bias.lower():            _conv += 6
-                # Fundamentals (max 10)
-                if eps_accel:                                 _conv += 5
-                if earn_mom and "strong" in earn_mom.lower(): _conv += 5
-                # Entry quality (max 10)
-                if breaking_out:                              _conv += 10
-                elif early_entry:                             _conv += 7
-                elif _vwap_pass:                              _conv += 4
-                # R:R (max 10)
-                if _rr_ratio >= 3.0:                          _conv += 10
-                elif _rr_ratio >= 2.0:                        _conv += 6
-                elif _rr_ratio >= 1.5:                        _conv += 3
-                # Apex score (max 5)
-                if apex_score >= 80:                          _conv += 5
-                elif apex_score >= 65:                        _conv += 3
-                _conviction = min(100, _conv)
-
-                # ── Adjusted position size by conviction ──────────────────────
-                # High conviction = full size. Low conviction = reduce.
-                _conv_mult = (
-                    1.0  if _conviction >= 75 else
-                    0.75 if _conviction >= 60 else
-                    0.50 if _conviction >= 45 else
-                    0.25
-                )
-                _adj_shares   = int(_max_shares * _conv_mult)
-                _adj_value    = round(_adj_shares * price, 2)
-                _adj_risk     = round(_adj_shares * price * _stop_dist, 2)
-
-                # ── Time-of-day guidance ──────────────────────────────────────
-                _now_est = pd.Timestamp.now("UTC").tz_convert(None) - pd.Timedelta(hours=5)
-                _hour    = _now_est.hour
-                _minute  = _now_est.minute
-                _tod_guidance = (
-                    "⏰ PRE-MARKET: Do not chase pre-market moves. Wait for the first 15–30 min "
-                    "after open to see where price stabilises before entering."
-                    if _hour < 9 or (_hour == 9 and _minute < 30) else
-                    "⏰ FIRST 30 MIN (9:30–10:00 AM): High volatility window. "
-                    "Wait for the opening range to establish, then buy the first pullback to VWAP. "
-                    "Never buy a gap-up open blindly."
-                    if _hour == 9 or (_hour == 10 and _minute < 0) else
-                    "⏰ PRIME ENTRY WINDOW (10:00 AM–12:00 PM): Best time to enter. "
-                    "Direction is established, volume is liquid, institutions are active. "
-                    "Enter on a VWAP pullback or breakout continuation."
-                    if _hour < 12 else
-                    "⏰ MIDDAY DRIFT (12:00–2:00 PM): Avoid new entries. Low volume, "
-                    "choppy price action. Breakouts in this window have low follow-through."
-                    if _hour < 14 else
-                    "⏰ POWER HOUR SETUP (2:00–3:30 PM): Strong stocks accelerate into close. "
-                    "If stock is holding above VWAP with volume picking up, enter now. "
-                    "Set stop below today's low."
-                    if _hour < 15 or (_hour == 15 and _minute < 30) else
-                    "⏰ LAST 30 MIN (3:30–4:00 PM): Avoid new entries. Institutional "
-                    "window-dressing can cause erratic moves. Wait for next morning."
-                    if _hour < 16 else
-                    "⏰ AFTER HOURS: Market is closed. Review the setup for next session entry. "
-                    "Place a limit order for tomorrow's open if you want to be in early."
-                )
-
-                # ── Verdict Banner ────────────────────────────────────────────
-                st.markdown("---")
-
-                # Conviction score bar
-                _conv_color = "#3fb950" if _conviction >= 75 else "#d29922" if _conviction >= 50 else "#f85149"
-                _conv_label = (
-                    "A+ Setup" if _conviction >= 85 else
-                    "A Setup"  if _conviction >= 75 else
-                    "B Setup"  if _conviction >= 60 else
-                    "C Setup"  if _conviction >= 45 else
-                    "D Setup"
-                )
-                st.markdown(
-                    f'<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;'
-                    f'padding:14px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;">'
-                    f'<div style="flex:1;">'
-                    f'<div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;'
-                    f'letter-spacing:.06em;margin-bottom:4px;">CONVICTION SCORE</div>'
-                    f'<div style="background:#21262d;border-radius:4px;height:10px;width:100%;">'
-                    f'<div style="background:{_conv_color};height:10px;border-radius:4px;'
-                    f'width:{_conviction}%;transition:width .5s;"></div></div>'
-                    f'</div>'
-                    f'<div style="text-align:right;min-width:80px;">'
-                    f'<div style="color:{_conv_color};font-size:1.6rem;font-weight:800;">{_conviction}</div>'
-                    f'<div style="color:#8b949e;font-size:0.78rem;">{_conv_label}</div>'
-                    f'</div></div>',
-                    unsafe_allow_html=True
-                )
-
-                # Time-of-day guidance
-                st.info(_tod_guidance)
-
-                # Main verdict
-                if fatal_fails:
-                    _fail_list = "  |  ".join(
-                        f'#{c["num"]} {c["label"]}' for c in fatal_fails
-                    )
-                    st.markdown(
-                        f'<div style="background:#2a1010;border:2px solid #f85149;border-radius:12px;'
-                        f'padding:20px 24px;margin-bottom:16px;">'
-                        f'<div style="font-size:1.8rem;font-weight:800;color:#f85149;">🚫 DO NOT BUY</div>'
-                        f'<div style="color:#e6edf3;margin-top:8px;font-size:1rem;">'
-                        f'<b>{len(fatal_fails)} hard gate(s) failed.</b> No exceptions:<br>'
-                        f'{_fail_list}'
-                        f'</div></div>',
-                        unsafe_allow_html=True
-                    )
-                elif all_pass:
-                    st.markdown(
-                        f'<div style="background:#0d2a0d;border:2px solid #3fb950;border-radius:12px;'
-                        f'padding:20px 24px;margin-bottom:16px;">'
-                        f'<div style="font-size:1.8rem;font-weight:800;color:#3fb950;">✅ READY TO BUY</div>'
-                        f'<div style="color:#e6edf3;margin-top:8px;font-size:1rem;">'
-                        f'All checks passed. Conviction: <b>{_conviction}/100 ({_conv_label})</b>.<br>'
-                        f'Enter <b>{_adj_shares} shares</b> (conviction-adjusted from {_max_shares}) '
-                        f'at ${price:.2f}. Stop: <b>${_stop_price:.2f}</b>. '
-                        f'Target: <b>${_mm_target:.2f}</b> (R:R {_rr_ratio:.1f}:1).'
-                        f'</div></div>',
-                        unsafe_allow_html=True
-                    )
-                elif timing_only:
-                    _wait_for = "  |  ".join(c["action"].split(".")[0] for c in quality_fails[:2])
-                    st.markdown(
-                        f'<div style="background:#1a2a10;border:2px solid #d29922;border-radius:12px;'
-                        f'padding:20px 24px;margin-bottom:16px;">'
-                        f'<div style="font-size:1.8rem;font-weight:800;color:#d29922;">⏳ WAIT FOR ENTRY</div>'
-                        f'<div style="color:#e6edf3;margin-top:8px;font-size:1rem;">'
-                        f'Stock quality confirmed. Entry timing not yet ideal.<br>'
-                        f'Wait for: {_wait_for}'
-                        f'</div></div>',
-                        unsafe_allow_html=True
-                    )
-                elif partial_pass:
-                    _fail_list2 = "  |  ".join(
-                        f'#{c["num"]} {c["label"]}' for c in quality_fails
-                    )
-                    st.markdown(
-                        f'<div style="background:#1a1a10;border:2px solid #d29922;border-radius:12px;'
-                        f'padding:20px 24px;margin-bottom:16px;">'
-                        f'<div style="font-size:1.8rem;font-weight:800;color:#d29922;">⚠️ REDUCED SIZE — {_conv_label}</div>'
-                        f'<div style="color:#e6edf3;margin-top:8px;font-size:1rem;">'
-                        f'{len(quality_fails)} quality issue(s). '
-                        f'Conviction-adjusted size: <b>{_adj_shares} shares</b> '
-                        f'(${_adj_value:,.0f}, risk ${_adj_risk:,.0f}).<br>'
-                        f'Failed: {_fail_list2}'
-                        f'</div></div>',
-                        unsafe_allow_html=True
-                    )
-                else:
-                    st.markdown(
-                        f'<div style="background:#2a1010;border:2px solid #f85149;border-radius:12px;'
-                        f'padding:20px 24px;margin-bottom:16px;">'
-                        f'<div style="font-size:1.8rem;font-weight:800;color:#f85149;">❌ SKIP</div>'
-                        f'<div style="color:#e6edf3;margin-top:8px;font-size:1rem;">'
-                        f'{len(quality_fails)} quality checks failed. '
-                        f'Better opportunities exist in the scan right now.'
-                        f'</div></div>',
-                        unsafe_allow_html=True
-                    )
-                st.markdown("---")
-
-                # Define _verdict_str here so it's available for mobile card AND download
-                _verdict_str = (
-                    "READY TO BUY"   if all_pass     else
-                    "DO NOT BUY"     if fatal_fails  else
-                    "WAIT FOR ENTRY" if timing_only  else
-                    "REDUCED SIZE"   if partial_pass else
-                    "SKIP"
-                )
-
-                # ── 📱 Mobile Summary Card ────────────────────────────────────
-                with st.expander("📱 Mobile Summary Card (tap to expand)", expanded=False):
-                    _vrd_emoji = "✅" if all_pass else "🚫" if fatal_fails else "⏳" if timing_only else "⚠️"
-                    _vrd_color = "#3fb950" if all_pass else "#f85149" if fatal_fails else "#d29922"
-                    st.markdown(
-                        f'<div style="background:#0d1117;border:2px solid {_vrd_color};'
-                        f'border-radius:16px;padding:24px;max-width:400px;margin:0 auto;">'
-
-                        # Header
-                        f'<div style="text-align:center;margin-bottom:16px;">'
-                        f'<div style="font-size:2rem;font-weight:900;color:{_vrd_color};">'
-                        f'{_vrd_emoji} {chk_ticker}</div>'
-                        f'<div style="color:{_vrd_color};font-size:1rem;font-weight:700;margin-top:4px;">'
-                        f'{_verdict_str}</div>'
-                        f'<div style="color:#8b949e;font-size:0.82rem;">'
-                        f'Conviction: {_conviction}/100 ({_conv_label})</div>'
-                        f'</div>'
-
-                        # Divider
-                        f'<div style="border-top:1px solid #30363d;margin:12px 0;"></div>'
-
-                        # Key numbers in 2×3 grid
-                        f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;'
-                        f'margin-bottom:12px;">'
-                        f'<div style="background:#161b22;border-radius:8px;padding:10px;text-align:center;">'
-                        f'<div style="color:#8b949e;font-size:0.7rem;">ENTRY</div>'
-                        f'<div style="color:#e6edf3;font-size:1.3rem;font-weight:800;">${price:.2f}</div>'
-                        f'</div>'
-                        f'<div style="background:#2a1010;border-radius:8px;padding:10px;text-align:center;">'
-                        f'<div style="color:#8b949e;font-size:0.7rem;">STOP</div>'
-                        f'<div style="color:#f85149;font-size:1.3rem;font-weight:800;">${_stop_price:.2f}</div>'
-                        f'</div>'
-                        f'<div style="background:#0d2a0d;border-radius:8px;padding:10px;text-align:center;">'
-                        f'<div style="color:#8b949e;font-size:0.7rem;">TARGET 1</div>'
-                        f'<div style="color:#3fb950;font-size:1.3rem;font-weight:800;">${_t1_use:.2f}</div>'
-                        f'</div>'
-                        f'<div style="background:#0d2a0d;border-radius:8px;padding:10px;text-align:center;">'
-                        f'<div style="color:#8b949e;font-size:0.7rem;">TARGET 2</div>'
-                        f'<div style="color:#3fb950;font-size:1.3rem;font-weight:800;">${_t2_use:.2f}</div>'
-                        f'</div>'
-                        f'<div style="background:#161b22;border-radius:8px;padding:10px;text-align:center;">'
-                        f'<div style="color:#8b949e;font-size:0.7rem;">SHARES</div>'
-                        f'<div style="color:#e6edf3;font-size:1.3rem;font-weight:800;">{_adj_shares}</div>'
-                        f'</div>'
-                        f'<div style="background:#161b22;border-radius:8px;padding:10px;text-align:center;">'
-                        f'<div style="color:#8b949e;font-size:0.7rem;">R:R</div>'
-                        f'<div style="color:{"#3fb950" if _rr_ratio>=2 else "#d29922"};'
-                        f'font-size:1.3rem;font-weight:800;">{_rr_ratio:.1f}:1</div>'
-                        f'</div>'
-                        f'</div>'
-
-                        # Divider
-                        f'<div style="border-top:1px solid #30363d;margin:12px 0;"></div>'
-
-                        # Fatal fails or timing
-                        + (
-                            f'<div style="color:#f85149;font-size:0.82rem;font-weight:700;">'
-                            f'🚫 Failed: {" | ".join(f"#{c["num"]} {c["label"]}" for c in fatal_fails[:2])}'
-                            f'</div>'
-                            if fatal_fails else
-                            f'<div style="color:#3fb950;font-size:0.82rem;">'
-                            f'✅ All gates clear · {_conviction}/100 conviction'
-                            f'</div>'
-                        )
-
-                        # Timing
-                        + f'<div style="color:#8b949e;font-size:0.78rem;margin-top:8px;">'
-                        + _tod_guidance.split(":")[0] + f'</div>'
-
-                        + f'</div>',
-                        unsafe_allow_html=True
-                    )
-
-                st.markdown("---")
-
-                # ══════════════════════════════════════════════════════════════
-                # CHECKLIST TABLE
-                # ══════════════════════════════════════════════════════════════
-                current_group = None
-                for chk in checks:
-                    # Print group header
-                    if chk.get("group") and chk["group"] != current_group:
-                        current_group = chk["group"]
-                        st.markdown(
-                            f'<div style="background:#161b22;padding:8px 14px;border-radius:6px;'
-                            f'margin:16px 0 8px 0;font-size:0.85rem;font-weight:700;'
-                            f'color:#8b949e;letter-spacing:0.05em;">{current_group}</div>',
-                            unsafe_allow_html=True
-                        )
-
-                    _pass    = chk["pass"]
-                    _icon    = "✅" if _pass else ("🚫" if chk.get("fatal") else "❌")
-                    _bg      = "#0d2a0d" if _pass else ("#2a1010" if chk.get("fatal") else "#1a1510")
-                    _border  = "#3fb950" if _pass else ("#f85149" if chk.get("fatal") else "#d29922")
-                    _val_col = "#3fb950" if _pass else ("#f85149" if chk.get("fatal") else "#d29922")
-
-                    st.markdown(
-                        f'<div style="background:{_bg};border-left:4px solid {_border};'
-                        f'border-radius:0 8px 8px 0;padding:12px 16px;margin:4px 0;'
-                        f'display:flex;gap:12px;align-items:flex-start;">'
-
-                        # Number + icon
-                        f'<div style="min-width:44px;text-align:center;">'
-                        f'<span style="font-size:1.1rem;">{_icon}</span><br>'
-                        f'<span style="color:#8b949e;font-size:0.72rem;">#{chk["num"]}</span>'
-                        f'</div>'
-
-                        # Label + value
-                        f'<div style="flex:1;">'
-                        f'<div style="color:#e6edf3;font-weight:700;font-size:0.92rem;">'
-                        f'{chk["label"]}</div>'
-                        f'<div style="color:{_val_col};font-size:0.88rem;margin-top:2px;">'
-                        f'{chk["value"]}</div>'
-                        f'</div>'
-
-                        # Why + action
-                        f'<div style="flex:2;border-left:1px solid #30363d;padding-left:14px;">'
-                        f'<div style="color:#8b949e;font-size:0.80rem;line-height:1.5;">'
-                        f'{chk["why"]}</div>'
-                        f'{"<div style=\"color:#d29922;font-size:0.78rem;margin-top:4px;\">" + "→ " + chk["action"] + "</div>" if not _pass else ""}'
-                        f'</div>'
-
-                        f'</div>',
-                        unsafe_allow_html=True
-                    )
-
-                # ══════════════════════════════════════════════════════════════
-                # TRADE PLAN SUMMARY
-                # ══════════════════════════════════════════════════════════════
-                st.markdown("---")
-                st.markdown("#### 📋 Trade Plan Summary")
-                tp1,tp2,tp3 = st.columns(3)
-
-                with tp1:
-                    st.markdown(
-                        f'<div style="background:#161b22;border:1px solid #30363d;'
-                        f'border-radius:10px;padding:16px;">'
-                        f'<div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;'
-                        f'letter-spacing:.06em;margin-bottom:8px;">ENTRY</div>'
-                        f'<div style="color:#e6edf3;font-size:1.4rem;font-weight:800;">'
-                        f'${price:.2f}</div>'
-                        f'<div style="color:#8b949e;font-size:0.8rem;margin-top:4px;">'
-                        f'Current price — buy at open or on<br>VWAP pullback</div>'
-                        f'</div>',
-                        unsafe_allow_html=True
-                    )
-
-                with tp2:
-                    st.markdown(
-                        f'<div style="background:#2a1010;border:1px solid #f85149;'
-                        f'border-radius:10px;padding:16px;">'
-                        f'<div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;'
-                        f'letter-spacing:.06em;margin-bottom:8px;">STOP LOSS</div>'
-                        f'<div style="color:#f85149;font-size:1.4rem;font-weight:800;">'
-                        f'${_stop_price:.2f}</div>'
-                        f'<div style="color:#8b949e;font-size:0.8rem;margin-top:4px;">'
-                        f'{_stop_dist*100:.1f}% below entry (1.25× ADR)<br>'
-                        f'Max loss: ${_max_risk_dol:,.0f}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True
-                    )
-
-                with tp3:
-                    # Chart-based measured move target (primary) / ADR-based target
-                    # (secondary) — _t1_use, _t2_use, _rr_t1, _rr_t2 are computed
-                    # earlier (right after _rr_mm) so they're available wherever needed.
-                    st.markdown(
-                        f'<div style="background:#0d2a0d;border:1px solid #3fb950;'
-                        f'border-radius:10px;padding:16px;">'
-                        f'<div style="color:#8b949e;font-size:0.75rem;text-transform:uppercase;'
-                        f'letter-spacing:.06em;margin-bottom:8px;">TARGETS</div>'
-                        f'<div style="color:#3fb950;font-size:1.1rem;font-weight:700;">'
-                        f'T1: ${_t1_use:.2f} '
-                        f'<span style="font-size:0.78rem;color:#8b949e;">'
-                        f'(R:R {_rr_t1:.1f}:1 · trim 50%)</span></div>'
-                        f'<div style="color:#3fb950;font-size:1.1rem;font-weight:700;margin-top:4px;">'
-                        f'T2: ${_t2_use:.2f} '
-                        f'<span style="font-size:0.78rem;color:#8b949e;">'
-                        f'(R:R {_rr_t2:.1f}:1 · trail stop)</span></div>'
-                        f'<div style="color:#388bfd;font-size:0.78rem;margin-top:6px;">'
-                        f'📐 Measured move: base depth = ${_base_depth:.2f} → T1 = ${_mm_target:.2f}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True
-                    )
-
-                # ── Position sizing breakdown ──────────────────────────────────
-                st.markdown("---")
-                st.markdown("#### 💰 Position Sizing — Conviction Adjusted")
-                ps1,ps2,ps3,ps4,ps5,ps6 = st.columns(6)
-                ps1.metric("Entry Price",          f"${price:.2f}")
-                ps2.metric("Max Shares (full)",    f"{_max_shares}",
-                           help=f"Full size at {_risk_override:.1f}% risk with manual stop")
-                ps3.metric("Adj. Shares",          f"{_adj_shares}",
-                           delta=f"{_conv_mult*100:.0f}% of full size",
-                           help=f"Conviction {_conviction}/100 → {_conv_mult*100:.0f}% of max size")
-                ps4.metric("Position Value",       f"${_adj_value:,.0f}")
-                ps5.metric("Max $ Risk",           f"${_adj_risk:,.0f}",
-                           help=f"Stop at ${_stop_price:.2f} = {_stop_dist*100:.1f}% below entry")
-                ps6.metric("% of Portfolio",       f"{_adj_value/chk_account*100:.1f}%")
-
-                # Conviction breakdown bar
-                st.markdown(
-                    f'<div style="background:#161b22;border:1px solid #30363d;border-radius:8px;'
-                    f'padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#8b949e;">'
-                    f'<b style="color:#e6edf3;">Why conviction is {_conviction}/100 ({_conv_label}):</b> '
-                    f'Market {"✅" if _mkt["market_ok"] else "❌"} · '
-                    f'Sector {"✅" if _sec["sector_ok"] else "❌"} · '
-                    f'Weekly {"✅" if weekly_conf else "❌"} · '
-                    f'Stage {"✅" if (above_200ma and ma50_gt_200) else "❌"} · '
-                    f'RS {f"{rs_3m:.0f}" if rs_3m else "–"} · '
-                    f'Flow {of_bias} · '
-                    f'R:R {_rr_ratio:.1f}:1 · '
-                    f'Apex {apex_score:.0f}'
-                    f'</div>',
-                    unsafe_allow_html=True
-                )
-
-                # ── Direct action buttons ─────────────────────────────────────
-                st.markdown("---")
-                ac1,ac2,ac3,ac4 = st.columns(4)
-                with ac1:
-                    if st.button("📊 View Full Deep Dive", key="chk_deepdive",
-                                 use_container_width=True):
-                        st.session_state["deepdive_ticker"] = chk_ticker
-                        st.info(f"Go to 🔍 Stock Deep Dive tab → select {chk_ticker}")
-                with ac2:
-                    if st.button("📋 Add to Watchlist", key="chk_watchlist",
-                                 use_container_width=True):
-                        st.session_state["wl_add_ticker"] = chk_ticker
-                        st.info(f"Go to 📋 Watchlists tab to add {chk_ticker}")
-                with ac3:
-                    if st.button("💼 Log as Position", key="chk_portfolio",
-                                 use_container_width=True):
-                        st.session_state["port_add_ticker"] = chk_ticker
-                        st.info(f"Go to 💼 Portfolio Tracker → ➕ Add / Manage to enter {chk_ticker}")
-                with ac4:
-                    if st.button("👁 Watch This Setup", key="chk_watch_setup",
-                                 use_container_width=True,
-                                 help="Monitor this setup — get alerted when checklist status improves to Ready"):
-                        _chkw = load_chk_watchlist()
-                        _existing = [x["ticker"] for x in _chkw]
-                        if chk_ticker not in _existing:
-                            _chkw.append({
-                                "ticker":        chk_ticker,
-                                "added":         pd.Timestamp.now().isoformat(),
-                                "last_verdict":  _verdict_str,
-                                "last_score":    apex_score,
-                                "last_conv":     _conviction,
-                                "last_checked":  pd.Timestamp.now().isoformat(),
-                                "alert_on":      "Ready to Buy",
-                                "theme":         theme,
-                            })
-                            save_chk_watchlist(_chkw)
-                            st.success(
-                                f"✅ {chk_ticker} added to Setup Monitor. "
-                                f"You'll be alerted when status improves to 'Ready to Buy'."
-                            )
-                        else:
-                            st.info(f"{chk_ticker} is already being monitored.")
-
-                # ── Setup Monitor status ───────────────────────────────────────
-                _chkw_all = load_chk_watchlist()
-                if _chkw_all:
-                    _this_watch = [x for x in _chkw_all if x["ticker"] == chk_ticker]
-                    if _this_watch:
-                        _witem = _this_watch[0]
-                        st.markdown(
-                            f'<div style="background:#161b22;border:1px solid #388bfd;'
-                            f'border-radius:8px;padding:10px 16px;margin-top:8px;'
-                            f'font-size:0.82rem;color:#8b949e;">'
-                            f'👁 <b style="color:#388bfd;">{chk_ticker} is being monitored.</b> '
-                            f'Last verdict: <b>{_witem.get("last_verdict","–")}</b> | '
-                            f'Added: {_witem.get("added","–")[:10]}'
-                            f'</div>',
-                            unsafe_allow_html=True
-                        )
-
-                # ── Download trade plan ───────────────────────────────────────
-                # (_verdict_str already defined above for mobile card)
-                _plan_text = f"""APEXSCAN PRE-BUY CHECKLIST — {chk_ticker}
-Generated:       {pd.Timestamp.now().strftime("%Y-%m-%d %H:%M")} EST
-Portfolio Size:  ${chk_account:,.0f}
-Ticker:          {chk_ticker} | {theme} | {mcap_cat}
-
-VERDICT:         {_verdict_str}
-CONVICTION:      {_conviction}/100 ({_conv_label})
-
-MARKET CONTEXT
-S&P 500 Stage:   {_mkt.get("stage","–")}
-VIX:             {f"{_mkt['vix']:.1f}" if _mkt.get("vix") else "–"}
-Sector ETF:      {_sec.get("etf","–")} — {_sec.get("sector_stage","–")}
-Market OK:       {"YES" if _mkt["market_ok"] else "NO — caution"}
-Sector OK:       {"YES" if _sec["sector_ok"] else "NO — weak sector"}
-
-TRADE PLAN
-Entry:           ${price:.2f}
-Stop Loss:       ${_stop_price:.2f} ({_stop_dist*100:.1f}% below entry)
-Target 1:        ${_t1_use:.2f} (R:R {_rr_t1:.1f}:1 — trim 50% here)
-Target 2:        ${_t2_use:.2f} (R:R {_rr_t2:.1f}:1 — trail stop)
-Measured Move:   ${_mm_target:.2f} (base depth ${_base_depth:.2f})
-Shares:          {_adj_shares} (conviction-adjusted) / {_max_shares} max
-Position Value:  ${_adj_value:,.0f}
-Dollar Risk:     ${_adj_risk:,.0f}
-% of Portfolio:  {_adj_value/chk_account*100:.1f}%
-
-TIMING
-{_tod_guidance}
-
-CHECKLIST RESULTS ({len([c for c in checks if c["pass"]])}/{len(checks)} passed)
-"""
-                for chk in checks:
-                    _status = "PASS" if chk["pass"] else ("FAIL-FATAL" if chk.get("fatal") else "FAIL")
-                    _num_str = f"{chk['num']:02d}" if isinstance(chk['num'], int) else str(chk['num'])
-                    _plan_text += f"#{_num_str} [{_status}] {chk['label']}: {chk['value']}\n"
-                    if not chk["pass"]:
-                        _plan_text += f"    → {chk['action']}\n"
-
-                # ── Log to Trade Journal ─────────────────────────────────────
-                if st.button("📓 Log to Trade Journal", key="chk_log_journal",
-                             use_container_width=True,
-                             help="Save this checklist result to your trade journal for performance tracking"):
-                    _journal = load_journal()
-                    _journal.append({
-                        "date":           pd.Timestamp.now().isoformat(),
-                        "ticker":         chk_ticker,
-                        "theme":          theme,
-                        "mcap_category":  mcap_cat,
-                        "verdict":        _verdict_str,
-                        "conviction":     _conviction,
-                        "conviction_label": _conv_label,
-                        "apex_score":     apex_score,
-                        "fatal_fails":    len(fatal_fails),
-                        "quality_fails":  len(quality_fails),
-                        "market_ok":      _mkt["market_ok"],
-                        "market_stage":   _mkt.get("stage","–"),
-                        "sector_ok":      _sec["sector_ok"],
-                        "sector_etf":     _sec.get("etf","–"),
-                        "weekly_conf":    weekly_conf,
-                        "weekly_contra":  weekly_contra,
-                        "stage":          stage,
-                        "rs_3m":          rs_3m,
-                        "of_bias":        of_bias,
-                        "rr_ratio":       _rr_ratio,
-                        "entry_price":    price,
-                        "stop_price":     _stop_price,
-                        "target_1":       _t1_use,
-                        "target_2":       _t2_use,
-                        "shares":         _adj_shares,
-                        "position_value": _adj_value,
-                        "dollar_risk":    _adj_risk,
-                        "setup_type":     pattern,
-                        "early_entry":    early_entry,
-                        "breaking_out":   breaking_out,
-                        # Outcome fields (filled in later via Trade Journal tab)
-                        "outcome":        "",
-                        "exit_price":     None,
-                        "exit_date":      "",
-                        "pnl_pct":        None,
-                        "pnl_dollar":     None,
-                        "notes":          "",
-                    })
-                    save_journal(_journal)
-                    st.success(
-                        f"✅ {chk_ticker} logged to Trade Journal "
-                        f"(Conviction: {_conviction}/100, Verdict: {_verdict_str}). "
-                        f"Update the outcome in the 📓 Trade Journal tab after the trade."
-                    )
-
-                st.download_button(
-                    f"⬇ Download Trade Plan — {chk_ticker}",
-                    data=_plan_text.encode("utf-8"),
-                    file_name=f"apexscan_tradeplan_{chk_ticker}_{pd.Timestamp.now().strftime('%Y%m%d')}.txt",
-                    mime="text/plain",
-                )
-
-
-with tabs[19]:
-    st.markdown("### 📓 Trade Journal")
-    st.caption("Track every trade from checklist to outcome. Builds your personal edge statistics over time.")
-
-    _jnl = load_journal()
-    _jnl_j1, _jnl_j2 = st.tabs(["📋 All Entries", "📊 Performance Stats"])
-
-    with _jnl_j1:
-        if not _jnl:
-            st.info(
-                "No journal entries yet. Go to ✅ Pre-Buy Checklist → "
-                "run a checklist → click **📓 Log to Trade Journal**."
-            )
-        else:
-            st.markdown(f"**{len(_jnl)} journal entries**")
-            # Split: open (no outcome) vs closed (outcome filled)
-            _open_entries   = [e for e in _jnl if not e.get("outcome")]
-            _closed_entries = [e for e in _jnl if e.get("outcome")]
-
-            _jt1, _jt2 = st.tabs([
-                f"⏳ Open / Pending ({len(_open_entries)})",
-                f"✅ Closed ({len(_closed_entries)})"
-            ])
-
-            with _jt1:
-                if not _open_entries:
-                    st.info("No open journal entries. Log a trade from the Pre-Buy Checklist.")
-                else:
-                    for _i, _e in enumerate(_open_entries):
-                        _tk  = _e.get("ticker","–")
-                        _vrd = _e.get("verdict","–")
-                        _con = _e.get("conviction", 0)
-                        _ep  = _e.get("entry_price")
-                        _sp  = _e.get("stop_price")
-                        _t1  = _e.get("target_1")
-                        _dt  = str(_e.get("date",""))[:10]
-                        _col = "#3fb950" if "READY" in _vrd else "#d29922"
-
-                        with st.expander(
-                            f"**{_tk}** — {_vrd} | Conviction: {_con}/100 | {_dt}",
-                            expanded=False
-                        ):
-                            _ei1,_ei2,_ei3,_ei4 = st.columns(4)
-                            _ei1.metric("Entry",   f"${_ep:.2f}" if _ep else "–")
-                            _ei2.metric("Stop",    f"${_sp:.2f}" if _sp else "–")
-                            _ei3.metric("Target 1",f"${_t1:.2f}" if _t1 else "–")
-                            _ei4.metric("R:R",     f"{_e.get('rr_ratio',0):.1f}:1")
-
-                            st.markdown("**Update Outcome:**")
-                            _oc1,_oc2,_oc3 = st.columns(3)
-                            with _oc1:
-                                _outcome_sel = st.selectbox(
-                                    "Outcome",
-                                    ["","Winner — Target Hit","Winner — Partial","Loser — Stop Hit",
-                                     "Loser — Manual Exit","Break Even","Still Open"],
-                                    key=f"jnl_outcome_{_i}"
-                                )
-                            with _oc2:
-                                _exit_price = st.number_input(
-                                    "Exit Price ($)", min_value=0.0,
-                                    value=float(_ep or 0), step=0.01, format="%.2f",
-                                    key=f"jnl_exit_{_i}"
-                                )
-                            with _oc3:
-                                _exit_notes = st.text_input(
-                                    "Notes", placeholder="What happened?",
-                                    key=f"jnl_notes_{_i}"
-                                )
-
-                            if st.button("💾 Save Outcome", key=f"jnl_save_{_i}"):
-                                if _outcome_sel and _exit_price > 0 and _ep:
-                                    _pnl_pct = round((_exit_price/_ep - 1)*100, 2)
-                                    _pnl_dol = round((_exit_price - _ep) * (_e.get("shares") or 1), 2)
-                                    # Update entry in journal
-                                    for _je in _jnl:
-                                        if (_je.get("ticker")==_tk and
-                                                _je.get("date")==_e.get("date")):
-                                            _je["outcome"]    = _outcome_sel
-                                            _je["exit_price"] = _exit_price
-                                            _je["exit_date"]  = pd.Timestamp.now().isoformat()[:10]
-                                            _je["pnl_pct"]    = _pnl_pct
-                                            _je["pnl_dollar"] = _pnl_dol
-                                            _je["notes"]      = _exit_notes
-                                    save_journal(_jnl)
-                                    st.success(
-                                        f"✅ {_tk} outcome saved: {_outcome_sel} | "
-                                        f"P&L: ${_pnl_dol:+,.2f} ({_pnl_pct:+.1f}%)"
-                                    )
-                                    st.rerun()
-
-            with _jt2:
-                if not _closed_entries:
-                    st.info("No closed entries yet. Close trades by updating their outcome above.")
-                else:
-                    _cdf = pd.DataFrame(_closed_entries)
-                    _cdf["pnl_pct"]    = pd.to_numeric(_cdf["pnl_pct"],    errors="coerce")
-                    _cdf["pnl_dollar"] = pd.to_numeric(_cdf["pnl_dollar"], errors="coerce")
-                    _cdf["conviction"] = pd.to_numeric(_cdf["conviction"], errors="coerce")
-
-                    # Show table
-                    _disp_cols = ["date","ticker","verdict","conviction","entry_price",
-                                  "exit_price","pnl_pct","pnl_dollar","outcome","setup_type","notes"]
-                    _cdf_disp = _cdf[[c for c in _disp_cols if c in _cdf.columns]].copy()
-                    _cdf_disp.columns = [c.replace("_"," ").title() for c in _cdf_disp.columns]
-
-                    def _jc(v):
-                        try: return "color:#3fb950;font-weight:700" if float(v)>0 else "color:#f85149;font-weight:700"
-                        except: return ""
-
-                    st.dataframe(
-                        _cdf_disp.style.map(_jc, subset=[c for c in ["Pnl Pct","Pnl Dollar"] if c in _cdf_disp.columns])
-                        .format({
-                            "Entry Price":  lambda v: f"${v:.2f}" if pd.notna(v) else "–",
-                            "Exit Price":   lambda v: f"${v:.2f}" if pd.notna(v) else "–",
-                            "Pnl Pct":      lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
-                            "Pnl Dollar":   lambda v: f"${v:+,.2f}" if pd.notna(v) else "–",
-                            "Conviction":   lambda v: f"{v:.0f}/100" if pd.notna(v) else "–",
-                        }, na_rep="–"),
-                        use_container_width=True, hide_index=True, height=320
-                    )
-                    st.download_button(
-                        "⬇ Export Journal (CSV)",
-                        data=_cdf_disp.to_csv(index=False).encode("utf-8"),
-                        file_name=f"apexscan_journal_{pd.Timestamp.now().strftime('%Y%m%d')}.csv",
-                        mime="text/csv",
-                    )
-
-    with _jnl_j2:
-        if len(_jnl) < 3:
-            st.info("Log at least 3 trades to see performance statistics.")
-        else:
-            _all_df = pd.DataFrame(_jnl)
-            _all_df["pnl_pct"]    = pd.to_numeric(_all_df.get("pnl_pct"), errors="coerce")
-            _all_df["pnl_dollar"] = pd.to_numeric(_all_df.get("pnl_dollar"), errors="coerce")
-            _all_df["conviction"] = pd.to_numeric(_all_df.get("conviction"), errors="coerce")
-            _closed_df = _all_df[_all_df["outcome"].astype(str).str.len() > 0].copy()
-
-            if _closed_df.empty:
-                st.info("Close some trades first to see statistics.")
-            else:
-                _wins   = _closed_df[_closed_df["pnl_pct"] > 0]
-                _losses = _closed_df[_closed_df["pnl_pct"] <= 0]
-                _wr     = round(len(_wins)/len(_closed_df)*100, 1) if len(_closed_df) > 0 else 0
-                _avg_w  = _wins["pnl_pct"].mean()   if not _wins.empty   else 0
-                _avg_l  = _losses["pnl_pct"].mean() if not _losses.empty else 0
-                _exp    = round((_wr/100 * _avg_w) + ((1-_wr/100) * _avg_l), 2)
-                _total  = _closed_df["pnl_dollar"].sum()
-
-                st.markdown("#### 🏆 Your Edge Statistics")
-                _s1,_s2,_s3,_s4,_s5 = st.columns(5)
-                _s1.metric("Total Trades",    len(_closed_df))
-                _s2.metric("Win Rate",        f"{_wr:.1f}%")
-                _s3.metric("Avg Winner",      f"{_avg_w:+.1f}%")
-                _s4.metric("Avg Loser",       f"{_avg_l:+.1f}%")
-                _s5.metric("Expectancy",      f"{_exp:+.2f}%",
-                           help="(Win% × Avg Win) + (Loss% × Avg Loss). Positive = you have an edge.")
-
-                # Expectancy interpretation
-                _exp_col = "#3fb950" if _exp > 0.5 else "#d29922" if _exp > 0 else "#f85149"
-                st.markdown(
-                    f'<div style="background:#161b22;border-left:4px solid {_exp_col};'
-                    f'padding:12px 16px;border-radius:4px;margin:8px 0;">'
-                    f'<b style="color:{_exp_col};">System Expectancy: {_exp:+.2f}% per trade</b><br>'
-                    f'<span style="color:#8b949e;font-size:0.85rem;">'
-                    f'{"✅ Positive edge — your system makes money over time. Keep following the rules." if _exp > 0.5 else "⚠️ Marginal edge — improve win rate or cut losses faster." if _exp > 0 else "❌ Negative expectancy — your system loses money. Review what is failing."}'
-                    f'</span></div>',
-                    unsafe_allow_html=True
-                )
-
-                st.markdown("---")
-
-                # Performance by conviction bucket
-                st.markdown("#### 📊 Win Rate by Conviction Score")
-                _conv_buckets = []
-                for _label, _lo, _hi in [("A+ (85–100)",85,101),("A (75–84)",75,85),
-                                          ("B (60–74)",60,75),("C (45–59)",45,60),("D (<45)",0,45)]:
-                    _bucket = _closed_df[(_closed_df["conviction"]>=_lo) & (_closed_df["conviction"]<_hi)]
-                    if not _bucket.empty:
-                        _bwr = round((_bucket["pnl_pct"]>0).mean()*100, 1)
-                        _bexp= round((_bwr/100 * _bucket[_bucket["pnl_pct"]>0]["pnl_pct"].mean() or 0) +
-                                     ((1-_bwr/100) * (_bucket[_bucket["pnl_pct"]<=0]["pnl_pct"].mean() or 0)), 2)
-                        _conv_buckets.append({
-                            "Grade": _label, "Trades": len(_bucket),
-                            "Win %": f"{_bwr:.1f}%",
-                            "Expectancy": f"{_bexp:+.2f}%",
-                            "Avg P&L": f"{_bucket['pnl_pct'].mean():+.1f}%",
-                        })
-                if _conv_buckets:
-                    st.dataframe(pd.DataFrame(_conv_buckets), use_container_width=True, hide_index=True)
-                    st.caption(
-                        "This table tells you what conviction score threshold to use for full-size trades. "
-                        "If A+ setups win 70% and C setups win 35%, trade A+ at full size and skip C entirely."
-                    )
-
-                # Performance by setup type
-                if "setup_type" in _closed_df.columns:
-                    _setup_perf = _closed_df.groupby("setup_type").agg(
-                        Trades=("pnl_pct","count"),
-                        Win_Rate=("pnl_pct", lambda x: round((x>0).mean()*100,1)),
-                        Avg_PnL=("pnl_pct","mean"),
-                        Total_PnL=("pnl_dollar","sum"),
-                    ).reset_index().sort_values("Avg_PnL",ascending=False)
-                    _setup_perf.columns = ["Setup","Trades","Win %","Avg P&L %","Total P&L $"]
-                    st.markdown("#### 📋 Performance by Setup Type")
-                    st.dataframe(
-                        _setup_perf.style.format({
-                            "Avg P&L %": "{:+.1f}%",
-                            "Total P&L $": "${:+,.2f}",
-                            "Win %": "{:.1f}%",
-                        }),
-                        use_container_width=True, hide_index=True
-                    )
-
-                # Cumulative P&L
-                _closed_sorted = _closed_df.sort_values("exit_date")
-                _closed_sorted["cumulative"] = _closed_sorted["pnl_dollar"].cumsum()
-                if not _closed_sorted.empty:
-                    import plotly.express as _pxj
-                    _fig_j = _pxj.area(
-                        _closed_sorted, x="exit_date", y="cumulative",
-                        title="Cumulative Journal P&L ($)",
-                        color_discrete_sequence=["#3fb950"],
-                    )
-                    _fig_j.add_hline(y=0, line_dash="dot", line_color="#8b949e")
-                    _fig_j.update_layout(
-                        paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
-                        font_color="#e6edf3", height=300,
-                        margin=dict(t=40,b=20,l=20,r=20),
-                    )
-                    _fig_j.update_traces(fill="tozeroy", fillcolor="rgba(63,185,80,0.12)")
-                    st.plotly_chart(_fig_j, use_container_width=True)
-
-
-with tabs[20]:
-    st.markdown("### 👁 Setup Monitor")
-    st.caption(
-        "Stocks you're watching for checklist status improvement. "
-        "Get alerted via Telegram when a setup moves from 'Wait' to 'Ready to Buy'."
-    )
-
-    _chkw = load_chk_watchlist()
-
-    if not _chkw:
-        st.info(
-            "No setups being monitored yet. "
-            "Go to ✅ Pre-Buy Checklist → run a checklist → click **👁 Watch This Setup**."
-        )
-    else:
-        # ── Check all monitored setups against current scan ───────────────────
-        _chkw_rows = []
-        for _witem in _chkw:
-            _wtk    = _witem.get("ticker","–")
-            _wverd  = _witem.get("last_verdict","–")
-            _wconv  = _witem.get("last_conv", 0)
-            _wadd   = str(_witem.get("added",""))[:10]
-            _wdays  = (pd.Timestamp.now() - pd.to_datetime(_wadd)).days if _wadd else "–"
-
-            # Check if in current scan
-            _in_scan = not df.empty and _wtk in df.get("ticker", pd.Series()).values
-            _new_row  = df[df["ticker"]==_wtk].iloc[0] if _in_scan else None
-            _new_score = float(_new_row["apex_score"]) if _new_row is not None and "apex_score" in _new_row else None
-            _score_chg = round(_new_score - _witem.get("last_score",0), 1) if _new_score else None
-
-            _chkw_rows.append({
-                "Ticker":      _wtk,
-                "Theme":       _witem.get("theme","–"),
-                "Last Verdict":_wverd,
-                "Conviction":  f"{_wconv}/100",
-                "Added":       _wadd,
-                "Days Watched":_wdays,
-                "In Scan":     "✅ Yes" if _in_scan else "❌ Not in last scan",
-                "Score Now":   f"{_new_score:.0f}" if _new_score else "–",
-                "Score Δ":     f"{_score_chg:+.1f}" if _score_chg else "–",
-            })
-
-        _wdf = pd.DataFrame(_chkw_rows)
-        def _wc(v):
-            try:
-                _f = float(str(v).replace("+",""))
-                return "color:#3fb950;font-weight:700" if _f>0 else "color:#f85149;font-weight:700"
-            except: return ""
-        st.dataframe(
-            _wdf.style.map(_wc, subset=["Score Δ"]),
-            use_container_width=True, hide_index=True
-        )
-
-        # ── Manual check button ───────────────────────────────────────────────
-        st.markdown("---")
-        _mw1,_mw2 = st.columns(2)
-        with _mw1:
-            if st.button("🔄 Re-check All Setups Against Current Scan",
-                         key="recheck_monitor", use_container_width=True):
-                _alerts_sent  = 0
-                _cur_settings = load_alert_settings()
-                _updated      = []
-                for _witem in _chkw:
-                    _wtk = _witem.get("ticker","–")
-                    _in_scan = not df.empty and _wtk in df.get("ticker", pd.Series()).values
-                    if _in_scan:
-                        _nr = df[df["ticker"]==_wtk].iloc[0]
-                        _ns = float(_nr.get("apex_score",0) or 0)
-                        _old_s = _witem.get("last_score",0)
-                        _witem["last_score"]   = _ns
-                        _witem["last_checked"] = pd.Timestamp.now().isoformat()
-
-                        # Fire alert if score jumped ≥ 10 points or verdict improved
-                        if _ns - _old_s >= 10:
-                            _msg = (
-                                "\U0001F4C8 *Setup Improvement Alert*\n\n"
-                                f"*{_wtk}* Apex Score: {_old_s:.0f} pts\n"
-                                f"Score change: +{_ns - _old_s:.0f}\n"
-                                f"Stage: {str(_nr.get(chr(115)+chr(116)+chr(97)+chr(103)+chr(101),chr(45)))}\n"
-                                "Check Pre-Buy Checklist now"
-                            )
-                            if (_cur_settings.get("telegram_token") and
-                                    _cur_settings.get("telegram_chat_id")):
-                                dispatch_alert(_cur_settings, _msg, f"ApexScan — {_wtk}")
-                                _alerts_sent += 1
-                    _updated.append(_witem)
-                save_chk_watchlist(_updated)
-                st.success(
-                    f"✅ Re-checked {len(_chkw)} setups. "
-                    f"{_alerts_sent} Telegram alert(s) sent."
-                )
-                st.rerun()
-
-        with _mw2:
-            _rm_tk = st.selectbox(
-                "Remove from Monitor",
-                ["–"] + [x.get("ticker","–") for x in _chkw],
-                key="rm_monitor"
-            )
-            if st.button("🗑 Remove", key="rm_monitor_btn", use_container_width=True):
-                if _rm_tk != "–":
-                    _chkw = [x for x in _chkw if x.get("ticker") != _rm_tk]
-                    save_chk_watchlist(_chkw)
-                    st.success(f"Removed {_rm_tk} from monitor.")
-                    st.rerun()
-
-
-with tabs[20]:
     st.markdown("""
 ### 📖 How to Use ApexScan — Complete Guide
 
