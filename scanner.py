@@ -44,7 +44,7 @@ def load_config(path: str = "config.yaml") -> dict:
     try:
         import streamlit as st
         if hasattr(st, "secrets") and st.secrets:
-            for key in ["alpha_vantage_key", "finnhub_key", "twelve_data_key", "marketstack_key", "anthropic_api_key"]:
+            for key in ["alpha_vantage_key", "finnhub_key", "twelve_data_key", "marketstack_key", "anthropic_api_key", "ngx_pulse_key", "ngn_market_key"]:
                 if key in st.secrets:
                     cfg[key] = st.secrets[key]
     except Exception:
@@ -299,15 +299,35 @@ except (ModuleNotFoundError, ImportError):
 # ── Benchmark Cache ────────────────────────────────────────────────────────────
 _bench_cache: Dict[str, pd.Series] = {}
 
-# ── NGX Pulse module (optional — graceful fallback if missing) ────────────────
+# ── NGX Pulse module (ngxpulse.ng — optional, graceful fallback if missing) ────
 try:
-    from modules.ngx_pulse import get_ngx_history_for_scan, get_ngx_index, validate_api_key as ngx_validate
+    from modules.ngx_pulse import (
+        get_ngx_history_for_scan as ngxp_get_history,
+        get_ngx_index as ngxp_get_index,
+        get_all_stocks_lookup as ngxp_get_lookup,
+        validate_api_key as ngxp_validate,
+    )
     _HAS_NGX_PULSE = True
 except ImportError:
     _HAS_NGX_PULSE = False
-    def get_ngx_history_for_scan(ticker, api_key): return None
-    def get_ngx_index(api_key): return None
-    def ngx_validate(api_key): return {"ok": False, "message": "NGX Pulse module not installed"}
+    def ngxp_get_history(ticker, api_key): return None
+    def ngxp_get_index(api_key): return None
+    def ngxp_get_lookup(api_key): return {}
+    def ngxp_validate(api_key): return {"ok": False, "message": "NGX Pulse module not installed"}
+
+# ── NGN Market module (api.ngnmarket.com — optional, graceful fallback) ───────
+try:
+    from modules.ngn_market import (
+        get_ngn_equity_history as ngnm_get_history,
+        get_ngn_asi_index as ngnm_get_index,
+        validate_api_key as ngnm_validate,
+    )
+    _HAS_NGN_MARKET = True
+except ImportError:
+    _HAS_NGN_MARKET = False
+    def ngnm_get_history(ticker, api_key): return None
+    def ngnm_get_index(api_key): return None
+    def ngnm_validate(api_key): return {"ok": False, "message": "NGN Market module not installed"}
 
 # ── Market Cap Cache (Emerging Gems) ──────────────────────────────────────────
 _mcap_cache: Dict[str, dict] = {}
@@ -838,18 +858,30 @@ def analyze_stock(ticker: str, cfg: dict,
     finnhub_key  = cfg.get("finnhub_key", "")
     av_key       = cfg.get("alpha_vantage_key", "")
     av_cfg       = cfg.get("alpha_vantage", {})
-    use_av       = bool(av_key and not av_key.startswith("YOUR_"))
+    ngxp_key     = cfg.get("ngx_pulse_key", "")    # NGX Pulse — ngxpulse.ng
+    ngnm_key     = cfg.get("ngn_market_key", "")   # NGN Market — api.ngnmarket.com
+    # Alpha Vantage has no NGX/Lagos coverage — never spend AV quota on NG tickers
+    use_av       = bool(av_key and not av_key.startswith("YOUR_")) and not _is_ngx
 
     try:
         # ── Fetch OHLCV history ──────────────────────────────────────────────
-        if _is_ngx and _HAS_NGX_PULSE:
-            _ngx_key   = cfg.get("ngx_pulse_key","")
-            hist       = get_ngx_history_for_scan(ticker, _ngx_key)
+        # For NGX: try NGX Pulse first, then NGN Market, then yfinance .LG —
+        # these are three independent sources, not one, each with its own key.
+        if _is_ngx:
+            hist = None
+            if _HAS_NGX_PULSE and ngxp_key:
+                hist = ngxp_get_history(ticker, ngxp_key)
+            if (hist is None or len(hist) == 0) and _HAS_NGN_MARKET and ngnm_key:
+                hist = ngnm_get_history(ticker, ngnm_key)
             if hist is None or len(hist) == 0:
-                hist   = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
-            # Fetch NGX All-Share benchmark (cached — counts as 1 API call per session)
+                hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
+            # Fetch NGX All-Share benchmark once per session (NGX Pulse's index
+            # history endpoint is public/free and covers back to 1996, so it's
+            # tried first regardless of which key is set; then NGN Market; then yfinance)
             if _ngx_bench is None:
-                _ngx_idx   = get_ngx_index(_ngx_key)
+                _ngx_idx = ngxp_get_index(ngxp_key) if _HAS_NGX_PULSE else None
+                if _ngx_idx is None and _HAS_NGN_MARKET and ngnm_key:
+                    _ngx_idx = ngnm_get_index(ngnm_key)
                 _ngx_bench = _ngx_idx["df"]["Close"] if _ngx_idx else None
         else:
             hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
@@ -939,7 +971,8 @@ def analyze_stock(ticker: str, cfg: dict,
 
         # ── Sector / Theme classification ────────────────────────────────────
         # Priority 1: user-defined themes from config.yaml (e.g. ai_semis, cybersecurity)
-        _cfg_theme = next((k for k, v in cfg["us_themes"].items() if ticker in v), None)
+        _theme_src = cfg["ng_themes"] if _is_ngx else cfg["us_themes"]
+        _cfg_theme = next((k for k, v in _theme_src.items() if ticker in v), None)
 
         # Priority 2: GICS sector map — 11 official GICS sectors
         # Covers every ticker in the extended universe so "other" never appears
