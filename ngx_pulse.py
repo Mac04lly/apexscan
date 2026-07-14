@@ -1,23 +1,30 @@
 """
-modules/ngx_pulse.py — NGN Market API Data Provider
+modules/ngx_pulse.py — NGX Pulse API Data Provider
 =====================================================
-Official Nigerian Exchange data via api.ngnmarket.com
-Free tier: 3,000 API calls/month
-Auth: Bearer token (Authorization: Bearer ngm_live_xxxxx)
+NOTE: This is NGX Pulse (ngxpulse.ng) — a DIFFERENT service from NGN Market
+(api.ngnmarket.com, see modules/ngn_market.py). Do not confuse the two:
+different base URL, different auth scheme, different key, different plans.
 
-Available endpoints (Free tier):
-  /v1/market/snapshot   — market-wide summary
-  /v1/market/asi        — All-Share Index data
-  /v1/market/companies  — company list & identifiers
-  /v1/market/indices    — indices list
-  /v1/equities/{symbol} — individual stock data
-  /v1/forex             — forex rates (NGN/USD etc.)
+Base URL:  https://www.ngxpulse.ng
+Auth:      header  X-API-Key: <your_key>   (NOT a Bearer token)
+Docs:      https://ngxpulse.ng/api
 
-Rate budget strategy (3,000/month = ~100/day):
-  - All OHLCV cached 24h to disk (1 call per ticker per day max)
-  - ASI benchmark cached 24h (1 call per day)
-  - Market snapshot cached 15min (used for context)
-  - Validates key on first use only
+Coverage: 150+ NGX-listed equities, full NGX index universe (incl. ASI back
+to 1996), NGX ETFs, bonds, disclosures, dividends, NASD OTC, forex, news.
+
+Personal (free) tier limits: 10 requests/min, 100 requests/day.
+Equities/market endpoints refresh during market hours; ETF/index snapshots
+are DB-backed and refresh every 30 minutes.
+
+Rate budget strategy for the free Personal tier (100/day):
+  - The bulk "all stocks" endpoint returns ALL 150+ equities' current price,
+    volume, market cap, sector and P/E in ONE call — this is used as the
+    primary source for current snapshot / sector / market-cap data instead
+    of hitting a per-symbol endpoint 150 times.
+  - Per-symbol historical price calls are cached 23h and used sparingly —
+    full OHLCV bar history for the technical scan still leans on the free
+    yfinance .LG fallback so the 100/day budget isn't blown on one scan.
+  - ASI / index history is cached 23h (it's historical, doesn't change).
 """
 
 import os
@@ -30,16 +37,16 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List
 
-log = logging.getLogger("apexscan.ngx")
+log = logging.getLogger("apexscan.ngxpulse")
 
 # ── Constants ──────────────────────────────────────────────────────────────────
-NGX_BASE_URL   = "https://api.ngnmarket.com"
-NGX_CACHE_DIR  = Path(__file__).resolve().parent.parent / "data" / "ngx_cache"
-NGX_CACHE_TTL  = 23 * 3600    # 23h — slightly under 24h to ensure freshness
-NGX_RATE_PAUSE = 1.0           # 1s between requests — generous for 3000/month
-NGX_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+NGXP_BASE_URL   = "https://www.ngxpulse.ng"
+NGXP_CACHE_DIR  = Path(__file__).resolve().parent.parent / "data" / "ngxpulse_cache"
+NGXP_CACHE_TTL  = 23 * 3600     # 23h for historical/semi-static data
+NGXP_SNAP_TTL   = 20 * 60       # 20min for live snapshot data (matches API refresh cadence)
+NGXP_RATE_PAUSE = 1.0           # generous pacing under the 10/min Personal limit
+NGXP_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-# Session-level memory cache
 _mem: Dict[str, dict] = {}
 
 
@@ -47,12 +54,12 @@ _mem: Dict[str, dict] = {}
 # CACHE HELPERS
 # ══════════════════════════════════════════════════════════════════════════════
 
-def _cpath(key: str, ttl: int = None) -> Path:
+def _cpath(key: str) -> Path:
     safe = "".join(c if c.isalnum() else "_" for c in key.upper())
-    return NGX_CACHE_DIR / f"{safe}.json"
+    return NGXP_CACHE_DIR / f"{safe}.json"
 
 def _cread(key: str, ttl: int = None) -> Optional[dict]:
-    ttl = ttl or NGX_CACHE_TTL
+    ttl = ttl or NGXP_CACHE_TTL
     if key in _mem:
         if time.time() - _mem[key].get("_ts", 0) < ttl:
             return _mem[key].get("data")
@@ -87,62 +94,52 @@ def _cwrite(key: str, data) -> None:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _get(endpoint: str, api_key: str, params: dict = None,
-         ttl: int = None) -> Optional[dict]:
+         ttl: int = None, require_key: bool = True) -> Optional[dict]:
     """
-    GET request to NGN Market API with caching and rate limiting.
-    Auth: Bearer token per the API docs.
+    GET request to the NGX Pulse API with caching and rate limiting.
+    Auth: X-API-Key header (per the official docs — NOT Bearer).
     """
-    if not api_key or api_key.startswith("YOUR_"):
+    if require_key and (not api_key or api_key.startswith("YOUR_")):
         return None
 
-    # Build cache key from endpoint + params
     cache_key = endpoint + str(sorted((params or {}).items()))
     cached    = _cread(cache_key, ttl)
     if cached is not None:
         log.debug(f"Cache hit: {endpoint}")
         return cached
 
-    url     = f"{NGX_BASE_URL}{endpoint}"
+    url     = f"{NGXP_BASE_URL}{endpoint}"
     headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Accept":        "application/json",
+        "X-API-Key":     api_key or "",
         "Content-Type":  "application/json",
     }
 
     try:
-        time.sleep(NGX_RATE_PAUSE)
-        resp = requests.get(url, headers=headers, params=params or {},
-                           timeout=20)
+        time.sleep(NGXP_RATE_PAUSE)
+        resp = requests.get(url, headers=headers, params=params or {}, timeout=20)
         if resp.status_code == 200:
             data = resp.json()
             _cwrite(cache_key, data)
-            log.info(f"NGN Market API: {endpoint} → {resp.status_code}")
+            log.info(f"NGX Pulse API: {endpoint} → {resp.status_code}")
             return data
         elif resp.status_code == 429:
-            log.warning("NGN Market rate limit — wait 60s")
-            time.sleep(60)
+            log.warning("NGX Pulse rate limit hit (10/min or 100/day on Personal) — backing off")
+            time.sleep(30)
             return None
-        elif resp.status_code in (401, 403):
-            try:
-                _err = resp.json().get("error", {})
-            except Exception:
-                _err = {}
-            if _err.get("code") == "PLAN_REQUIRED":
-                log.warning(
-                    f"NGN Market {endpoint}: requires '{_err.get('required_plan')}' plan "
-                    f"(current: '{_err.get('current_plan')}') — {_err.get('message','')}"
-                )
-            else:
-                log.error(f"NGN Market auth error {resp.status_code}: check Bearer token")
+        elif resp.status_code == 401:
+            log.error("NGX Pulse auth error 401: check X-API-Key header / key value")
+            return None
+        elif resp.status_code == 404:
+            log.debug(f"NGX Pulse {endpoint}: 404 not found")
             return None
         else:
-            log.warning(f"NGN Market {endpoint}: HTTP {resp.status_code} — {resp.text[:200]}")
+            log.warning(f"NGX Pulse {endpoint}: HTTP {resp.status_code} — {resp.text[:200]}")
             return None
     except requests.exceptions.ConnectionError:
-        log.warning(f"NGN Market: connection error — offline or API down")
+        log.warning("NGX Pulse: connection error — offline or API down")
         return None
     except Exception as e:
-        log.debug(f"NGN Market request error {endpoint}: {e}")
+        log.debug(f"NGX Pulse request error {endpoint}: {e}")
         return None
 
 
@@ -151,70 +148,143 @@ def _get(endpoint: str, api_key: str, params: dict = None,
 # ══════════════════════════════════════════════════════════════════════════════
 
 def validate_api_key(api_key: str) -> Dict:
-    """
-    Validate the API key by hitting the companies endpoint.
-    Returns {"ok": bool, "message": str, "plan": str}
-    """
+    """Validate the API key by hitting the market-status endpoint (cheap, always available)."""
     if not api_key or api_key.startswith("YOUR_"):
         return {"ok": False, "message": "API key not configured"}
 
-    # Try multiple validation endpoints
-    for ep in ["/v1/market/companies", "/v1/market/snapshot",
-               "/v1/market/indices"]:
-        raw = _get(ep, api_key, ttl=300)
-        if raw is not None:
-            return {
-                "ok":      True,
-                "message": "✅ NGN Market API connected (Free: 3,000 calls/month)",
-                "plan":    "Free",
-            }
-
+    raw = _get("/api/ngxdata/market-status", api_key, ttl=60)
+    if raw is not None:
+        return {
+            "ok":      True,
+            "message": "✅ NGX Pulse API connected (Personal: 100 req/day, 10 req/min)",
+            "plan":    "Personal",
+        }
     return {
         "ok":      False,
-        "message": "❌ NGN Market: could not validate key — check Bearer token",
+        "message": "❌ NGX Pulse: could not validate key — check X-API-Key header value",
     }
 
 
-def get_company_list(api_key: str) -> Optional[List[Dict]]:
+def get_all_stocks(api_key: str) -> Optional[List[Dict]]:
     """
-    Fetch the full list of NGX-listed companies with their symbols.
-    Cached for 24h. Returns list of {symbol, name, sector, ...}
+    Fetch current price/volume/market-cap/sector/P-E for ALL 150+ NGX equities
+    in a single call. This is the primary, quota-cheap way to get a live
+    snapshot + sector classification for the whole scan universe.
+    Cached ~20 minutes (matches the API's own refresh cadence).
     """
-    raw = _get("/v1/market/companies", api_key, ttl=NGX_CACHE_TTL)
-    if raw:
-        return (raw.get("data") or raw.get("companies") or
-                raw.get("results") or (raw if isinstance(raw, list) else None))
+    raw = _get("/api/ngxdata/stocks", api_key, ttl=NGXP_SNAP_TTL)
+    if raw is None:
+        return None
+    data = raw.get("data") if isinstance(raw, dict) else raw
+    return data if isinstance(data, list) else None
+
+
+def get_all_stocks_lookup(api_key: str) -> Dict[str, Dict]:
+    """Convenience wrapper: symbol → snapshot dict, for O(1) lookups during a scan."""
+    rows = get_all_stocks(api_key) or []
+    out = {}
+    for row in rows:
+        sym = str(row.get("symbol", "")).upper().replace(".LG", "")
+        if sym:
+            out[sym] = row
+    return out
+
+
+def get_stock_price(symbol: str, api_key: str) -> Optional[Dict]:
+    """Latest snapshot for a single ticker (price, change%, volume, sector, P/E)."""
+    clean = symbol.upper().replace(".LG", "").strip()
+    raw = _get(f"/api/ngxdata/prices/{clean}", api_key, ttl=NGXP_SNAP_TTL)
+    return raw if isinstance(raw, dict) else None
+
+
+def get_equity_history(symbol: str, api_key: str, days: int = 400) -> Optional[pd.DataFrame]:
+    """
+    Attempt to fetch daily OHLCV history for a ticker via the prices endpoint
+    with a date range. The documented response shows a single latest-snapshot
+    object; some plans/tickers may return an array when from/to is supplied.
+    Parsed defensively — returns None (caller should fall back to yfinance)
+    if the response isn't a usable time series.
+    """
+    clean     = symbol.upper().replace(".LG", "").strip()
+    cache_key = f"hist_{clean}_{days}"
+    cached = _cread(cache_key, NGXP_CACHE_TTL)
+    if cached:
+        try:
+            df = pd.DataFrame(cached)
+            df.index = pd.to_datetime(df.index)
+            if len(df) > 20:
+                return df.sort_index()
+        except Exception:
+            pass
+
+    end   = datetime.now()
+    start = end - timedelta(days=days)
+    raw = _get(f"/api/ngxdata/prices/{clean}", api_key,
+               {"from": start.strftime("%Y-%m-%d"), "to": end.strftime("%Y-%m-%d")},
+               ttl=NGXP_CACHE_TTL)
+    if raw is None:
+        return None
+
+    records = None
+    if isinstance(raw, list):
+        records = raw
+    elif isinstance(raw, dict):
+        records = raw.get("history") or raw.get("data") or raw.get("prices")
+
+    if not records or not isinstance(records, list) or len(records) < 20:
+        return None  # snapshot-only response — caller falls back to yfinance
+
+    try:
+        df = pd.DataFrame(records)
+        date_col  = _find_col(df, ["date", "trade_date", "datetime"])
+        open_col  = _find_col(df, ["open"])
+        high_col  = _find_col(df, ["high"])
+        low_col   = _find_col(df, ["low"])
+        close_col = _find_col(df, ["close", "current_price", "price"])
+        vol_col   = _find_col(df, ["volume"])
+        if not date_col or not close_col:
+            return None
+        result = pd.DataFrame({
+            "Open":   pd.to_numeric(df.get(open_col,  df[close_col]), errors="coerce"),
+            "High":   pd.to_numeric(df.get(high_col,  df[close_col]), errors="coerce"),
+            "Low":    pd.to_numeric(df.get(low_col,   df[close_col]), errors="coerce"),
+            "Close":  pd.to_numeric(df[close_col],                     errors="coerce"),
+            "Volume": pd.to_numeric(df.get(vol_col,   0),              errors="coerce"),
+        }, index=pd.to_datetime(df[date_col]))
+        result = result.dropna(subset=["Close"]).sort_index()
+        if len(result) > 20:
+            _cwrite(cache_key, result.to_dict())
+            return result
+    except Exception as e:
+        log.debug(f"NGX Pulse history parse error {clean}: {e}")
     return None
 
 
-def get_market_snapshot(api_key: str) -> Optional[Dict]:
-    """
-    Fetch market-wide snapshot: ASI value, market cap, volume, advancers/decliners.
-    Cached for 15 minutes. Used for dashboard market context.
-    """
-    raw = _get("/v1/market/snapshot", api_key, ttl=900)
-    if raw:
-        data = raw.get("data") or raw
-        return {
-            "asi":          _safe_float(data.get("asi") or data.get("all_share_index")),
-            "market_cap":   _safe_float(data.get("market_cap") or data.get("marketCap")),
-            "volume":       _safe_float(data.get("volume") or data.get("trade_volume")),
-            "advancers":    int(data.get("advancers", 0) or 0),
-            "decliners":    int(data.get("decliners", 0) or 0),
-            "unchanged":    int(data.get("unchanged", 0) or 0),
-            "deals":        int(data.get("deals", 0) or 0),
-            "source":       "ngnmarket",
-        }
-    return None
+def get_ngx_history_for_scan(ticker: str, api_key: str) -> Optional[pd.DataFrame]:
+    """Main entry point called by scanner.py for NGX stocks (mirrors ngn_market's naming)."""
+    return get_equity_history(ticker, api_key, days=400)
+
+
+def get_market_overview(api_key: str) -> Optional[Dict]:
+    """ASI level, market cap, volume, breadth, gainers/losers. Cached ~20 min."""
+    raw = _get("/api/ngxdata/market", api_key, ttl=NGXP_SNAP_TTL)
+    return raw if isinstance(raw, dict) else None
+
+
+def get_market_status(api_key: str) -> Optional[Dict]:
+    """{'status': 'open'|'closed', 'message': ..., 'timestamp': ...}"""
+    raw = _get("/api/ngxdata/market-status", api_key, ttl=300)
+    return raw if isinstance(raw, dict) else None
 
 
 def get_asi_history(api_key: str, days: int = 380) -> Optional[pd.Series]:
     """
-    Fetch NGX All-Share Index historical values for RS computation.
-    Returns pd.Series with DatetimeIndex. Cached 24h.
+    NGX All-Share Index daily history — public/DB-backed endpoint, covers
+    1996 to present. This is the best available ASI benchmark source
+    (better coverage than NGN Market's ASI endpoint). Cached 23h.
     """
     cache_key = f"asi_history_{days}"
-    cached    = _cread(cache_key)
+    cached = _cread(cache_key, NGXP_CACHE_TTL)
     if cached:
         try:
             s = pd.Series(cached)
@@ -225,43 +295,26 @@ def get_asi_history(api_key: str, days: int = 380) -> Optional[pd.Series]:
 
     end   = datetime.now()
     start = end - timedelta(days=days)
-
-    # Try multiple endpoint patterns
-    endpoints = [
-        ("/v1/market/asi", {
-            "from": start.strftime("%Y-%m-%d"),
-            "to":   end.strftime("%Y-%m-%d"),
-        }),
-        ("/v1/indices/ASI/history", {
-            "startDate": start.strftime("%Y-%m-%d"),
-            "endDate":   end.strftime("%Y-%m-%d"),
-        }),
-        ("/v1/market/indices/asi", {}),
-    ]
-
-    for ep, params in endpoints:
-        raw = _get(ep, api_key, params, ttl=NGX_CACHE_TTL)
-        if raw:
+    raw = _get("/api/ngxdata/indices/asi/history", api_key,
+               {"from": start.strftime("%Y-%m-%d")}, ttl=NGXP_CACHE_TTL,
+               require_key=False)  # index endpoints are documented as public
+    if raw and isinstance(raw, dict):
+        hist = raw.get("history")
+        if hist and isinstance(hist, list):
             try:
-                records = (raw.get("data") or raw.get("history") or
-                          raw.get("values") or (raw if isinstance(raw, list) else None))
-                if records and isinstance(records, list):
-                    df = pd.DataFrame(records)
-                    date_col  = _find_col(df, ["date","time","datetime","trade_date"])
-                    close_col = _find_col(df, ["close","value","index","asi","closing"])
-                    if date_col and close_col:
-                        s = pd.Series(
-                            pd.to_numeric(df[close_col], errors="coerce").values,
-                            index=pd.to_datetime(df[date_col])
-                        ).dropna().sort_index()
-                        if len(s) > 50:
-                            _cwrite(cache_key, s.to_dict())
-                            log.info(f"NGN Market ASI: {len(s)} bars fetched")
-                            return s
+                df = pd.DataFrame(hist)
+                if "date" in df.columns and "value" in df.columns:
+                    s = pd.Series(
+                        pd.to_numeric(df["value"], errors="coerce").values,
+                        index=pd.to_datetime(df["date"])
+                    ).dropna().sort_index()
+                    if len(s) > 50:
+                        _cwrite(cache_key, s.to_dict())
+                        log.info(f"NGX Pulse ASI: {len(s)} bars fetched")
+                        return s
             except Exception as e:
-                log.debug(f"ASI parse error {ep}: {e}")
+                log.debug(f"ASI parse error: {e}")
 
-    # Fallback: yfinance ^NGXASI
     return _yf_asi_fallback(cache_key)
 
 
@@ -281,135 +334,50 @@ def _yf_asi_fallback(cache_key: str) -> Optional[pd.Series]:
     return None
 
 
-def get_equity_data(symbol: str, api_key: str,
-                    days: int = 380) -> Optional[pd.DataFrame]:
+def get_ngx_index(api_key: str, days: int = 380) -> Optional[Dict]:
     """
-    Fetch OHLCV history for an NGX-listed equity.
-    Symbol: plain NGX symbol, e.g. "DANGCEM", "GTCO", "MTNN"
-    (strip .LG suffix if present)
-
-    Returns DataFrame with columns: Open, High, Low, Close, Volume
-    with DatetimeIndex. Cached 24h.
+    Compatibility wrapper matching the {"df": DataFrame-with-Close} shape
+    scanner.py expects for the benchmark series.
     """
-    clean     = symbol.upper().replace(".LG","").strip()
-    cache_key = f"equity_{clean}_{days}"
-
-    cached = _cread(cache_key)
-    if cached:
-        try:
-            df = pd.DataFrame(cached)
-            df.index = pd.to_datetime(df.index)
-            if len(df) > 20:
-                log.debug(f"NGX cache hit: {clean}")
-                return df.sort_index()
-        except Exception:
-            pass
-
-    end   = datetime.now()
-    start = end - timedelta(days=days)
-
-    # Real NGN Market historical price endpoint (requires Starter plan or higher)
-    raw = _get(f"/v1/companies/{clean}/chart", api_key,
-               {"period": "1y", "format": "detailed"}, ttl=NGX_CACHE_TTL)
-    if raw:
-        data = raw.get("data") if isinstance(raw, dict) else raw
-        if isinstance(data, dict):
-            df = _parse_ohlcv(data, clean)
-            if df is not None and len(df) > 20:
-                _cwrite(cache_key, df.to_dict())
-                log.info(f"NGN Market: {clean} — {len(df)} bars")
-                return df
-
-    # Fallback: yfinance .LG suffix
-    return _yf_equity_fallback(clean, cache_key)
+    s = get_asi_history(api_key, days=days)
+    if s is not None and len(s) > 0:
+        return {"df": pd.DataFrame({"Close": s})}
+    return None
 
 
-def _parse_ohlcv(raw: dict, symbol: str) -> Optional[pd.DataFrame]:
-    """Parse various NGN Market OHLCV response formats into a clean DataFrame."""
-    try:
-        records = (
-            raw.get("data") or raw.get("history") or raw.get("ohlcv") or
-            raw.get("prices") or raw.get("results") or
-            (raw if isinstance(raw, list) else None)
-        )
-        if not records or not isinstance(records, list):
-            return None
+def get_index(code: str, api_key: str) -> Optional[Dict]:
+    """Single NGX index/sector-index snapshot by code or slug (e.g. 'ASI', 'ngx-bnk')."""
+    raw = _get(f"/api/ngxdata/indices/{code.lower()}", api_key, ttl=NGXP_SNAP_TTL,
+               require_key=False)
+    return raw.get("data") if isinstance(raw, dict) else None
 
-        df = pd.DataFrame(records)
-        date_col  = _find_col(df, ["date","time","datetime","trade_date","trading_date"])
-        open_col  = _find_col(df, ["open","open_price","opening"])
-        high_col  = _find_col(df, ["high","high_price"])
-        low_col   = _find_col(df, ["low","low_price"])
-        close_col = _find_col(df, ["close","close_price","closing","last","price"])
-        vol_col   = _find_col(df, ["volume","vol","trade_volume","quantity"])
 
-        if not date_col or not close_col:
-            return None
-
-        result = pd.DataFrame({
-            "Open":   pd.to_numeric(df.get(open_col,  df[close_col]), errors="coerce"),
-            "High":   pd.to_numeric(df.get(high_col,  df[close_col]), errors="coerce"),
-            "Low":    pd.to_numeric(df.get(low_col,   df[close_col]), errors="coerce"),
-            "Close":  pd.to_numeric(df[close_col],                     errors="coerce"),
-            "Volume": pd.to_numeric(df.get(vol_col,   0),              errors="coerce"),
-        }, index=pd.to_datetime(df[date_col]))
-
-        result.index.name = "Date"
-        result = result.dropna(subset=["Close"]).sort_index()
-        return result if len(result) > 10 else None
-
-    except Exception as e:
-        log.debug(f"OHLCV parse error for {symbol}: {e}")
+def get_dividend_history(symbol: str, api_key: str) -> Optional[List[Dict]]:
+    """Full dividend history for a ticker (declaration/ex-div/pay dates, amount, type)."""
+    clean = symbol.upper().replace(".LG", "").strip()
+    raw = _get(f"/api/ngxdata/dividends/{clean}", api_key, ttl=NGXP_CACHE_TTL)
+    if raw is None:
         return None
+    data = raw.get("data") if isinstance(raw, dict) else raw
+    return data if isinstance(data, list) else None
 
 
-def _yf_equity_fallback(clean: str,
-                         cache_key: str) -> Optional[pd.DataFrame]:
-    """Fallback: yfinance with .LG suffix for Lagos Stock Exchange."""
-    try:
-        import yfinance as yf
-        yf_sym = f"{clean}.LG"
-        df     = yf.Ticker(yf_sym).history(period="2y")
-        if len(df) > 20:
-            if hasattr(df.index, "tz") and df.index.tz:
-                df.index = df.index.tz_convert(None)
-            df.index = pd.to_datetime(df.index).normalize()
-            _cwrite(cache_key, df.to_dict())
-            log.info(f"yfinance fallback: {yf_sym} — {len(df)} bars")
-            return df[["Open","High","Low","Close","Volume"]]
-    except Exception as e:
-        log.debug(f"yfinance fallback failed {clean}: {e}")
-    return None
+def get_disclosures(api_key: str) -> Optional[List[Dict]]:
+    """Recent corporate disclosures — earnings, dividends, rights issues, board actions."""
+    raw = _get("/api/ngxdata/disclosures", api_key, ttl=1800)
+    if raw is None:
+        return None
+    data = raw.get("data") if isinstance(raw, dict) else raw
+    return data if isinstance(data, list) else None
 
 
-def get_forex_rate(api_key: str,
-                   base: str = "USD") -> Optional[float]:
-    """
-    Get NGN/USD forex rate. Cached 1h.
-    Returns NGN per 1 USD.
-    """
-    raw = _get("/v1/forex", api_key, ttl=3600)
-    if raw:
-        try:
-            data = raw.get("data") or raw
-            if isinstance(data, list):
-                for item in data:
-                    if str(item.get("base","")).upper() == base.upper():
-                        return _safe_float(item.get("rate") or item.get("value"))
-            elif isinstance(data, dict):
-                return _safe_float(data.get(base) or data.get(f"NGN/{base}"))
-        except Exception:
-            pass
-    return None
-
-
-def get_ngx_history_for_scan(ticker: str,
-                              api_key: str) -> Optional[pd.DataFrame]:
-    """
-    Main entry point called by scanner.py for NGX stocks.
-    Handles both 'DANGCEM' and 'DANGCEM.LG' formats.
-    """
-    return get_equity_data(ticker, api_key, days=400)
+def get_market_news(api_key: str) -> Optional[List[Dict]]:
+    """Latest Nigerian capital-market news (Nairametrics, BusinessDay, etc.)."""
+    raw = _get("/api/news", api_key, ttl=900)
+    if raw is None:
+        return None
+    data = raw.get("data") if isinstance(raw, dict) else raw
+    return data if isinstance(data, list) else None
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -417,15 +385,8 @@ def get_ngx_history_for_scan(ticker: str,
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _find_col(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
-    """Find the first matching column (case-insensitive)."""
     for c in candidates:
         for col in df.columns:
             if col.lower().strip() == c:
                 return col
     return None
-
-def _safe_float(v, default: float = 0.0) -> float:
-    try:
-        return float(v)
-    except (TypeError, ValueError):
-        return default
