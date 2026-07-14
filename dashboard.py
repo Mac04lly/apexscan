@@ -1733,7 +1733,8 @@ with st.sidebar:
             "US Theme Watchlist = tickers in config.yaml (~59, ~2 min). "
             "US Gems Only = micro/small/mid-cap growth stocks (~150 tickers). "
             "US Extended = full NASDAQ + NYSE + NYSE American (~500 tickers, ~8 min). "
-            "NGX = Nigerian Exchange stocks from ng_themes in config.yaml. "
+            "NGX = full Nigerian Exchange universe from ng_themes in config.yaml "
+            "(~140 tickers across 15 sectors, ~5-8 min due to NGX Pulse rate limits). "
             "ALL = US + NGX combined scan."
         )
     )
@@ -1776,9 +1777,12 @@ with st.sidebar:
     st.markdown(f"{'🟢' if _av_ok else '🔴'} Alpha Vantage {'✓ EPS data'  if _av_ok else '✗ Not set'}")
     st.markdown(f"{'🟢' if _td_ok else '🔴'} Twelve Data {'✓ Indicators' if _td_ok else '✗ Not set'}")
     st.markdown(f"{'🟢' if _ms_ok else '🟡'} MarketStack {'✓ Backup'     if _ms_ok else 'Optional'}")
-    _ngx_key_sb = cfg.get("ngx_pulse_key","")
-    _ngx_ok_sb  = bool(_ngx_key_sb and not _ngx_key_sb.startswith("YOUR_"))
-    st.markdown(f"{'🟢' if _ngx_ok_sb else '🔴'} NGN Market {'✓ NGX data' if _ngx_ok_sb else '✗ Not set'}")
+    _ngxp_key_sb = _cfg_check.get("ngx_pulse_key","")
+    _ngxp_ok_sb  = bool(_ngxp_key_sb and not _ngxp_key_sb.startswith("YOUR_"))
+    st.markdown(f"{'🟢' if _ngxp_ok_sb else '🔴'} NGX Pulse {'✓ NGX data' if _ngxp_ok_sb else '✗ Not set'}")
+    _ngnm_key_sb = _cfg_check.get("ngn_market_key","")
+    _ngnm_ok_sb  = bool(_ngnm_key_sb and not _ngnm_key_sb.startswith("YOUR_"))
+    st.markdown(f"{'🟢' if _ngnm_ok_sb else '🟡'} NGN Market {'✓ NGX backup' if _ngnm_ok_sb else 'Optional'}")
     st.markdown(f"{'🟢' if _fh_ok else '🟡'} Finnhub {'✓ News'          if _fh_ok else 'Optional'}")
     if not _av_ok:
         st.caption("Add alpha_vantage_key to Streamlit Secrets")
@@ -4918,68 +4922,104 @@ with tabs[13]:
 with tabs[14]:
     st.markdown("### 🔔 Alert Settings")
 
-    # ── NGX Pulse API Key ─────────────────────────────────────────────────────
+    def _save_key_to_config(config_key: str, value: str):
+        """Write a single key back to config.yaml (regex-replace or append)."""
+        try:
+            import re as _re
+            _cfg_path = Path(__file__).resolve().parent / "config.yaml"
+            if not _cfg_path.exists():
+                return False, "config.yaml not found — key saved for this session only"
+            with open(_cfg_path) as _cf:
+                _raw_cfg = _cf.read()
+            if f"{config_key}:" in _raw_cfg:
+                _raw_cfg = _re.sub(
+                    rf'{config_key}:.*',
+                    f'{config_key}: "{value}"',
+                    _raw_cfg
+                )
+            else:
+                _raw_cfg += f'\n{config_key}: "{value}"\n'
+            with open(_cfg_path, "w") as _cf:
+                _cf.write(_raw_cfg)
+            return True, f"✅ Key saved to config.yaml"
+        except Exception as _ke:
+            return False, f"Could not write to config.yaml: {_ke}. Key saved for session only."
+
+    # ── NGX Pulse API Key (ngxpulse.ng) ────────────────────────────────────────
     with st.expander("🇳🇬 NGX Pulse API Key", expanded=False):
         st.markdown("""
-        **NGN Market API** provides official Nigerian Exchange (NGX) data —
-        prices, volume, OHLCV history, and the All-Share Index for all NGX-listed stocks.
-        Required for 🇳🇬 NGX scans.
+        **NGX Pulse** (ngxpulse.ng) — live Nigerian Exchange data covering
+        150+ listed equities, the full NGX index universe (ASI back to 1996),
+        ETFs, disclosures, and dividends. Required for 🇳🇬 NGX scans.
 
-        **Free tier: 3,000 API calls/month** (resets 1st of each month).
-        Get your key at: [api.ngnmarket.com](https://api.ngnmarket.com)
+        **Personal (free) tier: 100 requests/day, 10/min.**
+        Get your key at: [ngxpulse.ng/api](https://ngxpulse.ng/api)
 
-        Your key starts with `ngm_live_` — passed as a **Bearer token**.
+        Your key is passed as an **`X-API-Key`** header (not a Bearer token).
         """)
-        _saved_ngx_key = cfg.get("ngx_pulse_key","")
-        _ngx_key_input = st.text_input(
-            "NGN Market API Key (Bearer Token)",
-            value=_saved_ngx_key if (
-                _saved_ngx_key and
-                not _saved_ngx_key.startswith("YOUR_")
+        _cfg_ngxp_tab   = load_config("config.yaml")
+        _saved_ngxp_key = _cfg_ngxp_tab.get("ngx_pulse_key","")
+        _ngxp_key_input = st.text_input(
+            "NGX Pulse API Key (X-API-Key)",
+            value=_saved_ngxp_key if (
+                _saved_ngxp_key and not _saved_ngxp_key.startswith("YOUR_")
             ) else "",
             type="password",
             key="ngx_pulse_key_input",
-            placeholder="ngm_live_xxxxxxxxxxxxxxxx",
+            placeholder="ngxpulse_xxxxxxxxxxxxxxxx",
         )
-        if st.button("💾 Save NGX Pulse Key", key="save_ngx_key"):
-            if _ngx_key_input.strip():
-                cfg["ngx_pulse_key"] = _ngx_key_input.strip()
-                # Write back to config.yaml
+        if st.button("💾 Save NGX Pulse Key", key="save_ngxp_key"):
+            if _ngxp_key_input.strip():
+                _ok, _msg = _save_key_to_config("ngx_pulse_key", _ngxp_key_input.strip())
+                (st.success if _ok else st.warning)(_msg)
                 try:
-                    import yaml as _yaml
-                    _cfg_path = Path(__file__).resolve().parent / "config.yaml"
-                    if _cfg_path.exists():
-                        with open(_cfg_path) as _cf:
-                            _raw_cfg = _cf.read()
-                        if "ngx_pulse_key:" in _raw_cfg:
-                            import re as _re
-                            _raw_cfg = _re.sub(
-                                r'ngx_pulse_key:.*',
-                                f'ngx_pulse_key: "{_ngx_key_input.strip()}"',
-                                _raw_cfg
-                            )
-                        else:
-                            _raw_cfg += f'\nngx_pulse_key: "{_ngx_key_input.strip()}"\n'
-                        with open(_cfg_path, "w") as _cf:
-                            _cf.write(_raw_cfg)
-                        st.success("✅ NGX Pulse key saved to config.yaml")
-                    else:
-                        st.warning("config.yaml not found — key saved for this session only")
-                except Exception as _ke:
-                    st.warning(f"Could not write to config.yaml: {_ke}. Key saved for session only.")
-
-                # Validate the key
-                try:
-                    from modules.ngx_pulse import validate_api_key as _ngx_val
-                    _val_result = _ngx_val(_ngx_key_input.strip())
-                    if _val_result.get("ok"):
-                        st.success(_val_result.get("message","✅ NGX Pulse connected"))
-                    else:
-                        st.error(_val_result.get("message","❌ Could not validate key"))
+                    from modules.ngx_pulse import validate_api_key as _ngxp_val
+                    _val_result = _ngxp_val(_ngxp_key_input.strip())
+                    (st.success if _val_result.get("ok") else st.error)(
+                        _val_result.get("message", "Validation result unavailable")
+                    )
                 except ImportError:
                     st.info("NGX Pulse module not found — place ngx_pulse.py in modules/ folder")
             else:
                 st.warning("Please enter your API key")
+
+    # ── NGN Market API Key (api.ngnmarket.com) ─────────────────────────────────
+    with st.expander("🇳🇬 NGN Market API Key (optional secondary source)", expanded=False):
+        st.markdown("""
+        **NGN Market** (api.ngnmarket.com) — a *separate* NGX data provider,
+        used as a secondary/backup source alongside NGX Pulse.
+
+        **Free tier: 3,000 API calls/month.**
+        Get your key at: [api.ngnmarket.com](https://api.ngnmarket.com)
+
+        Your key is passed as a **Bearer token**.
+        """)
+        _cfg_ngnm_tab   = load_config("config.yaml")
+        _saved_ngnm_key = _cfg_ngnm_tab.get("ngn_market_key","")
+        _ngnm_key_input = st.text_input(
+            "NGN Market API Key (Bearer Token)",
+            value=_saved_ngnm_key if (
+                _saved_ngnm_key and not _saved_ngnm_key.startswith("YOUR_")
+            ) else "",
+            type="password",
+            key="ngn_market_key_input",
+            placeholder="ngm_live_xxxxxxxxxxxxxxxx",
+        )
+        if st.button("💾 Save NGN Market Key", key="save_ngnm_key"):
+            if _ngnm_key_input.strip():
+                _ok, _msg = _save_key_to_config("ngn_market_key", _ngnm_key_input.strip())
+                (st.success if _ok else st.warning)(_msg)
+                try:
+                    from modules.ngn_market import validate_api_key as _ngnm_val
+                    _val_result = _ngnm_val(_ngnm_key_input.strip())
+                    (st.success if _val_result.get("ok") else st.error)(
+                        _val_result.get("message", "Validation result unavailable")
+                    )
+                except ImportError:
+                    st.info("NGN Market module not found — place ngn_market.py in modules/ folder")
+            else:
+                st.warning("Please enter your API key")
+
     st.caption("Configure Telegram and Email alerts. Both work simultaneously — alerts fire automatically after every scan.")
 
     settings = load_alert_settings()
