@@ -19,7 +19,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import json
 
-from scanner import load_config, run_scan, save_report
+from scanner import load_config, run_scan, save_report, fetch_live_us_universe, build_watchlist
 import scanner as _scanner_mod  # for LAST_SCAN_DIAGNOSTICS after each run_scan()
 import time as _time
 from datetime import timezone as _timezone
@@ -1958,107 +1958,29 @@ if run_btn or _auto_fired:
 
         elif universe_mode == "🌐 US — Extended Universe (NASDAQ + NYSE + NYSE American)":
             _scan_market = "us"
-            # ── Already in list (NASDAQ + mixed) ──────────────────────────
-            _NASDAQ_NAMES = [
-                # Mega-cap tech / NASDAQ 100 core
-                "AAPL","MSFT","AMZN","NVDA","GOOGL","GOOG","META","TSLA","AVGO","COST",
-                "NFLX","ORCL","ADBE","QCOM","TXN","INTU","AMD","ARM","ASML","TSM",
-                # Semiconductors
-                "AMAT","LRCX","KLAC","MU","MRVL","SMCI","CDNS","SNPS","ON","MPWR",
-                # Software / Cloud
-                "CRM","DDOG","SNOW","NET","ZS","PANW","FTNT","CRWD","PLTR","VEEV",
-                "WDAY","TEAM","HUBS","NOW","MDB","GTLB","BILL","PATH","AI","APPN",
-                # Fintech / Crypto
-                "PYPL","COIN","HOOD","SOFI","AFRM","MSTR","SQ","UPST","DAVE","SMAR",
-                # Biotech / Health (NASDAQ-listed)
-                "MRNA","BNTX","REGN","BIIB","GILD","IDXX","DXCM","ISRG","ILMN","VRTX",
-                "ALNY","SGEN","BMRN","INCY","EXAS","RARE","NTLA","BEAM","CRSP","EDIT",
-                # Consumer / Retail (NASDAQ)
-                "MNST","CELH","LULU","ONON","DUOL","ROST","DLTR","FAST","ODFL","CTAS",
-                # Growth / Emerging (NASDAQ)
-                "RKLB","IONQ","ASTS","ACHR","SOUN","RXRX","HIMS","RDDT","CAVA","TMDX",
-                "LUNR","BTDR","DOCN","OPEN","UWMC","JOBY","ABNB","DASH","LYFT","UBER",
-                "SHOP","SPOT","ROKU","TTD","MTCH","MELI","SE","GRAB","DKNG","RBLX",
-            ]
+            with st.spinner("Pulling live NASDAQ + NYSE + NYSE American listings…"):
+                _EXTENDED_UNIVERSE = fetch_live_us_universe(
+                    exchanges=["nasdaq", "nyse", "amex"], exclude_etfs=True
+                )
 
-            # ── NYSE — Blue-chip, Industrials, Financials, Energy, Healthcare ─
-            _NYSE_NAMES = [
-                # Financials (NYSE)
-                "JPM","GS","MS","BAC","WFC","C","AXP","BLK","SCHW","ICE","CME",
-                "SPGI","MCO","AMP","PGR","MET","TRV","AFL","ALL","CB","HIG","L",
-                "BX","KKR","APO","CG","ARES","TPG","BN","BAM","TROW","IVZ","BEN",
-                "WTW","AON","MMC","USB","PNC","TFC","FITB","KEY","CFG","RF","HBAN",
-                # Healthcare (NYSE)
-                "UNH","CI","CVS","HCA","MCK","CAH","DHR","TMO","ABT","MDT","SYK",
-                "BSX","EW","ZBH","BDX","BAX","STE","HOLX","IQV","CRL","MTD","WAT",
-                "LH","DGX","CTLT","PKI","VTRS","RPRX","JAZZ","ALKS","ITCI","ACAD",
-                "LLY","ABBV","BMY","PFE","JNJ","MRK","AZN","NVO","GSK","SNY",
-                # Energy (NYSE)
-                "XOM","CVX","COP","SLB","BKR","HAL","PSX","VLO","MPC","EOG",
-                "PXD","DVN","OXY","FANG","HES","APA","NOV","WHD","TRGP","KMI",
-                "WMB","OKE","EPD","ET","PAA","MMP","LNG","AR","EQT","RRC",
-                # Industrials / Defence (NYSE)
-                "BA","RTX","LMT","NOC","GD","HII","TDG","HWM","GE","HON","MMM",
-                "CAT","DE","EMR","ETN","PH","ITW","ROK","AME","ROP","CPRT","EXPD",
-                "UPS","FDX","GXO","XPO","CHRW","JBHT","SAIA","TFII","ZTO","DAL",
-                "UAL","AAL","LUV","ALK","SAVE","H","MAR","HLT","WH","CHH","NCLH",
-                # Materials / Metals (NYSE)
-                "LIN","APD","SHW","ECL","IFF","PPG","RPM","FMC","CF","MOS","NTR",
-                "NUE","STLD","CMC","RS","ATI","FCX","SCCO","AA","CLF","MP","ALB",
-                "LAC","LTHM","SQM","VALE","RIO","BHP","GOLD","NEM","AEM","PAAS",
-                # Chemicals / Specialty Materials (NYSE)
-                "DOW","DD","LYB","HUN","CE","EMN","OLN","ASH","TROX","IOSP",
-                # Utilities (NYSE)
-                "NEE","D","SO","DUK","AEP","SRE","PCG","XEL","AWK","ES","EXC",
-                "ED","PPL","ETR","FE","AEE","CMS","DTE","LNT","PNW","WEC","NI",
-                # Real Estate / REITs (NYSE)
-                "PLD","AMT","CCI","SBAC","EQIX","DLR","O","SPG","PSA","EXR",
-                "AVB","EQR","UDR","ESS","MAA","CPT","NNN","VICI","MGM","WYNN","LVS",
-                "HST","RHP","PK","SHO","PLYA","APLE","CLDT","CPLG","RLJ","XHR",
-                # Consumer Staples (NYSE)
-                "WMT","PG","KO","PEP","PM","MO","CL","KMB","CHD","CLX","HRL",
-                "SJM","CAG","CPB","GIS","K","MKC","HSY","TR","MDLZ","KHC","STZ",
-                "BF-B","TAP","SAM","BUD","DEO","BTI","BURL","TJX","COST","DG","DLTR",
-                # Consumer Discretionary (NYSE)
-                "HD","TGT","LOW","MCD","SBUX","YUM","CMG","DPZ","QSR","EAT","DRI",
-                "TXRH","BLMN","BJRI","CAKE","SHAK","WING","PLNT","BJ","FIVE","OLLI",
-                "F","GM","STLA","HOG","RACE","TM","HMC","MGA","LEA","BWA","ALV",
-                "NKE","DECK","SKX","CROX","PVH","RL","TPR","TIF","VFC","HBI","UA",
-                # Technology (NYSE-listed)
-                "IBM","ORCL","HPQ","HPE","DELL","NCR","CDW","LDOS","SAIC","BAH",
-                "ACN","WIT","INFY","CTSH","EPAM","GLOB","MFAC","DXC","CSC","CACI",
-            ]
-
-            # ── NYSE American (AMEX) — small/mid growth and mining ────────
-            _NYSE_AMERICAN_NAMES = [
-                # Growth / Emerging (NYSE American)
-                "LUNR","ACHR","JOBY","ASTS","SOUN","RXRX","IONQ","BTBT","MARA",
-                "RIOT","HUT","BITF","CIFR","CLSK","IREN","WULF","BTDR",
-                # Mining / Resources (NYSE American)
-                "AG","EXK","PAAS","SILV","CDE","HL","GPL","MUX","AUY","KGC",
-                "GATO","MAG","SVM","FSM","ERO","ATX","VZLA","SAND","WPM","OR",
-                # Biotech / Pharma (NYSE American)
-                "ACAD","SAGE","INVA","PRTA","KYMR","ARQT","GOSS","AUPH","NKTR",
-                "AVXL","SNDX","PRAX","IMVT","DNLI","KRTX","VRNA","AKRO","TARS",
-                # Energy (NYSE American)
-                "CRC","SM","CIVI","MGY","ESTE","REX","FLNG","GMLP","SLNG",
-                # Special Situations / Growth (NYSE American)
-                "OPEN","UWMC","DAVE","HIMS","RDDT","CAVA","TMDX","MSTR",
-            ]
-
-            # Merge all, deduplicate, preserve order
-            _seen = set()
-            _EXTENDED_UNIVERSE = []
-            for _tk in (_NASDAQ_NAMES + _NYSE_NAMES + _NYSE_AMERICAN_NAMES):
-                if _tk not in _seen:
-                    _seen.add(_tk)
-                    _EXTENDED_UNIVERSE.append(_tk)
+            if not _EXTENDED_UNIVERSE:
+                st.error(
+                    "⚠️ Couldn't pull the live listing directory (NASDAQ Trader may be "
+                    "unreachable right now). Falling back to the curated watchlist for "
+                    "this run — try again shortly for full-market coverage."
+                )
+                _EXTENDED_UNIVERSE = build_watchlist(cfg, "us")
+            else:
+                st.info(
+                    f"🌐 Extended Universe: **{len(_EXTENDED_UNIVERSE)} real, live tickers** "
+                    f"pulled from NASDAQ + NYSE + NYSE American listings (common stock only, "
+                    f"ETFs/test issues excluded). This is the actual current market listing, "
+                    f"not a hand-picked sample. A full scan at this size will take noticeably "
+                    f"longer than the curated watchlists — batch price downloads run in the "
+                    f"background to keep it as fast as possible."
+                )
 
             _universe_override = _EXTENDED_UNIVERSE
-            st.info(
-                f"🌐 Extended Universe: scanning {len(_EXTENDED_UNIVERSE)} tickers "
-                f"(NASDAQ + NYSE + NYSE American)…"
-            )
 
         df_raw  = run_scan(cfg, universe_override=_universe_override,
                            market=_scan_market)
@@ -8230,103 +8152,3 @@ with tabs[20]:
 
 with tabs[20]:
     st.markdown("""
-### 📖 How to Use ApexScan — Complete Guide
-
----
-
-#### 🤖 AI Daily Briefing
-- Run a **Live Scan** first, then click **Generate Briefing**
-- Claude reads your results and writes a plain-English market briefing
-- Covers top setups, active breakouts, theme rotation and a risk reminder
-- Send directly to Telegram or download as text
-- Takes about 10 seconds to generate
-
-#### 📋 Watchlist Manager
-- Create named lists: *High Conviction*, *Monitoring*, *Earnings Soon* etc.
-- Add tickers manually or paste a comma-separated list to import
-- **Scan any watchlist independently** — see scores for just those stocks
-- Promote top results from one list to another with one click
-- Lists persist between sessions
-
-#### 🔔 Alert Settings
-- **Telegram** (recommended): Free, instant, works on any phone
-  - Follow the 5-step setup in the tab — takes 5 minutes
-  - Alerts fire automatically after every scan
-- **Email**: Works with Gmail app passwords
-- Alert types: Breakouts, Stop Loss breach, Earnings warnings
-- Set minimum score threshold so you only get alerts that matter
-
----
-
-#### 🏆 Apex Score (0–100)
-| Points | Signal |
-|---|---|
-| 0–40 | 3-month momentum |
-| 25 | RS > benchmark |
-| 15 | Stage 2 uptrend |
-| 10 | Near 52-week high |
-| 10 | Active breakout |
-
-#### 📊 RS Score vs S&P 500
-- **> 100** 🟢 Beating the market — buy leaders, not laggards
-- **70–100** 🟡 Keeping pace
-- **< 70** 🔴 Lagging — avoid
-
-#### 📐 Stage Guide
-- **Stage 2 ✅** — Only stage worth buying
-- **Stage 1 ⏳** — Building base, not ready
-- **Stage 3 ⚠️** — Rolling over, be careful
-- **Stage 4 🔴** — Downtrend, avoid
-
-#### 🎯 Options Flow
-- **Vol/OI > 3x** = unusual — someone is placing a big bet
-- Calls = bullish bet, Puts = bearish/hedge
-- High notional ($) = more conviction behind the trade
-- Combine with high Apex Score for maximum signal
-
-#### 🕵️ Insider Tracker
-- 🔥 **Cluster buy** = 2+ insiders buying = strongest possible signal
-- C-suite buys (CEO, CFO) matter most
-- Insider sells = less meaningful, they sell for many reasons
-
-#### ⚖️ Risk Calculator — The Golden Rule
-> **Never risk more than 1–2% of your account on any single trade**
-
-Formula: `Shares = (Account × Risk%) ÷ (Entry − Stop)`
-
-Always set a **minimum 2:1 reward:risk** before entering any trade.
-
-#### ⏱ Backtester
-- Entry: Apex Score ≥ threshold + Stage 2
-- Exit: Price closes below 50MA or max hold days
-- Use 2021–2024 for a full market cycle test (bull + bear + recovery)
-
----
-> ⚠️ ApexScan is for research and education only — not financial advice.
-
----
-
-#### 🔑 API Key Setup & Verification
-
-**Alpha Vantage (for real EPS data):**
-1. Go to **alphavantage.co** → click **Get Free API Key**
-2. Open `config.yaml` in VS Code
-3. Find the line: `alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE"`
-4. Replace the placeholder with your actual key (keep the quote marks)
-5. Save the file (Ctrl+S)
-6. **Restart the dashboard** — close CMD, reopen it, run the command again
-7. The sidebar will show 🟢 Alpha Vantage ✓ Active when it's working
-
-**Important:** After editing config.yaml you MUST restart the dashboard.
-Just saving the file is not enough — Streamlit needs to reload.
-
-**Finnhub (for news sentiment):**
-Same process — paste your key at `finnhub_key:` in config.yaml.
-
-**Free tier limits:**
-- Alpha Vantage free: 25 API calls/day, 5/minute
-- Each stock in the scan uses 3 AV calls (earnings + income + overview)
-- Cached for 24h so repeated scans don't burn your quota
-- With 45 tickers: first scan uses ~45 calls (exceeds daily free limit)
-- **Solution:** Add `cache_hours: 168` (1 week) in config.yaml under `alpha_vantage:` to cache aggressively and stay within quota
-    """)
