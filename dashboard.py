@@ -1984,6 +1984,45 @@ if run_btn or _auto_fired:
 
         df_raw  = run_scan(cfg, universe_override=_universe_override,
                            market=_scan_market)
+
+        # Always capture diagnostics — not just on empty results — so large
+        # scans (thousands of tickers) are verifiable rather than a black box.
+        _diag = dict(getattr(_scanner_mod, "LAST_SCAN_DIAGNOSTICS", {}) or {})
+        if _diag and _diag.get("attempted", 0) > 0:
+            _attempted   = _diag.get("attempted", 0)
+            _no_hist_pct = _diag.get("no_history", 0) / _attempted * 100
+            with st.expander(
+                f"🔍 Scan data coverage: {_attempted - _diag.get('no_history', 0)}/{_attempted} "
+                f"tickers had usable price data ({100 - _no_hist_pct:.0f}%)",
+                expanded=(_no_hist_pct > 40)  # auto-open if coverage is suspiciously bad
+            ):
+                st.write(f"**{_attempted}** tickers attempted")
+                st.write(f"- {_diag.get('no_history', 0)} had no usable price history "
+                         f"(data source didn't return data for this ticker)")
+                st.write(f"- {_diag.get('snapshot_only', 0)} used today's snapshot only "
+                         f"(NGX — no historical bars yet)")
+                st.write(f"- {_diag.get('failed_stage', 0)} had valid data but failed the "
+                         f"Stage gate (not in a confirmed uptrend)")
+                st.write(f"- {_diag.get('failed_perf', 0)} failed the 3-month performance minimum")
+                st.write(f"- {_diag.get('failed_rs', 0)} failed the relative-strength minimum")
+                st.write(f"- {_diag.get('failed_vol_or_score', 0)} failed the Volume or Score filter")
+                st.write(f"- **{_diag.get('passed', 0)}** passed all gates")
+                if _no_hist_pct > 40:
+                    st.warning(
+                        f"⚠️ {_no_hist_pct:.0f}% of attempted tickers had no usable price data. "
+                        f"That's high enough to suspect a data-fetch issue (rate limiting, "
+                        f"batch download failures, or delisted/illiquid tickers in the live "
+                        f"listing) rather than the market genuinely lacking setups — worth "
+                        f"investigating before trusting the pass count."
+                    )
+                elif _diag.get('failed_stage', 0) > 0.7 * _attempted:
+                    st.info(
+                        "Most tickers had valid data but failed the Stage gate — this is "
+                        "consistent with a broad market correction/topping phase, where few "
+                        "stocks are in a confirmed uptrend at once. That's the filter doing "
+                        "its job, not a data problem."
+                    )
+
         if not df_raw.empty:
             save_report(df_raw)
             try:
@@ -2005,29 +2044,6 @@ if run_btn or _auto_fired:
             st.rerun()  # reload so Leaderboard tab populates from saved CSV
         else:
             st.warning("No setups found. Try lowering the Score or Volume thresholds in config.yaml.")
-            _diag = dict(getattr(_scanner_mod, "LAST_SCAN_DIAGNOSTICS", {}) or {})
-            if _diag:
-                with st.expander("🔍 Why did nothing pass? (scan diagnostics)"):
-                    st.write(f"**{_diag.get('attempted', 0)}** tickers attempted")
-                    st.write(f"- {_diag.get('no_history', 0)} had no usable price history "
-                             f"(API/key issue, or ticker not covered by any data source)")
-                    st.write(f"- {_diag.get('snapshot_only', 0)} used today's snapshot only "
-                             f"(no historical bars yet — full technical scoring unavailable "
-                             f"until history accumulates)")
-                    st.write(f"- {_diag.get('failed_stage', 0)} failed the Stage gate "
-                             f"(price not above its moving average)")
-                    st.write(f"- {_diag.get('failed_perf', 0)} failed the 3-month performance minimum")
-                    st.write(f"- {_diag.get('failed_rs', 0)} failed the relative-strength minimum")
-                    st.write(f"- {_diag.get('failed_vol_or_score', 0)} failed the Volume or Score filter")
-                    st.write(f"- **{_diag.get('passed', 0)}** passed all gates")
-                    if _diag.get('attempted', 0) > 0 and _diag.get('no_history', 0) == _diag.get('attempted', 0):
-                        st.error(
-                            "Every single ticker had no usable price history — this means the data "
-                            "source (NGX Pulse / NGN Market / yfinance) isn't returning data at all, "
-                            "not that the thresholds are too strict. Double-check the API key is set "
-                            "correctly in Streamlit Secrets (not just saved in-app), and that the key "
-                            "hasn't hit its daily rate limit."
-                        )
 else:
     prev_df = load_previous_report()
     df_raw  = load_latest_report()
