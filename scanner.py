@@ -306,6 +306,8 @@ try:
         get_ngx_index as ngxp_get_index,
         get_all_stocks_lookup as ngxp_get_lookup,
         validate_api_key as ngxp_validate,
+        accumulate_daily_snapshots as ngxp_accumulate_snapshots,
+        get_snapshot_scan_data as ngxp_get_snapshot,
     )
     _HAS_NGX_PULSE = True
 except ImportError:
@@ -314,6 +316,8 @@ except ImportError:
     def ngxp_get_index(api_key): return None
     def ngxp_get_lookup(api_key): return {}
     def ngxp_validate(api_key): return {"ok": False, "message": "NGX Pulse module not installed"}
+    def ngxp_accumulate_snapshots(api_key): return 0
+    def ngxp_get_snapshot(ticker, api_key, lookup=None): return None
 
 # ── NGN Market module (api.ngnmarket.com — optional, graceful fallback) ───────
 try:
@@ -888,6 +892,19 @@ def analyze_stock(ticker: str, cfg: dict,
         _min_bars = cfg["scan"].get("min_history_bars_ng", 30) if _is_ngx else cfg["scan"]["min_history_bars"]
         if len(hist) < _min_bars:
             log.debug(f"{ticker}: only {len(hist)} bars (need {_min_bars}), skipping")
+            if _is_ngx and _HAS_NGX_PULSE and ngxp_key:
+                _snap = ngxp_get_snapshot(ticker, ngxp_key, cfg.get("_ngx_snapshot_lookup"))
+                if _snap is not None:
+                    return {
+                        "ticker": ticker, "theme": "NGX (snapshot)", "market": "NGX",
+                        "price": _snap["price"],
+                        "stage": "N/A (snapshot only)", "perf_3m_%": None,
+                        "rs_3m": None, "apex_score": None,
+                        "volume": _snap["volume"], "vol_filter": _snap["volume"],
+                        "sector": _snap["sector"], "pe": _snap["pe"],
+                        "name": _snap["name"], "change_pct": _snap["change_pct"],
+                        "snapshot_only": True,
+                    }
             return None
 
         close         = hist["Close"]
@@ -1378,6 +1395,19 @@ def run_scan(cfg: dict, markets: List[str] = None,
         tickers = build_watchlist(cfg, "us")
     log.info(f"Scanning {len(tickers)} US tickers…")
 
+    # NGX: log today's snapshot to our local accumulator (builds real history
+    # over time since the free API tier doesn't provide it), and grab one
+    # bulk snapshot lookup to reuse as a last-resort per-ticker fallback.
+    _ngx_snapshot_lookup = {}
+    if _HAS_NGX_PULSE and any(str(t).upper().endswith(".LG") for t in tickers):
+        _scan_ngxp_key = cfg.get("ngx_pulse_key", "")
+        if _scan_ngxp_key and not _scan_ngxp_key.startswith("YOUR_"):
+            try:
+                ngxp_accumulate_snapshots(_scan_ngxp_key)
+            except Exception as e:
+                log.debug(f"NGX snapshot accumulation failed: {e}")
+            _ngx_snapshot_lookup = ngxp_get_lookup(_scan_ngxp_key) or {}
+
     # Clear per-session caches so each scan starts fresh
     _bench_cache.clear()
     _mcap_cache.clear()
@@ -1409,7 +1439,7 @@ def run_scan(cfg: dict, markets: List[str] = None,
     results = []
     pause   = cfg["scan"]["rate_limit_pause"]
 
-    diag = {"attempted": 0, "no_history": 0, "failed_stage": 0,
+    diag = {"attempted": 0, "no_history": 0, "snapshot_only": 0, "failed_stage": 0,
             "failed_perf": 0, "failed_rs": 0, "failed_vol_or_score": 0,
             "passed": 0}
 
@@ -1420,7 +1450,7 @@ def run_scan(cfg: dict, markets: List[str] = None,
             time.sleep(pause)
 
         diag["attempted"] += 1
-        cfg_no_av = {**cfg, "alpha_vantage_key": ""}
+        cfg_no_av = {**cfg, "alpha_vantage_key": "", "_ngx_snapshot_lookup": _ngx_snapshot_lookup}
         # Auto-detect market from ticker suffix
         _ticker_market = "ng" if ticker.upper().endswith(".LG") else "us"
         data = analyze_stock(ticker, cfg_no_av, market=_ticker_market)
@@ -1431,6 +1461,22 @@ def run_scan(cfg: dict, markets: List[str] = None,
         _fmkt     = "ng" if data.get("market") == "NGX" else "us"
         min_score = cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"])["score_filter"]
         min_vol   = cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"])["min_volume"]
+
+        # Snapshot-only NGX entries (no usable price history from any source):
+        # can't run MA/RS/stage analysis, so gate on today's move + volume instead
+        # of dropping them silently. These get a distinct low apex_score band
+        # (0-40) so they always sort below fully-analyzed setups.
+        if data.get("snapshot_only"):
+            diag["snapshot_only"] += 1
+            _snap_min_vol = cfg["thresholds"].get("ng", {}).get("min_volume", 10000)
+            if (data.get("volume") or 0) >= _snap_min_vol and (data.get("change_pct") or 0) > 0:
+                data["apex_score"] = round(min(40, max(5, (data.get("change_pct") or 0) * 4)), 1)
+                data["perf_3m_%"]  = None
+                results.append(data)
+                diag["passed"] += 1
+            else:
+                diag["failed_vol_or_score"] += 1
+            continue
 
         # ── Hard gates — reject regardless of score ────────────────────────
         _is_gem_stock = data.get("is_gem", False)
