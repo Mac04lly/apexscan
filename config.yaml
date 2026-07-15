@@ -33,11 +33,11 @@ thresholds:
     near_52w_high: 0.85
     score_filter: 25
   ng:
-    min_3m_perf: 3          # NGX moves slower — 3% minimum 3m return
-    min_volume: 50000       # NGX has lower daily volumes
-    rs_rating_min: 50
-    near_52w_high: 0.85
-    score_filter: 25
+    min_3m_perf: 0.5        # NGX moves much slower than US — 0.5% minimum 3m return
+    min_volume: 10000       # NGX has far lower daily volumes than US (many names trade <100k/day)
+    rs_rating_min: 20       # wide margin vs US market — NGX benchmark (ASI) behaves very differently
+    near_52w_high: 0.65     # NGX names can set up well without being within 15% of a 52w high
+    score_filter: 8         # much lower bar than US — NGX universe is thin, don't over-filter
 
 # ---- BENCHMARKS ----
 # Primary: S&P 500
@@ -136,6 +136,8 @@ scan:
   rate_limit_pause: 1.2
   history_period: "1y"
   min_history_bars: 100
+  min_history_bars_ng: 30   # NGX data providers rarely deliver a full clean 1y series —
+                            # require far fewer bars than US so thin-history names aren't skipped
   report_top_n: 20
 
 # ---- ADVANCED SIGNAL THRESHOLDS ----
@@ -248,6 +250,7 @@ ng_themes:
     - CAP.LG        # Chemical and Allied Products Plc
     - DANGCEM.LG        # Dangote Cement Plc
     - JBERGER.LG        # Julius Berger Nigeria Plc
+    - MEYER.LG        # Meyer Plc
     - PREMPAINTS.LG        # Premier Paints Plc
     - WAPCO.LG        # Lafarge Africa Plc
 
@@ -291,6 +294,7 @@ ng_themes:
     - ARADEL.LG        # Aradel Holdings Plc
     - CONOIL.LG        # Conoil Plc
     - ETERNA.LG        # Eterna Plc
+    - MRS.LG        # MRS Oil Nigeria Plc
     - OANDO.LG        # Oando PLC
     - SEPLAT.LG        # Seplat Energy Plc
     - TOTAL.LG        # TotalEnergies Marketing Nigeria Plc
