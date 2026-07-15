@@ -61,6 +61,167 @@ def build_watchlist(cfg: dict, market: str = "us") -> List[str]:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# LIVE FULL-MARKET UNIVERSE (real listing pull, not a hardcoded list)
+# ══════════════════════════════════════════════════════════════════════════════
+# NASDAQ Trader publishes the official, free, no-key-required daily symbol
+# directories for every listed security across NASDAQ, NYSE, NYSE American,
+# NYSE Arca, and Cboe BZX. This is the actual source-of-truth listing used
+# by real market-data vendors — not a curated sample. ~8,000-11,000 tickers
+# combined before filtering out ETFs/funds/test issues/warrants/units.
+
+_NASDAQ_LISTED_URL = "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt"
+_OTHER_LISTED_URL  = "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt"
+_UNIVERSE_CACHE_DIR = Path(__file__).resolve().parent / "data" / "universe_cache"
+_UNIVERSE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+_UNIVERSE_CACHE_TTL = 24 * 3600  # listing directories only change daily
+
+
+def _parse_pipe_delimited(text: str, symbol_col: str,
+                           exclude_cols: List[str]) -> List[str]:
+    """Parse a NASDAQ Trader pipe-delimited symbol directory file."""
+    lines = [l for l in text.splitlines() if l and not l.startswith("File Creation Time")]
+    if len(lines) < 2:
+        return []
+    header = lines[0].split("|")
+    idx = {h.strip(): i for i, h in enumerate(header)}
+    if symbol_col not in idx:
+        return []
+    out = []
+    for row in lines[1:]:
+        fields = row.split("|")
+        if len(fields) != len(header):
+            continue
+        if any(idx.get(c) is not None and fields[idx[c]].strip().upper() == "Y" for c in exclude_cols):
+            continue
+        sym = fields[idx[symbol_col]].strip()
+        # Skip symbols with warrant/unit/rights suffixes and test tickers
+        if not sym or "$" in sym or sym.endswith((".W", ".U", ".R", ".WS")):
+            continue
+        out.append(sym)
+    return out
+
+
+def fetch_live_us_universe(exchanges: List[str] = None,
+                            exclude_etfs: bool = True) -> List[str]:
+    """
+    Pull the real, current list of US-listed common stocks directly from
+    NASDAQ Trader's public symbol directories — this replaces the old
+    hardcoded ~520-ticker sample with the actual live market (several
+    thousand tickers, filtered to common stock only).
+
+    exchanges: subset of {"nasdaq", "nyse", "amex"} — default all three.
+    Cached 24h locally since these directories only update once per day.
+    """
+    exchanges = exchanges or ["nasdaq", "nyse", "amex"]
+    cache_path = _UNIVERSE_CACHE_DIR / f"us_universe_{'_'.join(sorted(exchanges))}_{exclude_etfs}.json"
+    try:
+        if cache_path.exists():
+            age = time.time() - cache_path.stat().st_mtime
+            if age < _UNIVERSE_CACHE_TTL:
+                import json
+                with open(cache_path) as f:
+                    cached = json.load(f)
+                log.info(f"Live US universe: {len(cached)} tickers (cached, {age/3600:.1f}h old)")
+                return cached
+    except Exception:
+        pass
+
+    tickers: List[str] = []
+    exclude = ["Test Issue"] + (["ETF"] if exclude_etfs else [])
+
+    if "nasdaq" in exchanges:
+        try:
+            resp = requests.get(_NASDAQ_LISTED_URL, timeout=20)
+            resp.raise_for_status()
+            nasdaq_syms = _parse_pipe_delimited(resp.text, "Symbol", exclude)
+            tickers.extend(nasdaq_syms)
+            log.info(f"NASDAQ listed: {len(nasdaq_syms)} tickers pulled live")
+        except Exception as e:
+            log.warning(f"Failed to fetch live NASDAQ listing: {e}")
+
+    if "nyse" in exchanges or "amex" in exchanges:
+        try:
+            resp = requests.get(_OTHER_LISTED_URL, timeout=20)
+            resp.raise_for_status()
+            lines = [l for l in resp.text.splitlines() if l and not l.startswith("File Creation Time")]
+            if len(lines) >= 2:
+                header = lines[0].split("|")
+                idx = {h.strip(): i for i, h in enumerate(header)}
+                ex_col = idx.get("Exchange")
+                # A = NYSE American, N = NYSE, P = NYSE Arca, Z = Cboe BZX, V = IEXG
+                wanted_codes = set()
+                if "nyse"  in exchanges: wanted_codes.add("N")
+                if "amex"  in exchanges: wanted_codes.add("A")
+                for row in lines[1:]:
+                    fields = row.split("|")
+                    if len(fields) != len(header):
+                        continue
+                    if ex_col is not None and fields[ex_col].strip() not in wanted_codes:
+                        continue
+                    if exclude_etfs and idx.get("ETF") is not None and fields[idx["ETF"]].strip().upper() == "Y":
+                        continue
+                    if idx.get("Test Issue") is not None and fields[idx["Test Issue"]].strip().upper() == "Y":
+                        continue
+                    sym = fields[idx["ACT Symbol"]].strip()
+                    if sym and "$" not in sym and not sym.endswith((".W", ".U", ".R", ".WS")):
+                        tickers.append(sym)
+                log.info(f"NYSE/NYSE American: pulled from otherlisted.txt")
+        except Exception as e:
+            log.warning(f"Failed to fetch live NYSE/AMEX listing: {e}")
+
+    tickers = sorted(set(tickers))
+
+    if not tickers:
+        log.error("Live universe fetch returned 0 tickers — NASDAQ Trader may be unreachable")
+        return []
+
+    try:
+        import json
+        with open(cache_path, "w") as f:
+            json.dump(tickers, f)
+    except Exception as e:
+        log.debug(f"Universe cache write failed: {e}")
+
+    log.info(f"Live US universe total: {len(tickers)} tickers")
+    return tickers
+
+
+def batch_download_history(tickers: List[str], period: str = "1y",
+                            chunk_size: int = 150) -> Dict[str, pd.DataFrame]:
+    """
+    Batch-download OHLCV history for many tickers at once using yfinance's
+    multi-ticker download (one HTTP round-trip per chunk instead of one per
+    ticker). This is what makes scanning thousands of tickers feasible at
+    all — the old one-ticker-at-a-time loop would take hours at this scale.
+    Returns {ticker: DataFrame} for tickers with usable data.
+    """
+    out: Dict[str, pd.DataFrame] = {}
+    for i in range(0, len(tickers), chunk_size):
+        chunk = tickers[i:i + chunk_size]
+        try:
+            data = yf.download(chunk, period=period, group_by="ticker",
+                                threads=True, progress=False, auto_adjust=False)
+        except Exception as e:
+            log.warning(f"Batch download failed for chunk {i//chunk_size}: {e}")
+            continue
+        for t in chunk:
+            try:
+                if len(chunk) == 1:
+                    df = data
+                else:
+                    df = data[t] if t in data.columns.get_level_values(0) else None
+                if df is not None and not df.empty and "Close" in df.columns:
+                    df = df.dropna(subset=["Close"])
+                    if len(df) > 0:
+                        out[t] = df
+            except Exception:
+                continue
+        log.info(f"Batch {i//chunk_size + 1}/{(len(tickers)-1)//chunk_size + 1}: "
+                  f"{len(out)} tickers with data so far")
+    return out
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # FINNHUB
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -888,7 +1049,8 @@ def analyze_stock(ticker: str, cfg: dict,
                     _ngx_idx = ngnm_get_index(ngnm_key)
                 _ngx_bench = _ngx_idx["df"]["Close"] if _ngx_idx else None
         else:
-            hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
+            _cached_hist = cfg.get("_us_hist_cache", {}).get(ticker)
+            hist = _cached_hist if _cached_hist is not None else yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
         _min_bars = cfg["scan"].get("min_history_bars_ng", 30) if _is_ngx else cfg["scan"]["min_history_bars"]
         if len(hist) < _min_bars:
             log.debug(f"{ticker}: only {len(hist)} bars (need {_min_bars}), skipping")
@@ -1408,6 +1570,16 @@ def run_scan(cfg: dict, markets: List[str] = None,
                 log.debug(f"NGX snapshot accumulation failed: {e}")
             _ngx_snapshot_lookup = ngxp_get_lookup(_scan_ngxp_key) or {}
 
+    # US: for large universes (live full-market pull), batch-download history
+    # instead of one yfinance call per ticker — this is what makes scanning
+    # thousands of tickers feasible in reasonable time at all.
+    _us_hist_cache: Dict[str, pd.DataFrame] = {}
+    _us_tickers_for_batch = [t for t in tickers if not str(t).upper().endswith(".LG")]
+    if len(_us_tickers_for_batch) > 60:
+        log.info(f"Large US universe ({len(_us_tickers_for_batch)} tickers) — batch downloading…")
+        _us_hist_cache = batch_download_history(_us_tickers_for_batch, period=cfg["scan"]["history_period"])
+        log.info(f"Batch download complete: {len(_us_hist_cache)}/{len(_us_tickers_for_batch)} tickers have data")
+
     # Clear per-session caches so each scan starts fresh
     _bench_cache.clear()
     _mcap_cache.clear()
@@ -1450,7 +1622,8 @@ def run_scan(cfg: dict, markets: List[str] = None,
             time.sleep(pause)
 
         diag["attempted"] += 1
-        cfg_no_av = {**cfg, "alpha_vantage_key": "", "_ngx_snapshot_lookup": _ngx_snapshot_lookup}
+        cfg_no_av = {**cfg, "alpha_vantage_key": "", "_ngx_snapshot_lookup": _ngx_snapshot_lookup,
+                     "_us_hist_cache": _us_hist_cache}
         # Auto-detect market from ticker suffix
         _ticker_market = "ng" if ticker.upper().endswith(".LG") else "us"
         data = analyze_stock(ticker, cfg_no_av, market=_ticker_market)
