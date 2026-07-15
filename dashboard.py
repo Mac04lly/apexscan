@@ -2089,6 +2089,9 @@ if run_btn or _auto_fired:
                     st.write(f"**{_diag.get('attempted', 0)}** tickers attempted")
                     st.write(f"- {_diag.get('no_history', 0)} had no usable price history "
                              f"(API/key issue, or ticker not covered by any data source)")
+                    st.write(f"- {_diag.get('snapshot_only', 0)} used today's snapshot only "
+                             f"(no historical bars yet — full technical scoring unavailable "
+                             f"until history accumulates)")
                     st.write(f"- {_diag.get('failed_stage', 0)} failed the Stage gate "
                              f"(price not above its moving average)")
                     st.write(f"- {_diag.get('failed_perf', 0)} failed the 3-month performance minimum")
@@ -2123,10 +2126,11 @@ elif not df_raw.empty:
 
 df = df_raw.copy()
 if not df.empty:
+    _is_snap = df["snapshot_only"].fillna(False).astype(bool) if "snapshot_only" in df.columns else pd.Series(False, index=df.index)
     if "apex_score" in df.columns:
-        df = df[pd.to_numeric(df["apex_score"], errors="coerce") >= min_score]
+        df = df[(pd.to_numeric(df["apex_score"], errors="coerce") >= min_score) | _is_snap]
     if "perf_3m_%" in df.columns:
-        df = df[pd.to_numeric(df["perf_3m_%"], errors="coerce") >= min_3m]
+        df = df[(pd.to_numeric(df["perf_3m_%"], errors="coerce") >= min_3m) | _is_snap]
 
 
 
@@ -2138,6 +2142,15 @@ with tabs[0]:
     if df.empty:
         st.info("Click **🚀 Run Live Scan** or **📂 Load Last Report** in the sidebar.")
     else:
+        if "snapshot_only" in df.columns and df["snapshot_only"].fillna(False).any():
+            _n_snap = int(df["snapshot_only"].fillna(False).sum())
+            st.info(
+                f"ℹ️ {_n_snap} NGX row(s) below are **today's snapshot only** (marked "
+                f"'N/A (snapshot only)' in Stage) — no price history was available yet "
+                f"for full technical scoring (MA/RS/52w-high), so these are ranked by "
+                f"today's price move and volume instead. Full technical setups will "
+                f"appear automatically once enough daily history accumulates."
+            )
         c1,c2,c3,c4,c5 = st.columns(5)
         with c1:
             st.markdown(f'<div class="metric-card"><h3>Tickers Passing</h3><div class="value white">{len(df)}</div></div>', unsafe_allow_html=True)
