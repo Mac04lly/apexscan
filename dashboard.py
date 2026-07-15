@@ -8152,3 +8152,103 @@ with tabs[20]:
 
 with tabs[20]:
     st.markdown("""
+### 📖 How to Use ApexScan — Complete Guide
+
+---
+
+#### 🤖 AI Daily Briefing
+- Run a **Live Scan** first, then click **Generate Briefing**
+- Claude reads your results and writes a plain-English market briefing
+- Covers top setups, active breakouts, theme rotation and a risk reminder
+- Send directly to Telegram or download as text
+- Takes about 10 seconds to generate
+
+#### 📋 Watchlist Manager
+- Create named lists: *High Conviction*, *Monitoring*, *Earnings Soon* etc.
+- Add tickers manually or paste a comma-separated list to import
+- **Scan any watchlist independently** — see scores for just those stocks
+- Promote top results from one list to another with one click
+- Lists persist between sessions
+
+#### 🔔 Alert Settings
+- **Telegram** (recommended): Free, instant, works on any phone
+  - Follow the 5-step setup in the tab — takes 5 minutes
+  - Alerts fire automatically after every scan
+- **Email**: Works with Gmail app passwords
+- Alert types: Breakouts, Stop Loss breach, Earnings warnings
+- Set minimum score threshold so you only get alerts that matter
+
+---
+
+#### 🏆 Apex Score (0–100)
+| Points | Signal |
+|---|---|
+| 0–40 | 3-month momentum |
+| 25 | RS > benchmark |
+| 15 | Stage 2 uptrend |
+| 10 | Near 52-week high |
+| 10 | Active breakout |
+
+#### 📊 RS Score vs S&P 500
+- **> 100** 🟢 Beating the market — buy leaders, not laggards
+- **70–100** 🟡 Keeping pace
+- **< 70** 🔴 Lagging — avoid
+
+#### 📐 Stage Guide
+- **Stage 2 ✅** — Only stage worth buying
+- **Stage 1 ⏳** — Building base, not ready
+- **Stage 3 ⚠️** — Rolling over, be careful
+- **Stage 4 🔴** — Downtrend, avoid
+
+#### 🎯 Options Flow
+- **Vol/OI > 3x** = unusual — someone is placing a big bet
+- Calls = bullish bet, Puts = bearish/hedge
+- High notional ($) = more conviction behind the trade
+- Combine with high Apex Score for maximum signal
+
+#### 🕵️ Insider Tracker
+- 🔥 **Cluster buy** = 2+ insiders buying = strongest possible signal
+- C-suite buys (CEO, CFO) matter most
+- Insider sells = less meaningful, they sell for many reasons
+
+#### ⚖️ Risk Calculator — The Golden Rule
+> **Never risk more than 1–2% of your account on any single trade**
+
+Formula: `Shares = (Account × Risk%) ÷ (Entry − Stop)`
+
+Always set a **minimum 2:1 reward:risk** before entering any trade.
+
+#### ⏱ Backtester
+- Entry: Apex Score ≥ threshold + Stage 2
+- Exit: Price closes below 50MA or max hold days
+- Use 2021–2024 for a full market cycle test (bull + bear + recovery)
+
+---
+> ⚠️ ApexScan is for research and education only — not financial advice.
+
+---
+
+#### 🔑 API Key Setup & Verification
+
+**Alpha Vantage (for real EPS data):**
+1. Go to **alphavantage.co** → click **Get Free API Key**
+2. Open `config.yaml` in VS Code
+3. Find the line: `alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE"`
+4. Replace the placeholder with your actual key (keep the quote marks)
+5. Save the file (Ctrl+S)
+6. **Restart the dashboard** — close CMD, reopen it, run the command again
+7. The sidebar will show 🟢 Alpha Vantage ✓ Active when it's working
+
+**Important:** After editing config.yaml you MUST restart the dashboard.
+Just saving the file is not enough — Streamlit needs to reload.
+
+**Finnhub (for news sentiment):**
+Same process — paste your key at `finnhub_key:` in config.yaml.
+
+**Free tier limits:**
+- Alpha Vantage free: 25 API calls/day, 5/minute
+- Each stock in the scan uses 3 AV calls (earnings + income + overview)
+- Cached for 24h so repeated scans don't burn your quota
+- With 45 tickers: first scan uses ~45 calls (exceeds daily free limit)
+- **Solution:** Add `cache_hours: 168` (1 week) in config.yaml under `alpha_vantage:` to cache aggressively and stay within quota
+    """)
