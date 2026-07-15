@@ -1985,43 +1985,13 @@ if run_btn or _auto_fired:
         df_raw  = run_scan(cfg, universe_override=_universe_override,
                            market=_scan_market)
 
-        # Always capture diagnostics — not just on empty results — so large
-        # scans (thousands of tickers) are verifiable rather than a black box.
-        _diag = dict(getattr(_scanner_mod, "LAST_SCAN_DIAGNOSTICS", {}) or {})
-        if _diag and _diag.get("attempted", 0) > 0:
-            _attempted   = _diag.get("attempted", 0)
-            _no_hist_pct = _diag.get("no_history", 0) / _attempted * 100
-            with st.expander(
-                f"🔍 Scan data coverage: {_attempted - _diag.get('no_history', 0)}/{_attempted} "
-                f"tickers had usable price data ({100 - _no_hist_pct:.0f}%)",
-                expanded=(_no_hist_pct > 40)  # auto-open if coverage is suspiciously bad
-            ):
-                st.write(f"**{_attempted}** tickers attempted")
-                st.write(f"- {_diag.get('no_history', 0)} had no usable price history "
-                         f"(data source didn't return data for this ticker)")
-                st.write(f"- {_diag.get('snapshot_only', 0)} used today's snapshot only "
-                         f"(NGX — no historical bars yet)")
-                st.write(f"- {_diag.get('failed_stage', 0)} had valid data but failed the "
-                         f"Stage gate (not in a confirmed uptrend)")
-                st.write(f"- {_diag.get('failed_perf', 0)} failed the 3-month performance minimum")
-                st.write(f"- {_diag.get('failed_rs', 0)} failed the relative-strength minimum")
-                st.write(f"- {_diag.get('failed_vol_or_score', 0)} failed the Volume or Score filter")
-                st.write(f"- **{_diag.get('passed', 0)}** passed all gates")
-                if _no_hist_pct > 40:
-                    st.warning(
-                        f"⚠️ {_no_hist_pct:.0f}% of attempted tickers had no usable price data. "
-                        f"That's high enough to suspect a data-fetch issue (rate limiting, "
-                        f"batch download failures, or delisted/illiquid tickers in the live "
-                        f"listing) rather than the market genuinely lacking setups — worth "
-                        f"investigating before trusting the pass count."
-                    )
-                elif _diag.get('failed_stage', 0) > 0.7 * _attempted:
-                    st.info(
-                        "Most tickers had valid data but failed the Stage gate — this is "
-                        "consistent with a broad market correction/topping phase, where few "
-                        "stocks are in a confirmed uptrend at once. That's the filter doing "
-                        "its job, not a data problem."
-                    )
+        # Persist diagnostics to session_state — this block renders right
+        # before st.rerun() below, which immediately wipes the page and
+        # reloads the Leaderboard from the saved CSV through a different
+        # code path, so an inline expander here would never actually be
+        # visible. Session state survives the rerun; render it in the
+        # Leaderboard tab instead (see tabs[0] below).
+        st.session_state["last_scan_diagnostics"] = dict(getattr(_scanner_mod, "LAST_SCAN_DIAGNOSTICS", {}) or {})
 
         if not df_raw.empty:
             save_report(df_raw)
@@ -2079,6 +2049,19 @@ if not df.empty:
 with tabs[0]:
     if df.empty:
         st.info("Click **🚀 Run Live Scan** or **📂 Load Last Report** in the sidebar.")
+        _diag0 = st.session_state.get("last_scan_diagnostics") or {}
+        if _diag0 and _diag0.get("attempted", 0) > 0:
+            _att0 = _diag0.get("attempted", 0)
+            _nh0  = _diag0.get("no_history", 0)
+            with st.expander(f"🔍 Last scan data coverage: {_att0 - _nh0}/{_att0} tickers had usable price data", expanded=True):
+                st.write(f"**{_att0}** tickers attempted")
+                st.write(f"- {_nh0} had no usable price history")
+                st.write(f"- {_diag0.get('snapshot_only', 0)} used today's snapshot only (NGX)")
+                st.write(f"- {_diag0.get('failed_stage', 0)} failed the Stage gate")
+                st.write(f"- {_diag0.get('failed_perf', 0)} failed the 3-month performance minimum")
+                st.write(f"- {_diag0.get('failed_rs', 0)} failed the relative-strength minimum")
+                st.write(f"- {_diag0.get('failed_vol_or_score', 0)} failed the Volume or Score filter")
+                st.write(f"- **{_diag0.get('passed', 0)}** passed all gates")
     else:
         if "snapshot_only" in df.columns and df["snapshot_only"].fillna(False).any():
             _n_snap = int(df["snapshot_only"].fillna(False).sum())
@@ -2106,6 +2089,43 @@ with tabs[0]:
             st.markdown(f'<div class="metric-card"><h3>Themes Active</h3><div class="value green">{themes_n}</div></div>', unsafe_allow_html=True)
 
         st.markdown("---")
+
+        # ── Scan data coverage — persisted across the post-scan rerun ──────
+        _diag = st.session_state.get("last_scan_diagnostics") or {}
+        if _diag and _diag.get("attempted", 0) > 0:
+            _attempted   = _diag.get("attempted", 0)
+            _no_hist     = _diag.get("no_history", 0)
+            _no_hist_pct = _no_hist / _attempted * 100
+            with st.expander(
+                f"🔍 Last scan data coverage: {_attempted - _no_hist}/{_attempted} "
+                f"tickers had usable price data ({100 - _no_hist_pct:.0f}%)",
+                expanded=(_no_hist_pct > 40)
+            ):
+                st.write(f"**{_attempted}** tickers attempted")
+                st.write(f"- {_no_hist} had no usable price history "
+                         f"(data source didn't return data for this ticker)")
+                st.write(f"- {_diag.get('snapshot_only', 0)} used today's snapshot only "
+                         f"(NGX — no historical bars yet)")
+                st.write(f"- {_diag.get('failed_stage', 0)} had valid data but failed the "
+                         f"Stage gate (not in a confirmed uptrend)")
+                st.write(f"- {_diag.get('failed_perf', 0)} failed the 3-month performance minimum")
+                st.write(f"- {_diag.get('failed_rs', 0)} failed the relative-strength minimum")
+                st.write(f"- {_diag.get('failed_vol_or_score', 0)} failed the Volume or Score filter")
+                st.write(f"- **{_diag.get('passed', 0)}** passed all gates")
+                if _no_hist_pct > 40:
+                    st.warning(
+                        f"⚠️ {_no_hist_pct:.0f}% of attempted tickers had no usable price data. "
+                        f"That's high enough to suspect a data-fetch issue (rate limiting, "
+                        f"batch download failures, or delisted/illiquid tickers in the live "
+                        f"listing) rather than the market genuinely lacking setups."
+                    )
+                elif _diag.get('failed_stage', 0) > 0.7 * _attempted:
+                    st.info(
+                        "Most tickers had valid data but failed the Stage gate — consistent "
+                        "with a broad market correction/topping phase, where few stocks are "
+                        "in a confirmed uptrend at once. That's the filter doing its job, "
+                        "not a data problem."
+                    )
 
         # ── 🌱 Correction Watchlist (William O'Neil basing lesson) ─────────
         # "New bases form during market corrections. Don't spend corrections
