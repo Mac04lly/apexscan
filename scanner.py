@@ -885,8 +885,9 @@ def analyze_stock(ticker: str, cfg: dict,
                 _ngx_bench = _ngx_idx["df"]["Close"] if _ngx_idx else None
         else:
             hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
-        if len(hist) < cfg["scan"]["min_history_bars"]:
-            log.debug(f"{ticker}: only {len(hist)} bars, skipping")
+        _min_bars = cfg["scan"].get("min_history_bars_ng", 30) if _is_ngx else cfg["scan"]["min_history_bars"]
+        if len(hist) < _min_bars:
+            log.debug(f"{ticker}: only {len(hist)} bars (need {_min_bars}), skipping")
             return None
 
         close         = hist["Close"]
@@ -904,11 +905,19 @@ def analyze_stock(ticker: str, cfg: dict,
         near_52wh    = current_price >= high_52w * thresholds["near_52w_high"]
         pct_off_high = round((current_price / high_52w - 1) * 100, 1) if high_52w else 0.0
 
-        ma50         = close.rolling(50).mean().iloc[-1]
+        ma50         = close.rolling(min(50, len(close))).mean().iloc[-1]
         ma200        = close.rolling(200).mean().iloc[-1]
+        # NGX data providers rarely deliver a full clean 200-bar series, so a strict
+        # 200MA requirement would silently zero out the entire NGX universe regardless
+        # of score/volume thresholds. When ma200 isn't computable (or NGX has fewer than
+        # 200 bars), fall back to whatever longer-window MA is available (100 or the
+        # longest we have) so NGX names can still clear the "stage" gate.
+        if _is_ngx and (pd.isna(ma200) or len(close) < 200):
+            _fallback_window = min(100, len(close))
+            ma200 = close.rolling(_fallback_window).mean().iloc[-1]
         above_50ma   = bool(current_price > ma50)
-        above_200ma  = bool(current_price > ma200)
-        ma50_gt_200  = bool(ma50 > ma200)
+        above_200ma  = bool(current_price > ma200) if not pd.isna(ma200) else False
+        ma50_gt_200  = bool(ma50 > ma200) if not pd.isna(ma200) else False
         stage        = detect_stage(current_price, ma50, ma200)
         vs_50ma_pct  = price_vs_ma(current_price, ma50)
         vs_200ma_pct = price_vs_ma(current_price, ma200)
@@ -1338,6 +1347,12 @@ def analyze_stock(ticker: str, cfg: dict,
 # FULL SCAN (two-pass: fast price scan then targeted AV enrichment)
 # ══════════════════════════════════════════════════════════════════════════════
 
+# Populated fresh on every run_scan() call so the dashboard can show exactly
+# where tickers dropped out (no history, failed stage, failed perf/RS, etc.)
+# instead of a generic "no setups found" message.
+LAST_SCAN_DIAGNOSTICS = {}
+
+
 def run_scan(cfg: dict, markets: List[str] = None,
              universe_override: list = None,
              market: str = "us") -> pd.DataFrame:
@@ -1394,17 +1409,23 @@ def run_scan(cfg: dict, markets: List[str] = None,
     results = []
     pause   = cfg["scan"]["rate_limit_pause"]
 
+    diag = {"attempted": 0, "no_history": 0, "failed_stage": 0,
+            "failed_perf": 0, "failed_rs": 0, "failed_vol_or_score": 0,
+            "passed": 0}
+
     # ── Pass 1: price/technical scan, no AV ──────────────────────────────
     log.info("Pass 1: technical scan…")
     for i, ticker in enumerate(tickers):
         if i > 0 and i % 8 == 0:
             time.sleep(pause)
 
+        diag["attempted"] += 1
         cfg_no_av = {**cfg, "alpha_vantage_key": ""}
         # Auto-detect market from ticker suffix
         _ticker_market = "ng" if ticker.upper().endswith(".LG") else "us"
         data = analyze_stock(ticker, cfg_no_av, market=_ticker_market)
         if data is None:
+            diag["no_history"] += 1
             continue
 
         _fmkt     = "ng" if data.get("market") == "NGX" else "us"
@@ -1417,23 +1438,34 @@ def run_scan(cfg: dict, markets: List[str] = None,
 
         # Gate 1: Stage — gems with fresh 200MA cross allowed through even if
         # Stage 2 isn't fully confirmed yet (that's the whole point of early entry)
-        _stage_ok = data["above_200ma"] and data["ma50_gt_ma200"]
-        _gem_stage_ok = (
-            _is_gem_stock and
-            data["above_200ma"] and          # must be above 200MA
-            data.get("fresh_200ma_cross")    # but 50MA can lag — allowed for gems
-        )
+        if _fmkt == "ng":
+            # NGX: much wider margin than US. Thin liquidity means 50/200MA crosses
+            # lag badly and a full clean 200-bar series is often unavailable anyway
+            # (see fallback MA above) — so just require price above its longer MA,
+            # not a confirmed 50>200 cross.
+            _stage_ok = data["above_200ma"]
+            _gem_stage_ok = _is_gem_stock and data["above_200ma"]
+        else:
+            _stage_ok = data["above_200ma"] and data["ma50_gt_ma200"]
+            _gem_stage_ok = (
+                _is_gem_stock and
+                data["above_200ma"] and          # must be above 200MA
+                data.get("fresh_200ma_cross")    # but 50MA can lag — allowed for gems
+            )
         if not _stage_ok and not _gem_stage_ok:
+            diag["failed_stage"] += 1
             continue
 
         # Gate 2: 3M performance — gems need only +2% (they're early, not extended)
         _min_perf = 2.0 if _is_gem_stock else cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"]).get("min_3m_perf", 5)
         if data["perf_3m_%"] < _min_perf:
+            diag["failed_perf"] += 1
             continue
 
         # Gate 3: RS — gems can have RS > -20 (very early movers lag initially)
         _min_rs = -20 if (_is_gem_stock and _has_early) else 0
         if data["rs_3m"] < _min_rs:
+            diag["failed_rs"] += 1
             continue
 
         # Gate 4: Volume — gems use lower floor (100K vs 300K)
@@ -1444,6 +1476,13 @@ def run_scan(cfg: dict, markets: List[str] = None,
 
         if data["apex_score"] >= _min_score_eff and data.get("vol_filter", data["volume"]) >= _min_vol_eff:
             results.append(data)
+            diag["passed"] += 1
+        else:
+            diag["failed_vol_or_score"] += 1
+
+    LAST_SCAN_DIAGNOSTICS.clear()
+    LAST_SCAN_DIAGNOSTICS.update(diag)
+    log.info(f"Scan diagnostics: {diag}")
 
     if not results:
         log.warning("No results passed filters.")
