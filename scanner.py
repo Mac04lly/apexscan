@@ -126,23 +126,82 @@ def fetch_live_us_universe(exchanges: List[str] = None,
     except Exception:
         pass
 
+_UNIVERSE_FETCH_HEADERS = {
+    # NASDAQ Trader's server can reject bare python-requests calls (no UA) —
+    # a realistic browser UA makes this fetch reliable instead of intermittent.
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
+    "Accept": "text/plain,*/*",
+}
+
+
+def _fetch_with_retry(url: str, attempts: int = 3, timeout: int = 20):
+    """GET with retries + backoff — NASDAQ Trader occasionally times out or
+    blips, and a single failed attempt shouldn't silently cut the universe
+    from ~7,000 tickers down to a 59-ticker fallback."""
+    last_err = None
+    for i in range(attempts):
+        try:
+            resp = requests.get(url, headers=_UNIVERSE_FETCH_HEADERS, timeout=timeout)
+            resp.raise_for_status()
+            return resp
+        except Exception as e:
+            last_err = e
+            log.warning(f"Fetch attempt {i+1}/{attempts} failed for {url}: {e}")
+            if i < attempts - 1:
+                time.sleep(2 * (i + 1))
+    raise last_err
+
+
+# Populated by fetch_live_us_universe() so the caller (dashboard) can show
+# an unmissable, persisted warning if it had to fall back — instead of a
+# message that flashes and vanishes before st.rerun().
+LAST_UNIVERSE_FETCH_STATUS = {"source": None, "size": 0, "error": None}
+
+
+def fetch_live_us_universe(exchanges: List[str] = None,
+                            exclude_etfs: bool = True) -> List[str]:
+    """
+    Pull the real, current list of US-listed common stocks directly from
+    NASDAQ Trader's public symbol directories — this replaces the old
+    hardcoded ~520-ticker sample with the actual live market (several
+    thousand tickers, filtered to common stock only).
+
+    exchanges: subset of {"nasdaq", "nyse", "amex"} — default all three.
+    Cached 24h locally since these directories only update once per day.
+    """
+    exchanges = exchanges or ["nasdaq", "nyse", "amex"]
+    cache_path = _UNIVERSE_CACHE_DIR / f"us_universe_{'_'.join(sorted(exchanges))}_{exclude_etfs}.json"
+    try:
+        if cache_path.exists():
+            age = time.time() - cache_path.stat().st_mtime
+            if age < _UNIVERSE_CACHE_TTL:
+                import json
+                with open(cache_path) as f:
+                    cached = json.load(f)
+                log.info(f"Live US universe: {len(cached)} tickers (cached, {age/3600:.1f}h old)")
+                LAST_UNIVERSE_FETCH_STATUS.update({"source": "live_cached", "size": len(cached), "error": None})
+                return cached
+    except Exception:
+        pass
+
     tickers: List[str] = []
     exclude = ["Test Issue"] + (["ETF"] if exclude_etfs else [])
+    _errors = []
 
     if "nasdaq" in exchanges:
         try:
-            resp = requests.get(_NASDAQ_LISTED_URL, timeout=20)
-            resp.raise_for_status()
+            resp = _fetch_with_retry(_NASDAQ_LISTED_URL)
             nasdaq_syms = _parse_pipe_delimited(resp.text, "Symbol", exclude)
             tickers.extend(nasdaq_syms)
             log.info(f"NASDAQ listed: {len(nasdaq_syms)} tickers pulled live")
         except Exception as e:
-            log.warning(f"Failed to fetch live NASDAQ listing: {e}")
+            log.warning(f"Failed to fetch live NASDAQ listing after retries: {e}")
+            _errors.append(f"NASDAQ listing: {e}")
 
     if "nyse" in exchanges or "amex" in exchanges:
         try:
-            resp = requests.get(_OTHER_LISTED_URL, timeout=20)
-            resp.raise_for_status()
+            resp = _fetch_with_retry(_OTHER_LISTED_URL)
             lines = [l for l in resp.text.splitlines() if l and not l.startswith("File Creation Time")]
             if len(lines) >= 2:
                 header = lines[0].split("|")
