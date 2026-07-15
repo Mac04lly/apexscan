@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 import json
 
 from scanner import load_config, run_scan, save_report
+import scanner as _scanner_mod  # for LAST_SCAN_DIAGNOSTICS after each run_scan()
 import time as _time
 from datetime import timezone as _timezone
 import threading as _threading
@@ -2082,6 +2083,26 @@ if run_btn or _auto_fired:
             st.rerun()  # reload so Leaderboard tab populates from saved CSV
         else:
             st.warning("No setups found. Try lowering the Score or Volume thresholds in config.yaml.")
+            _diag = dict(getattr(_scanner_mod, "LAST_SCAN_DIAGNOSTICS", {}) or {})
+            if _diag:
+                with st.expander("🔍 Why did nothing pass? (scan diagnostics)"):
+                    st.write(f"**{_diag.get('attempted', 0)}** tickers attempted")
+                    st.write(f"- {_diag.get('no_history', 0)} had no usable price history "
+                             f"(API/key issue, or ticker not covered by any data source)")
+                    st.write(f"- {_diag.get('failed_stage', 0)} failed the Stage gate "
+                             f"(price not above its moving average)")
+                    st.write(f"- {_diag.get('failed_perf', 0)} failed the 3-month performance minimum")
+                    st.write(f"- {_diag.get('failed_rs', 0)} failed the relative-strength minimum")
+                    st.write(f"- {_diag.get('failed_vol_or_score', 0)} failed the Volume or Score filter")
+                    st.write(f"- **{_diag.get('passed', 0)}** passed all gates")
+                    if _diag.get('attempted', 0) > 0 and _diag.get('no_history', 0) == _diag.get('attempted', 0):
+                        st.error(
+                            "Every single ticker had no usable price history — this means the data "
+                            "source (NGX Pulse / NGN Market / yfinance) isn't returning data at all, "
+                            "not that the thresholds are too strict. Double-check the API key is set "
+                            "correctly in Streamlit Secrets (not just saved in-app), and that the key "
+                            "hasn't hit its daily rate limit."
+                        )
 else:
     prev_df = load_previous_report()
     df_raw  = load_latest_report()
