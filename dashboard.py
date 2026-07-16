@@ -1963,24 +1963,28 @@ if run_btn or _auto_fired:
                     exchanges=["nasdaq", "nyse", "amex"], exclude_etfs=True
                 )
 
+            _fetch_status = dict(getattr(_scanner_mod, "LAST_UNIVERSE_FETCH_STATUS", {}) or {})
+
             if not _EXTENDED_UNIVERSE:
-                st.error(
-                    "⚠️ Couldn't pull the live listing directory (NASDAQ Trader may be "
-                    "unreachable right now). Falling back to the curated watchlist for "
-                    "this run — try again shortly for full-market coverage."
-                )
                 _EXTENDED_UNIVERSE = build_watchlist(cfg, "us")
+                st.session_state["last_universe_status"] = {
+                    "fell_back": True,
+                    "fallback_size": len(_EXTENDED_UNIVERSE),
+                    "error": _fetch_status.get("error", "unknown reason"),
+                }
             else:
-                st.info(
-                    f"🌐 Extended Universe: **{len(_EXTENDED_UNIVERSE)} real, live tickers** "
-                    f"pulled from NASDAQ + NYSE + NYSE American listings (common stock only, "
-                    f"ETFs/test issues excluded). This is the actual current market listing, "
-                    f"not a hand-picked sample. A full scan at this size will take noticeably "
-                    f"longer than the curated watchlists — batch price downloads run in the "
-                    f"background to keep it as fast as possible."
-                )
+                st.session_state["last_universe_status"] = {
+                    "fell_back": False,
+                    "live_size": len(_EXTENDED_UNIVERSE),
+                    "error": _fetch_status.get("error"),  # partial-success errors, if any
+                }
 
             _universe_override = _EXTENDED_UNIVERSE
+
+        else:
+            # Any other universe mode: clear stale Extended-Universe status so
+            # it isn't shown against a run that didn't use it.
+            st.session_state.pop("last_universe_status", None)
 
         df_raw  = run_scan(cfg, universe_override=_universe_override,
                            market=_scan_market)
@@ -2089,6 +2093,27 @@ with tabs[0]:
             st.markdown(f'<div class="metric-card"><h3>Themes Active</h3><div class="value green">{themes_n}</div></div>', unsafe_allow_html=True)
 
         st.markdown("---")
+
+        # ── Extended Universe fallback warning — persisted, not transient ──
+        _uni_status = st.session_state.get("last_universe_status")
+        if _uni_status:
+            if _uni_status.get("fell_back"):
+                st.error(
+                    f"⚠️ **This scan did NOT use the live Extended Universe.** The live "
+                    f"NASDAQ/NYSE/NYSE American pull failed "
+                    f"({_uni_status.get('error') or 'unknown reason'}), so it silently fell "
+                    f"back to the small curated watchlist — only "
+                    f"**{_uni_status.get('fallback_size')} tickers** were actually scanned "
+                    f"below, not the full live market. Try **Run Live Scan Now** again; "
+                    f"if this keeps happening, NASDAQ Trader may be rate-limiting or blocking "
+                    f"requests from this server."
+                )
+            else:
+                st.success(
+                    f"✅ Extended Universe: this scan used **{_uni_status.get('live_size')} "
+                    f"real, live tickers** from NASDAQ + NYSE + NYSE American."
+                    + (f" (note: {_uni_status['error']})" if _uni_status.get("error") else "")
+                )
 
         # ── Scan data coverage — persisted across the post-scan rerun ──────
         _diag = st.session_state.get("last_scan_diagnostics") or {}
