@@ -1809,7 +1809,233 @@ def run_scan(cfg: dict, markets: List[str] = None,
     df = pd.DataFrame(results).sort_values("apex_score", ascending=False).reset_index(drop=True)
     df.index += 1
     df.index.name = "rank"
+
+    try:
+        log_scan_signals(df)
+    except Exception as e:
+        log.debug(f"Signal logging failed (non-fatal): {e}")
+
     return df
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SIGNAL TRACK RECORD — logs every scan result so win-rate/forward-return
+# stats can be measured over time, independent of whether any trade was
+# actually taken. This is what turns "the scanner found 55 setups" into
+# "the scanner's setups are up X% on average Y days later."
+# ══════════════════════════════════════════════════════════════════════════════
+# NOTE ON PERSISTENCE: like config.yaml and the NGX accumulation cache, this
+# local CSV lives on Streamlit Cloud's ephemeral container filesystem — it
+# will be wiped on redeploy/reboot, same root cause as the API-key issue
+# fixed earlier in this project. For a log meant to prove a track record
+# over months, that's a real problem: don't trust this file to survive long
+# term without also wiring up Supabase (see log_scan_signals_supabase below).
+
+_SIGNAL_LOG_PATH = Path(__file__).resolve().parent / "data" / "signal_log.csv"
+_SIGNAL_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+_SIGNAL_LOG_COLUMNS = ["date_logged", "ticker", "market", "price", "apex_score",
+                       "stage", "theme", "rs_3m", "perf_3m_%", "volume"]
+
+
+def log_scan_signals(df: pd.DataFrame) -> int:
+    """
+    Append every result from this scan to the local signal log, one row per
+    ticker per calendar day (idempotent — re-running the same day just
+    updates that day's row rather than duplicating it). Silently no-ops if
+    df is empty. Returns the number of rows written.
+    """
+    if df is None or df.empty:
+        return 0
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    existing = pd.DataFrame(columns=_SIGNAL_LOG_COLUMNS)
+    if _SIGNAL_LOG_PATH.exists():
+        try:
+            existing = pd.read_csv(_SIGNAL_LOG_PATH)
+        except Exception as e:
+            log.warning(f"Signal log read error (starting fresh): {e}")
+
+    rows = []
+    for _, row in df.iterrows():
+        rows.append({
+            "date_logged": today,
+            "ticker":      row.get("ticker"),
+            "market":      row.get("market", "US"),
+            "price":       row.get("price"),
+            "apex_score":  row.get("apex_score"),
+            "stage":       row.get("stage"),
+            "theme":       row.get("theme"),
+            "rs_3m":       row.get("rs_3m"),
+            "perf_3m_%":   row.get("perf_3m_%"),
+            "volume":      row.get("volume"),
+        })
+    new_rows = pd.DataFrame(rows, columns=_SIGNAL_LOG_COLUMNS)
+
+    if not existing.empty:
+        # Drop any existing rows for (today, ticker) so re-running the same
+        # day updates rather than duplicates
+        key = existing["date_logged"].astype(str) + "|" + existing["ticker"].astype(str)
+        new_key = new_rows["date_logged"].astype(str) + "|" + new_rows["ticker"].astype(str)
+        existing = existing[~key.isin(set(new_key))]
+        combined = pd.concat([existing, new_rows], ignore_index=True)
+    else:
+        combined = new_rows
+
+    combined.to_csv(_SIGNAL_LOG_PATH, index=False)
+    log.info(f"Signal log: wrote {len(new_rows)} rows for {today} "
+             f"({len(combined)} total rows in log)")
+
+    # Optional durable copy — see log_scan_signals_supabase() below. Config-gated
+    # so this is a no-op unless the user has actually set up Supabase for it.
+    try:
+        log_scan_signals_supabase(new_rows)
+    except Exception as e:
+        log.debug(f"Supabase signal log skipped/failed (non-fatal): {e}")
+
+    return len(new_rows)
+
+
+def log_scan_signals_supabase(new_rows: pd.DataFrame) -> None:
+    """
+    Optional durable persistence for the signal log via Supabase — since the
+    local CSV above lives on Streamlit Cloud's ephemeral filesystem and gets
+    wiped on every redeploy/reboot (the same root cause as the NGX API key
+    issue earlier in this project). A track record spanning months needs
+    somewhere that survives that.
+
+    No-ops entirely unless BOTH `supabase_url` and `supabase_key` are set in
+    config.yaml / Streamlit Secrets — safe to leave unconfigured.
+
+    Required Supabase table (create once in the Supabase SQL editor):
+
+        create table signal_log (
+            id           bigint generated always as identity primary key,
+            date_logged  date not null,
+            ticker       text not null,
+            market       text,
+            price        numeric,
+            apex_score   numeric,
+            stage        text,
+            theme        text,
+            rs_3m        numeric,
+            perf_3m      numeric,
+            volume       bigint,
+            unique (date_logged, ticker)
+        );
+
+    Uses Supabase's REST (PostgREST) endpoint directly via `requests` so no
+    extra SDK dependency is needed — same lightweight-integration approach
+    already used for NGX Pulse/NGN Market elsewhere in this codebase.
+    """
+    import os
+    supa_url = os.environ.get("SUPABASE_URL") or _get_secret_safe("supabase_url")
+    supa_key = os.environ.get("SUPABASE_KEY") or _get_secret_safe("supabase_key")
+    if not supa_url or not supa_key or new_rows.empty:
+        return
+
+    payload = new_rows.rename(columns={"perf_3m_%": "perf_3m"}).where(
+        pd.notnull(new_rows), None
+    ).to_dict(orient="records")
+
+    resp = requests.post(
+        f"{supa_url.rstrip('/')}/rest/v1/signal_log",
+        headers={
+            "apikey": supa_key,
+            "Authorization": f"Bearer {supa_key}",
+            "Content-Type": "application/json",
+            "Prefer": "resolution=merge-duplicates",  # upsert on (date_logged, ticker)
+        },
+        json=payload, timeout=15,
+    )
+    if resp.status_code not in (200, 201):
+        log.warning(f"Supabase signal log insert failed: {resp.status_code} {resp.text[:200]}")
+    else:
+        log.info(f"Supabase signal log: {len(payload)} rows synced")
+
+
+def _get_secret_safe(key: str) -> Optional[str]:
+    """Best-effort read of a Streamlit secret without hard-requiring streamlit
+    (scanner.py is also used standalone / from scheduler.py)."""
+    try:
+        import streamlit as st
+        return st.secrets.get(key)
+    except Exception:
+        return None
+
+
+def load_signal_log() -> pd.DataFrame:
+    """Read back the full signal log — from Supabase if configured (survives
+    redeploys), otherwise the local CSV (session/day-scoped only on Streamlit Cloud)."""
+    import os
+    supa_url = os.environ.get("SUPABASE_URL") or _get_secret_safe("supabase_url")
+    supa_key = os.environ.get("SUPABASE_KEY") or _get_secret_safe("supabase_key")
+    if supa_url and supa_key:
+        try:
+            resp = requests.get(
+                f"{supa_url.rstrip('/')}/rest/v1/signal_log",
+                headers={"apikey": supa_key, "Authorization": f"Bearer {supa_key}"},
+                params={"select": "*", "order": "date_logged.asc"}, timeout=15,
+            )
+            if resp.status_code == 200:
+                rows = resp.json()
+                if rows:
+                    df = pd.DataFrame(rows).rename(columns={"perf_3m": "perf_3m_%"})
+                    return df
+        except Exception as e:
+            log.debug(f"Supabase signal log read failed, falling back to local CSV: {e}")
+
+    if not _SIGNAL_LOG_PATH.exists():
+        return pd.DataFrame(columns=_SIGNAL_LOG_COLUMNS)
+    try:
+        return pd.read_csv(_SIGNAL_LOG_PATH)
+    except Exception as e:
+        log.warning(f"Signal log read error: {e}")
+        return pd.DataFrame(columns=_SIGNAL_LOG_COLUMNS)
+
+
+def compute_signal_performance(min_days_old: int = 1) -> pd.DataFrame:
+    """
+    For every logged signal at least `min_days_old` calendar days old, fetch
+    its current price and compute the return since it was flagged. This is
+    the actual track-record measurement — "the scanner found X, here's what
+    happened to X since."
+
+    Only looks up each unique ticker once (not once per log row) to keep
+    this cheap even with a large log.
+    """
+    log_df = load_signal_log()
+    if log_df.empty:
+        return pd.DataFrame()
+
+    log_df["date_logged"] = pd.to_datetime(log_df["date_logged"])
+    cutoff = datetime.now() - timedelta(days=min_days_old)
+    eligible = log_df[log_df["date_logged"] <= cutoff].copy()
+    if eligible.empty:
+        return pd.DataFrame()
+
+    unique_tickers = [t for t in eligible["ticker"].dropna().unique()
+                      if not str(t).upper().endswith(".LG")]  # skip NGX — no reliable current-price source
+    if not unique_tickers:
+        return pd.DataFrame()
+
+    current_prices = {}
+    try:
+        data = yf.download(unique_tickers, period="5d", group_by="ticker",
+                            threads=True, progress=False, auto_adjust=False)
+        for t in unique_tickers:
+            try:
+                df_t = data if len(unique_tickers) == 1 else (data[t] if t in data.columns.get_level_values(0) else None)
+                if df_t is not None and not df_t.empty:
+                    current_prices[t] = float(df_t["Close"].dropna().iloc[-1])
+            except Exception:
+                continue
+    except Exception as e:
+        log.warning(f"Signal performance price fetch failed: {e}")
+
+    eligible["current_price"] = eligible["ticker"].map(current_prices)
+    eligible["return_%"] = ((eligible["current_price"] - eligible["price"]) / eligible["price"] * 100).round(2)
+    eligible["days_since"] = (datetime.now() - eligible["date_logged"]).dt.days
+    return eligible.dropna(subset=["current_price"]).sort_values("date_logged")
 
 
 def save_report(df: pd.DataFrame, report_dir: str = "reports") -> str:
@@ -1817,7 +2043,41 @@ def save_report(df: pd.DataFrame, report_dir: str = "reports") -> str:
     filename = f"{report_dir}/scan_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
     df.to_csv(filename, encoding="utf-8")
     log.info(f"Saved → {filename}")
+
+    # Persist diagnostics + universe-fetch status to disk too — st.session_state
+    # alone resets on page reload / container wake-up, but the CSV report
+    # loads back fine via "Load Last Report", which left the diagnostics
+    # panel blank even when real results were showing. This file-based copy
+    # is read as a fallback whenever session_state is empty (see dashboard.py).
+    try:
+        import json
+        meta = {
+            "diagnostics": dict(LAST_SCAN_DIAGNOSTICS),
+            "universe_fetch": dict(LAST_UNIVERSE_FETCH_STATUS),
+            "saved_at": datetime.now().isoformat(),
+        }
+        with open(f"{report_dir}/last_scan_meta.json", "w") as f:
+            json.dump(meta, f)
+    except Exception as e:
+        log.debug(f"Diagnostics meta save failed (non-fatal): {e}")
+
     return filename
+
+
+def load_last_scan_meta(report_dir: str = "reports") -> dict:
+    """Read back the persisted diagnostics/universe-status snapshot for the
+    most recent saved report — the file-based fallback for when
+    st.session_state has been reset (page reload, container wake-up)."""
+    import json
+    path = Path(report_dir) / "last_scan_meta.json"
+    if not path.exists():
+        return {}
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except Exception as e:
+        log.debug(f"Diagnostics meta read failed: {e}")
+        return {}
 
 
 if __name__ == "__main__":
