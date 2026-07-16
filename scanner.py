@@ -101,31 +101,6 @@ def _parse_pipe_delimited(text: str, symbol_col: str,
     return out
 
 
-def fetch_live_us_universe(exchanges: List[str] = None,
-                            exclude_etfs: bool = True) -> List[str]:
-    """
-    Pull the real, current list of US-listed common stocks directly from
-    NASDAQ Trader's public symbol directories — this replaces the old
-    hardcoded ~520-ticker sample with the actual live market (several
-    thousand tickers, filtered to common stock only).
-
-    exchanges: subset of {"nasdaq", "nyse", "amex"} — default all three.
-    Cached 24h locally since these directories only update once per day.
-    """
-    exchanges = exchanges or ["nasdaq", "nyse", "amex"]
-    cache_path = _UNIVERSE_CACHE_DIR / f"us_universe_{'_'.join(sorted(exchanges))}_{exclude_etfs}.json"
-    try:
-        if cache_path.exists():
-            age = time.time() - cache_path.stat().st_mtime
-            if age < _UNIVERSE_CACHE_TTL:
-                import json
-                with open(cache_path) as f:
-                    cached = json.load(f)
-                log.info(f"Live US universe: {len(cached)} tickers (cached, {age/3600:.1f}h old)")
-                return cached
-    except Exception:
-        pass
-
 _UNIVERSE_FETCH_HEADERS = {
     # NASDAQ Trader's server can reject bare python-requests calls (no UA) —
     # a realistic browser UA makes this fetch reliable instead of intermittent.
@@ -226,12 +201,17 @@ def fetch_live_us_universe(exchanges: List[str] = None,
                         tickers.append(sym)
                 log.info(f"NYSE/NYSE American: pulled from otherlisted.txt")
         except Exception as e:
-            log.warning(f"Failed to fetch live NYSE/AMEX listing: {e}")
+            log.warning(f"Failed to fetch live NYSE/AMEX listing after retries: {e}")
+            _errors.append(f"NYSE/AMEX listing: {e}")
 
     tickers = sorted(set(tickers))
 
     if not tickers:
         log.error("Live universe fetch returned 0 tickers — NASDAQ Trader may be unreachable")
+        LAST_UNIVERSE_FETCH_STATUS.update({
+            "source": "failed", "size": 0,
+            "error": "; ".join(_errors) if _errors else "No tickers returned (unknown reason)"
+        })
         return []
 
     try:
@@ -242,6 +222,10 @@ def fetch_live_us_universe(exchanges: List[str] = None,
         log.debug(f"Universe cache write failed: {e}")
 
     log.info(f"Live US universe total: {len(tickers)} tickers")
+    LAST_UNIVERSE_FETCH_STATUS.update({
+        "source": "live", "size": len(tickers),
+        "error": "; ".join(_errors) if _errors else None  # partial success possible
+    })
     return tickers
 
 
