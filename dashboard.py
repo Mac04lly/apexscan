@@ -19,8 +19,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import json
 
-from scanner import load_config, run_scan, save_report, fetch_live_us_universe, build_watchlist
-import scanner as _scanner_mod  # for LAST_SCAN_DIAGNOSTICS after each run_scan()
+from scanner import load_config, run_scan, save_report
 import time as _time
 from datetime import timezone as _timezone
 import threading as _threading
@@ -1785,13 +1784,15 @@ with st.sidebar:
     _ngnm_ok_sb  = bool(_ngnm_key_sb and not _ngnm_key_sb.startswith("YOUR_"))
     st.markdown(f"{'🟢' if _ngnm_ok_sb else '🟡'} NGN Market {'✓ NGX backup' if _ngnm_ok_sb else 'Optional'}")
     st.markdown(f"{'🟢' if _fh_ok else '🟡'} Finnhub {'✓ News'          if _fh_ok else 'Optional'}")
+    if not _ngxp_ok_sb:
+        st.caption("⚠️ Add `ngx_pulse_key` to Streamlit Secrets")
     if not _av_ok:
-        st.caption("Add alpha_vantage_key to Streamlit Secrets")
+        st.caption("Add `alpha_vantage_key` to Streamlit Secrets")
     if not _td_ok:
-        st.caption("Add twelve_data_key to Streamlit Secrets")
+        st.caption("Add `twelve_data_key` to Streamlit Secrets")
 
     st.divider()
-    st.caption("Data: yfinance · Finnhub · Alpha Vantage")
+    st.caption("Data: yfinance · NGX Pulse · NGN Market · AV · Twelve Data")
     st.caption(f"Updated: {datetime.now().strftime('%H:%M:%S')}")
 
     # ── 🌍 Always-visible market status badge ────────────────────────────
@@ -1958,45 +1959,110 @@ if run_btn or _auto_fired:
 
         elif universe_mode == "🌐 US — Extended Universe (NASDAQ + NYSE + NYSE American)":
             _scan_market = "us"
-            with st.spinner("Pulling live NASDAQ + NYSE + NYSE American listings…"):
-                _EXTENDED_UNIVERSE = fetch_live_us_universe(
-                    exchanges=["nasdaq", "nyse", "amex"], exclude_etfs=True
-                )
+            # ── Already in list (NASDAQ + mixed) ──────────────────────────
+            _NASDAQ_NAMES = [
+                # Mega-cap tech / NASDAQ 100 core
+                "AAPL","MSFT","AMZN","NVDA","GOOGL","GOOG","META","TSLA","AVGO","COST",
+                "NFLX","ORCL","ADBE","QCOM","TXN","INTU","AMD","ARM","ASML","TSM",
+                # Semiconductors
+                "AMAT","LRCX","KLAC","MU","MRVL","SMCI","CDNS","SNPS","ON","MPWR",
+                # Software / Cloud
+                "CRM","DDOG","SNOW","NET","ZS","PANW","FTNT","CRWD","PLTR","VEEV",
+                "WDAY","TEAM","HUBS","NOW","MDB","GTLB","BILL","PATH","AI","APPN",
+                # Fintech / Crypto
+                "PYPL","COIN","HOOD","SOFI","AFRM","MSTR","SQ","UPST","DAVE","SMAR",
+                # Biotech / Health (NASDAQ-listed)
+                "MRNA","BNTX","REGN","BIIB","GILD","IDXX","DXCM","ISRG","ILMN","VRTX",
+                "ALNY","SGEN","BMRN","INCY","EXAS","RARE","NTLA","BEAM","CRSP","EDIT",
+                # Consumer / Retail (NASDAQ)
+                "MNST","CELH","LULU","ONON","DUOL","ROST","DLTR","FAST","ODFL","CTAS",
+                # Growth / Emerging (NASDAQ)
+                "RKLB","IONQ","ASTS","ACHR","SOUN","RXRX","HIMS","RDDT","CAVA","TMDX",
+                "LUNR","BTDR","DOCN","OPEN","UWMC","JOBY","ABNB","DASH","LYFT","UBER",
+                "SHOP","SPOT","ROKU","TTD","MTCH","MELI","SE","GRAB","DKNG","RBLX",
+            ]
 
-            _fetch_status = dict(getattr(_scanner_mod, "LAST_UNIVERSE_FETCH_STATUS", {}) or {})
+            # ── NYSE — Blue-chip, Industrials, Financials, Energy, Healthcare ─
+            _NYSE_NAMES = [
+                # Financials (NYSE)
+                "JPM","GS","MS","BAC","WFC","C","AXP","BLK","SCHW","ICE","CME",
+                "SPGI","MCO","AMP","PGR","MET","TRV","AFL","ALL","CB","HIG","L",
+                "BX","KKR","APO","CG","ARES","TPG","BN","BAM","TROW","IVZ","BEN",
+                "WTW","AON","MMC","USB","PNC","TFC","FITB","KEY","CFG","RF","HBAN",
+                # Healthcare (NYSE)
+                "UNH","CI","CVS","HCA","MCK","CAH","DHR","TMO","ABT","MDT","SYK",
+                "BSX","EW","ZBH","BDX","BAX","STE","HOLX","IQV","CRL","MTD","WAT",
+                "LH","DGX","CTLT","PKI","VTRS","RPRX","JAZZ","ALKS","ITCI","ACAD",
+                "LLY","ABBV","BMY","PFE","JNJ","MRK","AZN","NVO","GSK","SNY",
+                # Energy (NYSE)
+                "XOM","CVX","COP","SLB","BKR","HAL","PSX","VLO","MPC","EOG",
+                "PXD","DVN","OXY","FANG","HES","APA","NOV","WHD","TRGP","KMI",
+                "WMB","OKE","EPD","ET","PAA","MMP","LNG","AR","EQT","RRC",
+                # Industrials / Defence (NYSE)
+                "BA","RTX","LMT","NOC","GD","HII","TDG","HWM","GE","HON","MMM",
+                "CAT","DE","EMR","ETN","PH","ITW","ROK","AME","ROP","CPRT","EXPD",
+                "UPS","FDX","GXO","XPO","CHRW","JBHT","SAIA","TFII","ZTO","DAL",
+                "UAL","AAL","LUV","ALK","SAVE","H","MAR","HLT","WH","CHH","NCLH",
+                # Materials / Metals (NYSE)
+                "LIN","APD","SHW","ECL","IFF","PPG","RPM","FMC","CF","MOS","NTR",
+                "NUE","STLD","CMC","RS","ATI","FCX","SCCO","AA","CLF","MP","ALB",
+                "LAC","LTHM","SQM","VALE","RIO","BHP","GOLD","NEM","AEM","PAAS",
+                # Chemicals / Specialty Materials (NYSE)
+                "DOW","DD","LYB","HUN","CE","EMN","OLN","ASH","TROX","IOSP",
+                # Utilities (NYSE)
+                "NEE","D","SO","DUK","AEP","SRE","PCG","XEL","AWK","ES","EXC",
+                "ED","PPL","ETR","FE","AEE","CMS","DTE","LNT","PNW","WEC","NI",
+                # Real Estate / REITs (NYSE)
+                "PLD","AMT","CCI","SBAC","EQIX","DLR","O","SPG","PSA","EXR",
+                "AVB","EQR","UDR","ESS","MAA","CPT","NNN","VICI","MGM","WYNN","LVS",
+                "HST","RHP","PK","SHO","PLYA","APLE","CLDT","CPLG","RLJ","XHR",
+                # Consumer Staples (NYSE)
+                "WMT","PG","KO","PEP","PM","MO","CL","KMB","CHD","CLX","HRL",
+                "SJM","CAG","CPB","GIS","K","MKC","HSY","TR","MDLZ","KHC","STZ",
+                "BF-B","TAP","SAM","BUD","DEO","BTI","BURL","TJX","COST","DG","DLTR",
+                # Consumer Discretionary (NYSE)
+                "HD","TGT","LOW","MCD","SBUX","YUM","CMG","DPZ","QSR","EAT","DRI",
+                "TXRH","BLMN","BJRI","CAKE","SHAK","WING","PLNT","BJ","FIVE","OLLI",
+                "F","GM","STLA","HOG","RACE","TM","HMC","MGA","LEA","BWA","ALV",
+                "NKE","DECK","SKX","CROX","PVH","RL","TPR","TIF","VFC","HBI","UA",
+                # Technology (NYSE-listed)
+                "IBM","ORCL","HPQ","HPE","DELL","NCR","CDW","LDOS","SAIC","BAH",
+                "ACN","WIT","INFY","CTSH","EPAM","GLOB","MFAC","DXC","CSC","CACI",
+            ]
 
-            if not _EXTENDED_UNIVERSE:
-                _EXTENDED_UNIVERSE = build_watchlist(cfg, "us")
-                st.session_state["last_universe_status"] = {
-                    "fell_back": True,
-                    "fallback_size": len(_EXTENDED_UNIVERSE),
-                    "error": _fetch_status.get("error", "unknown reason"),
-                }
-            else:
-                st.session_state["last_universe_status"] = {
-                    "fell_back": False,
-                    "live_size": len(_EXTENDED_UNIVERSE),
-                    "error": _fetch_status.get("error"),  # partial-success errors, if any
-                }
+            # ── NYSE American (AMEX) — small/mid growth and mining ────────
+            _NYSE_AMERICAN_NAMES = [
+                # Growth / Emerging (NYSE American)
+                "LUNR","ACHR","JOBY","ASTS","SOUN","RXRX","IONQ","BTBT","MARA",
+                "RIOT","HUT","BITF","CIFR","CLSK","IREN","WULF","BTDR",
+                # Mining / Resources (NYSE American)
+                "AG","EXK","PAAS","SILV","CDE","HL","GPL","MUX","AUY","KGC",
+                "GATO","MAG","SVM","FSM","ERO","ATX","VZLA","SAND","WPM","OR",
+                # Biotech / Pharma (NYSE American)
+                "ACAD","SAGE","INVA","PRTA","KYMR","ARQT","GOSS","AUPH","NKTR",
+                "AVXL","SNDX","PRAX","IMVT","DNLI","KRTX","VRNA","AKRO","TARS",
+                # Energy (NYSE American)
+                "CRC","SM","CIVI","MGY","ESTE","REX","FLNG","GMLP","SLNG",
+                # Special Situations / Growth (NYSE American)
+                "OPEN","UWMC","DAVE","HIMS","RDDT","CAVA","TMDX","MSTR",
+            ]
+
+            # Merge all, deduplicate, preserve order
+            _seen = set()
+            _EXTENDED_UNIVERSE = []
+            for _tk in (_NASDAQ_NAMES + _NYSE_NAMES + _NYSE_AMERICAN_NAMES):
+                if _tk not in _seen:
+                    _seen.add(_tk)
+                    _EXTENDED_UNIVERSE.append(_tk)
 
             _universe_override = _EXTENDED_UNIVERSE
-
-        else:
-            # Any other universe mode: clear stale Extended-Universe status so
-            # it isn't shown against a run that didn't use it.
-            st.session_state.pop("last_universe_status", None)
+            st.info(
+                f"🌐 Extended Universe: scanning {len(_EXTENDED_UNIVERSE)} tickers "
+                f"(NASDAQ + NYSE + NYSE American)…"
+            )
 
         df_raw  = run_scan(cfg, universe_override=_universe_override,
                            market=_scan_market)
-
-        # Persist diagnostics to session_state — this block renders right
-        # before st.rerun() below, which immediately wipes the page and
-        # reloads the Leaderboard from the saved CSV through a different
-        # code path, so an inline expander here would never actually be
-        # visible. Session state survives the rerun; render it in the
-        # Leaderboard tab instead (see tabs[0] below).
-        st.session_state["last_scan_diagnostics"] = dict(getattr(_scanner_mod, "LAST_SCAN_DIAGNOSTICS", {}) or {})
-
         if not df_raw.empty:
             save_report(df_raw)
             try:
@@ -2038,11 +2104,10 @@ elif not df_raw.empty:
 
 df = df_raw.copy()
 if not df.empty:
-    _is_snap = df["snapshot_only"].fillna(False).astype(bool) if "snapshot_only" in df.columns else pd.Series(False, index=df.index)
     if "apex_score" in df.columns:
-        df = df[(pd.to_numeric(df["apex_score"], errors="coerce") >= min_score) | _is_snap]
+        df = df[pd.to_numeric(df["apex_score"], errors="coerce") >= min_score]
     if "perf_3m_%" in df.columns:
-        df = df[(pd.to_numeric(df["perf_3m_%"], errors="coerce") >= min_3m) | _is_snap]
+        df = df[pd.to_numeric(df["perf_3m_%"], errors="coerce") >= min_3m]
 
 
 
@@ -2053,29 +2118,7 @@ if not df.empty:
 with tabs[0]:
     if df.empty:
         st.info("Click **🚀 Run Live Scan** or **📂 Load Last Report** in the sidebar.")
-        _diag0 = st.session_state.get("last_scan_diagnostics") or {}
-        if _diag0 and _diag0.get("attempted", 0) > 0:
-            _att0 = _diag0.get("attempted", 0)
-            _nh0  = _diag0.get("no_history", 0)
-            with st.expander(f"🔍 Last scan data coverage: {_att0 - _nh0}/{_att0} tickers had usable price data", expanded=True):
-                st.write(f"**{_att0}** tickers attempted")
-                st.write(f"- {_nh0} had no usable price history")
-                st.write(f"- {_diag0.get('snapshot_only', 0)} used today's snapshot only (NGX)")
-                st.write(f"- {_diag0.get('failed_stage', 0)} failed the Stage gate")
-                st.write(f"- {_diag0.get('failed_perf', 0)} failed the 3-month performance minimum")
-                st.write(f"- {_diag0.get('failed_rs', 0)} failed the relative-strength minimum")
-                st.write(f"- {_diag0.get('failed_vol_or_score', 0)} failed the Volume or Score filter")
-                st.write(f"- **{_diag0.get('passed', 0)}** passed all gates")
     else:
-        if "snapshot_only" in df.columns and df["snapshot_only"].fillna(False).any():
-            _n_snap = int(df["snapshot_only"].fillna(False).sum())
-            st.info(
-                f"ℹ️ {_n_snap} NGX row(s) below are **today's snapshot only** (marked "
-                f"'N/A (snapshot only)' in Stage) — no price history was available yet "
-                f"for full technical scoring (MA/RS/52w-high), so these are ranked by "
-                f"today's price move and volume instead. Full technical setups will "
-                f"appear automatically once enough daily history accumulates."
-            )
         c1,c2,c3,c4,c5 = st.columns(5)
         with c1:
             st.markdown(f'<div class="metric-card"><h3>Tickers Passing</h3><div class="value white">{len(df)}</div></div>', unsafe_allow_html=True)
@@ -2093,64 +2136,6 @@ with tabs[0]:
             st.markdown(f'<div class="metric-card"><h3>Themes Active</h3><div class="value green">{themes_n}</div></div>', unsafe_allow_html=True)
 
         st.markdown("---")
-
-        # ── Extended Universe fallback warning — persisted, not transient ──
-        _uni_status = st.session_state.get("last_universe_status")
-        if _uni_status:
-            if _uni_status.get("fell_back"):
-                st.error(
-                    f"⚠️ **This scan did NOT use the live Extended Universe.** The live "
-                    f"NASDAQ/NYSE/NYSE American pull failed "
-                    f"({_uni_status.get('error') or 'unknown reason'}), so it silently fell "
-                    f"back to the small curated watchlist — only "
-                    f"**{_uni_status.get('fallback_size')} tickers** were actually scanned "
-                    f"below, not the full live market. Try **Run Live Scan Now** again; "
-                    f"if this keeps happening, NASDAQ Trader may be rate-limiting or blocking "
-                    f"requests from this server."
-                )
-            else:
-                st.success(
-                    f"✅ Extended Universe: this scan used **{_uni_status.get('live_size')} "
-                    f"real, live tickers** from NASDAQ + NYSE + NYSE American."
-                    + (f" (note: {_uni_status['error']})" if _uni_status.get("error") else "")
-                )
-
-        # ── Scan data coverage — persisted across the post-scan rerun ──────
-        _diag = st.session_state.get("last_scan_diagnostics") or {}
-        if _diag and _diag.get("attempted", 0) > 0:
-            _attempted   = _diag.get("attempted", 0)
-            _no_hist     = _diag.get("no_history", 0)
-            _no_hist_pct = _no_hist / _attempted * 100
-            with st.expander(
-                f"🔍 Last scan data coverage: {_attempted - _no_hist}/{_attempted} "
-                f"tickers had usable price data ({100 - _no_hist_pct:.0f}%)",
-                expanded=(_no_hist_pct > 40)
-            ):
-                st.write(f"**{_attempted}** tickers attempted")
-                st.write(f"- {_no_hist} had no usable price history "
-                         f"(data source didn't return data for this ticker)")
-                st.write(f"- {_diag.get('snapshot_only', 0)} used today's snapshot only "
-                         f"(NGX — no historical bars yet)")
-                st.write(f"- {_diag.get('failed_stage', 0)} had valid data but failed the "
-                         f"Stage gate (not in a confirmed uptrend)")
-                st.write(f"- {_diag.get('failed_perf', 0)} failed the 3-month performance minimum")
-                st.write(f"- {_diag.get('failed_rs', 0)} failed the relative-strength minimum")
-                st.write(f"- {_diag.get('failed_vol_or_score', 0)} failed the Volume or Score filter")
-                st.write(f"- **{_diag.get('passed', 0)}** passed all gates")
-                if _no_hist_pct > 40:
-                    st.warning(
-                        f"⚠️ {_no_hist_pct:.0f}% of attempted tickers had no usable price data. "
-                        f"That's high enough to suspect a data-fetch issue (rate limiting, "
-                        f"batch download failures, or delisted/illiquid tickers in the live "
-                        f"listing) rather than the market genuinely lacking setups."
-                    )
-                elif _diag.get('failed_stage', 0) > 0.7 * _attempted:
-                    st.info(
-                        "Most tickers had valid data but failed the Stage gate — consistent "
-                        "with a broad market correction/topping phase, where few stocks are "
-                        "in a confirmed uptrend at once. That's the filter doing its job, "
-                        "not a data problem."
-                    )
 
         # ── 🌱 Correction Watchlist (William O'Neil basing lesson) ─────────
         # "New bases form during market corrections. Don't spend corrections
