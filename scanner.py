@@ -61,210 +61,6 @@ def build_watchlist(cfg: dict, market: str = "us") -> List[str]:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# LIVE FULL-MARKET UNIVERSE (real listing pull, not a hardcoded list)
-# ══════════════════════════════════════════════════════════════════════════════
-# NASDAQ Trader publishes the official, free, no-key-required daily symbol
-# directories for every listed security across NASDAQ, NYSE, NYSE American,
-# NYSE Arca, and Cboe BZX. This is the actual source-of-truth listing used
-# by real market-data vendors — not a curated sample. ~8,000-11,000 tickers
-# combined before filtering out ETFs/funds/test issues/warrants/units.
-
-_NASDAQ_LISTED_URL = "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt"
-_OTHER_LISTED_URL  = "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt"
-_UNIVERSE_CACHE_DIR = Path(__file__).resolve().parent / "data" / "universe_cache"
-_UNIVERSE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-_UNIVERSE_CACHE_TTL = 24 * 3600  # listing directories only change daily
-
-
-def _parse_pipe_delimited(text: str, symbol_col: str,
-                           exclude_cols: List[str]) -> List[str]:
-    """Parse a NASDAQ Trader pipe-delimited symbol directory file."""
-    lines = [l for l in text.splitlines() if l and not l.startswith("File Creation Time")]
-    if len(lines) < 2:
-        return []
-    header = lines[0].split("|")
-    idx = {h.strip(): i for i, h in enumerate(header)}
-    if symbol_col not in idx:
-        return []
-    out = []
-    for row in lines[1:]:
-        fields = row.split("|")
-        if len(fields) != len(header):
-            continue
-        if any(idx.get(c) is not None and fields[idx[c]].strip().upper() == "Y" for c in exclude_cols):
-            continue
-        sym = fields[idx[symbol_col]].strip()
-        # Skip symbols with warrant/unit/rights suffixes and test tickers
-        if not sym or "$" in sym or sym.endswith((".W", ".U", ".R", ".WS")):
-            continue
-        out.append(sym)
-    return out
-
-
-_UNIVERSE_FETCH_HEADERS = {
-    # NASDAQ Trader's server can reject bare python-requests calls (no UA) —
-    # a realistic browser UA makes this fetch reliable instead of intermittent.
-    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                   "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
-    "Accept": "text/plain,*/*",
-}
-
-
-def _fetch_with_retry(url: str, attempts: int = 3, timeout: int = 20):
-    """GET with retries + backoff — NASDAQ Trader occasionally times out or
-    blips, and a single failed attempt shouldn't silently cut the universe
-    from ~7,000 tickers down to a 59-ticker fallback."""
-    last_err = None
-    for i in range(attempts):
-        try:
-            resp = requests.get(url, headers=_UNIVERSE_FETCH_HEADERS, timeout=timeout)
-            resp.raise_for_status()
-            return resp
-        except Exception as e:
-            last_err = e
-            log.warning(f"Fetch attempt {i+1}/{attempts} failed for {url}: {e}")
-            if i < attempts - 1:
-                time.sleep(2 * (i + 1))
-    raise last_err
-
-
-# Populated by fetch_live_us_universe() so the caller (dashboard) can show
-# an unmissable, persisted warning if it had to fall back — instead of a
-# message that flashes and vanishes before st.rerun().
-LAST_UNIVERSE_FETCH_STATUS = {"source": None, "size": 0, "error": None}
-
-
-def fetch_live_us_universe(exchanges: List[str] = None,
-                            exclude_etfs: bool = True) -> List[str]:
-    """
-    Pull the real, current list of US-listed common stocks directly from
-    NASDAQ Trader's public symbol directories — this replaces the old
-    hardcoded ~520-ticker sample with the actual live market (several
-    thousand tickers, filtered to common stock only).
-
-    exchanges: subset of {"nasdaq", "nyse", "amex"} — default all three.
-    Cached 24h locally since these directories only update once per day.
-    """
-    exchanges = exchanges or ["nasdaq", "nyse", "amex"]
-    cache_path = _UNIVERSE_CACHE_DIR / f"us_universe_{'_'.join(sorted(exchanges))}_{exclude_etfs}.json"
-    try:
-        if cache_path.exists():
-            age = time.time() - cache_path.stat().st_mtime
-            if age < _UNIVERSE_CACHE_TTL:
-                import json
-                with open(cache_path) as f:
-                    cached = json.load(f)
-                log.info(f"Live US universe: {len(cached)} tickers (cached, {age/3600:.1f}h old)")
-                LAST_UNIVERSE_FETCH_STATUS.update({"source": "live_cached", "size": len(cached), "error": None})
-                return cached
-    except Exception:
-        pass
-
-    tickers: List[str] = []
-    exclude = ["Test Issue"] + (["ETF"] if exclude_etfs else [])
-    _errors = []
-
-    if "nasdaq" in exchanges:
-        try:
-            resp = _fetch_with_retry(_NASDAQ_LISTED_URL)
-            nasdaq_syms = _parse_pipe_delimited(resp.text, "Symbol", exclude)
-            tickers.extend(nasdaq_syms)
-            log.info(f"NASDAQ listed: {len(nasdaq_syms)} tickers pulled live")
-        except Exception as e:
-            log.warning(f"Failed to fetch live NASDAQ listing after retries: {e}")
-            _errors.append(f"NASDAQ listing: {e}")
-
-    if "nyse" in exchanges or "amex" in exchanges:
-        try:
-            resp = _fetch_with_retry(_OTHER_LISTED_URL)
-            lines = [l for l in resp.text.splitlines() if l and not l.startswith("File Creation Time")]
-            if len(lines) >= 2:
-                header = lines[0].split("|")
-                idx = {h.strip(): i for i, h in enumerate(header)}
-                ex_col = idx.get("Exchange")
-                # A = NYSE American, N = NYSE, P = NYSE Arca, Z = Cboe BZX, V = IEXG
-                wanted_codes = set()
-                if "nyse"  in exchanges: wanted_codes.add("N")
-                if "amex"  in exchanges: wanted_codes.add("A")
-                for row in lines[1:]:
-                    fields = row.split("|")
-                    if len(fields) != len(header):
-                        continue
-                    if ex_col is not None and fields[ex_col].strip() not in wanted_codes:
-                        continue
-                    if exclude_etfs and idx.get("ETF") is not None and fields[idx["ETF"]].strip().upper() == "Y":
-                        continue
-                    if idx.get("Test Issue") is not None and fields[idx["Test Issue"]].strip().upper() == "Y":
-                        continue
-                    sym = fields[idx["ACT Symbol"]].strip()
-                    if sym and "$" not in sym and not sym.endswith((".W", ".U", ".R", ".WS")):
-                        tickers.append(sym)
-                log.info(f"NYSE/NYSE American: pulled from otherlisted.txt")
-        except Exception as e:
-            log.warning(f"Failed to fetch live NYSE/AMEX listing after retries: {e}")
-            _errors.append(f"NYSE/AMEX listing: {e}")
-
-    tickers = sorted(set(tickers))
-
-    if not tickers:
-        log.error("Live universe fetch returned 0 tickers — NASDAQ Trader may be unreachable")
-        LAST_UNIVERSE_FETCH_STATUS.update({
-            "source": "failed", "size": 0,
-            "error": "; ".join(_errors) if _errors else "No tickers returned (unknown reason)"
-        })
-        return []
-
-    try:
-        import json
-        with open(cache_path, "w") as f:
-            json.dump(tickers, f)
-    except Exception as e:
-        log.debug(f"Universe cache write failed: {e}")
-
-    log.info(f"Live US universe total: {len(tickers)} tickers")
-    LAST_UNIVERSE_FETCH_STATUS.update({
-        "source": "live", "size": len(tickers),
-        "error": "; ".join(_errors) if _errors else None  # partial success possible
-    })
-    return tickers
-
-
-def batch_download_history(tickers: List[str], period: str = "1y",
-                            chunk_size: int = 150) -> Dict[str, pd.DataFrame]:
-    """
-    Batch-download OHLCV history for many tickers at once using yfinance's
-    multi-ticker download (one HTTP round-trip per chunk instead of one per
-    ticker). This is what makes scanning thousands of tickers feasible at
-    all — the old one-ticker-at-a-time loop would take hours at this scale.
-    Returns {ticker: DataFrame} for tickers with usable data.
-    """
-    out: Dict[str, pd.DataFrame] = {}
-    for i in range(0, len(tickers), chunk_size):
-        chunk = tickers[i:i + chunk_size]
-        try:
-            data = yf.download(chunk, period=period, group_by="ticker",
-                                threads=True, progress=False, auto_adjust=False)
-        except Exception as e:
-            log.warning(f"Batch download failed for chunk {i//chunk_size}: {e}")
-            continue
-        for t in chunk:
-            try:
-                if len(chunk) == 1:
-                    df = data
-                else:
-                    df = data[t] if t in data.columns.get_level_values(0) else None
-                if df is not None and not df.empty and "Close" in df.columns:
-                    df = df.dropna(subset=["Close"])
-                    if len(df) > 0:
-                        out[t] = df
-            except Exception:
-                continue
-        log.info(f"Batch {i//chunk_size + 1}/{(len(tickers)-1)//chunk_size + 1}: "
-                  f"{len(out)} tickers with data so far")
-    return out
-
-
-# ══════════════════════════════════════════════════════════════════════════════
 # FINNHUB
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -510,8 +306,6 @@ try:
         get_ngx_index as ngxp_get_index,
         get_all_stocks_lookup as ngxp_get_lookup,
         validate_api_key as ngxp_validate,
-        accumulate_daily_snapshots as ngxp_accumulate_snapshots,
-        get_snapshot_scan_data as ngxp_get_snapshot,
     )
     _HAS_NGX_PULSE = True
 except ImportError:
@@ -520,8 +314,6 @@ except ImportError:
     def ngxp_get_index(api_key): return None
     def ngxp_get_lookup(api_key): return {}
     def ngxp_validate(api_key): return {"ok": False, "message": "NGX Pulse module not installed"}
-    def ngxp_accumulate_snapshots(api_key): return 0
-    def ngxp_get_snapshot(ticker, api_key, lookup=None): return None
 
 # ── NGN Market module (api.ngnmarket.com — optional, graceful fallback) ───────
 try:
@@ -1092,24 +884,11 @@ def analyze_stock(ticker: str, cfg: dict,
                     _ngx_idx = ngnm_get_index(ngnm_key)
                 _ngx_bench = _ngx_idx["df"]["Close"] if _ngx_idx else None
         else:
-            _cached_hist = cfg.get("_us_hist_cache", {}).get(ticker)
-            hist = _cached_hist if _cached_hist is not None else yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
-        _min_bars = cfg["scan"].get("min_history_bars_ng", 30) if _is_ngx else cfg["scan"]["min_history_bars"]
+            hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
+        # NGX stocks may have fewer bars — use a lower floor
+        _min_bars = 30 if _is_ngx else cfg["scan"]["min_history_bars"]
         if len(hist) < _min_bars:
-            log.debug(f"{ticker}: only {len(hist)} bars (need {_min_bars}), skipping")
-            if _is_ngx and _HAS_NGX_PULSE and ngxp_key:
-                _snap = ngxp_get_snapshot(ticker, ngxp_key, cfg.get("_ngx_snapshot_lookup"))
-                if _snap is not None:
-                    return {
-                        "ticker": ticker, "theme": "NGX (snapshot)", "market": "NGX",
-                        "price": _snap["price"],
-                        "stage": "N/A (snapshot only)", "perf_3m_%": None,
-                        "rs_3m": None, "apex_score": None,
-                        "volume": _snap["volume"], "vol_filter": _snap["volume"],
-                        "sector": _snap["sector"], "pe": _snap["pe"],
-                        "name": _snap["name"], "change_pct": _snap["change_pct"],
-                        "snapshot_only": True,
-                    }
+            log.debug(f"{ticker}: only {len(hist)} bars (min={_min_bars}), skipping")
             return None
 
         close         = hist["Close"]
@@ -1127,19 +906,11 @@ def analyze_stock(ticker: str, cfg: dict,
         near_52wh    = current_price >= high_52w * thresholds["near_52w_high"]
         pct_off_high = round((current_price / high_52w - 1) * 100, 1) if high_52w else 0.0
 
-        ma50         = close.rolling(min(50, len(close))).mean().iloc[-1]
+        ma50         = close.rolling(50).mean().iloc[-1]
         ma200        = close.rolling(200).mean().iloc[-1]
-        # NGX data providers rarely deliver a full clean 200-bar series, so a strict
-        # 200MA requirement would silently zero out the entire NGX universe regardless
-        # of score/volume thresholds. When ma200 isn't computable (or NGX has fewer than
-        # 200 bars), fall back to whatever longer-window MA is available (100 or the
-        # longest we have) so NGX names can still clear the "stage" gate.
-        if _is_ngx and (pd.isna(ma200) or len(close) < 200):
-            _fallback_window = min(100, len(close))
-            ma200 = close.rolling(_fallback_window).mean().iloc[-1]
         above_50ma   = bool(current_price > ma50)
-        above_200ma  = bool(current_price > ma200) if not pd.isna(ma200) else False
-        ma50_gt_200  = bool(ma50 > ma200) if not pd.isna(ma200) else False
+        above_200ma  = bool(current_price > ma200)
+        ma50_gt_200  = bool(ma50 > ma200)
         stage        = detect_stage(current_price, ma50, ma200)
         vs_50ma_pct  = price_vs_ma(current_price, ma50)
         vs_200ma_pct = price_vs_ma(current_price, ma200)
@@ -1569,12 +1340,6 @@ def analyze_stock(ticker: str, cfg: dict,
 # FULL SCAN (two-pass: fast price scan then targeted AV enrichment)
 # ══════════════════════════════════════════════════════════════════════════════
 
-# Populated fresh on every run_scan() call so the dashboard can show exactly
-# where tickers dropped out (no history, failed stage, failed perf/RS, etc.)
-# instead of a generic "no setups found" message.
-LAST_SCAN_DIAGNOSTICS = {}
-
-
 def run_scan(cfg: dict, markets: List[str] = None,
              universe_override: list = None,
              market: str = "us") -> pd.DataFrame:
@@ -1599,29 +1364,6 @@ def run_scan(cfg: dict, markets: List[str] = None,
     else:
         tickers = build_watchlist(cfg, "us")
     log.info(f"Scanning {len(tickers)} US tickers…")
-
-    # NGX: log today's snapshot to our local accumulator (builds real history
-    # over time since the free API tier doesn't provide it), and grab one
-    # bulk snapshot lookup to reuse as a last-resort per-ticker fallback.
-    _ngx_snapshot_lookup = {}
-    if _HAS_NGX_PULSE and any(str(t).upper().endswith(".LG") for t in tickers):
-        _scan_ngxp_key = cfg.get("ngx_pulse_key", "")
-        if _scan_ngxp_key and not _scan_ngxp_key.startswith("YOUR_"):
-            try:
-                ngxp_accumulate_snapshots(_scan_ngxp_key)
-            except Exception as e:
-                log.debug(f"NGX snapshot accumulation failed: {e}")
-            _ngx_snapshot_lookup = ngxp_get_lookup(_scan_ngxp_key) or {}
-
-    # US: for large universes (live full-market pull), batch-download history
-    # instead of one yfinance call per ticker — this is what makes scanning
-    # thousands of tickers feasible in reasonable time at all.
-    _us_hist_cache: Dict[str, pd.DataFrame] = {}
-    _us_tickers_for_batch = [t for t in tickers if not str(t).upper().endswith(".LG")]
-    if len(_us_tickers_for_batch) > 60:
-        log.info(f"Large US universe ({len(_us_tickers_for_batch)} tickers) — batch downloading…")
-        _us_hist_cache = batch_download_history(_us_tickers_for_batch, period=cfg["scan"]["history_period"])
-        log.info(f"Batch download complete: {len(_us_hist_cache)}/{len(_us_tickers_for_batch)} tickers have data")
 
     # Clear per-session caches so each scan starts fresh
     _bench_cache.clear()
@@ -1654,45 +1396,22 @@ def run_scan(cfg: dict, markets: List[str] = None,
     results = []
     pause   = cfg["scan"]["rate_limit_pause"]
 
-    diag = {"attempted": 0, "no_history": 0, "snapshot_only": 0, "failed_stage": 0,
-            "failed_perf": 0, "failed_rs": 0, "failed_vol_or_score": 0,
-            "passed": 0}
-
     # ── Pass 1: price/technical scan, no AV ──────────────────────────────
     log.info("Pass 1: technical scan…")
     for i, ticker in enumerate(tickers):
         if i > 0 and i % 8 == 0:
             time.sleep(pause)
 
-        diag["attempted"] += 1
-        cfg_no_av = {**cfg, "alpha_vantage_key": "", "_ngx_snapshot_lookup": _ngx_snapshot_lookup,
-                     "_us_hist_cache": _us_hist_cache}
+        cfg_no_av = {**cfg, "alpha_vantage_key": ""}
         # Auto-detect market from ticker suffix
         _ticker_market = "ng" if ticker.upper().endswith(".LG") else "us"
         data = analyze_stock(ticker, cfg_no_av, market=_ticker_market)
         if data is None:
-            diag["no_history"] += 1
             continue
 
         _fmkt     = "ng" if data.get("market") == "NGX" else "us"
         min_score = cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"])["score_filter"]
         min_vol   = cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"])["min_volume"]
-
-        # Snapshot-only NGX entries (no usable price history from any source):
-        # can't run MA/RS/stage analysis, so gate on today's move + volume instead
-        # of dropping them silently. These get a distinct low apex_score band
-        # (0-40) so they always sort below fully-analyzed setups.
-        if data.get("snapshot_only"):
-            diag["snapshot_only"] += 1
-            _snap_min_vol = cfg["thresholds"].get("ng", {}).get("min_volume", 10000)
-            if (data.get("volume") or 0) >= _snap_min_vol and (data.get("change_pct") or 0) > 0:
-                data["apex_score"] = round(min(40, max(5, (data.get("change_pct") or 0) * 4)), 1)
-                data["perf_3m_%"]  = None
-                results.append(data)
-                diag["passed"] += 1
-            else:
-                diag["failed_vol_or_score"] += 1
-            continue
 
         # ── Hard gates — reject regardless of score ────────────────────────
         _is_gem_stock = data.get("is_gem", False)
@@ -1700,34 +1419,37 @@ def run_scan(cfg: dict, markets: List[str] = None,
 
         # Gate 1: Stage — gems with fresh 200MA cross allowed through even if
         # Stage 2 isn't fully confirmed yet (that's the whole point of early entry)
-        if _fmkt == "ng":
-            # NGX: much wider margin than US. Thin liquidity means 50/200MA crosses
-            # lag badly and a full clean 200-bar series is often unavailable anyway
-            # (see fallback MA above) — so just require price above its longer MA,
-            # not a confirmed 50>200 cross.
-            _stage_ok = data["above_200ma"]
-            _gem_stage_ok = _is_gem_stock and data["above_200ma"]
+        # NGX EXCEPTION: Nigerian stocks often have < 200 bars of history so
+        # MA200 is NaN → above_200ma = False for nearly all NGX tickers.
+        # For NGX, accept any stock above its 50MA (Stage 1+) as the stage gate.
+        if _ticker_market == "ng":
+            _stage_ok = data["above_50ma"]   # NGX: above 50MA is sufficient
         else:
-            _stage_ok = data["above_200ma"] and data["ma50_gt_ma200"]
-            _gem_stage_ok = (
-                _is_gem_stock and
-                data["above_200ma"] and          # must be above 200MA
-                data.get("fresh_200ma_cross")    # but 50MA can lag — allowed for gems
-            )
+            # PRIMARY: full Stage 2 (above_200ma AND ma50_gt_ma200) = highest quality
+            # SECONDARY: above_200ma only — stock above long-term trend (Stage 1/2 boundary)
+            # We allow secondary because Gate 5 (score) will rank Stage 2 stocks higher anyway
+            _stage_ok = data["above_200ma"]  # must be above 200MA minimum
+        _gem_stage_ok = (
+            _is_gem_stock and
+            data["above_50ma"]               # gems: above 50MA is sufficient
+        )
         if not _stage_ok and not _gem_stage_ok:
-            diag["failed_stage"] += 1
             continue
 
         # Gate 2: 3M performance — gems need only +2% (they're early, not extended)
-        _min_perf = 2.0 if _is_gem_stock else cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"]).get("min_3m_perf", 5)
+        # NGX: use config threshold (3%) or 0 if data is too thin
+        if _ticker_market == "ng":
+            _min_perf = cfg["thresholds"].get("ng", {}).get("min_3m_perf", 0)
+        else:
+            _min_perf = 0.0 if _is_gem_stock else cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"]).get("min_3m_perf", 5)
         if data["perf_3m_%"] < _min_perf:
-            diag["failed_perf"] += 1
             continue
 
-        # Gate 3: RS — gems can have RS > -20 (very early movers lag initially)
-        _min_rs = -20 if (_is_gem_stock and _has_early) else 0
+        # Gate 3: RS — minimum RS gate. Score already penalises low RS stocks.
+        # Set at -50 so only extreme laggards are excluded. Quality sorting
+        # happens via the Apex Score, not hard RS gates.
+        _min_rs = -50 if _is_gem_stock else -30
         if data["rs_3m"] < _min_rs:
-            diag["failed_rs"] += 1
             continue
 
         # Gate 4: Volume — gems use lower floor (100K vs 300K)
@@ -1738,13 +1460,6 @@ def run_scan(cfg: dict, markets: List[str] = None,
 
         if data["apex_score"] >= _min_score_eff and data.get("vol_filter", data["volume"]) >= _min_vol_eff:
             results.append(data)
-            diag["passed"] += 1
-        else:
-            diag["failed_vol_or_score"] += 1
-
-    LAST_SCAN_DIAGNOSTICS.clear()
-    LAST_SCAN_DIAGNOSTICS.update(diag)
-    log.info(f"Scan diagnostics: {diag}")
 
     if not results:
         log.warning("No results passed filters.")
@@ -1809,233 +1524,7 @@ def run_scan(cfg: dict, markets: List[str] = None,
     df = pd.DataFrame(results).sort_values("apex_score", ascending=False).reset_index(drop=True)
     df.index += 1
     df.index.name = "rank"
-
-    try:
-        log_scan_signals(df)
-    except Exception as e:
-        log.debug(f"Signal logging failed (non-fatal): {e}")
-
     return df
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SIGNAL TRACK RECORD — logs every scan result so win-rate/forward-return
-# stats can be measured over time, independent of whether any trade was
-# actually taken. This is what turns "the scanner found 55 setups" into
-# "the scanner's setups are up X% on average Y days later."
-# ══════════════════════════════════════════════════════════════════════════════
-# NOTE ON PERSISTENCE: like config.yaml and the NGX accumulation cache, this
-# local CSV lives on Streamlit Cloud's ephemeral container filesystem — it
-# will be wiped on redeploy/reboot, same root cause as the API-key issue
-# fixed earlier in this project. For a log meant to prove a track record
-# over months, that's a real problem: don't trust this file to survive long
-# term without also wiring up Supabase (see log_scan_signals_supabase below).
-
-_SIGNAL_LOG_PATH = Path(__file__).resolve().parent / "data" / "signal_log.csv"
-_SIGNAL_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-_SIGNAL_LOG_COLUMNS = ["date_logged", "ticker", "market", "price", "apex_score",
-                       "stage", "theme", "rs_3m", "perf_3m_%", "volume"]
-
-
-def log_scan_signals(df: pd.DataFrame) -> int:
-    """
-    Append every result from this scan to the local signal log, one row per
-    ticker per calendar day (idempotent — re-running the same day just
-    updates that day's row rather than duplicating it). Silently no-ops if
-    df is empty. Returns the number of rows written.
-    """
-    if df is None or df.empty:
-        return 0
-    today = datetime.now().strftime("%Y-%m-%d")
-
-    existing = pd.DataFrame(columns=_SIGNAL_LOG_COLUMNS)
-    if _SIGNAL_LOG_PATH.exists():
-        try:
-            existing = pd.read_csv(_SIGNAL_LOG_PATH)
-        except Exception as e:
-            log.warning(f"Signal log read error (starting fresh): {e}")
-
-    rows = []
-    for _, row in df.iterrows():
-        rows.append({
-            "date_logged": today,
-            "ticker":      row.get("ticker"),
-            "market":      row.get("market", "US"),
-            "price":       row.get("price"),
-            "apex_score":  row.get("apex_score"),
-            "stage":       row.get("stage"),
-            "theme":       row.get("theme"),
-            "rs_3m":       row.get("rs_3m"),
-            "perf_3m_%":   row.get("perf_3m_%"),
-            "volume":      row.get("volume"),
-        })
-    new_rows = pd.DataFrame(rows, columns=_SIGNAL_LOG_COLUMNS)
-
-    if not existing.empty:
-        # Drop any existing rows for (today, ticker) so re-running the same
-        # day updates rather than duplicates
-        key = existing["date_logged"].astype(str) + "|" + existing["ticker"].astype(str)
-        new_key = new_rows["date_logged"].astype(str) + "|" + new_rows["ticker"].astype(str)
-        existing = existing[~key.isin(set(new_key))]
-        combined = pd.concat([existing, new_rows], ignore_index=True)
-    else:
-        combined = new_rows
-
-    combined.to_csv(_SIGNAL_LOG_PATH, index=False)
-    log.info(f"Signal log: wrote {len(new_rows)} rows for {today} "
-             f"({len(combined)} total rows in log)")
-
-    # Optional durable copy — see log_scan_signals_supabase() below. Config-gated
-    # so this is a no-op unless the user has actually set up Supabase for it.
-    try:
-        log_scan_signals_supabase(new_rows)
-    except Exception as e:
-        log.debug(f"Supabase signal log skipped/failed (non-fatal): {e}")
-
-    return len(new_rows)
-
-
-def log_scan_signals_supabase(new_rows: pd.DataFrame) -> None:
-    """
-    Optional durable persistence for the signal log via Supabase — since the
-    local CSV above lives on Streamlit Cloud's ephemeral filesystem and gets
-    wiped on every redeploy/reboot (the same root cause as the NGX API key
-    issue earlier in this project). A track record spanning months needs
-    somewhere that survives that.
-
-    No-ops entirely unless BOTH `supabase_url` and `supabase_key` are set in
-    config.yaml / Streamlit Secrets — safe to leave unconfigured.
-
-    Required Supabase table (create once in the Supabase SQL editor):
-
-        create table signal_log (
-            id           bigint generated always as identity primary key,
-            date_logged  date not null,
-            ticker       text not null,
-            market       text,
-            price        numeric,
-            apex_score   numeric,
-            stage        text,
-            theme        text,
-            rs_3m        numeric,
-            perf_3m      numeric,
-            volume       bigint,
-            unique (date_logged, ticker)
-        );
-
-    Uses Supabase's REST (PostgREST) endpoint directly via `requests` so no
-    extra SDK dependency is needed — same lightweight-integration approach
-    already used for NGX Pulse/NGN Market elsewhere in this codebase.
-    """
-    import os
-    supa_url = os.environ.get("SUPABASE_URL") or _get_secret_safe("supabase_url")
-    supa_key = os.environ.get("SUPABASE_KEY") or _get_secret_safe("supabase_key")
-    if not supa_url or not supa_key or new_rows.empty:
-        return
-
-    payload = new_rows.rename(columns={"perf_3m_%": "perf_3m"}).where(
-        pd.notnull(new_rows), None
-    ).to_dict(orient="records")
-
-    resp = requests.post(
-        f"{supa_url.rstrip('/')}/rest/v1/signal_log",
-        headers={
-            "apikey": supa_key,
-            "Authorization": f"Bearer {supa_key}",
-            "Content-Type": "application/json",
-            "Prefer": "resolution=merge-duplicates",  # upsert on (date_logged, ticker)
-        },
-        json=payload, timeout=15,
-    )
-    if resp.status_code not in (200, 201):
-        log.warning(f"Supabase signal log insert failed: {resp.status_code} {resp.text[:200]}")
-    else:
-        log.info(f"Supabase signal log: {len(payload)} rows synced")
-
-
-def _get_secret_safe(key: str) -> Optional[str]:
-    """Best-effort read of a Streamlit secret without hard-requiring streamlit
-    (scanner.py is also used standalone / from scheduler.py)."""
-    try:
-        import streamlit as st
-        return st.secrets.get(key)
-    except Exception:
-        return None
-
-
-def load_signal_log() -> pd.DataFrame:
-    """Read back the full signal log — from Supabase if configured (survives
-    redeploys), otherwise the local CSV (session/day-scoped only on Streamlit Cloud)."""
-    import os
-    supa_url = os.environ.get("SUPABASE_URL") or _get_secret_safe("supabase_url")
-    supa_key = os.environ.get("SUPABASE_KEY") or _get_secret_safe("supabase_key")
-    if supa_url and supa_key:
-        try:
-            resp = requests.get(
-                f"{supa_url.rstrip('/')}/rest/v1/signal_log",
-                headers={"apikey": supa_key, "Authorization": f"Bearer {supa_key}"},
-                params={"select": "*", "order": "date_logged.asc"}, timeout=15,
-            )
-            if resp.status_code == 200:
-                rows = resp.json()
-                if rows:
-                    df = pd.DataFrame(rows).rename(columns={"perf_3m": "perf_3m_%"})
-                    return df
-        except Exception as e:
-            log.debug(f"Supabase signal log read failed, falling back to local CSV: {e}")
-
-    if not _SIGNAL_LOG_PATH.exists():
-        return pd.DataFrame(columns=_SIGNAL_LOG_COLUMNS)
-    try:
-        return pd.read_csv(_SIGNAL_LOG_PATH)
-    except Exception as e:
-        log.warning(f"Signal log read error: {e}")
-        return pd.DataFrame(columns=_SIGNAL_LOG_COLUMNS)
-
-
-def compute_signal_performance(min_days_old: int = 1) -> pd.DataFrame:
-    """
-    For every logged signal at least `min_days_old` calendar days old, fetch
-    its current price and compute the return since it was flagged. This is
-    the actual track-record measurement — "the scanner found X, here's what
-    happened to X since."
-
-    Only looks up each unique ticker once (not once per log row) to keep
-    this cheap even with a large log.
-    """
-    log_df = load_signal_log()
-    if log_df.empty:
-        return pd.DataFrame()
-
-    log_df["date_logged"] = pd.to_datetime(log_df["date_logged"])
-    cutoff = datetime.now() - timedelta(days=min_days_old)
-    eligible = log_df[log_df["date_logged"] <= cutoff].copy()
-    if eligible.empty:
-        return pd.DataFrame()
-
-    unique_tickers = [t for t in eligible["ticker"].dropna().unique()
-                      if not str(t).upper().endswith(".LG")]  # skip NGX — no reliable current-price source
-    if not unique_tickers:
-        return pd.DataFrame()
-
-    current_prices = {}
-    try:
-        data = yf.download(unique_tickers, period="5d", group_by="ticker",
-                            threads=True, progress=False, auto_adjust=False)
-        for t in unique_tickers:
-            try:
-                df_t = data if len(unique_tickers) == 1 else (data[t] if t in data.columns.get_level_values(0) else None)
-                if df_t is not None and not df_t.empty:
-                    current_prices[t] = float(df_t["Close"].dropna().iloc[-1])
-            except Exception:
-                continue
-    except Exception as e:
-        log.warning(f"Signal performance price fetch failed: {e}")
-
-    eligible["current_price"] = eligible["ticker"].map(current_prices)
-    eligible["return_%"] = ((eligible["current_price"] - eligible["price"]) / eligible["price"] * 100).round(2)
-    eligible["days_since"] = (datetime.now() - eligible["date_logged"]).dt.days
-    return eligible.dropna(subset=["current_price"]).sort_values("date_logged")
 
 
 def save_report(df: pd.DataFrame, report_dir: str = "reports") -> str:
@@ -2043,41 +1532,7 @@ def save_report(df: pd.DataFrame, report_dir: str = "reports") -> str:
     filename = f"{report_dir}/scan_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
     df.to_csv(filename, encoding="utf-8")
     log.info(f"Saved → {filename}")
-
-    # Persist diagnostics + universe-fetch status to disk too — st.session_state
-    # alone resets on page reload / container wake-up, but the CSV report
-    # loads back fine via "Load Last Report", which left the diagnostics
-    # panel blank even when real results were showing. This file-based copy
-    # is read as a fallback whenever session_state is empty (see dashboard.py).
-    try:
-        import json
-        meta = {
-            "diagnostics": dict(LAST_SCAN_DIAGNOSTICS),
-            "universe_fetch": dict(LAST_UNIVERSE_FETCH_STATUS),
-            "saved_at": datetime.now().isoformat(),
-        }
-        with open(f"{report_dir}/last_scan_meta.json", "w") as f:
-            json.dump(meta, f)
-    except Exception as e:
-        log.debug(f"Diagnostics meta save failed (non-fatal): {e}")
-
     return filename
-
-
-def load_last_scan_meta(report_dir: str = "reports") -> dict:
-    """Read back the persisted diagnostics/universe-status snapshot for the
-    most recent saved report — the file-based fallback for when
-    st.session_state has been reset (page reload, container wake-up)."""
-    import json
-    path = Path(report_dir) / "last_scan_meta.json"
-    if not path.exists():
-        return {}
-    try:
-        with open(path) as f:
-            return json.load(f)
-    except Exception as e:
-        log.debug(f"Diagnostics meta read failed: {e}")
-        return {}
 
 
 if __name__ == "__main__":
