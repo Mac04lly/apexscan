@@ -37,7 +37,10 @@ NGN_BASE_URL   = "https://api.ngnmarket.com"
 NGN_CACHE_DIR  = Path(__file__).resolve().parent.parent / "data" / "ngn_cache"
 NGN_CACHE_TTL  = 23 * 3600    # 23h — slightly under 24h to ensure freshness
 NGN_RATE_PAUSE = 1.0           # 1s between requests — generous for 3000/month
-NGN_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    NGN_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
 
 # Session-level memory cache
 _mem: Dict[str, dict] = {}
@@ -48,6 +51,10 @@ _mem: Dict[str, dict] = {}
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _cpath(key: str, ttl: int = None) -> Path:
+    try:
+        NGN_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
     safe = "".join(c if c.isalnum() else "_" for c in key.upper())
     return NGN_CACHE_DIR / f"{safe}.json"
 
@@ -419,7 +426,7 @@ def get_ngn_asi_index(api_key: str, days: int = 380) -> Optional[Dict]:
     a bare pd.Series, so wrap it here rather than change the scanner's
     call site / cache shape.
     """
-    s = get_asi_history(api_key, days=days)
+    s = get_ngn_asi_history(api_key, days=days)
     if s is not None and len(s) > 0:
         return {"df": pd.DataFrame({"Close": s})}
     return None
