@@ -27,17 +27,17 @@ alpha_vantage:
 # ---- THRESHOLDS ----
 thresholds:
   us:
-    min_3m_perf: 5
-    min_volume: 300000
-    rs_rating_min: 50
-    near_52w_high: 0.85
-    score_filter: 25
+    min_3m_perf: 0          # Accept flat — score handles quality ranking
+    min_volume: 100000      # Lowered from 300K — many quality stocks trade lighter
+    rs_rating_min: 0        # Gate 3 in code handles RS floor; score penalises laggards
+    near_52w_high: 0.80     # Within 20% of highs (was 15%)
+    score_filter: 20        # Lowered from 25 — more setups, score sorts them
   ng:
-    min_3m_perf: 0.5        # NGX moves much slower than US — 0.5% minimum 3m return
-    min_volume: 10000       # NGX has far lower daily volumes than US (many names trade <100k/day)
-    rs_rating_min: 20       # wide margin vs US market — NGX benchmark (ASI) behaves very differently
-    near_52w_high: 0.65     # NGX names can set up well without being within 15% of a 52w high
-    score_filter: 8         # much lower bar than US — NGX universe is thin, don't over-filter
+    min_3m_perf: 0          # NGX: accept flat — thin data means performance lags
+    min_volume: 5000        # NGX has much lower volumes than US markets
+    rs_rating_min: 0        # No RS minimum for NGX (limited benchmark data)
+    near_52w_high: 0.70     # NGX stocks can be further from highs
+    score_filter: 10        # Very low bar — NGX scores lower due to thin data
 
 # ---- BENCHMARKS ----
 # Primary: S&P 500
@@ -136,8 +136,6 @@ scan:
   rate_limit_pause: 1.2
   history_period: "1y"
   min_history_bars: 100
-  min_history_bars_ng: 30   # NGX data providers rarely deliver a full clean 1y series —
-                            # require far fewer bars than US so thin-history names aren't skipped
   report_top_n: 20
 
 # ---- ADVANCED SIGNAL THRESHOLDS ----
@@ -250,7 +248,6 @@ ng_themes:
     - CAP.LG        # Chemical and Allied Products Plc
     - DANGCEM.LG        # Dangote Cement Plc
     - JBERGER.LG        # Julius Berger Nigeria Plc
-    - MEYER.LG        # Meyer Plc
     - PREMPAINTS.LG        # Premier Paints Plc
     - WAPCO.LG        # Lafarge Africa Plc
 
@@ -294,7 +291,6 @@ ng_themes:
     - ARADEL.LG        # Aradel Holdings Plc
     - CONOIL.LG        # Conoil Plc
     - ETERNA.LG        # Eterna Plc
-    - MRS.LG        # MRS Oil Nigeria Plc
     - OANDO.LG        # Oando PLC
     - SEPLAT.LG        # Seplat Energy Plc
     - TOTAL.LG        # TotalEnergies Marketing Nigeria Plc
