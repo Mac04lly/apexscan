@@ -1,286 +1,112 @@
-"""
-modules/alerts.py — ApexScan Alert System
-Telegram + Email notifications for breakouts, SFP, flow, VWAP alerts.
-"""
+cp /home/claude/apexscan_files/dashboard.py /home/claude/dashboard_fix.py
 
-import requests
-import json
-import smtplib
-import logging
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from pathlib import Path
-from datetime import datetime
-from typing import Optional
-import pandas as pd
+python3 - << 'PYEOF'
+with open('/home/claude/dashboard_fix.py') as f:
+    src = f.read()
 
-log = logging.getLogger(__name__)
-
-SETTINGS_FILE = Path("data/alert_settings.json")
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SETTINGS
-# ══════════════════════════════════════════════════════════════════════════════
-
-def load_alert_settings() -> dict:
-    if SETTINGS_FILE.exists():
+OLD_DISPATCH = '''if dispatch_alert is None:
+    def dispatch_alert(settings: dict, message: str, title: str = "") -> dict:
+        """Stub: send via Telegram if token configured, else return failure silently."""
+        result = {"telegram": False, "email": False}
         try:
-            return json.loads(SETTINGS_FILE.read_text())
-        except Exception:
+            import urllib.request, urllib.parse
+            _tok = settings.get("telegram_token","")
+            _cid = settings.get("telegram_chat_id","")
+            if _tok and _cid:
+                _text = (f"*{title}*\n\n{message}" if title else message)
+                _body = urllib.parse.urlencode({
+                    "chat_id": _cid,
+                    "text": _text[:4096],
+                    "parse_mode": "Markdown",
+                }).encode()
+                _req = urllib.request.Request(
+                    f"https://api.telegram.org/bot{_tok}/sendMessage",
+                    data=_body, method="POST"
+                )
+                _req.add_header("Content-Type","application/x-www-form-urlencoded")
+                with urllib.request.urlopen(_req, timeout=8) as _resp:
+                    _js = json.loads(_resp.read().decode())
+                    result["telegram"] = _js.get("ok", False)
+        except Exception as _te:
             pass
-    return {
-        "alerts_enabled":        False,
-        "telegram_token":        "",
-        "telegram_chat_id":      "",
-        "email_from":            "",
-        "email_password":        "",
-        "email_to":              "",
-        "alert_breakouts":       True,
-        "alert_stop_breach":     True,
-        "alert_earnings":        True,
-        "alert_sfp_setup":       True,
-        "alert_persistent_flow": True,
-        "alert_vwap_imbalance":  True,
-        "min_score_alert":       60,
-    }
+        return result'''
+
+NEW_DISPATCH = '''if dispatch_alert is None:
+    def dispatch_alert(settings: dict, message: str, title: str = "") -> dict:
+        """
+        Send Telegram alert using JSON body (more reliable than form-encoded).
+        Uses MarkdownV2 with special chars escaped, falls back to plain text.
+        Surfaces Telegram error so user sees exactly what went wrong.
+        """
+        result = {"telegram": False, "email": False, "error": ""}
+        try:
+            import urllib.request, json as _json2
+            _tok = str(settings.get("telegram_token","")).strip()
+            _cid = str(settings.get("telegram_chat_id","")).strip()
+            if not _tok or not _cid:
+                result["error"] = "Token or Chat ID missing"
+                return result
+
+            # Build clean text — avoid Markdown parsing failures
+            _title_clean = title.replace("*","").replace("_","").replace("`","").replace("[","")
+            _msg_clean   = message[:3800]
+            _text = f"*{_title_clean}*\n\n{_msg_clean}" if _title_clean else _msg_clean
+
+            # Try with Markdown first, fall back to plain text if it fails
+            for _parse_mode in ["Markdown", None]:
+                _payload = {"chat_id": _cid, "text": _text[:4096]}
+                if _parse_mode:
+                    _payload["parse_mode"] = _parse_mode
+
+                _body = _json2.dumps(_payload).encode("utf-8")
+                _req  = urllib.request.Request(
+                    f"https://api.telegram.org/bot{_tok}/sendMessage",
+                    data=_body, method="POST"
+                )
+                _req.add_header("Content-Type", "application/json; charset=utf-8")
+
+                try:
+                    with urllib.request.urlopen(_req, timeout=15) as _resp:
+                        _js = _json2.loads(_resp.read().decode())
+                        if _js.get("ok"):
+                            result["telegram"] = True
+                            return result
+                        else:
+                            _err = _js.get("description","Unknown Telegram error")
+                            result["error"] = _err
+                            # If parse mode error, retry without it
+                            if "parse" in _err.lower() or "markdown" in _err.lower():
+                                _text = _msg_clean   # strip title formatting too
+                                continue
+                            return result
+                except urllib.error.HTTPError as _he:
+                    _err_body = _he.read().decode("utf-8","ignore")
+                    try:
+                        _err_js = _json2.loads(_err_body)
+                        result["error"] = _err_js.get("description", f"HTTP {_he.code}")
+                    except Exception:
+                        result["error"] = f"HTTP {_he.code}: {_err_body[:200]}"
+                    # Retry without Markdown
+                    if _parse_mode:
+                        _text = _msg_clean
+                        continue
+                    return result
+
+        except Exception as _te:
+            result["error"] = str(_te)
+        return result'''
+
+count = src.count(OLD_DISPATCH)
+print(f"dispatch_alert: {count}")
+if count == 1:
+    src = src.replace(OLD_DISPATCH, NEW_DISPATCH)
+    print("  → fixed")
+
+with open('/home/claude/dashboard_fix.py', 'w') as f:
+    f.write(src)
+print("Done")
+PYEOF
 
 
-def save_alert_settings(settings: dict):
-    try:
-        SETTINGS_FILE.parent.mkdir(exist_ok=True)
-        SETTINGS_FILE.write_text(json.dumps(settings, indent=2))
-    except Exception as e:
-        log.warning(f"Could not save alert settings: {e}")
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# TELEGRAM
-# ══════════════════════════════════════════════════════════════════════════════
-
-def send_telegram(token: str, chat_id: str, message: str) -> bool:
-    """Send a message via Telegram Bot API. Returns True on success."""
-    if not token or not chat_id:
-        log.warning("Telegram: token or chat_id missing")
-        return False
-    try:
-        url  = f"https://api.telegram.org/bot{token}/sendMessage"
-        resp = requests.post(url, json={
-            "chat_id":    str(chat_id),
-            "text":       message,
-            "parse_mode": "Markdown",
-        }, timeout=10)
-        data = resp.json()
-        if data.get("ok"):
-            log.info("Telegram message sent successfully")
-            return True
-        else:
-            log.warning(f"Telegram API error: {data}")
-            return False
-    except Exception as e:
-        log.warning(f"Telegram send failed: {e}")
-        return False
-
-
-def test_telegram(token: str, chat_id: str) -> bool:
-    """Send a test message to verify Telegram is configured correctly."""
-    msg = (
-        "✅ *ApexScan Alert Test*\n\n"
-        "Your Telegram alerts are working correctly\\!\n\n"
-        f"_Sent at {datetime.now().strftime('%Y\\-%m\\-%d %H:%M:%S')}_"
-    )
-    # Try MarkdownV2 first, fall back to plain text
-    try:
-        url  = f"https://api.telegram.org/bot{token}/sendMessage"
-        resp = requests.post(url, json={
-            "chat_id":    str(chat_id),
-            "text":       "✅ ApexScan Alert Test\n\nYour Telegram alerts are working correctly!\n\nSent at " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            "parse_mode": "Markdown",
-        }, timeout=10)
-        data = resp.json()
-        if data.get("ok"):
-            return True
-        # If parse error, retry plain text
-        if data.get("error_code") == 400:
-            resp2 = requests.post(url, json={
-                "chat_id": str(chat_id),
-                "text": "ApexScan Test: Telegram alerts working! " + datetime.now().strftime('%H:%M:%S'),
-            }, timeout=10)
-            return resp2.json().get("ok", False)
-        log.warning(f"Telegram test error: {data}")
-        return False
-    except Exception as e:
-        log.warning(f"Telegram test failed: {e}")
-        return False
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# EMAIL
-# ══════════════════════════════════════════════════════════════════════════════
-
-def send_email(from_addr: str, password: str, to_addr: str,
-               subject: str, body: str) -> bool:
-    if not all([from_addr, password, to_addr]):
-        return False
-    try:
-        msg = MIMEMultipart()
-        msg["From"]    = from_addr
-        msg["To"]      = to_addr
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(from_addr, password)
-            server.sendmail(from_addr, to_addr, msg.as_string())
-        return True
-    except Exception as e:
-        log.warning(f"Email send failed: {e}")
-        return False
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# DISPATCH
-# ══════════════════════════════════════════════════════════════════════════════
-
-def dispatch_alert(settings: dict, message: str,
-                   subject: str = "ApexScan Alert") -> dict:
-    """Send alert to all configured channels."""
-    results = {"telegram": False, "email": False}
-    if not settings.get("alerts_enabled"):
-        return results
-
-    tok = settings.get("telegram_token", "")
-    cid = settings.get("telegram_chat_id", "")
-    if tok and cid:
-        results["telegram"] = send_telegram(tok, cid, message)
-
-    ef  = settings.get("email_from", "")
-    ep  = settings.get("email_password", "")
-    et  = settings.get("email_to", "")
-    if ef and ep and et:
-        plain = message.replace("*","").replace("_","").replace("`","")
-        results["email"] = send_email(ef, ep, et, subject, plain)
-
-    return results
-
-
-def build_daily_briefing_alert(briefing_text: str) -> tuple:
-    subject = f"ApexScan Daily Briefing — {datetime.now().strftime('%b %d')}"
-    preview = briefing_text[:900] + "…" if len(briefing_text) > 900 else briefing_text
-    msg = (
-        f"📡 *ApexScan Daily Briefing*\n"
-        f"_{datetime.now().strftime('%A, %B %d %Y — %H:%M')}_\n\n"
-        f"{preview}"
-    )
-    return subject, msg
-
-
-def check_and_fire_alerts(scan_df: pd.DataFrame, portfolio: list,
-                           settings: dict, price_fetcher) -> list:
-    """Fire alerts after a scan. Returns list of sent messages."""
-    if not settings.get("alerts_enabled") or scan_df.empty:
-        return []
-
-    sent    = []
-    min_s   = settings.get("min_score_alert", 60)
-    tok     = settings.get("telegram_token","")
-    cid     = settings.get("telegram_chat_id","")
-    scores  = pd.to_numeric(scan_df.get("apex_score", pd.Series()), errors="coerce")
-
-    def _tg(msg):
-        if tok and cid:
-            send_telegram(tok, cid, msg)
-        sent.append(msg)
-
-    # ── 1. Scan summary (always fires if alerts enabled) ──────────────────
-    top5 = scan_df.head(5)
-    summary_lines = []
-    for _, row in top5.iterrows():
-        tk    = row.get("ticker","?")
-        score = row.get("apex_score","?")
-        stage = str(row.get("stage","?"))[:12]
-        of    = str(row.get("of_bias","?"))[:12]
-        p3m   = row.get("perf_3m_%","?")
-        summary_lines.append(f"• *{tk}* — Score: {score} | {stage} | OF: {of} | 3m: {p3m}%")
-
-    summary_msg = (
-        f"📡 *ApexScan Scan Complete*\n"
-        f"_{datetime.now().strftime('%Y-%m-%d %H:%M')}_\n\n"
-        f"*{len(scan_df)} setups found*\n\n"
-        f"*Top 5 setups:*\n" + "\n".join(summary_lines)
-    )
-    _tg(summary_msg)
-
-    # ── 2. Breakout alerts ────────────────────────────────────────────────
-    if settings.get("alert_breakouts") and "breaking_out" in scan_df.columns:
-        bos = scan_df[(scan_df["breaking_out"]==True) & (scores >= min_s)]
-        for _, row in bos.iterrows():
-            msg = (f"🚀 *BREAKOUT — {row['ticker']}*\n"
-                   f"Pattern: {row.get('pattern','–')}\n"
-                   f"Price: ${row.get('price','–')} | Score: {row.get('apex_score','–')}\n"
-                   f"3m: {row.get('perf_3m_%','–')}% | RS: {row.get('rs_3m','–')}\n"
-                   f"OF: {row.get('of_bias','–')} | VWAP: {row.get('vwap_position','–')}\n"
-                   f"_{datetime.now().strftime('%Y-%m-%d %H:%M')}_")
-            _tg(msg)
-
-    # ── 3. SFP alerts ─────────────────────────────────────────────────────
-    if settings.get("alert_sfp_setup") and "pa_sfp" in scan_df.columns:
-        sfp = scan_df[
-            scan_df["pa_sfp"].notna() &
-            (scan_df["pa_sfp"] != "") &
-            (scores >= max(0, min_s - 10))
-        ]
-        for _, row in sfp.iterrows():
-            is_bull = "Bullish" in str(row.get("pa_sfp",""))
-            msg = (f"{'🎯' if is_bull else '⚠️'} *SFP — {row['ticker']}*\n"
-                   f"Type: {row.get('pa_sfp','–')}\n"
-                   f"{'Bears trapped — reversal UP likely' if is_bull else 'Bulls trapped — reversal DOWN likely'}\n"
-                   f"Score: {row.get('apex_score','–')} | Stage: {row.get('stage','–')}\n"
-                   f"_{datetime.now().strftime('%Y-%m-%d %H:%M')}_")
-            _tg(msg)
-
-    # ── 4. Strong persistent flow alerts ─────────────────────────────────
-    if settings.get("alert_persistent_flow") and "of_bias" in scan_df.columns:
-        fl = scan_df[
-            scan_df["of_bias"].str.contains("Strong Bullish", na=False) &
-            (scores >= min_s)
-        ]
-        for _, row in fl.head(3).iterrows():   # cap at 3 to avoid spam
-            msg = (f"📈 *STRONG FLOW — {row['ticker']}*\n"
-                   f"Bias: {row.get('of_bias','–')} | Up/Down Vol: {row.get('of_up_vol_ratio','–')}x\n"
-                   f"Bullish Days (10d): {row.get('of_bullish_days','–')}%\n"
-                   f"Score: {row.get('apex_score','–')} | VWAP: {row.get('vwap_position','–')}\n"
-                   f"_{datetime.now().strftime('%Y-%m-%d %H:%M')}_")
-            _tg(msg)
-
-    # ── 5. VWAP reclaim alerts ────────────────────────────────────────────
-    if settings.get("alert_vwap_imbalance") and "vwap_position" in scan_df.columns:
-        vwap_r = scan_df[
-            scan_df["vwap_position"].str.contains("Above VWAP", na=False) &
-            scan_df["vwap_slope"].str.contains("Rising", na=False) &
-            (scores >= min_s)
-        ] if "vwap_slope" in scan_df.columns else pd.DataFrame()
-        for _, row in vwap_r.head(3).iterrows():
-            msg = (f"💧 *VWAP RECLAIM — {row['ticker']}*\n"
-                   f"Position: {row.get('vwap_position','–')} | Slope: {row.get('vwap_slope','–')}\n"
-                   f"vs VWAP: {row.get('vs_vwap_%','–')}%\n"
-                   f"Score: {row.get('apex_score','–')}\n"
-                   f"_{datetime.now().strftime('%Y-%m-%d %H:%M')}_")
-            _tg(msg)
-
-    # ── 6. Portfolio stop breach ──────────────────────────────────────────
-    if settings.get("alert_stop_breach") and portfolio:
-        for holding in portfolio:
-            tk = holding.get("ticker","")
-            try:
-                live = price_fetcher(tk)
-                if live and live.get("price") and live.get("ma50"):
-                    if live["price"] < live["ma50"]:
-                        msg = (f"⚠️ *STOP ALERT — {tk}*\n"
-                               f"Price ${live['price']:.2f} closed BELOW 50MA (${live['ma50']:.2f})\n"
-                               f"Review your position immediately.\n"
-                               f"_{datetime.now().strftime('%Y-%m-%d %H:%M')}_")
-                        _tg(msg)
-            except Exception:
-                pass
-
-    return sent
+You are out of fre
