@@ -186,41 +186,101 @@ def check_and_fire_alerts(scan_df: pd.DataFrame, portfolio: list,
     cid     = settings.get("telegram_chat_id","")
     scores  = pd.to_numeric(scan_df.get("apex_score", pd.Series()), errors="coerce")
 
-    # Breakout alerts
+    def _tg(msg):
+        if tok and cid:
+            send_telegram(tok, cid, msg)
+        sent.append(msg)
+
+    # ── 1. Scan summary (always fires if alerts enabled) ──────────────────
+    top5 = scan_df.head(5)
+    summary_lines = []
+    for _, row in top5.iterrows():
+        tk    = row.get("ticker","?")
+        score = row.get("apex_score","?")
+        stage = str(row.get("stage","?"))[:12]
+        of    = str(row.get("of_bias","?"))[:12]
+        p3m   = row.get("perf_3m_%","?")
+        summary_lines.append(f"• *{tk}* — Score: {score} | {stage} | OF: {of} | 3m: {p3m}%")
+
+    summary_msg = (
+        f"📡 *ApexScan Scan Complete*\n"
+        f"_{datetime.now().strftime('%Y-%m-%d %H:%M')}_\n\n"
+        f"*{len(scan_df)} setups found*\n\n"
+        f"*Top 5 setups:*\n" + "\n".join(summary_lines)
+    )
+    _tg(summary_msg)
+
+    # ── 2. Breakout alerts ────────────────────────────────────────────────
     if settings.get("alert_breakouts") and "breaking_out" in scan_df.columns:
         bos = scan_df[(scan_df["breaking_out"]==True) & (scores >= min_s)]
         for _, row in bos.iterrows():
             msg = (f"🚀 *BREAKOUT — {row['ticker']}*\n"
                    f"Pattern: {row.get('pattern','–')}\n"
                    f"Price: ${row.get('price','–')} | Score: {row.get('apex_score','–')}\n"
-                   f"3m Return: {row.get('perf_3m_%','–')}% | RS: {row.get('rs_3m','–')}\n"
+                   f"3m: {row.get('perf_3m_%','–')}% | RS: {row.get('rs_3m','–')}\n"
                    f"OF: {row.get('of_bias','–')} | VWAP: {row.get('vwap_position','–')}\n"
                    f"_{datetime.now().strftime('%Y-%m-%d %H:%M')}_")
-            if tok and cid: send_telegram(tok, cid, msg)
-            sent.append(msg)
+            _tg(msg)
 
-    # SFP alerts
+    # ── 3. SFP alerts ─────────────────────────────────────────────────────
     if settings.get("alert_sfp_setup") and "pa_sfp" in scan_df.columns:
-        sfp = scan_df[scan_df["pa_sfp"].notna() & (scan_df["pa_sfp"]!="") & (scores >= min_s-10)]
+        sfp = scan_df[
+            scan_df["pa_sfp"].notna() &
+            (scan_df["pa_sfp"] != "") &
+            (scores >= max(0, min_s - 10))
+        ]
         for _, row in sfp.iterrows():
             is_bull = "Bullish" in str(row.get("pa_sfp",""))
             msg = (f"{'🎯' if is_bull else '⚠️'} *SFP — {row['ticker']}*\n"
                    f"Type: {row.get('pa_sfp','–')}\n"
-                   f"{'Bears trapped — potential reversal UP' if is_bull else 'Bulls trapped — potential reversal DOWN'}\n"
-                   f"Score: {row.get('apex_score','–')} | OF: {row.get('of_bias','–')}\n"
+                   f"{'Bears trapped — reversal UP likely' if is_bull else 'Bulls trapped — reversal DOWN likely'}\n"
+                   f"Score: {row.get('apex_score','–')} | Stage: {row.get('stage','–')}\n"
                    f"_{datetime.now().strftime('%Y-%m-%d %H:%M')}_")
-            if tok and cid: send_telegram(tok, cid, msg)
-            sent.append(msg)
+            _tg(msg)
 
-    # Persistent flow alerts
+    # ── 4. Strong persistent flow alerts ─────────────────────────────────
     if settings.get("alert_persistent_flow") and "of_bias" in scan_df.columns:
-        fl = scan_df[scan_df["of_bias"].str.contains("Strong Bullish", na=False) & (scores >= min_s)]
-        for _, row in fl.iterrows():
-            msg = (f"📈 *PERSISTENT FLOW — {row['ticker']}*\n"
+        fl = scan_df[
+            scan_df["of_bias"].str.contains("Strong Bullish", na=False) &
+            (scores >= min_s)
+        ]
+        for _, row in fl.head(3).iterrows():   # cap at 3 to avoid spam
+            msg = (f"📈 *STRONG FLOW — {row['ticker']}*\n"
                    f"Bias: {row.get('of_bias','–')} | Up/Down Vol: {row.get('of_up_vol_ratio','–')}x\n"
+                   f"Bullish Days (10d): {row.get('of_bullish_days','–')}%\n"
+                   f"Score: {row.get('apex_score','–')} | VWAP: {row.get('vwap_position','–')}\n"
+                   f"_{datetime.now().strftime('%Y-%m-%d %H:%M')}_")
+            _tg(msg)
+
+    # ── 5. VWAP reclaim alerts ────────────────────────────────────────────
+    if settings.get("alert_vwap_imbalance") and "vwap_position" in scan_df.columns:
+        vwap_r = scan_df[
+            scan_df["vwap_position"].str.contains("Above VWAP", na=False) &
+            scan_df["vwap_slope"].str.contains("Rising", na=False) &
+            (scores >= min_s)
+        ] if "vwap_slope" in scan_df.columns else pd.DataFrame()
+        for _, row in vwap_r.head(3).iterrows():
+            msg = (f"💧 *VWAP RECLAIM — {row['ticker']}*\n"
+                   f"Position: {row.get('vwap_position','–')} | Slope: {row.get('vwap_slope','–')}\n"
+                   f"vs VWAP: {row.get('vs_vwap_%','–')}%\n"
                    f"Score: {row.get('apex_score','–')}\n"
                    f"_{datetime.now().strftime('%Y-%m-%d %H:%M')}_")
-            if tok and cid: send_telegram(tok, cid, msg)
-            sent.append(msg)
+            _tg(msg)
+
+    # ── 6. Portfolio stop breach ──────────────────────────────────────────
+    if settings.get("alert_stop_breach") and portfolio:
+        for holding in portfolio:
+            tk = holding.get("ticker","")
+            try:
+                live = price_fetcher(tk)
+                if live and live.get("price") and live.get("ma50"):
+                    if live["price"] < live["ma50"]:
+                        msg = (f"⚠️ *STOP ALERT — {tk}*\n"
+                               f"Price ${live['price']:.2f} closed BELOW 50MA (${live['ma50']:.2f})\n"
+                               f"Review your position immediately.\n"
+                               f"_{datetime.now().strftime('%Y-%m-%d %H:%M')}_")
+                        _tg(msg)
+            except Exception:
+                pass
 
     return sent
