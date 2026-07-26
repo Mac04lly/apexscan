@@ -15,6 +15,8 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from pathlib import Path
+from modules.diagnostics import ScanDiagnostics
+from strategies import get_strategy
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 Path("logs").mkdir(exist_ok=True)
@@ -58,6 +60,14 @@ def build_watchlist(cfg: dict, market: str = "us") -> List[str]:
     theme_key = "ng_themes" if market == "ng" else "us_themes"
     themes    = cfg.get(theme_key, {})
     return list(set(t for theme in themes.values() for t in theme))
+
+
+def resolve_market(ticker: str, requested_market: str = "auto") -> str:
+    """Use explicit scan intent first; preserve suffix detection as fallback."""
+    requested = (requested_market or "auto").lower()
+    if requested in {"ng", "us"}:
+        return requested
+    return "ng" if ticker.upper().endswith((".LG", ".NG")) else "us"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -833,8 +843,7 @@ def analyze_stock(ticker: str, cfg: dict,
     price action patterns, and Alpha Vantage EPS fundamentals.
     """
     # ── Market detection ──────────────────────────────────────────────────
-    if market == "auto":
-        market = "ng" if ticker.upper().endswith(".LG") else "us"
+    market = resolve_market(ticker, market)
     _mkt_key     = "ng" if market == "ng" else "us"
     _is_ngx      = (market == "ng")
     _mkt_label   = "NGX" if _is_ngx else "US"
@@ -1342,7 +1351,7 @@ def analyze_stock(ticker: str, cfg: dict,
 
 def run_scan(cfg: dict, markets: List[str] = None,
              universe_override: list = None,
-             market: str = "us") -> pd.DataFrame:
+             market: str = "us", strategy: str = "swing") -> pd.DataFrame:
     """
     Run the full ApexScan.
     market="us"  → US stocks (default, existing behaviour)
@@ -1363,6 +1372,9 @@ def run_scan(cfg: dict, markets: List[str] = None,
         tickers = build_watchlist(cfg, "ng")
     else:
         tickers = build_watchlist(cfg, "us")
+    requested_market = market.lower()
+    diagnostics = ScanDiagnostics()
+    selected_strategy = get_strategy(strategy)
     log.info(f"Scanning {len(tickers)} US tickers…")
 
     # Clear per-session caches so each scan starts fresh
@@ -1371,15 +1383,20 @@ def run_scan(cfg: dict, markets: List[str] = None,
     _weekly_cache.clear()
     log.info("Session caches cleared.")
 
-    # Pre-warm all three benchmarks in parallel (all cached after first call)
-    _primary_bench   = cfg["benchmarks"]["us"]
-    _r2500_sym       = cfg.get("benchmarks", {}).get("russell_2500",       "^R25I")
-    _r3000g_sym      = cfg.get("benchmarks", {}).get("russell_3000_growth", "^RAG")
-    _period          = cfg["scan"]["history_period"]
-    get_benchmark(_primary_bench, _period)    # S&P 500
-    get_benchmark(_r2500_sym,     _period)    # Russell 2500
-    get_benchmark(_r3000g_sym,    _period)    # Russell 3000 Growth
-    log.info(f"Benchmarks loaded: {_primary_bench} | {_r2500_sym} | {_r3000g_sym}")
+    # Pre-warm US benchmarks only when a US leg is requested.
+    if requested_market in {"us", "all"}:
+        _primary_bench = cfg["benchmarks"]["us"]
+        _r2500_sym = cfg.get("benchmarks", {}).get("russell_2500", "^R25I")
+        _r3000g_sym = cfg.get("benchmarks", {}).get("russell_3000_growth", "^RAG")
+        _period = cfg["scan"]["history_period"]
+        get_benchmark(_primary_bench, _period)
+        get_benchmark(_r2500_sym, _period)
+        get_benchmark(_r3000g_sym, _period)
+        log.info("US benchmarks loaded: %s | %s | %s", _primary_bench, _r2500_sym, _r3000g_sym)
+
+    if requested_market == "ng":
+        _bench_cache.clear()
+        log.info("NGX scan: removed US-only benchmark preload; NGX All-Share is used.")
 
     av_key   = cfg.get("alpha_vantage_key", "")
     av_cfg   = cfg.get("alpha_vantage", {})
@@ -1399,14 +1416,16 @@ def run_scan(cfg: dict, markets: List[str] = None,
     # ── Pass 1: price/technical scan, no AV ──────────────────────────────
     log.info("Pass 1: technical scan…")
     for i, ticker in enumerate(tickers):
+        diagnostics.scanned += 1
         if i > 0 and i % 8 == 0:
             time.sleep(pause)
 
         cfg_no_av = {**cfg, "alpha_vantage_key": ""}
         # Auto-detect market from ticker suffix
-        _ticker_market = "ng" if ticker.upper().endswith(".LG") else "us"
+        _ticker_market = resolve_market(ticker, requested_market)
         data = analyze_stock(ticker, cfg_no_av, market=_ticker_market)
         if data is None:
+            diagnostics.fail("history")
             continue
 
         _fmkt     = "ng" if data.get("market") == "NGX" else "us"
@@ -1434,6 +1453,7 @@ def run_scan(cfg: dict, markets: List[str] = None,
             data["above_50ma"]               # gems: above 50MA is sufficient
         )
         if not _stage_ok and not _gem_stage_ok:
+            diagnostics.reject("stage")
             continue
 
         # Gate 2: 3M performance — gems need only +2% (they're early, not extended)
@@ -1443,6 +1463,7 @@ def run_scan(cfg: dict, markets: List[str] = None,
         else:
             _min_perf = 0.0 if _is_gem_stock else cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"]).get("min_3m_perf", 5)
         if data["perf_3m_%"] < _min_perf:
+            diagnostics.reject("performance")
             continue
 
         # Gate 3: RS — minimum RS gate. Score already penalises low RS stocks.
@@ -1450,6 +1471,7 @@ def run_scan(cfg: dict, markets: List[str] = None,
         # happens via the Apex Score, not hard RS gates.
         _min_rs = -50 if _is_gem_stock else -30
         if data["rs_3m"] < _min_rs:
+            diagnostics.reject("relative_strength")
             continue
 
         # Gate 4: Volume — gems use lower floor (100K vs 300K)
@@ -1458,11 +1480,18 @@ def run_scan(cfg: dict, markets: List[str] = None,
         # Gate 5: Score — gems use lower threshold (early setups haven't moved yet)
         _min_score_eff = max(20, min_score - 15) if _is_gem_stock else min_score
 
-        if data["apex_score"] >= _min_score_eff and data.get("vol_filter", data["volume"]) >= _min_vol_eff:
-            results.append(data)
+        if data.get("vol_filter", data["volume"]) < _min_vol_eff:
+            diagnostics.reject("volume")
+            continue
+        if data["apex_score"] < _min_score_eff:
+            diagnostics.reject("score")
+            continue
+        results.append(selected_strategy.evaluate(data))
+        diagnostics.passed += 1
 
     if not results:
         log.warning("No results passed filters.")
+        diagnostics.log_summary(log)
         return pd.DataFrame()
 
     results.sort(key=lambda x: x["apex_score"], reverse=True)
@@ -1524,6 +1553,16 @@ def run_scan(cfg: dict, markets: List[str] = None,
     df = pd.DataFrame(results).sort_values("apex_score", ascending=False).reset_index(drop=True)
     df.index += 1
     df.index.name = "rank"
+    diagnostics.log_summary(log)
+    df.attrs["scan_diagnostics"] = diagnostics.summary()
+    try:
+        from ai.engine import InvestmentIntelligenceEngine
+        engine = InvestmentIntelligenceEngine(cfg)
+        if engine.enabled:
+            df.attrs["ai_market_brief"] = engine.market_brief(diagnostics.summary())
+            df["ai_summary"] = [engine.analyze_stock(row) for row in df.to_dict("records")]
+    except Exception as ai_error:
+        log.warning("AI enrichment skipped; scanner results are preserved: %s", ai_error)
     return df
 
 
@@ -1540,10 +1579,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ApexScan — US Stock Scanner")
     parser.add_argument("--config", default="config.yaml")
     parser.add_argument("--top",    type=int, default=20)
+    parser.add_argument("--market", choices=["us", "ng", "all"], default="us")
+    parser.add_argument("--strategy", choices=["swing", "position", "long_term", "dividend", "value"], default="swing")
     args = parser.parse_args()
 
     cfg = load_config(args.config)
-    df  = run_scan(cfg)
+    df  = run_scan(cfg, market=args.market, strategy=args.strategy)
 
     if not df.empty:
         cols = ["ticker","theme","price","stage","perf_3m_%",

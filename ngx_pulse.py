@@ -36,8 +36,10 @@ import pandas as pd
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List
+from modules.diagnostics import ProviderDiagnostics
 
 log = logging.getLogger("apexscan.ngxpulse")
+DIAGNOSTICS = ProviderDiagnostics("ngxpulse")
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 NGXP_BASE_URL   = "https://www.ngxpulse.ng"
@@ -100,11 +102,13 @@ def _get(endpoint: str, api_key: str, params: dict = None,
     Auth: X-API-Key header (per the official docs — NOT Bearer).
     """
     if require_key and (not api_key or api_key.startswith("YOUR_")):
+        DIAGNOSTICS.event("authentication_failures", endpoint, reason="API key missing or placeholder")
         return None
 
     cache_key = endpoint + str(sorted((params or {}).items()))
     cached    = _cread(cache_key, ttl)
     if cached is not None:
+        DIAGNOSTICS.counts["cache_hits"] += 1
         log.debug(f"Cache hit: {endpoint}")
         return cached
 
@@ -116,6 +120,7 @@ def _get(endpoint: str, api_key: str, params: dict = None,
 
     try:
         time.sleep(NGXP_RATE_PAUSE)
+        DIAGNOSTICS.counts["api_calls"] += 1
         resp = requests.get(url, headers=headers, params=params or {}, timeout=20)
         if resp.status_code == 200:
             data = resp.json()
@@ -123,24 +128,34 @@ def _get(endpoint: str, api_key: str, params: dict = None,
             log.info(f"NGX Pulse API: {endpoint} → {resp.status_code}")
             return data
         elif resp.status_code == 429:
+            DIAGNOSTICS.event("rate_limits", endpoint, resp.status_code, "rate limited", resp.text)
             log.warning("NGX Pulse rate limit hit (10/min or 100/day on Personal) — backing off")
             time.sleep(30)
             return None
         elif resp.status_code == 401:
+            DIAGNOSTICS.event("authentication_failures", endpoint, resp.status_code, "invalid X-API-Key", resp.text)
             log.error("NGX Pulse auth error 401: check X-API-Key header / key value")
             return None
         elif resp.status_code == 404:
             log.debug(f"NGX Pulse {endpoint}: 404 not found")
             return None
         else:
+            DIAGNOSTICS.event("http_failures", endpoint, resp.status_code, "unexpected HTTP status", resp.text)
             log.warning(f"NGX Pulse {endpoint}: HTTP {resp.status_code} — {resp.text[:200]}")
             return None
     except requests.exceptions.ConnectionError:
+        DIAGNOSTICS.event("http_failures", endpoint, reason="connection error")
         log.warning("NGX Pulse: connection error — offline or API down")
         return None
     except Exception as e:
-        log.debug(f"NGX Pulse request error {endpoint}: {e}")
+        DIAGNOSTICS.event("http_failures", endpoint, reason=str(e))
         return None
+
+
+def print_session_summary() -> Dict[str, int]:
+    """Log and return NGX Pulse call/cache/auth/rate-limit counters."""
+    DIAGNOSTICS.log_summary()
+    return DIAGNOSTICS.summary()
 
 
 # ══════════════════════════════════════════════════════════════════════════════

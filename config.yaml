@@ -5,6 +5,14 @@
 finnhub_key: "YOUR_FINNHUB_FREE_KEY_HERE"
 alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE"
 
+# Optional deterministic-data AI interpretation. The scanner remains fully usable
+# when disabled, when no key is configured, or when the provider is unavailable.
+ai_enabled: false
+openai_api_key: "YOUR_OPENAI_API_KEY_HERE"
+ai_model: "gpt-5.6-luna"
+ai_temperature: 0.2
+ai_max_tokens: 600
+
 # ---- NGX DATA PROVIDERS (two SEPARATE services — do not confuse them) ----
 # NGX Pulse (ngxpulse.ng) — primary NGX source. 150+ equities in one bulk
 # call, full index history back to 1996, ETFs, disclosures, dividends.
