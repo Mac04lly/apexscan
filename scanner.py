@@ -1450,6 +1450,12 @@ def run_scan(cfg: dict, markets: List[str] = None,
         _bench_cache.clear()
         log.info("NGX scan: removed US-only benchmark preload; NGX All-Share is used.")
 
+   # ── Batch pre-fetch history for non-NGX tickers ────────────────────────
+    # Replaces 500+ individual HTTP requests with a handful of bulk calls —
+    # this is what actually avoids Yahoo blocking the whole scan, not pacing.
+    _batch_tickers = [t for t in tickers if not t.upper().endswith((".LG", ".NG"))]
+    _batch_hist = batch_fetch_history(_batch_tickers, cfg["scan"]["history_period"])              
+                 
     av_key   = cfg.get("alpha_vantage_key", "")
     av_cfg   = cfg.get("alpha_vantage", {})
     use_av   = bool(av_key and not av_key.startswith("YOUR_"))
@@ -1476,7 +1482,8 @@ def run_scan(cfg: dict, markets: List[str] = None,
         cfg_no_av = {**cfg, "alpha_vantage_key": ""}
         # Auto-detect market from ticker suffix
         _ticker_market = resolve_market(ticker, requested_market)
-        data = analyze_stock(ticker, cfg_no_av, market=_ticker_market)
+        data = analyze_stock(ticker, cfg_no_av, market=_ticker_market,
+                              hist_override=_batch_hist.get(ticker))
         if data is None:
             diagnostics.fail("history")
             continue
