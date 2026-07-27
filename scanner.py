@@ -1420,6 +1420,7 @@ def run_scan(cfg: dict, markets: List[str] = None,
     log.info("Pass 1: technical scan…")
     for i, ticker in enumerate(tickers):
         diagnostics.scanned += 1
+        time.sleep(0.35)          # spread requests — avoids the 429 storm
         if i > 0 and i % 8 == 0:
             time.sleep(pause)
 
