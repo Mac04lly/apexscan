@@ -498,8 +498,6 @@ def get_benchmark(symbol: str = "^GSPC", period: str = "1y") -> pd.Series:
 
     log.info(f"Batch fetch: {len(result)}/{len(tickers)} tickers returned data")
     return result
-
-
 # ══════════════════════════════════════════════════════════════════════════════
 # ORDER FLOW PERSISTENCE
 # ══════════════════════════════════════════════════════════════════════════════
