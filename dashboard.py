@@ -5751,7 +5751,7 @@ with tabs[15]:
 
                 if interp_mode == "Full Scan Summary":
                     # Count PA pattern types
-                    all_pa   = interp_df["pa_patterns"].dropna()
+                    all_pa   = interp_df["pa_patterns"].fillna("None").astype(str)
                     sfp_bull = all_pa.str.contains("Bullish SFP", na=False).sum()
                     sfp_bear = all_pa.str.contains("Bearish SFP", na=False).sum()
                     engulf   = all_pa.str.contains("Engulfing",   na=False).sum()
