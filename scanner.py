@@ -453,6 +453,51 @@ def get_benchmark(symbol: str = "^GSPC", period: str = "1y") -> pd.Series:
             _bench_cache[symbol] = pd.Series(dtype=float)
 
     return _bench_cache[symbol]
+    def batch_fetch_history(tickers: List[str], period: str = "1y") -> Dict[str, pd.DataFrame]:
+    """
+    Fetch OHLCV history for many tickers in a handful of batched requests
+    instead of one HTTP call per ticker. Yahoo blocks/rate-limits individual
+    per-ticker requests far more aggressively on cloud-hosted IPs (Streamlit
+    Cloud, etc.) than it does bulk download calls. Any ticker missing or too
+    short from the batch result silently falls through to analyze_stock()'s
+    existing per-ticker fetch as a fallback — this never removes a data path,
+    only adds a faster one in front of it.
+    """
+    result: Dict[str, pd.DataFrame] = {}
+    if not tickers:
+        return result
+
+    chunk_size = 100  # very large single batch calls are themselves unreliable
+    chunks = [tickers[i:i + chunk_size] for i in range(0, len(tickers), chunk_size)]
+
+    for chunk in chunks:
+        try:
+            raw = yf.download(
+                chunk, period=period, group_by="ticker",
+                threads=True, progress=False, auto_adjust=True,
+            )
+        except Exception as e:
+            log.warning(f"Batch download failed for a chunk of {len(chunk)}: {e}")
+            continue
+
+        if raw is None or raw.empty:
+            continue
+
+        if isinstance(raw.columns, pd.MultiIndex):
+            for tk in chunk:
+                try:
+                    sub = raw[tk].dropna(how="all")
+                    if len(sub) > 0:
+                        result[tk] = sub
+                except Exception:
+                    continue
+        elif len(chunk) == 1:
+            sub = raw.dropna(how="all")
+            if len(sub) > 0:
+                result[chunk[0]] = sub
+
+    log.info(f"Batch fetch: {len(result)}/{len(tickers)} tickers returned data")
+    return result
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -835,7 +880,8 @@ def analyse_weekly(ticker: str, bench_close: pd.Series) -> dict:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def analyze_stock(ticker: str, cfg: dict,
-                  market: str = "auto") -> Optional[Dict]:
+                  market: str = "auto",
+                  hist_override: Optional[pd.DataFrame] = None) -> Optional[Dict]:
     """
     Full ApexScan analysis for one ticker.
     market="auto" detects from ticker suffix (.LG = NGX, else US).
@@ -892,8 +938,11 @@ def analyze_stock(ticker: str, cfg: dict,
                 if _ngx_idx is None and _HAS_NGN_MARKET and ngnm_key:
                     _ngx_idx = ngnm_get_index(ngnm_key)
                 _ngx_bench = _ngx_idx["df"]["Close"] if _ngx_idx else None
-        else:
-            hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
+            else:
+            if hist_override is not None and len(hist_override) > 0:
+                hist = hist_override
+            else:
+                hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
         # NGX stocks may have fewer bars — use a lower floor
         _min_bars = 30 if _is_ngx else cfg["scan"]["min_history_bars"]
         if len(hist) < _min_bars:
