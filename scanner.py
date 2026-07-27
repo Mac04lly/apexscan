@@ -918,8 +918,8 @@ def analyze_stock(ticker: str, cfg: dict,
         ma50         = close.rolling(50).mean().iloc[-1]
         ma200        = close.rolling(200).mean().iloc[-1]
         if pd.isna(ma200):
-    log.debug(f"{ticker}: only {len(close)} bars — 200MA not computable, skipping")
-    return None
+            log.debug(f"{ticker}: only {len(close)} bars — 200MA not computable, skipping")
+            return None
         above_50ma   = bool(current_price > ma50)
         above_200ma  = bool(current_price > ma200)
         ma50_gt_200  = bool(ma50 > ma200)
