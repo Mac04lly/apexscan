@@ -1506,3 +1506,33 @@ def run_scan(cfg: dict, markets: List[str] = None,
     except Exception as ai_error:
         log.warning("AI enrichment skipped; scanner results are preserved: %s", ai_error)
     return df
+  def save_report(df: pd.DataFrame, report_dir: str = "reports") -> str:
+    Path(report_dir).mkdir(exist_ok=True)
+    filename = f"{report_dir}/scan_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
+    df.to_csv(filename, encoding="utf-8")
+    log.info(f"Saved → {filename}")
+    return filename
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="ApexScan — US Stock Scanner")
+    parser.add_argument("--config", default="config.yaml")
+    parser.add_argument("--top",    type=int, default=20)
+    parser.add_argument("--market", choices=["us", "ng", "all"], default="us")
+    parser.add_argument("--strategy", choices=["swing", "position", "long_term", "dividend", "value"], default="swing")
+    args = parser.parse_args()
+
+    cfg = load_config(args.config)
+    df  = run_scan(cfg, market=args.market, strategy=args.strategy)
+
+    if not df.empty:
+        cols = ["ticker","theme","price","stage","perf_3m_%",
+                "rs_3m","of_bias","vwap_position","pa_patterns","apex_score"]
+        print(f"\n{'='*80}")
+        print(f"  TOP {args.top} SETUPS — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+        print(f"{'='*80}")
+        print(df[cols].head(args.top).to_string())
+        save_report(df)
+    else:
+        print("No setups matched current filters.")               
