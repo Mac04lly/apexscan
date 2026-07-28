@@ -349,7 +349,43 @@ def get_market_cap_data(ticker: str) -> Dict:
         pass
     _mcap_cache[ticker] = result
     return result
+_fundamentals_cache: Dict[str, dict] = {}
 
+def get_fundamentals_data(ticker: str) -> Dict:
+    """
+    Extended fundamentals for strategy scoring (Long-Term/Dividend/Value).
+    Uses yf.Ticker(ticker).info — a free HTTP call, no paid API involved.
+    Only called for stocks that already passed the scan gates (Pass 3 below),
+    not the full universe, to keep request volume reasonable. Cached per session.
+    """
+    if ticker in _fundamentals_cache:
+        return _fundamentals_cache[ticker]
+    result = {
+        "roe": None, "roa": None, "debt_to_equity": None,
+        "free_cash_flow": None, "dividend_yield": None, "payout_ratio": None,
+        "dividend_5y_avg": None, "price_to_sales": None, "ev_to_ebitda": None,
+        "operating_margin": None, "profit_margin": None,
+        "revenue_growth": None, "earnings_growth": None,
+    }
+    try:
+        info = yf.Ticker(ticker).info or {}
+        result["roe"]              = info.get("returnOnEquity")
+        result["roa"]              = info.get("returnOnAssets")
+        result["debt_to_equity"]   = info.get("debtToEquity")
+        result["free_cash_flow"]   = info.get("freeCashflow")
+        result["dividend_yield"]   = info.get("dividendYield")
+        result["payout_ratio"]     = info.get("payoutRatio")
+        result["dividend_5y_avg"]  = info.get("fiveYearAvgDividendYield")
+        result["price_to_sales"]   = info.get("priceToSalesTrailing12Months")
+        result["ev_to_ebitda"]     = info.get("enterpriseToEbitda")
+        result["operating_margin"] = info.get("operatingMargins")
+        result["profit_margin"]    = info.get("profitMargins")
+        result["revenue_growth"]   = info.get("revenueGrowth")
+        result["earnings_growth"]  = info.get("earningsGrowth")
+    except Exception as e:
+        log.debug(f"Fundamentals fetch failed {ticker}: {e}")
+    _fundamentals_cache[ticker] = result
+    return result
 
 def gem_score_boost(score: float, rs3: float, breaking_out: bool,
                     of_score: int, pa_score: int, gem_cfg: dict,
