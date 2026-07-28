@@ -1325,6 +1325,7 @@ def run_scan(cfg: dict, markets: List[str] = None,
     _bench_cache.clear()
     _mcap_cache.clear()
     _weekly_cache.clear()
+    _fundamentals_cache.clear()
     log.info("Session caches cleared.")
 
     if requested_market in {"us", "all"}:
@@ -1341,9 +1342,6 @@ def run_scan(cfg: dict, markets: List[str] = None,
         _bench_cache.clear()
         log.info("NGX scan: removed US-only benchmark preload; NGX All-Share is used.")
 
-    # ── Batch pre-fetch history for non-NGX tickers ────────────────────────
-    # Replaces 500+ individual HTTP requests with a handful of bulk calls —
-    # this is what actually avoids Yahoo blocking the whole scan, not pacing.
     _batch_tickers = [t for t in tickers if not t.upper().endswith((".LG", ".NG"))]
     _batch_hist = batch_fetch_history(_batch_tickers, cfg["scan"]["history_period"])
 
@@ -1365,7 +1363,7 @@ def run_scan(cfg: dict, markets: List[str] = None,
     log.info("Pass 1: technical scan…")
     for i, ticker in enumerate(tickers):
         diagnostics.scanned += 1
-        time.sleep(0.35)          # spread requests — avoids the 429 storm
+        time.sleep(0.35)
         if i > 0 and i % 8 == 0:
             time.sleep(pause)
 
@@ -1382,16 +1380,12 @@ def run_scan(cfg: dict, markets: List[str] = None,
         min_vol   = cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"])["min_volume"]
 
         _is_gem_stock = data.get("is_gem", False)
-        _has_early    = data.get("early_entry", False)
 
         if _ticker_market == "ng":
             _stage_ok = data["above_50ma"]
         else:
             _stage_ok = data["above_200ma"]
-        _gem_stage_ok = (
-            _is_gem_stock and
-            data["above_50ma"]
-        )
+        _gem_stage_ok = _is_gem_stock and data["above_50ma"]
         if not _stage_ok and not _gem_stage_ok:
             diagnostics.reject("stage")
             continue
@@ -1418,7 +1412,8 @@ def run_scan(cfg: dict, markets: List[str] = None,
         if data["apex_score"] < _min_score_eff:
             diagnostics.reject("score")
             continue
-        results.append(selected_strategy.evaluate(data))
+
+        results.append(data)
         diagnostics.passed += 1
 
     if not results:
@@ -1481,6 +1476,22 @@ def run_scan(cfg: dict, markets: List[str] = None,
             except Exception as av_err:
                 log.warning(f"  AV error {ticker}: {av_err}")
 
+    # ── Pass 3: extended fundamentals enrichment (free yfinance .info call,
+    #    only for stocks that already passed — not the full universe) ──────
+    fund_cfg = cfg.get("fundamentals", {})
+    max_fund_calls = fund_cfg.get("max_calls_per_scan", 30)
+    log.info(f"Pass 3: fundamentals enrichment for top {max_fund_calls} tickers…")
+    for data in results[:max_fund_calls]:
+        try:
+            fdata = get_fundamentals_data(data["ticker"])
+            data.update(fdata)
+        except Exception as fe:
+            log.debug(f"Fundamentals enrichment error {data.get('ticker')}: {fe}")
+
+    # ── Apply the selected strategy AFTER all enrichment so it sees the
+    #    fullest data available (AV EPS + fundamentals), not just Pass 1 data.
+    results = [selected_strategy.evaluate(r) for r in results]
+
     df = pd.DataFrame(results).sort_values("apex_score", ascending=False).reset_index(drop=True)
     df.index += 1
     df.index.name = "rank"
@@ -1490,40 +1501,8 @@ def run_scan(cfg: dict, markets: List[str] = None,
         from ai.engine import InvestmentIntelligenceEngine
         engine = InvestmentIntelligenceEngine(cfg)
         if engine.enabled:
-            df.attrs["ai_market_brief"] = engine.market_brief(diagnostics.summary())
+            df.attrs["ai_market_brief"] = engine.market_brief(diagnostics.summary(), df)
             df["ai_summary"] = [engine.analyze_stock(row) for row in df.to_dict("records")]
     except Exception as ai_error:
         log.warning("AI enrichment skipped; scanner results are preserved: %s", ai_error)
     return df
-
-
-def save_report(df: pd.DataFrame, report_dir: str = "reports") -> str:
-    Path(report_dir).mkdir(exist_ok=True)
-    filename = f"{report_dir}/scan_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
-    df.to_csv(filename, encoding="utf-8")
-    log.info(f"Saved → {filename}")
-    return filename
-
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description="ApexScan — US Stock Scanner")
-    parser.add_argument("--config", default="config.yaml")
-    parser.add_argument("--top",    type=int, default=20)
-    parser.add_argument("--market", choices=["us", "ng", "all"], default="us")
-    parser.add_argument("--strategy", choices=["swing", "position", "long_term", "dividend", "value"], default="swing")
-    args = parser.parse_args()
-
-    cfg = load_config(args.config)
-    df  = run_scan(cfg, market=args.market, strategy=args.strategy)
-
-    if not df.empty:
-        cols = ["ticker","theme","price","stage","perf_3m_%",
-                "rs_3m","of_bias","vwap_position","pa_patterns","apex_score"]
-        print(f"\n{'='*80}")
-        print(f"  TOP {args.top} SETUPS — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-        print(f"{'='*80}")
-        print(df[cols].head(args.top).to_string())
-        save_report(df)
-    else:
-        print("No setups matched current filters.")
