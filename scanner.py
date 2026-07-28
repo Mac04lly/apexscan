@@ -42,7 +42,6 @@ def load_config(path: str = "config.yaml") -> dict:
     with open(path) as f:
         cfg = yaml.safe_load(f)
 
-    # Override with Streamlit secrets when running on Streamlit Cloud
     try:
         import streamlit as st
         if hasattr(st, "secrets") and st.secrets:
@@ -50,20 +49,18 @@ def load_config(path: str = "config.yaml") -> dict:
                 if key in st.secrets:
                     cfg[key] = st.secrets[key]
     except Exception:
-        pass  # Not running in Streamlit context (e.g. CLI), use config.yaml only
+        pass
 
     return cfg
 
 
 def build_watchlist(cfg: dict, market: str = "us") -> List[str]:
-    """Build ticker list for the given market from config themes."""
     theme_key = "ng_themes" if market == "ng" else "us_themes"
     themes    = cfg.get(theme_key, {})
     return list(set(t for theme in themes.values() for t in theme))
 
 
 def resolve_market(ticker: str, requested_market: str = "auto") -> str:
-    """Use explicit scan intent first; preserve suffix detection as fallback."""
     requested = (requested_market or "auto").lower()
     if requested in {"ng", "us"}:
         return requested
@@ -147,18 +144,6 @@ def detect_stage(price: float, ma50: float, ma200: float) -> str:
 
 def detect_early_entry(close: pd.Series, ma50: float, ma200: float,
                        hist: pd.DataFrame) -> dict:
-    """
-    Detect early-stage entry setups — stocks at the START of a move, not extended.
-
-    Signals detected:
-    - fresh_200ma_cross: price crossed above 200MA within last 10 bars (brand new uptrend)
-    - fresh_50ma_cross:  price crossed above 50MA within last 5 bars
-    - low_adr_base:      ADR < 3% = tight, quiet base = coiled spring
-    - vwap_compression:  price within 3% of VWAP = institutional fair value = low risk entry
-    - early_stage2:      just entered Stage 2 from Stage 1 (freshest possible trend change)
-    - pullback_to_50ma:  price within 3% of 50MA in an uptrend = classic low-risk add point
-    - inside_compression: 3+ consecutive inside days = extreme compression before expansion
-    """
     result = {
         "early_entry":          False,
         "early_entry_type":     "",
@@ -177,10 +162,8 @@ def detect_early_entry(close: pd.Series, ma50: float, ma200: float,
     signals = []
     score   = 0
 
-    # ── Fresh 200MA cross (stock just entered or re-entered Stage 2) ──────────
     close_arr  = close.values
     ma200_arr  = close.rolling(200).mean().values
-    # Find where price was below 200MA then crossed above in last 15 bars
     cross_day  = None
     for i in range(max(1, len(close_arr)-15), len(close_arr)):
         if (close_arr[i] > ma200_arr[i] and close_arr[i-1] <= ma200_arr[i-1]
@@ -192,9 +175,8 @@ def detect_early_entry(close: pd.Series, ma50: float, ma200: float,
         result["fresh_200ma_cross"]           = True
         result["days_since_200ma_cross"]      = cross_day
         signals.append(f"Fresh 200MA Cross ({cross_day}d ago)")
-        score += 8   # Most powerful early signal
+        score += 8
 
-    # ── Fresh 50MA cross (momentum just turning) ──────────────────────────────
     ma50_arr = close.rolling(50).mean().values
     for i in range(max(1, len(close_arr)-5), len(close_arr)):
         if (close_arr[i] > ma50_arr[i] and close_arr[i-1] <= ma50_arr[i-1]
@@ -204,15 +186,13 @@ def detect_early_entry(close: pd.Series, ma50: float, ma200: float,
             score += 4
             break
 
-    # ── Pullback to 50MA in uptrend (low-risk add point) ─────────────────────
-    if ma50 > 0 and current > ma200:  # must be in uptrend
+    if ma50 > 0 and current > ma200:
         dist_50 = abs(current / ma50 - 1) * 100
         if dist_50 <= 3.0:
             result["pullback_to_50ma"] = True
             signals.append(f"Pullback to 50MA ({dist_50:.1f}% away)")
             score += 5
 
-    # ── Low ADR = tight base = cheap volatility-adjusted entry ───────────────
     if len(hist) >= 20:
         _adr = ((hist["High"] - hist["Low"]) / hist["Close"] * 100).iloc[-20:].mean()
         if _adr < 3.0:
@@ -220,7 +200,6 @@ def detect_early_entry(close: pd.Series, ma50: float, ma200: float,
             signals.append(f"Low-ADR Base ({_adr:.1f}%)")
             score += 3
 
-    # ── Inside day compression ────────────────────────────────────────────────
     if len(hist) >= 4:
         consec_inside = 0
         for k in range(-1, -4, -1):
@@ -309,7 +288,7 @@ except (ModuleNotFoundError, ImportError):
 # ── Benchmark Cache ────────────────────────────────────────────────────────────
 _bench_cache: Dict[str, pd.Series] = {}
 
-# ── NGX Pulse module (ngxpulse.ng — optional, graceful fallback if missing) ────
+# ── NGX Pulse module ────────────────────────────────────────────────────────
 try:
     from modules.ngx_pulse import (
         get_ngx_history_for_scan as ngxp_get_history,
@@ -325,7 +304,7 @@ except ImportError:
     def ngxp_get_lookup(api_key): return {}
     def ngxp_validate(api_key): return {"ok": False, "message": "NGX Pulse module not installed"}
 
-# ── NGN Market module (api.ngnmarket.com — optional, graceful fallback) ───────
+# ── NGN Market module ───────────────────────────────────────────────────────
 try:
     from modules.ngn_market import (
         get_ngn_equity_history as ngnm_get_history,
@@ -343,7 +322,6 @@ except ImportError:
 _mcap_cache: Dict[str, dict] = {}
 
 def get_market_cap_data(ticker: str) -> Dict:
-    """Fetch market cap and liquidity data. Cached per session."""
     if ticker in _mcap_cache:
         return _mcap_cache[ticker]
     result = {
@@ -376,58 +354,38 @@ def get_market_cap_data(ticker: str) -> Dict:
 def gem_score_boost(score: float, rs3: float, breaking_out: bool,
                     of_score: int, pa_score: int, gem_cfg: dict,
                     ee_score: int = 0, mcap: float = None) -> float:
-    """
-    Apply score boosts for emerging gems with strong signals.
-    Gems compete on a level playing field vs large caps by boosting:
-    - Early entry signals (most important for cheap entry)
-    - Order flow persistence (institutional accumulation in small caps)
-    - Price action quality
-    - Breakout confirmation on volume
-    - Extra boost for micro/small caps with strong RS vs R2500
-    """
     boosts = gem_cfg.get("score_boosts", {})
     bonus  = 0
 
-    # RS leadership among small/mid peers
     if rs3 >= boosts.get("rs_bonus_threshold", 150):
         bonus += boosts.get("rs_bonus_points", 5)
     elif rs3 >= 100:
-        bonus += 3   # beating the market is meaningful even below 150
+        bonus += 3
 
-    # Breakout on volume — most powerful gem signal
     if breaking_out:
-        bonus += boosts.get("breakout_bonus", 5) + 3   # 8 total (was 5)
+        bonus += boosts.get("breakout_bonus", 5) + 3
 
-    # Order flow — in small caps, institutional accumulation is harder to fake
-    bonus += of_score * (boosts.get("of_persistence_multiplier", 1.5) - 1)  # multiplier raised
-
-    # Price action quality
-    bonus += pa_score * (boosts.get("pa_patterns_multiplier", 1.4) - 1)     # raised
-
-    # Early entry bonus — double reward for gems at the START of a move
-    # This is the key to finding gems cheap
+    bonus += of_score * (boosts.get("of_persistence_multiplier", 1.5) - 1)
+    bonus += pa_score * (boosts.get("pa_patterns_multiplier", 1.4) - 1)
     bonus += ee_score * 1.5
 
-    # Size bonus: smaller = more upside potential = higher bonus ceiling
     if mcap is not None:
-        if mcap < 300_000_000:       bonus += 6   # Micro cap: highest potential
-        elif mcap < 1_000_000_000:   bonus += 4   # Small cap < $1B
-        elif mcap < 2_000_000_000:   bonus += 2   # Small cap $1–2B
+        if mcap < 300_000_000:       bonus += 6
+        elif mcap < 1_000_000_000:   bonus += 4
+        elif mcap < 2_000_000_000:   bonus += 2
 
     return round(min(100, score + bonus), 1)
 
-# ETF fallbacks for Russell indices when yfinance index symbol is unavailable
 _BENCH_FALLBACKS = {
-    "^R25I": "SMMD",   # Russell 2500 → iShares Russell 2500 ETF
-    "^RAG":  "IWZ",    # Russell 3000 Growth → iShares Russell 3000 Growth ETF
-    "^RUA":  "IWV",    # Russell 3000 → iShares Russell 3000 ETF
-    "^RUT":  "IWM",    # Russell 2000 → iShares Russell 2000 ETF
-    "^RLG":  "IWF",    # Russell 1000 Growth → iShares Russell 1000 Growth ETF
+    "^R25I": "SMMD",
+    "^RAG":  "IWZ",
+    "^RUA":  "IWV",
+    "^RUT":  "IWM",
+    "^RLG":  "IWF",
 }
 
 def get_benchmark(symbol: str = "^GSPC", period: str = "1y") -> pd.Series:
     if symbol not in _bench_cache:
-        # Try primary symbol first, then ETF fallback if it returns empty/fails
         _symbols_to_try = [symbol]
         if symbol in _BENCH_FALLBACKS:
             _symbols_to_try.append(_BENCH_FALLBACKS[symbol])
@@ -439,7 +397,7 @@ def get_benchmark(symbol: str = "^GSPC", period: str = "1y") -> pd.Series:
                 if hasattr(data.index, 'tz') and data.index.tz is not None:
                     data.index = data.index.tz_convert(None)
                 data.index = pd.to_datetime(data.index).normalize()
-                if len(data) > 50:                       # must have meaningful history
+                if len(data) > 50:
                     _bench_cache[symbol] = data
                     _src = f"{_sym}" if _sym == symbol else f"{_sym} (fallback for {symbol})"
                     log.info(f"Benchmark loaded: {_src} — {len(data)} bars")
@@ -453,7 +411,9 @@ def get_benchmark(symbol: str = "^GSPC", period: str = "1y") -> pd.Series:
             _bench_cache[symbol] = pd.Series(dtype=float)
 
     return _bench_cache[symbol]
-    def batch_fetch_history(tickers: List[str], period: str = "1y") -> Dict[str, pd.DataFrame]:
+
+
+def batch_fetch_history(tickers: List[str], period: str = "1y") -> Dict[str, pd.DataFrame]:
     """
     Fetch OHLCV history for many tickers in a handful of batched requests
     instead of one HTTP call per ticker. Yahoo blocks/rate-limits individual
@@ -467,7 +427,7 @@ def get_benchmark(symbol: str = "^GSPC", period: str = "1y") -> pd.Series:
     if not tickers:
         return result
 
-    chunk_size = 100  # very large single batch calls are themselves unreliable
+    chunk_size = 100
     chunks = [tickers[i:i + chunk_size] for i in range(0, len(tickers), chunk_size)]
 
     for chunk in chunks:
@@ -498,6 +458,8 @@ def get_benchmark(symbol: str = "^GSPC", period: str = "1y") -> pd.Series:
 
     log.info(f"Batch fetch: {len(result)}/{len(tickers)} tickers returned data")
     return result
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # ORDER FLOW PERSISTENCE
 # ══════════════════════════════════════════════════════════════════════════════
@@ -727,14 +689,6 @@ def detect_price_action_patterns(hist: pd.DataFrame) -> Dict:
 _weekly_cache: Dict[str, dict] = {}
 
 def analyse_weekly(ticker: str, bench_close: pd.Series) -> dict:
-    """
-    Fetch and analyse the weekly chart for a ticker.
-    Returns weekly stage, RS, base tightness, trend quality, and a
-    weekly_score (0–10) that is added to Apex Score when aligned,
-    or subtracted when the weekly contradicts the daily.
-
-    Cached per session — only fetched once per ticker per scan.
-    """
     if ticker in _weekly_cache:
         return _weekly_cache[ticker]
 
@@ -755,13 +709,11 @@ def analyse_weekly(ticker: str, bench_close: pd.Series) -> dict:
     }
 
     try:
-        # Fetch 2 years of weekly bars — enough for 40WMA + RS
         hist_w = yf.Ticker(ticker).history(period="2y", interval="1wk")
         if len(hist_w) < 40:
             _weekly_cache[ticker] = result
             return result
 
-        # Strip timezone
         if hasattr(hist_w.index, "tz") and hist_w.index.tz is not None:
             hist_w.index = hist_w.index.tz_convert(None)
         hist_w.index = pd.to_datetime(hist_w.index).normalize()
@@ -769,7 +721,6 @@ def analyse_weekly(ticker: str, bench_close: pd.Series) -> dict:
         close_w = hist_w["Close"]
         cur_w   = float(close_w.iloc[-1])
 
-        # ── Weekly moving averages (10WMA = 50DMA equiv, 40WMA = 200DMA equiv)
         ma10w = float(close_w.rolling(10).mean().iloc[-1])
         ma40w = float(close_w.rolling(40).mean().iloc[-1])
 
@@ -781,7 +732,6 @@ def analyse_weekly(ticker: str, bench_close: pd.Series) -> dict:
         result["weekly_above_40wma"] = above_40w
         result["weekly_10gt40"]      = ma10_gt40
 
-        # ── Weekly stage (mirrors Weinstein daily stage logic)
         if cur_w > ma10w > ma40w:
             result["weekly_stage"] = "2 ✅ Weekly Uptrend"
         elif cur_w > ma40w:
@@ -791,10 +741,8 @@ def analyse_weekly(ticker: str, bench_close: pd.Series) -> dict:
         else:
             result["weekly_stage"] = "3 ⚠️ Weekly Topping"
 
-        # ── Weekly RS vs benchmark
         if bench_close is not None and len(bench_close) > 0:
             try:
-                # Resample daily bench to weekly
                 bench_w = bench_close.resample("W").last().dropna()
                 common  = close_w.index.intersection(bench_w.index)
                 if len(common) >= 13:
@@ -807,16 +755,14 @@ def analyse_weekly(ticker: str, bench_close: pd.Series) -> dict:
             except Exception:
                 pass
 
-        # ── Weekly base tightness (last 8 weeks)
         last8w = hist_w.iloc[-8:]
         if len(last8w) >= 5:
             wk_high = float(last8w["High"].max())
             wk_low  = float(last8w["Low"].min())
             wk_depth = (wk_high - wk_low) / wk_high * 100 if wk_high > 0 else 100
             result["weekly_base_depth_%"] = round(wk_depth, 1)
-            result["weekly_base_tight"]   = wk_depth < 15   # <15% weekly base = tight
+            result["weekly_base_tight"]   = wk_depth < 15
 
-        # ── Weekly trend — consecutive up weeks
         consec_up = 0
         for i in range(-1, -min(6, len(hist_w)+1), -1):
             try:
@@ -829,23 +775,18 @@ def analyse_weekly(ticker: str, bench_close: pd.Series) -> dict:
         result["weekly_consec_up_wks"] = consec_up
         result["weekly_trending_up"]   = consec_up >= 2
 
-        # ── Weekly Higher Highs / Higher Lows (last 6 weeks)
         if len(hist_w) >= 6:
             highs6 = hist_w["High"].iloc[-6:].values
             lows6  = hist_w["Low"].iloc[-6:].values
-            wk_hh  = highs6[-1] > highs6[-3] > highs6[-5]  # every 2 weeks making new high
-            wk_hl  = lows6[-1]  > lows6[-3]  > lows6[-5]   # every 2 weeks making higher low
+            wk_hh  = highs6[-1] > highs6[-3] > highs6[-5]
+            wk_hl  = lows6[-1]  > lows6[-3]  > lows6[-5]
             result["weekly_hh_hl"] = bool(wk_hh and wk_hl)
 
-        # ── Weekly confirmation and contradiction assessment ──────────────────
-        # CONFIRMED: weekly Stage 2 + RS positive + above 40WMA
         confirmed = (
             above_40w and
             ma10_gt40 and
             (result["weekly_rs"] is None or result["weekly_rs"] > 0)
         )
-        # CONTRADICTS: weekly is Stage 3 or 4 while daily is Stage 2
-        # This is the trap — daily breakout inside weekly downtrend
         contradicts = (
             not above_40w and
             not above_10w and
@@ -855,14 +796,13 @@ def analyse_weekly(ticker: str, bench_close: pd.Series) -> dict:
         result["weekly_confirmed"]   = confirmed
         result["weekly_contradicts"] = contradicts
 
-        # ── Weekly score 0–10 ─────────────────────────────────────────────────
         wscore = 0
-        if above_40w and ma10_gt40:          wscore += 4   # weekly Stage 2: core signal
-        elif above_40w:                       wscore += 2   # above 40WMA only
-        if result["weekly_hh_hl"]:           wscore += 2   # weekly HH/HL confirmed
-        if result["weekly_base_tight"]:      wscore += 2   # tight base = low risk
-        if result["weekly_trending_up"]:     wscore += 1   # consecutive up weeks
-        if result.get("weekly_rs") and result["weekly_rs"] > 100: wscore += 1  # RS leader on weekly
+        if above_40w and ma10_gt40:          wscore += 4
+        elif above_40w:                       wscore += 2
+        if result["weekly_hh_hl"]:           wscore += 2
+        if result["weekly_base_tight"]:      wscore += 2
+        if result["weekly_trending_up"]:     wscore += 1
+        if result.get("weekly_rs") and result["weekly_rs"] > 100: wscore += 1
 
         result["weekly_score"] = min(10, wscore)
 
@@ -883,10 +823,9 @@ def analyze_stock(ticker: str, cfg: dict,
     """
     Full ApexScan analysis for one ticker.
     market="auto" detects from ticker suffix (.LG = NGX, else US).
-    Includes: momentum, stage, RS, order flow, VWAP, market structure,
-    price action patterns, and Alpha Vantage EPS fundamentals.
+    hist_override — pre-fetched OHLCV DataFrame from a batch download, used
+    instead of an individual yf.Ticker(...).history() call when available.
     """
-    # ── Market detection ──────────────────────────────────────────────────
     market = resolve_market(ticker, market)
     _mkt_key     = "ng" if market == "ng" else "us"
     _is_ngx      = (market == "ng")
@@ -894,32 +833,23 @@ def analyze_stock(ticker: str, cfg: dict,
     thresholds   = cfg["thresholds"].get(_mkt_key, cfg["thresholds"]["us"])
     bench_symbol = cfg["benchmarks"].get(_mkt_key, cfg["benchmarks"]["us"])
 
-    # For NGX: initialise ngx_bench placeholder (fetched inside try block)
     _ngx_bench   = None
 
-    # NGX: skip Russell benchmarks (not relevant for Nigerian market)
     if not _is_ngx:
         bench_r2500  = cfg.get("benchmarks", {}).get("russell_2500", "^R25I")
         bench_r3000g = cfg.get("benchmarks", {}).get("russell_3000_growth", "^RAG")
     else:
         bench_r2500 = bench_r3000g = None
-    # Secondary benchmarks — Russell 2500 and Russell 3000 Growth
-    # ^R25I = Russell 2500 index, ^RAG = Russell 3000 Growth index
-    # ETF fallbacks: SMMD (R2500 ETF), IWZ (R3000 Growth ETF)
     bench_r2500   = cfg.get("benchmarks", {}).get("russell_2500",       "^R25I")
     bench_r3000g  = cfg.get("benchmarks", {}).get("russell_3000_growth", "^RAG")
     finnhub_key  = cfg.get("finnhub_key", "")
     av_key       = cfg.get("alpha_vantage_key", "")
     av_cfg       = cfg.get("alpha_vantage", {})
-    ngxp_key     = cfg.get("ngx_pulse_key", "")    # NGX Pulse — ngxpulse.ng
-    ngnm_key     = cfg.get("ngn_market_key", "")   # NGN Market — api.ngnmarket.com
-    # Alpha Vantage has no NGX/Lagos coverage — never spend AV quota on NG tickers
+    ngxp_key     = cfg.get("ngx_pulse_key", "")
+    ngnm_key     = cfg.get("ngn_market_key", "")
     use_av       = bool(av_key and not av_key.startswith("YOUR_")) and not _is_ngx
 
     try:
-        # ── Fetch OHLCV history ──────────────────────────────────────────────
-        # For NGX: try NGX Pulse first, then NGN Market, then yfinance .LG —
-        # these are three independent sources, not one, each with its own key.
         if _is_ngx:
             hist = None
             if _HAS_NGX_PULSE and ngxp_key:
@@ -928,20 +858,17 @@ def analyze_stock(ticker: str, cfg: dict,
                 hist = ngnm_get_history(ticker, ngnm_key)
             if hist is None or len(hist) == 0:
                 hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
-            # Fetch NGX All-Share benchmark once per session (NGX Pulse's index
-            # history endpoint is public/free and covers back to 1996, so it's
-            # tried first regardless of which key is set; then NGN Market; then yfinance)
             if _ngx_bench is None:
                 _ngx_idx = ngxp_get_index(ngxp_key) if _HAS_NGX_PULSE else None
                 if _ngx_idx is None and _HAS_NGN_MARKET and ngnm_key:
                     _ngx_idx = ngnm_get_index(ngnm_key)
                 _ngx_bench = _ngx_idx["df"]["Close"] if _ngx_idx else None
-            else:
+        else:
             if hist_override is not None and len(hist_override) > 0:
                 hist = hist_override
             else:
                 hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
-        # NGX stocks may have fewer bars — use a lower floor
+
         _min_bars = 30 if _is_ngx else cfg["scan"]["min_history_bars"]
         if len(hist) < _min_bars:
             log.debug(f"{ticker}: only {len(hist)} bars (min={_min_bars}), skipping")
@@ -955,9 +882,7 @@ def analyze_stock(ticker: str, cfg: dict,
         perf_6m = performance_pct(close, 126)
 
         high_52w     = close.rolling(252).max().iloc[-1]
-        # Guard against NaN from rolling on short history
         if pd.isna(high_52w) or high_52w == 0:
-            # Fallback: use the actual max of available close data
             high_52w = float(close.max())
         near_52wh    = current_price >= high_52w * thresholds["near_52w_high"]
         pct_off_high = round((current_price / high_52w - 1) * 100, 1) if high_52w else 0.0
@@ -974,7 +899,6 @@ def analyze_stock(ticker: str, cfg: dict,
         vs_50ma_pct  = price_vs_ma(current_price, ma50)
         vs_200ma_pct = price_vs_ma(current_price, ma200)
 
-        # Primary benchmark — S&P 500 (US) or NGX All-Share (NGX)
         if _is_ngx and _ngx_bench is not None and len(_ngx_bench) > 63:
             bench = _ngx_bench
             log.info(f"{ticker}: using NGX All-Share benchmark for RS")
@@ -983,7 +907,6 @@ def analyze_stock(ticker: str, cfg: dict,
         rs_3m      = compute_rs(close, bench, 63)
         rs_6m      = compute_rs(close, bench, 126)
 
-        # Secondary benchmarks — Russell 2500 and Russell 3000E Growth (US only)
         if not _is_ngx and bench_r2500 and bench_r3000g:
             _bench_r2500  = get_benchmark(bench_r2500,  cfg["scan"]["history_period"])
             _bench_r3000g = get_benchmark(bench_r3000g, cfg["scan"]["history_period"])
@@ -992,10 +915,8 @@ def analyze_stock(ticker: str, cfg: dict,
             rs_r3000g     = compute_rs(close, _bench_r3000g, 63)  if len(_bench_r3000g) > 63  else None
             rs_r3000g_6m  = compute_rs(close, _bench_r3000g, 126) if len(_bench_r3000g) > 126 else None
         else:
-            # NGX: Russell benchmarks not applicable
             rs_r2500 = rs_r2500_6m = rs_r3000g = rs_r3000g_6m = None
 
-        # Multi-benchmark RS leader flag: outperforming ALL three benchmarks = elite
         rs_multi_leader = (
             not _is_ngx and
             rs_3m is not None and rs_3m > 100 and
@@ -1005,7 +926,6 @@ def analyze_stock(ticker: str, cfg: dict,
 
         adr          = adr_pct(hist, 20)
         vol_today    = int(hist["Volume"].iloc[-1])
-        # Use avg volume for filter — last day can be 0 for incomplete sessions
         vol_avg_20   = int(hist["Volume"].rolling(20).mean().iloc[-1]) if len(hist) >= 20 else vol_today
         vol_filter   = max(vol_today, vol_avg_20)
         vol_surge    = volume_surge_ratio(hist)
@@ -1030,15 +950,10 @@ def analyze_stock(ticker: str, cfg: dict,
                     if av_data and av_data.get("eps_momentum") not in (None, "Unknown")
                     else earnings_momentum_proxy(fh["news_count"], perf_3m))
 
-        # ── Sector / Theme classification ────────────────────────────────────
-        # Priority 1: user-defined themes from config.yaml (e.g. ai_semis, cybersecurity)
         _theme_src = cfg["ng_themes"] if _is_ngx else cfg["us_themes"]
         _cfg_theme = next((k for k, v in _theme_src.items() if ticker in v), None)
 
-        # Priority 2: GICS sector map — 11 official GICS sectors
-        # Covers every ticker in the extended universe so "other" never appears
         _GICS_MAP = {
-            # ── Energy ───────────────────────────────────────────────────────
             "Energy": [
                 "XOM","CVX","COP","SLB","BKR","HAL","PSX","VLO","MPC","EOG",
                 "PXD","DVN","OXY","FANG","HES","APA","NOV","WHD","TRGP","KMI",
@@ -1046,7 +961,6 @@ def analyze_stock(ticker: str, cfg: dict,
                 "CRC","SM","CIVI","MGY","ESTE","REX","FLNG","GMLP","SLNG",
                 "BP","SHEL","TTE","ENB","TRP","SU","CVE","IMO","CNQ","MEG",
             ],
-            # ── Materials ────────────────────────────────────────────────────
             "Materials": [
                 "LIN","APD","SHW","ECL","IFF","PPG","RPM","FMC","CF","MOS","NTR",
                 "NUE","STLD","CMC","RS","ATI","FCX","SCCO","AA","CLF","MP","ALB",
@@ -1055,7 +969,6 @@ def analyze_stock(ticker: str, cfg: dict,
                 "AG","EXK","SILV","CDE","HL","GPL","MUX","AUY","KGC","GATO",
                 "MAG","SVM","FSM","ERO","ATX","VZLA","SAND","WPM","OR","RGLD",
             ],
-            # ── Industrials ──────────────────────────────────────────────────
             "Industrials": [
                 "BA","RTX","LMT","NOC","GD","HII","TDG","HWM","GE","HON","MMM",
                 "CAT","DE","EMR","ETN","PH","ITW","ROK","AME","ROP","CPRT","EXPD",
@@ -1065,14 +978,12 @@ def analyze_stock(ticker: str, cfg: dict,
                 "WM","RSG","CTAS","VRSK","LDOS","SAIC","BAH","CACI","ACN",
                 "AXON","TDY","HXL","KTOS","DRS","RKLB","ACHR","JOBY","LUNR",
             ],
-            # ── Utilities ────────────────────────────────────────────────────
             "Utilities": [
                 "NEE","D","SO","DUK","AEP","SRE","PCG","XEL","AWK","ES","EXC",
                 "ED","PPL","ETR","FE","AEE","CMS","DTE","LNT","PNW","WEC","NI",
                 "BEP","BEPC","AES","NRG","CEG","VST","PEG","CNP","EVRG","AVA",
                 "IDACORP","OGE","SPWR","NOVA","RUN","ENPH","FSLR","PLUG",
             ],
-            # ── Healthcare ───────────────────────────────────────────────────
             "Healthcare": [
                 "UNH","CI","CVS","HCA","MCK","CAH","DHR","TMO","ABT","MDT","SYK",
                 "BSX","EW","ZBH","BDX","BAX","STE","HOLX","IQV","CRL","MTD","WAT",
@@ -1083,7 +994,6 @@ def analyze_stock(ticker: str, cfg: dict,
                 "HIMS","TMDX","RXRX","SAGE","AUPH","AVXL","SNDX","PRAX","IMVT",
                 "DNLI","KRTX","VRNA","AKRO","TARS","NKTR","ACAD","ARQT","GOSS",
             ],
-            # ── Financials ───────────────────────────────────────────────────
             "Financials": [
                 "JPM","GS","MS","BAC","WFC","C","AXP","BLK","SCHW","ICE","CME",
                 "SPGI","MCO","AMP","PGR","MET","TRV","AFL","ALL","CB","HIG","L",
@@ -1092,7 +1002,6 @@ def analyze_stock(ticker: str, cfg: dict,
                 "COIN","HOOD","SOFI","AFRM","UPST","DAVE","OPEN","UWMC","MSTR",
                 "V","MA","PYPL","SQ","BILL","SMAR","INTL","IBKR","LPLA","RJF",
             ],
-            # ── Consumer Discretionary ───────────────────────────────────────
             "Consumer Discretionary": [
                 "AMZN","TSLA","HD","TGT","LOW","MCD","SBUX","YUM","CMG","DPZ",
                 "QSR","EAT","DRI","TXRH","BLMN","BJRI","CAKE","SHAK","WING","PLNT",
@@ -1102,14 +1011,12 @@ def analyze_stock(ticker: str, cfg: dict,
                 "LYFT","UBER","DASH","DKNG","RBLX","MTCH","ABNB","BKNG","EXPE",
                 "ROST","DLTR","DG","BURL","TJX","COST","WMT","DUOL","CAVA",
             ],
-            # ── Consumer Staples ─────────────────────────────────────────────
             "Consumer Staples": [
                 "PG","KO","PEP","PM","MO","CL","KMB","CHD","CLX","HRL",
                 "SJM","CAG","CPB","GIS","K","MKC","HSY","TR","MDLZ","KHC",
                 "STZ","BF-B","TAP","SAM","BUD","DEO","BTI","MNST","CELH",
                 "WMT","COST","TGT","KR","SFM","GO","CASY","ATD",
             ],
-            # ── Information Technology ───────────────────────────────────────
             "Information Technology": [
                 "AAPL","MSFT","NVDA","AVGO","ORCL","CRM","ADBE","QCOM","TXN","INTU",
                 "AMD","ARM","AMAT","LRCX","KLAC","MU","MRVL","SMCI","CDNS","SNPS",
@@ -1119,7 +1026,6 @@ def analyze_stock(ticker: str, cfg: dict,
                 "GLOB","DXC","CACI","LDOS","SAIC","BAH","ACN","IONQ","SOUN","BTDR",
                 "TSM","ASML","ON","MPWR","ADI","MCHP","SWKS","QRVO","WOLF","ONTO",
             ],
-            # ── Communication Services ───────────────────────────────────────
             "Communication Services": [
                 "META","GOOGL","GOOG","NFLX","SPOT","ROKU","TTD","SNAP","PINS","TWTR",
                 "RDDT","MTCH","IAC","ZG","DASH","LYFT","UBER","ABNB","BKNG","EXPE",
@@ -1127,7 +1033,6 @@ def analyze_stock(ticker: str, cfg: dict,
                 "T","VZ","TMUS","LUMN","FYBR","ATUS","CABO","CHTR","CMCSA",
                 "EA","TTWO","ATVI","RBLX","U","DKNG","HOOD",
             ],
-            # ── Real Estate ──────────────────────────────────────────────────
             "Real Estate": [
                 "PLD","AMT","CCI","SBAC","EQIX","DLR","O","SPG","PSA","EXR",
                 "AVB","EQR","UDR","ESS","MAA","CPT","NNN","VICI","MGM","WYNN","LVS",
@@ -1137,30 +1042,22 @@ def analyze_stock(ticker: str, cfg: dict,
             ],
         }
 
-        # Build reverse lookup: ticker → GICS sector
         _TICKER_TO_GICS = {}
         for _sector, _tickers in _GICS_MAP.items():
             for _t in _tickers:
                 _TICKER_TO_GICS[_t] = _sector
 
-        # Final theme assignment logic:
-        # 1. Use config theme if defined (ai_semis, cybersecurity, etc.) — most specific
-        # 2. Fall back to GICS sector — always one of the 11 official categories
-        # 3. Try yfinance fast_info sector as last resort
-        # "other" should NEVER appear in results
         if _cfg_theme:
             theme = _cfg_theme
         elif ticker in _TICKER_TO_GICS:
             theme = _TICKER_TO_GICS[ticker]
         else:
-            # Dynamic lookup via yfinance for any ticker not in our static map
             try:
                 _yf_info = yf.Ticker(ticker).fast_info
                 _yf_sector = getattr(_yf_info, "sector", None)
                 if not _yf_sector:
                     _yf_info2 = yf.Ticker(ticker).info
                     _yf_sector = _yf_info2.get("sector", None)
-                # Map yfinance sector names to our GICS labels
                 _SECTOR_ALIASES = {
                     "Technology":               "Information Technology",
                     "Financial Services":       "Financials",
@@ -1176,9 +1073,8 @@ def analyze_stock(ticker: str, cfg: dict,
                 }
                 theme = _SECTOR_ALIASES.get(_yf_sector, _yf_sector or "Information Technology")
             except Exception:
-                theme = "Information Technology"  # safe default — never "other"
+                theme = "Information Technology"
 
-        # ── Market Cap & Liquidity (Emerging Gems) ────────────────────────
         gem_cfg   = cfg.get("emerging_gems", {})
         mcap_data = get_market_cap_data(ticker)
         is_gem    = mcap_data["is_gem"] or theme == "emerging_gems"
@@ -1195,86 +1091,60 @@ def analyze_stock(ticker: str, cfg: dict,
         ms_data  = detect_market_structure(hist, cfg.get("advanced", {}).get("swing_lookback", 5))
         pa_data  = detect_price_action_patterns(hist)
         ee_data  = detect_early_entry(close, ma50, ma200, hist)
-        wk_data  = analyse_weekly(ticker, bench)   # weekly timeframe confirmation
+        wk_data  = analyse_weekly(ticker, bench)
 
-        # ── Apex Score ────────────────────────────────────────────────────
         score = 0
 
-        # Momentum (max 40)
         if perf_3m > thresholds["min_3m_perf"]:    score += min(40, perf_3m)
 
-        # Relative Strength vs S&P 500 (max 25)
         if rs_3m > thresholds["rs_rating_min"]:     score += 25
         elif rs_3m > 50:                            score += 12
 
-        # Bonus: outperforming Russell 2500 (small/mid growth benchmark) +3
         if rs_r2500 is not None and rs_r2500 > 100: score += 3
-
-        # Bonus: outperforming Russell 3000 Growth (broad growth benchmark) +3
         if rs_r3000g is not None and rs_r3000g > 100: score += 3
-
-        # Elite bonus: beating ALL three benchmarks simultaneously +4
         if rs_multi_leader:                         score += 4
 
-        # Trend / Stage (max 15) — Stage 2 REQUIRED for full credit
-        if above_200ma and ma50_gt_200:             score += 15   # Stage 2: price > 50MA > 200MA
-        elif above_200ma:                           score += 7    # Stage 1: above 200MA only
+        if above_200ma and ma50_gt_200:             score += 15
+        elif above_200ma:                           score += 7
 
-        # 52-week high proximity (max 10)
         if near_52wh:                               score += 10
-
-        # Breakout (max 10)
         if breaking_out:                            score += 10
 
-        # Advanced signals
-        score += of_data["of_persistence_score"]    # 0–8
-        score += pa_data["pa_score"]                # 0–5
-        score += vwap_data["vwap_score"]            # 0–4
+        score += of_data["of_persistence_score"]
+        score += pa_data["pa_score"]
+        score += vwap_data["vwap_score"]
         if ms_data["ms_hh_hl"]:                    score += 2
         if ms_data["ms_break_of_struct"] and ms_data["ms_hh_hl"]: score += 1
 
-        # Early entry bonus — reward stocks at the START of a move (cheap entry)
-        score += ee_data["early_entry_score"]       # 0–10
+        score += ee_data["early_entry_score"]
 
-        # ── WEEKLY TIMEFRAME LAYER ────────────────────────────────────────
-        # Weekly confirmation: daily setup aligned with weekly uptrend = highest quality
         if wk_data["weekly_confirmed"]:
-            score += wk_data["weekly_score"]        # +0–10 when weekly aligned
+            score += wk_data["weekly_score"]
 
-        # Fundamentals (0–15)
         if av_data:                                 score += av_data.get("eps_score", 0)
 
-        # ── DEDUCTIONS — penalise bearish conditions ──────────────────────
-        # Stage 4 downtrend: hard penalty — stock is in confirmed downtrend
-        if not above_200ma and not ma50_gt_200:     score -= 20   # Stage 4: below both MAs
-        elif not above_200ma:                       score -= 10   # below 200MA only
+        if not above_200ma and not ma50_gt_200:     score -= 20
+        elif not above_200ma:                       score -= 10
 
-        # Negative 3-month performance (going the wrong way)
         if perf_3m < 0:                             score -= 10
         elif perf_3m < thresholds["min_3m_perf"]:  score -= 5
 
-        # RS deeply negative (massive underperformer)
         if rs_3m < 0:                               score -= 10
         elif rs_3m < 50:                            score -= 5
 
-        # Bearish order flow
         if of_data["of_directional_bias"] == "Strong Bearish": score -= 5
         elif of_data["of_directional_bias"] == "Bearish":      score -= 2
 
-        # Far below 52-week high (>40% off = avoid)
         if pct_off_high < -40:                      score -= 10
         elif pct_off_high < -25:                    score -= 5
 
-        # ── WEEKLY CONTRADICTION PENALTY ──────────────────────────────────
-        # Daily breakout inside weekly downtrend = trap — significant penalty
         if wk_data["weekly_contradicts"]:
-            score -= 15   # Hard deduction: do NOT buy daily breakouts in weekly downtrends
+            score -= 15
         elif not wk_data["weekly_confirmed"] and not wk_data["weekly_contradicts"]:
-            score -= 3    # Neutral weekly (transitioning) — slight caution
+            score -= 3
 
         score = max(0, min(100, round(score, 1)))
 
-        # Apply gem score boosts for emerging gems with strong signals
         if is_gem:
             score = gem_score_boost(
                 score, rs_3m, breaking_out,
@@ -1298,7 +1168,6 @@ def analyze_stock(ticker: str, cfg: dict,
             "perf_6m_%":       perf_6m,
             "rs_3m":           rs_3m,
             "rs_6m":           rs_6m,
-            # Russell benchmark RS
             "rs_r2500_3m":     rs_r2500,
             "rs_r2500_6m":     rs_r2500_6m,
             "rs_r3000g_3m":    rs_r3000g,
@@ -1355,7 +1224,6 @@ def analyze_stock(ticker: str, cfg: dict,
             "pa_inside_day":   pa_data["pa_inside_day"],
             "pa_context":      pa_data["pa_context_candle"],
             "pa_score":        pa_data["pa_score"],
-            # ── Early Entry Signals ───────────────────────────────────────
             "early_entry":             ee_data["early_entry"],
             "early_entry_type":        ee_data["early_entry_type"],
             "fresh_200ma_cross":       ee_data["fresh_200ma_cross"],
@@ -1364,7 +1232,6 @@ def analyze_stock(ticker: str, cfg: dict,
             "low_adr_base":            ee_data["low_adr_base"],
             "early_entry_score":       ee_data["early_entry_score"],
             "days_since_200ma_cross":  ee_data["days_since_200ma_cross"],
-            # ── Weekly Timeframe Confirmation ─────────────────────────────
             "weekly_stage":            wk_data["weekly_stage"],
             "weekly_above_10wma":      wk_data["weekly_above_10wma"],
             "weekly_above_40wma":      wk_data["weekly_above_40wma"],
@@ -1380,7 +1247,6 @@ def analyze_stock(ticker: str, cfg: dict,
             "weekly_score":            wk_data["weekly_score"],
             "apex_score":      score,
             "scanned_at":      datetime.now().strftime("%Y-%m-%d %H:%M"),
-            # ── Emerging Gems ─────────────────────────────────────────────
             "market_cap":      mcap_data["market_cap"],
             "market_cap_bn":   mcap_data["market_cap_bn"],
             "mcap_category":   mcap_data["mcap_category"],
@@ -1402,13 +1268,6 @@ def analyze_stock(ticker: str, cfg: dict,
 def run_scan(cfg: dict, markets: List[str] = None,
              universe_override: list = None,
              market: str = "us", strategy: str = "swing") -> pd.DataFrame:
-    """
-    Run the full ApexScan.
-    market="us"  → US stocks (default, existing behaviour)
-    market="ng"  → NGX stocks (Nigerian Exchange)
-    market="all" → Both US and NGX combined
-    universe_override → explicit ticker list (auto-detects market per ticker)
-    """
     if universe_override is not None:
         if universe_override and isinstance(universe_override[0], dict):
             tickers = [t["ticker"] for t in universe_override if "ticker" in t]
@@ -1427,13 +1286,11 @@ def run_scan(cfg: dict, markets: List[str] = None,
     selected_strategy = get_strategy(strategy)
     log.info(f"Scanning {len(tickers)} US tickers…")
 
-    # Clear per-session caches so each scan starts fresh
     _bench_cache.clear()
     _mcap_cache.clear()
     _weekly_cache.clear()
     log.info("Session caches cleared.")
 
-    # Pre-warm US benchmarks only when a US leg is requested.
     if requested_market in {"us", "all"}:
         _primary_bench = cfg["benchmarks"]["us"]
         _r2500_sym = cfg.get("benchmarks", {}).get("russell_2500", "^R25I")
@@ -1448,12 +1305,12 @@ def run_scan(cfg: dict, markets: List[str] = None,
         _bench_cache.clear()
         log.info("NGX scan: removed US-only benchmark preload; NGX All-Share is used.")
 
-   # ── Batch pre-fetch history for non-NGX tickers ────────────────────────
+    # ── Batch pre-fetch history for non-NGX tickers ────────────────────────
     # Replaces 500+ individual HTTP requests with a handful of bulk calls —
     # this is what actually avoids Yahoo blocking the whole scan, not pacing.
     _batch_tickers = [t for t in tickers if not t.upper().endswith((".LG", ".NG"))]
-    _batch_hist = batch_fetch_history(_batch_tickers, cfg["scan"]["history_period"])              
-                 
+    _batch_hist = batch_fetch_history(_batch_tickers, cfg["scan"]["history_period"])
+
     av_key   = cfg.get("alpha_vantage_key", "")
     av_cfg   = cfg.get("alpha_vantage", {})
     use_av   = bool(av_key and not av_key.startswith("YOUR_"))
@@ -1469,7 +1326,6 @@ def run_scan(cfg: dict, markets: List[str] = None,
     results = []
     pause   = cfg["scan"]["rate_limit_pause"]
 
-    # ── Pass 1: price/technical scan, no AV ──────────────────────────────
     log.info("Pass 1: technical scan…")
     for i, ticker in enumerate(tickers):
         diagnostics.scanned += 1
@@ -1478,7 +1334,6 @@ def run_scan(cfg: dict, markets: List[str] = None,
             time.sleep(pause)
 
         cfg_no_av = {**cfg, "alpha_vantage_key": ""}
-        # Auto-detect market from ticker suffix
         _ticker_market = resolve_market(ticker, requested_market)
         data = analyze_stock(ticker, cfg_no_av, market=_ticker_market,
                               hist_override=_batch_hist.get(ticker))
@@ -1490,32 +1345,21 @@ def run_scan(cfg: dict, markets: List[str] = None,
         min_score = cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"])["score_filter"]
         min_vol   = cfg["thresholds"].get(_fmkt, cfg["thresholds"]["us"])["min_volume"]
 
-        # ── Hard gates — reject regardless of score ────────────────────────
         _is_gem_stock = data.get("is_gem", False)
         _has_early    = data.get("early_entry", False)
 
-        # Gate 1: Stage — gems with fresh 200MA cross allowed through even if
-        # Stage 2 isn't fully confirmed yet (that's the whole point of early entry)
-        # NGX EXCEPTION: Nigerian stocks often have < 200 bars of history so
-        # MA200 is NaN → above_200ma = False for nearly all NGX tickers.
-        # For NGX, accept any stock above its 50MA (Stage 1+) as the stage gate.
         if _ticker_market == "ng":
-            _stage_ok = data["above_50ma"]   # NGX: above 50MA is sufficient
+            _stage_ok = data["above_50ma"]
         else:
-            # PRIMARY: full Stage 2 (above_200ma AND ma50_gt_ma200) = highest quality
-            # SECONDARY: above_200ma only — stock above long-term trend (Stage 1/2 boundary)
-            # We allow secondary because Gate 5 (score) will rank Stage 2 stocks higher anyway
-            _stage_ok = data["above_200ma"]  # must be above 200MA minimum
+            _stage_ok = data["above_200ma"]
         _gem_stage_ok = (
             _is_gem_stock and
-            data["above_50ma"]               # gems: above 50MA is sufficient
+            data["above_50ma"]
         )
         if not _stage_ok and not _gem_stage_ok:
             diagnostics.reject("stage")
             continue
 
-        # Gate 2: 3M performance — gems need only +2% (they're early, not extended)
-        # NGX: use config threshold (3%) or 0 if data is too thin
         if _ticker_market == "ng":
             _min_perf = cfg["thresholds"].get("ng", {}).get("min_3m_perf", 0)
         else:
@@ -1524,18 +1368,12 @@ def run_scan(cfg: dict, markets: List[str] = None,
             diagnostics.reject("performance")
             continue
 
-        # Gate 3: RS — minimum RS gate. Score already penalises low RS stocks.
-        # Set at -50 so only extreme laggards are excluded. Quality sorting
-        # happens via the Apex Score, not hard RS gates.
         _min_rs = -50 if _is_gem_stock else -30
         if data["rs_3m"] < _min_rs:
             diagnostics.reject("relative_strength")
             continue
 
-        # Gate 4: Volume — gems use lower floor (100K vs 300K)
         _min_vol_eff = 100_000 if _is_gem_stock else min_vol
-
-        # Gate 5: Score — gems use lower threshold (early setups haven't moved yet)
         _min_score_eff = max(20, min_score - 15) if _is_gem_stock else min_score
 
         if data.get("vol_filter", data["volume"]) < _min_vol_eff:
@@ -1554,7 +1392,6 @@ def run_scan(cfg: dict, markets: List[str] = None,
 
     results.sort(key=lambda x: x["apex_score"], reverse=True)
 
-    # ── Pass 2: AV enrichment for top N tickers ───────────────────────────
     if use_av and av_max > 0:
         api_calls_made = 0
         log.info(f"Pass 2: AV enrichment for top {av_max} tickers…")
