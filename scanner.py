@@ -1506,7 +1506,14 @@ def run_scan(cfg: dict, markets: List[str] = None,
     except Exception as ai_error:
         log.warning("AI enrichment skipped; scanner results are preserved: %s", ai_error)
     return df
-  def save_report(df: pd.DataFrame, report_dir: str = "reports") -> str:
+
+
+def save_report(df: pd.DataFrame, report_dir: str = "reports") -> str:
+    Path(report_dir).mkdir(exist_ok=True)
+    filename = f"{report_dir}/scan_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
+    df.to_csv(filename, encoding="utf-8")
+    log.info(f"Saved → {filename}")
+    return filename
     Path(report_dir).mkdir(exist_ok=True)
     filename = f"{report_dir}/scan_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
     df.to_csv(filename, encoding="utf-8")
