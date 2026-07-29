@@ -1983,46 +1983,6 @@ if run_btn or _auto_fired:
                     f"🌐 Extended Universe: scanning {len(_EXTENDED_UNIVERSE)} tickers "
                     f"— {_stats_line}"
                 )            # Merge all, deduplicate, preserve order
-            _seen = set()
-            _EXTENDED_UNIVERSE = []
-            for _tk in (_NASDAQ_NAMES + _NYSE_NAMES + _NYSE_AMERICAN_NAMES):
-                if _tk not in _seen:
-                    _seen.add(_tk)
-                    _EXTENDED_UNIVERSE.append(_tk)
-
-            _universe_override = _EXTENDED_UNIVERSE
-            st.info(
-                f"🌐 Extended Universe: scanning {len(_EXTENDED_UNIVERSE)} tickers "
-                f"(NASDAQ + NYSE + NYSE American)…"
-            )
-
-        df_raw  = run_scan(cfg, universe_override=_universe_override,
-                           market=_scan_market)
-        if not df_raw.empty:
-            save_report(df_raw)
-            try:
-                alert_settings = load_alert_settings()
-                if alert_settings.get("alerts_enabled"):
-                    portfolio_data = load_portfolio()
-                    fired = check_and_fire_alerts(df_raw, portfolio_data, alert_settings, fetch_price)
-                    if fired:
-                        st.info(f"🔔 {len(fired)} alert(s) sent to your configured channels.")
-            except Exception as ae:
-                pass
-            if _auto_fired:
-                st.success(
-                    f"🤖 Auto-scan complete ({_autoscan_trigger} session) — "
-                    f"{len(df_raw)} setups found. Results auto-saved."
-                )
-            else:
-                st.success(f"✅ Manual scan complete — {len(df_raw)} setups found!")
-            st.rerun()  # reload so Leaderboard tab populates from saved CSV
-        else:
-            st.warning("No setups found. Try lowering the Score or Volume thresholds in config.yaml.")
-else:
-    prev_df = load_previous_report()
-    df_raw  = load_latest_report()
-
 # Compute deltas (changes vs previous scan)
 if not df_raw.empty and not prev_df.empty:
     try:
