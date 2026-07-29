@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 import json
 
 from scanner import load_config, run_scan, save_report
+from modules.universe import build_universe, get_universe_stats
 import time as _time
 from datetime import timezone as _timezone
 import threading as _threading
