@@ -1,7 +1,7 @@
 """
 modules/universe.py — ApexScan Dynamic Universe Builder
 """
-import requests, json, logging, pandas as pd
+import requests, json, logging, time, pandas as pd
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
@@ -10,6 +10,12 @@ from io import StringIO
 log = logging.getLogger(__name__)
 CACHE_DIR = Path("data/universe_cache")
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+
+_USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+]
 
 EMERGENCY_SP500 = [
     "AAPL","MSFT","NVDA","AMZN","GOOGL","META","TSLA","BRK-B","AVGO","JPM",
@@ -21,6 +27,19 @@ EMERGENCY_SP500 = [
     "MU","ADI","LRCX","KLAC","SNPS","CDNS","MRVL","ARM","CRWD","DDOG","SNOW",
     "NOW","TEAM","WDAY","ZS","NET","PLTR","HIMS","RDDT","CAVA","SOUN","APP",
     "CELH","COIN","MSTR","IONQ","RKLB","AFRM","SOFI","HOOD","ASTS",
+]
+
+# ── Small last-resort lists — used only if EVERY live source for that
+#    index fails. Not claimed to be complete/current constituent lists;
+#    they exist purely so a scan degrades to *something* instead of zero.
+EMERGENCY_SP400 = [
+    "AVT","BJ","CASY","CHDN","CR","EME","EXP","FN","FIVE","GNTX",
+    "HAE","HGV","JXN","KNSL","LNTH","MTX","OGE","OVV","PNM","RGA",
+    "RRX","SAIA","SEIC","SF","SLM","SSD","TREX","UGI","WTS","X",
+]
+EMERGENCY_RUSSELL2000 = [
+    "SMPL","CVCO","IESC","ROAD","LGIH","POWL","VRNS","SITM","AMBA","CALM",
+    "ATGE","CPRX","SPSC","SUPN","UFPT","WERN","ANIP","ASGN","BRC","CENTA",
 ]
 
 def _ensure_dir():
@@ -50,6 +69,26 @@ def _get(url, timeout=15):
         r = requests.get(url, headers=HEADERS, timeout=timeout)
         r.raise_for_status(); return r
     except Exception as e: log.debug(f"GET {url}: {e}"); return None
+
+def _get_with_retries(url, timeout=20, attempts=3, backoff=2.0):
+    """GET with retry + rotating User-Agent. Returns Response or None.
+    Logs each attempt's outcome — never silently swallows a failure."""
+    last_err = None
+    for i in range(attempts):
+        try:
+            headers = {**HEADERS, "User-Agent": _USER_AGENTS[i % len(_USER_AGENTS)]}
+            r = requests.get(url, headers=headers, timeout=timeout)
+            r.raise_for_status()
+            if i > 0:
+                log.info(f"GET {url[:60]}… succeeded on attempt {i+1}/{attempts}")
+            return r
+        except Exception as e:
+            last_err = e
+            log.warning(f"GET {url[:60]}… attempt {i+1}/{attempts} failed: {e}")
+            if i < attempts - 1:
+                time.sleep(backoff * (i + 1))
+    log.error(f"GET {url[:60]}… failed after {attempts} attempts: {last_err}")
+    return None
 
 def _clean(tk): return str(tk).strip().replace(".","-").upper()
 
@@ -123,26 +162,71 @@ def get_sp400_midcap(cache_hours=48):
     if _cache_valid(cache, cache_hours):
         d = _read_cache(cache)
         if d: return d
+
     result = []
-    r = _get("https://www.ishares.com/us/products/239763/ishares-sp-mid-cap-etf/1467271812596.ajax?fileType=csv&fileName=IJH_holdings&dataType=fund", timeout=20)
+    source = None
+
+    # ── Source 1: iShares IJH holdings CSV, with retries ──────────────────────
+    r = _get_with_retries(
+        "https://www.ishares.com/us/products/239763/ishares-sp-mid-cap-etf/1467271812596.ajax"
+        "?fileType=csv&fileName=IJH_holdings&dataType=fund",
+        timeout=20, attempts=3,
+    )
     if r:
         try:
             lines = r.text.split("\n")
-            start = next((i for i,l in enumerate(lines) if "Ticker" in l or "Symbol" in l), 0)
+            start = next((i for i, l in enumerate(lines) if "Ticker" in l or "Symbol" in l), 0)
             df = pd.read_csv(StringIO("\n".join(lines[start:])), on_bad_lines="skip")
             for col in df.columns:
-                if col.strip().lower() in ("ticker","symbol"):
+                if col.strip().lower() in ("ticker", "symbol"):
                     ac_col = next((c for c in df.columns if "asset" in c.lower()), None)
                     for _, row in df.iterrows():
                         tk = _clean(row[col])
-                        ac = str(row.get(ac_col,"Equity")) if ac_col else "Equity"
-                        if tk and len(tk)<=6 and "Equity" in ac and tk.replace("-","").isalpha():
-                            result.append({"ticker":tk,"name":str(row.get("Name",tk)).strip(),
-                                           "sector":str(row.get("Sector","")).strip(),
-                                           "sub_industry":"","index":"SP400","market_cap_tier":"mid"})
+                        ac = str(row.get(ac_col, "Equity")) if ac_col else "Equity"
+                        if tk and len(tk) <= 6 and "Equity" in ac and tk.replace("-", "").isalpha():
+                            result.append({"ticker": tk, "name": str(row.get("Name", tk)).strip(),
+                                           "sector": str(row.get("Sector", "")).strip(),
+                                           "sub_industry": "", "index": "SP400", "market_cap_tier": "mid"})
                     break
-        except: pass
-    if result: _write_cache(cache, result)
+            if result:
+                source = "iShares IJH"
+        except Exception as e:
+            log.warning(f"SP400 iShares parse error: {e}")
+            result = []
+
+    # ── Source 2: Wikipedia fallback ───────────────────────────────────────────
+    if not result:
+        r = _get_with_retries("https://en.wikipedia.org/wiki/List_of_S%26P_400_companies", attempts=2)
+        if r:
+            try:
+                tables = pd.read_html(StringIO(r.text), header=0)
+                df = tables[0]
+                for col in df.columns:
+                    if col.lower() in ("symbol", "ticker"):
+                        for _, row in df.iterrows():
+                            tk = _clean(row[col])
+                            if tk and len(tk) <= 6:
+                                result.append({"ticker": tk, "name": str(row.get("Company", row.get("Security", tk))).strip(),
+                                               "sector": str(row.get("GICS Sector", "")).strip(),
+                                               "sub_industry": "", "index": "SP400", "market_cap_tier": "mid"})
+                        break
+                if result:
+                    source = "Wikipedia"
+            except Exception as e:
+                log.warning(f"SP400 Wikipedia parse error: {e}")
+                result = []
+
+    # ── Source 3: emergency hardcoded list — last resort, logged loudly ───────
+    if not result:
+        log.error("SP400: iShares AND Wikipedia both failed — using small emergency list "
+                   f"({len(EMERGENCY_SP400)} tickers, NOT the full ~400). Investigate network access.")
+        result = [{"ticker": tk, "name": tk, "sector": "", "sub_industry": "",
+                   "index": "SP400", "market_cap_tier": "mid"} for tk in EMERGENCY_SP400]
+        source = "EMERGENCY"
+
+    if result and source != "EMERGENCY":
+        _write_cache(cache, result)
+    log.info(f"SP400 .......... {len(result)}  (source: {source})")
     return result
 
 def get_russell2000(cache_hours=48):
@@ -150,26 +234,82 @@ def get_russell2000(cache_hours=48):
     if _cache_valid(cache, cache_hours):
         d = _read_cache(cache)
         if d: return d
+
     result = []
-    r = _get("https://www.ishares.com/us/products/239710/ishares-russell-2000-etf/1467271812596.ajax?fileType=csv&fileName=IWM_holdings&dataType=fund", timeout=20)
+    source = None
+
+    # ── Source 1: iShares IWM holdings CSV, with retries ──────────────────────
+    r = _get_with_retries(
+        "https://www.ishares.com/us/products/239710/ishares-russell-2000-etf/1467271812596.ajax"
+        "?fileType=csv&fileName=IWM_holdings&dataType=fund",
+        timeout=25, attempts=4, backoff=3.0,
+    )
     if r:
         try:
             lines = r.text.split("\n")
-            start = next((i for i,l in enumerate(lines) if "Ticker" in l or "Symbol" in l), 0)
+            start = next((i for i, l in enumerate(lines) if "Ticker" in l or "Symbol" in l), 0)
             df = pd.read_csv(StringIO("\n".join(lines[start:])), on_bad_lines="skip")
             for col in df.columns:
-                if col.strip().lower() in ("ticker","symbol"):
+                if col.strip().lower() in ("ticker", "symbol"):
                     ac_col = next((c for c in df.columns if "asset" in c.lower()), None)
                     for _, row in df.iterrows():
                         tk = _clean(row[col])
-                        ac = str(row.get(ac_col,"Equity")) if ac_col else "Equity"
-                        if tk and len(tk)<=6 and "Equity" in ac and tk.replace("-","").isalpha():
-                            result.append({"ticker":tk,"name":str(row.get("Name",tk)).strip(),
-                                           "sector":str(row.get("Sector","")).strip(),
-                                           "sub_industry":"","index":"RUSSELL2000","market_cap_tier":"small"})
+                        ac = str(row.get(ac_col, "Equity")) if ac_col else "Equity"
+                        if tk and len(tk) <= 6 and "Equity" in ac and tk.replace("-", "").isalpha():
+                            result.append({"ticker": tk, "name": str(row.get("Name", tk)).strip(),
+                                           "sector": str(row.get("Sector", "")).strip(),
+                                           "sub_industry": "", "index": "RUSSELL2000", "market_cap_tier": "small"})
                     break
-        except: pass
-    if result: _write_cache(cache, result)
+            if result:
+                source = "iShares IWM"
+        except Exception as e:
+            log.warning(f"Russell2000 iShares parse error: {e}")
+            result = []
+
+    # ── Source 2: alternate iShares fund-page timestamp — occasionally
+    #    unblocks when the primary path is rate-limited ─────────────────────
+    if not result:
+        r = _get_with_retries(
+            "https://www.ishares.com/us/products/239710/ishares-russell-2000-etf/1521942788811.ajax"
+            "?fileType=csv&fileName=IWM_holdings&dataType=fund",
+            timeout=25, attempts=2,
+        )
+        if r:
+            try:
+                lines = r.text.split("\n")
+                start = next((i for i, l in enumerate(lines) if "Ticker" in l or "Symbol" in l), 0)
+                df = pd.read_csv(StringIO("\n".join(lines[start:])), on_bad_lines="skip")
+                for col in df.columns:
+                    if col.strip().lower() in ("ticker", "symbol"):
+                        ac_col = next((c for c in df.columns if "asset" in c.lower()), None)
+                        for _, row in df.iterrows():
+                            tk = _clean(row[col])
+                            ac = str(row.get(ac_col, "Equity")) if ac_col else "Equity"
+                            if tk and len(tk) <= 6 and "Equity" in ac and tk.replace("-", "").isalpha():
+                                result.append({"ticker": tk, "name": str(row.get("Name", tk)).strip(),
+                                               "sector": str(row.get("Sector", "")).strip(),
+                                               "sub_industry": "", "index": "RUSSELL2000", "market_cap_tier": "small"})
+                        break
+                if result:
+                    source = "iShares IWM (alt endpoint)"
+            except Exception as e:
+                log.warning(f"Russell2000 alt-endpoint parse error: {e}")
+                result = []
+
+    # ── Source 3: emergency hardcoded list — last resort, logged loudly ───────
+    if not result:
+        log.error("Russell2000: all iShares endpoints failed — using small emergency list "
+                   f"({len(EMERGENCY_RUSSELL2000)} tickers, NOT the full ~2000). "
+                   "Note: no reliable free full-constituent fallback exists for Russell 2000 "
+                   "(unlike SP500/SP400, it isn't maintained on Wikipedia). "
+                   "Check network egress to ishares.com if this persists.")
+        result = [{"ticker": tk, "name": tk, "sector": "", "sub_industry": "",
+                   "index": "RUSSELL2000", "market_cap_tier": "small"} for tk in EMERGENCY_RUSSELL2000]
+        source = "EMERGENCY"
+
+    if result and source != "EMERGENCY":
+        _write_cache(cache, result)
+    log.info(f"Russell2000 ... {len(result)}  (source: {source})")
     return result
 
 def get_dow30(cache_hours=168):
@@ -205,15 +345,28 @@ UNIVERSE_PRESETS = {
 def build_universe(preset="sp500", extra_tickers=None, exclude_tickers=None,
                    min_price=5.0, max_price=99999.0, include_sectors=None,
                    exclude_sectors=None, market_cap_tiers=None, cache_hours=24):
+    """
+    Returns (all_items, degraded_sources).
+    degraded_sources is a list of (fetcher_name, got_count, expected_min)
+    tuples — empty when every fetcher returned a healthy count. Callers
+    (e.g. dashboard.py) should surface this to the user rather than
+    silently presenting a shrunk universe as if it were the full one.
+    """
     fetcher_map = {"sp500":get_sp500,"nasdaq100":get_nasdaq100,"sp400":get_sp400_midcap,
                    "russell2000":get_russell2000,"dow30":get_dow30}
     fetchers  = UNIVERSE_PRESETS.get(preset, UNIVERSE_PRESETS["sp500"])["fetchers"]
     all_items, seen = [], set()
+    degraded_sources = []
+    _expected_min = {"sp500":450,"nasdaq100":90,"sp400":350,"russell2000":1800,"dow30":25}
+
     for fname in fetchers:
         fn = fetcher_map.get(fname)
         if not fn: continue
         try:
-            for item in fn(cache_hours=cache_hours):
+            fetched = fn(cache_hours=cache_hours)
+            if fname in _expected_min and len(fetched) < _expected_min[fname]:
+                degraded_sources.append((fname, len(fetched), _expected_min[fname]))
+            for item in fetched:
                 tk = item.get("ticker","").strip()
                 if tk and tk not in seen:
                     seen.add(tk)
@@ -221,6 +374,8 @@ def build_universe(preset="sp500", extra_tickers=None, exclude_tickers=None,
                     all_items.append(item)
         except Exception as e:
             log.warning(f"Fetcher {fname} failed: {e}")
+            degraded_sources.append((fname, 0, _expected_min.get(fname, "unknown")))
+
     if extra_tickers:
         for tk in extra_tickers:
             tk = tk.strip().upper().replace(".","-")
@@ -240,8 +395,12 @@ def build_universe(preset="sp500", extra_tickers=None, exclude_tickers=None,
     if market_cap_tiers:
         tiers = set(market_cap_tiers)
         all_items = [t for t in all_items if t.get("market_cap_tier","unknown") in tiers or t["index"]=="CUSTOM"]
+
     log.info(f"Universe: {len(all_items)} tickers (preset={preset})")
-    return all_items
+    if degraded_sources:
+        log.error(f"Universe degraded — fetchers below expected size: {degraded_sources}")
+
+    return all_items, degraded_sources
 
 def get_universe_stats(universe):
     if not universe: return {"total":0,"by_index":{},"by_sector":{},"by_tier":{}}
