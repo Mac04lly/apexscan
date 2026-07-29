@@ -1958,54 +1958,6 @@ if run_btn or _auto_fired:
                 f"with relaxed thresholds to surface early-stage setups before they move."
             )
 
-        elif universe_mode == "🌐 US — Extended Universe (NASDAQ + NYSE + NYSE American)":
-            _scan_market = "us"
-            with st.spinner("Building extended universe (SP500 + NASDAQ100 + SP400 + Russell2000)…"):
-                _universe_items, _degraded = build_universe(preset="full", cache_hours=24)
-            _EXTENDED_UNIVERSE = [item["ticker"] for item in _universe_items]
-            _universe_override = _EXTENDED_UNIVERSE
-
-            _u_stats = get_universe_stats(_universe_items)
-            _by_index = _u_stats.get("by_index", {})
-            _stats_line = " | ".join(f"{k}: {v}" for k, v in _by_index.items())
-
-            if _degraded:
-                _deg_msg = ", ".join(
-                    f"{name} ({got}/{expected})" for name, got, expected in _degraded
-                )
-                st.warning(
-                    f"⚠️ Some universe sources returned fewer tickers than expected — {_deg_msg}. "
-                    f"Scanning {len(_EXTENDED_UNIVERSE)} tickers instead of the full ~2,900–3,000. "
-                    f"({_stats_line}) — check logs for the cause (iShares block vs. network issue)."
-                )
-            else:
-                st.info(
-                    f"🌐 Extended Universe: scanning {len(_EXTENDED_UNIVERSE)} tickers "
-                    f"— {_stats_line}"
-                )            # Merge all, deduplicate, preserve order
-# Compute deltas (changes vs previous scan)
-if not df_raw.empty and not prev_df.empty:
-    try:
-        df_raw, gone_tickers = compute_deltas(df_raw, prev_df)
-    except Exception as _de:
-        df_raw["changes"]     = "–"
-        df_raw["is_new"]      = False
-        df_raw["delta_score"] = None
-        gone_tickers          = set()
-elif not df_raw.empty:
-    df_raw["changes"]     = "First scan"
-    df_raw["is_new"]      = False
-    df_raw["delta_score"] = None
-
-df = df_raw.copy()
-if not df.empty:
-    if "apex_score" in df.columns:
-        df = df[pd.to_numeric(df["apex_score"], errors="coerce") >= min_score]
-    if "perf_3m_%" in df.columns:
-        df = df[pd.to_numeric(df["perf_3m_%"], errors="coerce") >= min_3m]
-
-
-
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — LEADERBOARD
 # ══════════════════════════════════════════════════════════════════════════════
