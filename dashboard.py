@@ -1960,95 +1960,29 @@ if run_btn or _auto_fired:
 
         elif universe_mode == "🌐 US — Extended Universe (NASDAQ + NYSE + NYSE American)":
             _scan_market = "us"
-            # ── Already in list (NASDAQ + mixed) ──────────────────────────
-            _NASDAQ_NAMES = [
-                # Mega-cap tech / NASDAQ 100 core
-                "AAPL","MSFT","AMZN","NVDA","GOOGL","GOOG","META","TSLA","AVGO","COST",
-                "NFLX","ORCL","ADBE","QCOM","TXN","INTU","AMD","ARM","ASML","TSM",
-                # Semiconductors
-                "AMAT","LRCX","KLAC","MU","MRVL","SMCI","CDNS","SNPS","ON","MPWR",
-                # Software / Cloud
-                "CRM","DDOG","SNOW","NET","ZS","PANW","FTNT","CRWD","PLTR","VEEV",
-                "WDAY","TEAM","HUBS","NOW","MDB","GTLB","BILL","PATH","AI","APPN",
-                # Fintech / Crypto
-                "PYPL","COIN","HOOD","SOFI","AFRM","MSTR","SQ","UPST","DAVE","SMAR",
-                # Biotech / Health (NASDAQ-listed)
-                "MRNA","BNTX","REGN","BIIB","GILD","IDXX","DXCM","ISRG","ILMN","VRTX",
-                "ALNY","SGEN","BMRN","INCY","EXAS","RARE","NTLA","BEAM","CRSP","EDIT",
-                # Consumer / Retail (NASDAQ)
-                "MNST","CELH","LULU","ONON","DUOL","ROST","DLTR","FAST","ODFL","CTAS",
-                # Growth / Emerging (NASDAQ)
-                "RKLB","IONQ","ASTS","ACHR","SOUN","RXRX","HIMS","RDDT","CAVA","TMDX",
-                "LUNR","BTDR","DOCN","OPEN","UWMC","JOBY","ABNB","DASH","LYFT","UBER",
-                "SHOP","SPOT","ROKU","TTD","MTCH","MELI","SE","GRAB","DKNG","RBLX",
-            ]
+            with st.spinner("Building extended universe (SP500 + NASDAQ100 + SP400 + Russell2000)…"):
+                _universe_items, _degraded = build_universe(preset="full", cache_hours=24)
+            _EXTENDED_UNIVERSE = [item["ticker"] for item in _universe_items]
+            _universe_override = _EXTENDED_UNIVERSE
 
-            # ── NYSE — Blue-chip, Industrials, Financials, Energy, Healthcare ─
-            _NYSE_NAMES = [
-                # Financials (NYSE)
-                "JPM","GS","MS","BAC","WFC","C","AXP","BLK","SCHW","ICE","CME",
-                "SPGI","MCO","AMP","PGR","MET","TRV","AFL","ALL","CB","HIG","L",
-                "BX","KKR","APO","CG","ARES","TPG","BN","BAM","TROW","IVZ","BEN",
-                "WTW","AON","MMC","USB","PNC","TFC","FITB","KEY","CFG","RF","HBAN",
-                # Healthcare (NYSE)
-                "UNH","CI","CVS","HCA","MCK","CAH","DHR","TMO","ABT","MDT","SYK",
-                "BSX","EW","ZBH","BDX","BAX","STE","HOLX","IQV","CRL","MTD","WAT",
-                "LH","DGX","CTLT","PKI","VTRS","RPRX","JAZZ","ALKS","ITCI","ACAD",
-                "LLY","ABBV","BMY","PFE","JNJ","MRK","AZN","NVO","GSK","SNY",
-                # Energy (NYSE)
-                "XOM","CVX","COP","SLB","BKR","HAL","PSX","VLO","MPC","EOG",
-                "PXD","DVN","OXY","FANG","HES","APA","NOV","WHD","TRGP","KMI",
-                "WMB","OKE","EPD","ET","PAA","MMP","LNG","AR","EQT","RRC",
-                # Industrials / Defence (NYSE)
-                "BA","RTX","LMT","NOC","GD","HII","TDG","HWM","GE","HON","MMM",
-                "CAT","DE","EMR","ETN","PH","ITW","ROK","AME","ROP","CPRT","EXPD",
-                "UPS","FDX","GXO","XPO","CHRW","JBHT","SAIA","TFII","ZTO","DAL",
-                "UAL","AAL","LUV","ALK","SAVE","H","MAR","HLT","WH","CHH","NCLH",
-                # Materials / Metals (NYSE)
-                "LIN","APD","SHW","ECL","IFF","PPG","RPM","FMC","CF","MOS","NTR",
-                "NUE","STLD","CMC","RS","ATI","FCX","SCCO","AA","CLF","MP","ALB",
-                "LAC","LTHM","SQM","VALE","RIO","BHP","GOLD","NEM","AEM","PAAS",
-                # Chemicals / Specialty Materials (NYSE)
-                "DOW","DD","LYB","HUN","CE","EMN","OLN","ASH","TROX","IOSP",
-                # Utilities (NYSE)
-                "NEE","D","SO","DUK","AEP","SRE","PCG","XEL","AWK","ES","EXC",
-                "ED","PPL","ETR","FE","AEE","CMS","DTE","LNT","PNW","WEC","NI",
-                # Real Estate / REITs (NYSE)
-                "PLD","AMT","CCI","SBAC","EQIX","DLR","O","SPG","PSA","EXR",
-                "AVB","EQR","UDR","ESS","MAA","CPT","NNN","VICI","MGM","WYNN","LVS",
-                "HST","RHP","PK","SHO","PLYA","APLE","CLDT","CPLG","RLJ","XHR",
-                # Consumer Staples (NYSE)
-                "WMT","PG","KO","PEP","PM","MO","CL","KMB","CHD","CLX","HRL",
-                "SJM","CAG","CPB","GIS","K","MKC","HSY","TR","MDLZ","KHC","STZ",
-                "BF-B","TAP","SAM","BUD","DEO","BTI","BURL","TJX","COST","DG","DLTR",
-                # Consumer Discretionary (NYSE)
-                "HD","TGT","LOW","MCD","SBUX","YUM","CMG","DPZ","QSR","EAT","DRI",
-                "TXRH","BLMN","BJRI","CAKE","SHAK","WING","PLNT","BJ","FIVE","OLLI",
-                "F","GM","STLA","HOG","RACE","TM","HMC","MGA","LEA","BWA","ALV",
-                "NKE","DECK","SKX","CROX","PVH","RL","TPR","TIF","VFC","HBI","UA",
-                # Technology (NYSE-listed)
-                "IBM","ORCL","HPQ","HPE","DELL","NCR","CDW","LDOS","SAIC","BAH",
-                "ACN","WIT","INFY","CTSH","EPAM","GLOB","MFAC","DXC","CSC","CACI",
-            ]
+            _u_stats = get_universe_stats(_universe_items)
+            _by_index = _u_stats.get("by_index", {})
+            _stats_line = " | ".join(f"{k}: {v}" for k, v in _by_index.items())
 
-            # ── NYSE American (AMEX) — small/mid growth and mining ────────
-            _NYSE_AMERICAN_NAMES = [
-                # Growth / Emerging (NYSE American)
-                "LUNR","ACHR","JOBY","ASTS","SOUN","RXRX","IONQ","BTBT","MARA",
-                "RIOT","HUT","BITF","CIFR","CLSK","IREN","WULF","BTDR",
-                # Mining / Resources (NYSE American)
-                "AG","EXK","PAAS","SILV","CDE","HL","GPL","MUX","AUY","KGC",
-                "GATO","MAG","SVM","FSM","ERO","ATX","VZLA","SAND","WPM","OR",
-                # Biotech / Pharma (NYSE American)
-                "ACAD","SAGE","INVA","PRTA","KYMR","ARQT","GOSS","AUPH","NKTR",
-                "AVXL","SNDX","PRAX","IMVT","DNLI","KRTX","VRNA","AKRO","TARS",
-                # Energy (NYSE American)
-                "CRC","SM","CIVI","MGY","ESTE","REX","FLNG","GMLP","SLNG",
-                # Special Situations / Growth (NYSE American)
-                "OPEN","UWMC","DAVE","HIMS","RDDT","CAVA","TMDX","MSTR",
-            ]
-
-            # Merge all, deduplicate, preserve order
+            if _degraded:
+                _deg_msg = ", ".join(
+                    f"{name} ({got}/{expected})" for name, got, expected in _degraded
+                )
+                st.warning(
+                    f"⚠️ Some universe sources returned fewer tickers than expected — {_deg_msg}. "
+                    f"Scanning {len(_EXTENDED_UNIVERSE)} tickers instead of the full ~2,900–3,000. "
+                    f"({_stats_line}) — check logs for the cause (iShares block vs. network issue)."
+                )
+            else:
+                st.info(
+                    f"🌐 Extended Universe: scanning {len(_EXTENDED_UNIVERSE)} tickers "
+                    f"— {_stats_line}"
+                )            # Merge all, deduplicate, preserve order
             _seen = set()
             _EXTENDED_UNIVERSE = []
             for _tk in (_NASDAQ_NAMES + _NYSE_NAMES + _NYSE_AMERICAN_NAMES):
