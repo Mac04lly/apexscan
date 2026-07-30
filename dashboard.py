@@ -2117,6 +2117,388 @@ if not df.empty:
         df = df[pd.to_numeric(df["apex_score"], errors="coerce") >= min_score]
     if "perf_3m_%" in df.columns:
         df = df[pd.to_numeric(df["perf_3m_%"], errors="coerce") >= min_3m]
+ # ══════════════════════════════════════════════════════════════════════════════
+# TAB 1 — LEADERBOARD
+# ══════════════════════════════════════════════════════════════════════════════
+
+with tabs[0]:
+    if df.empty:
+        st.info("Click **🚀 Run Live Scan** or **📂 Load Last Report** in the sidebar.")
+    else:
+        c1,c2,c3,c4,c5 = st.columns(5)
+        with c1:
+            st.markdown(f'<div class="metric-card"><h3>Tickers Passing</h3><div class="value white">{len(df)}</div></div>', unsafe_allow_html=True)
+        with c2:
+            top = pd.to_numeric(df["apex_score"], errors="coerce").max()
+            st.markdown(f'<div class="metric-card"><h3>Top Score</h3><div class="value green">{top:.0f}</div></div>', unsafe_allow_html=True)
+        with c3:
+            bo = int(df.get("breaking_out", pd.Series([False]*len(df))).sum()) if "breaking_out" in df.columns else 0
+            st.markdown(f'<div class="metric-card"><h3>Breakouts</h3><div class="value amber">{bo}</div></div>', unsafe_allow_html=True)
+        with c4:
+            stage2 = int((df.get("stage", pd.Series([""] * len(df))).str.contains("2 ✅", na=False)).sum()) if "stage" in df.columns else 0
+            st.markdown(f'<div class="metric-card"><h3>Stage 2 Stocks</h3><div class="value blue">{stage2}</div></div>', unsafe_allow_html=True)
+        with c5:
+            themes_n = df["theme"].nunique() if "theme" in df.columns else 0
+            st.markdown(f'<div class="metric-card"><h3>Themes Active</h3><div class="value green">{themes_n}</div></div>', unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        _bmc = get_broad_market_condition()
+        _corr_candidates = find_correction_watchlist_candidates(df)
+
+        if not _bmc.get("uptrend", True):
+            st.markdown(
+                f'<div style="background:#1a1500;border:1px solid #d29922;border-radius:10px;'
+                f'padding:14px 18px;margin-bottom:12px;">'
+                f'<b style="color:#d29922;">🌱 Market Correction Detected</b> '
+                f'<span style="color:#8b949e;font-size:0.85rem;">— S&P 500: {_bmc.get("stage","–")}</span><br>'
+                f'<span style="color:#c9d1d9;font-size:0.88rem;">'
+                f'William O\'Neil\'s lesson: new bases form during corrections — institutions '
+                f'quietly accumulate leading stocks while weak holders exit. These are often the '
+                f'first to break out once the market confirms a new uptrend. '
+                f'Don\'t try to predict the bottom — build your watchlist instead.'
+                f'</span></div>',
+                unsafe_allow_html=True
+            )
+            if _corr_candidates.empty:
+                st.caption("No Stage 1 tight-base candidates found in the current scan.")
+            else:
+                st.markdown(f"**{len(_corr_candidates)} Stage 1 base-builder(s) found** — tight bases forming while the market corrects:")
+                _corr_show = [c for c in ["ticker","theme","price","perf_3m_%","adr_%","pattern","apex_score"]
+                              if c in _corr_candidates.columns]
+                _corr_disp = _corr_candidates[_corr_show].head(20).copy()
+                for _cc in ["apex_score","perf_3m_%","adr_%"]:
+                    if _cc in _corr_disp.columns:
+                        _corr_disp[_cc] = pd.to_numeric(_corr_disp[_cc], errors="coerce")
+                st.dataframe(
+                    _corr_disp.style.format({
+                        "price": "${:.2f}", "perf_3m_%": pct_fmt,
+                        "adr_%": lambda v: f"{v:.1f}%" if pd.notna(v) else "–",
+                        "apex_score": "{:.0f}",
+                    }, na_rep="–"),
+                    use_container_width=True, hide_index=True, height=min(300, 45 + 35*len(_corr_disp))
+                )
+                if st.button("🌱 Add All to 'Correction Watchlist'", key="add_correction_wl"):
+                    _wls_corr = load_watchlists()
+                    _wls_corr = create_list(_wls_corr, "Correction Watchlist")
+                    for _tk in _corr_candidates["ticker"].head(20).tolist():
+                        _wls_corr = add_ticker(_wls_corr, "Correction Watchlist", _tk)
+                    save_watchlists(_wls_corr)
+                    st.success(
+                        f"✅ Added {min(20, len(_corr_candidates))} ticker(s) to 'Correction Watchlist'. "
+                        f"Find it in the 📋 Watchlists tab."
+                    )
+            st.markdown("---")
+
+        with st.expander("🔬 Advanced Signal Filters", expanded=False):
+            af1, af2, af3, af4 = st.columns(4)
+            with af1:
+                filter_of = st.selectbox("Order Flow Bias",
+                    ["All", "Strong Bullish", "Bullish", "Neutral", "Bearish"], index=0)
+            with af2:
+                filter_vwap = st.selectbox("VWAP Position",
+                    ["All", "Above VWAP", "Extended Above VWAP",
+                     "Below VWAP", "Extended Below VWAP"], index=0)
+            with af3:
+                filter_ms = st.selectbox("Market Structure",
+                    ["All", "Bullish (HH/HL)", "Bearish (LH/LL)", "Transitioning"], index=0)
+            with af4:
+                filter_pa = st.selectbox("PA Pattern",
+                    ["All", "Bullish SFP", "Bullish Engulfing",
+                     "Inside Day", "Bullish Context Candle", "PA Confluence"], index=0)
+
+        df_filtered = df.copy()
+        if filter_of != "All" and "of_bias" in df_filtered.columns:
+            df_filtered = df_filtered[df_filtered["of_bias"] == filter_of]
+        if filter_vwap != "All" and "vwap_position" in df_filtered.columns:
+            df_filtered = df_filtered[df_filtered["vwap_position"] == filter_vwap]
+        if filter_ms != "All" and "ms_structure" in df_filtered.columns:
+            df_filtered = df_filtered[df_filtered["ms_structure"] == filter_ms]
+        if filter_pa != "All" and "pa_patterns" in df_filtered.columns:
+            df_filtered = df_filtered[df_filtered["pa_patterns"].str.contains(filter_pa, na=False)]
+
+        _GICS_SECTORS_11 = [
+            "Energy","Materials","Industrials","Utilities","Healthcare",
+            "Financials","Consumer Discretionary","Consumer Staples",
+            "Information Technology","Communication Services","Real Estate",
+        ]
+        _all_raw_themes   = sorted(df_filtered["theme"].dropna().unique().tolist()) if "theme" in df_filtered.columns else []
+        _sectors_present  = [s for s in _GICS_SECTORS_11 if s in _all_raw_themes]
+        _cfg_themes_pres  = [t for t in _all_raw_themes if t not in _GICS_SECTORS_11]
+
+        _sector_options   = (
+            ["🌐 All Sectors"]
+            + [f"📊 {s}" for s in _sectors_present]
+            + ([f"── {t}" for t in _cfg_themes_pres] if _cfg_themes_pres else [])
+        )
+        sel_sector = st.selectbox(
+            "🏭 Sector / Theme",
+            _sector_options,
+            key="sector_theme_filter",
+            help="Filter by GICS sector (the 11 official market sectors) or by your config themes (ai_semis, cybersecurity etc.)"
+        )
+        if sel_sector != "🌐 All Sectors":
+            _sel_clean = sel_sector.lstrip("📊 ").lstrip("── ").strip()
+            if "theme" in df_filtered.columns:
+                df_filtered = df_filtered[df_filtered["theme"] == _sel_clean]
+
+        theme_filter = st.radio(
+            "📊 Quick Filter",
+            ["🌐 All", "🚀 Growth Leaders", "💎 Emerging Gems", "🎯 Early Entry"],
+            horizontal=True, key="lb_theme_filter"
+        )
+        if theme_filter == "💎 Emerging Gems":
+            st.markdown(GEM_DISCLAIMER, unsafe_allow_html=True)
+            if "is_gem" in df_filtered.columns:
+                df_filtered = df_filtered[df_filtered["is_gem"] == True]
+            elif "theme" in df_filtered.columns:
+                df_filtered = df_filtered[df_filtered["theme"] == "emerging_gems"]
+        elif theme_filter == "🚀 Growth Leaders":
+            if "market_cap" in df_filtered.columns:
+                mcap_num = pd.to_numeric(df_filtered["market_cap"], errors="coerce")
+                df_filtered = df_filtered[mcap_num >= 10_000_000_000]
+        elif theme_filter == "🎯 Early Entry":
+            st.markdown(
+                '<div style="background:#1a2a1a;border:1px solid #3fb950;border-radius:8px;'
+                'padding:10px 16px;margin-bottom:10px;font-size:0.85rem;color:#3fb950;">'
+                '🎯 <b>Early Entry Filter</b> — stocks just crossing above MAs, '
+                'pulling back to 50MA, or forming tight low-ADR bases. '
+                'These are cheap entries BEFORE the move, not after.'
+                '</div>',
+                unsafe_allow_html=True
+            )
+            if "early_entry" in df_filtered.columns:
+                df_filtered = df_filtered[
+                    df_filtered["early_entry"].astype(str).str.lower().isin(["true","1"])
+                ]
+            else:
+                if "vs_50ma_%" in df_filtered.columns:
+                    _vs50 = pd.to_numeric(df_filtered["vs_50ma_%"], errors="coerce")
+                    df_filtered = df_filtered[(_vs50.abs() <= 5) | (_vs50 >= 0)]
+
+        col_view = st.radio("Column View", ["Standard", "Order Flow", "VWAP & Structure", "Price Action", "Fundamentals"], horizontal=True)
+
+        if col_view == "Standard":
+            want = ["ticker","theme","price","mcap_category","stage",
+                    "perf_1m_%","perf_3m_%","perf_6m_%",
+                    "rs_3m","rs_r2500_3m","rs_r3000g_3m","rs_multi_leader",
+                    "vol_surge_x","near_52wh","pattern",
+                    "earn_momentum","eps_growth_%","eps_surprise_%","consec_beats","apex_score"]
+        elif col_view == "Order Flow":
+            want = ["ticker","price","of_bias","of_up_vol_ratio",
+                    "of_bullish_days","of_consec_up","of_score",
+                    "vol_surge_x","ms_structure","apex_score"]
+        elif col_view == "VWAP & Structure":
+            want = ["ticker","price","vwap","vs_vwap_%","vwap_position",
+                    "vwap_slope","vwap_score","ms_structure","ms_hh_hl","ms_bos",
+                    "ms_swing_high","ms_swing_low","apex_score"]
+        elif col_view == "Price Action":
+            want = ["ticker","price","pa_patterns","pa_engulfing","pa_sfp",
+                    "pa_inside_day","pa_context","pa_score",
+                    "of_bias","vwap_position","apex_score"]
+        else:
+            want = ["ticker","price","earn_momentum",
+                    "eps_growth_%","eps_surprise_%","eps_accel",
+                    "consec_beats","rev_growth_%","eps_score",
+                    "analyst_target","pe_ratio","peg_ratio","apex_score"]
+
+        show_cols = [c for c in want if c in df_filtered.columns]
+        disp = df_filtered[show_cols].head(30).copy()
+        for col in ["apex_score","perf_1m_%","perf_3m_%","perf_6m_%","rs_3m","rs_6m"]:
+            if col in disp.columns:
+                disp[col] = pd.to_numeric(disp[col], errors="coerce")
+
+        def color_of_bias(v):
+            if "Strong Bullish" in str(v): return "color:#3fb950;font-weight:700"
+            if "Bullish" in str(v):        return "color:#3fb950"
+            if "Strong Bearish" in str(v): return "color:#f85149;font-weight:700"
+            if "Bearish" in str(v):        return "color:#f85149"
+            return "color:#8b949e"
+
+        def color_vwap_pos(v):
+            if "Extended Above" in str(v): return "color:#d29922"
+            if "Above" in str(v):          return "color:#3fb950"
+            if "Extended Below" in str(v): return "color:#f85149;font-weight:700"
+            if "Below" in str(v):          return "color:#f85149"
+            return ""
+
+        def color_ms(v):
+            if "Bullish" in str(v): return "color:#3fb950"
+            if "Bearish" in str(v): return "color:#f85149"
+            return "color:#d29922"
+
+        def color_pa(v):
+            if "SFP" in str(v) or "Confluence" in str(v): return "color:#d29922;font-weight:700"
+            if "Bullish" in str(v): return "color:#3fb950"
+            if "Bearish" in str(v): return "color:#f85149"
+            return ""
+
+        fmt_dict = {
+            "price": "{:.2f}", "apex_score": "{:.0f}",
+            "perf_1m_%": pct_fmt, "perf_3m_%": pct_fmt, "perf_6m_%": pct_fmt,
+            "rs_3m":        lambda v: f"{v:.0f}" if pd.notna(v) and v != 0 else "–",
+            "rs_r2500_3m":  lambda v: f"{v:.0f}" if pd.notna(v) and v not in (0, None) else "–",
+            "rs_r3000g_3m": lambda v: f"{v:.0f}" if pd.notna(v) and v not in (0, None) else "–",
+            "rs_multi_leader": lambda v: "✅" if v is True or str(v).lower()=="true" else "–",
+            "adr_%": lambda v: f"{v:.1f}%" if pd.notna(v) else "–",
+            "vs_50ma_%": pct_fmt, "vs_200ma_%": pct_fmt,
+            "vol_surge_x": "{:.1f}x",
+            "of_up_vol_ratio": "{:.2f}x",
+            "of_bullish_days": "{:.0f}%",
+            "vs_vwap_%": pct_fmt,
+            "vwap": "${:.2f}",
+            "ms_swing_high": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+            "ms_swing_low":  lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+            "eps_growth_%":   lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
+            "eps_surprise_%": lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
+            "rev_growth_%":   lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
+            "eps_score":      lambda v: f"{v}/15"    if pd.notna(v) else "–",
+            "analyst_target": lambda v: f"${v:.2f}"  if pd.notna(v) and v else "–",
+            "pe_ratio":       lambda v: f"{v:.1f}x"  if pd.notna(v) and v else "–",
+            "peg_ratio":      lambda v: f"{v:.2f}"   if pd.notna(v) and v else "–",
+            "consec_beats":   lambda v: f"{int(v)}Q" if pd.notna(v) else "–",
+        }
+        active_fmt = {k: v for k, v in fmt_dict.items() if k in disp.columns}
+
+        map_cols_of   = [c for c in ["of_bias"] if c in disp.columns]
+        map_cols_vwap = [c for c in ["vwap_position"] if c in disp.columns]
+        map_cols_ms   = [c for c in ["ms_structure"] if c in disp.columns]
+        map_cols_pa   = [c for c in ["pa_patterns","pa_sfp","pa_engulfing","pa_context"] if c in disp.columns]
+
+        styled = disp.style.map(color_score, subset=["apex_score"])
+        if [c for c in ["perf_1m_%","perf_3m_%","perf_6m_%","vs_50ma_%","vs_200ma_%","vs_vwap_%"] if c in disp.columns]:
+            styled = styled.map(color_perf, subset=[c for c in ["perf_1m_%","perf_3m_%","perf_6m_%","vs_50ma_%","vs_200ma_%","vs_vwap_%"] if c in disp.columns])
+        if "rs_3m" in disp.columns:
+            styled = styled.map(color_rs, subset=["rs_3m"])
+        for _rs_col in ["rs_r2500_3m","rs_r3000g_3m"]:
+            if _rs_col in disp.columns:
+                styled = styled.map(color_rs, subset=[_rs_col])
+        if map_cols_of:   styled = styled.map(color_of_bias,  subset=map_cols_of)
+        if map_cols_vwap: styled = styled.map(color_vwap_pos, subset=map_cols_vwap)
+        if map_cols_ms:   styled = styled.map(color_ms,       subset=map_cols_ms)
+        if map_cols_pa:   styled = styled.map(color_pa,       subset=map_cols_pa)
+        styled = styled.format(active_fmt, na_rep="–")
+
+        st.dataframe(styled, use_container_width=True, height=520)
+
+        if not df_filtered.empty:
+            sfp_count  = df_filtered["pa_sfp"].notna().sum() if "pa_sfp" in df_filtered.columns else 0
+            of_bull    = (df_filtered.get("of_bias","").str.contains("Bullish", na=False)).sum() if "of_bias" in df_filtered.columns else 0
+            vwap_above = (df_filtered.get("vwap_position","").str.contains("Above", na=False)).sum() if "vwap_position" in df_filtered.columns else 0
+            hh_hl      = df_filtered["ms_hh_hl"].sum() if "ms_hh_hl" in df_filtered.columns else 0
+            st.markdown(
+                f"**Signal Summary:** "
+                f"🎯 {sfp_count} SFP setups &nbsp;|&nbsp; "
+                f"📈 {of_bull} persistent bull flow &nbsp;|&nbsp; "
+                f"💧 {vwap_above} above VWAP &nbsp;|&nbsp; "
+                f"🏗 {hh_hl} HH/HL structure",
+                unsafe_allow_html=True
+            )
+
+        top15 = df_filtered.head(15).copy()
+        top15["apex_score"] = pd.to_numeric(top15["apex_score"], errors="coerce")
+        colors = ["#3fb950" for _ in top15["ticker"]]
+        fig = go.Figure(go.Bar(
+            x=top15["apex_score"], y=top15["ticker"], orientation="h",
+            marker_color=colors, text=top15["apex_score"].round(0).astype("Int64"),
+            textposition="outside",
+        ))
+        fig.update_layout(
+            title="Top 15 — Apex Score",
+            paper_bgcolor="#0d1117", plot_bgcolor="#0d1117", font_color="#e6edf3",
+            yaxis=dict(autorange="reversed", gridcolor="#21262d"),
+            xaxis=dict(range=[0,115], gridcolor="#21262d"),
+            height=400, margin=dict(l=10,r=60,t=40,b=20),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("### 🔄 Changes Since Last Scan")
+
+        if "changes" not in df_filtered.columns or df_filtered["changes"].eq("No prior scan").all():
+            st.info("Run a second scan to start seeing changes between sessions.")
+        else:
+            new_entries = df_filtered[df_filtered.get("is_new", pd.Series([False]*len(df_filtered))) == True] if "is_new" in df_filtered.columns else pd.DataFrame()
+            if not new_entries.empty:
+                st.markdown(f"**🆕 New entries this scan:** " +
+                    " &nbsp; ".join([f'<span style="background:#1a3a2a;color:#3fb950;padding:2px 8px;border-radius:4px;font-weight:700;">{t}</span>'
+                    for t in new_entries["ticker"].tolist()]),
+                    unsafe_allow_html=True)
+
+            if gone_tickers:
+                st.markdown(f"**❌ Dropped from scan:** " +
+                    " &nbsp; ".join([f'<span style="background:#2a1010;color:#f85149;padding:2px 8px;border-radius:4px;">{t}</span>'
+                    for t in sorted(gone_tickers)]),
+                    unsafe_allow_html=True)
+
+            change_cols = ["ticker", "price", "apex_score", "delta_score",
+                           "stage", "of_bias", "vwap_position", "pa_patterns", "changes"]
+            chg_show = [c for c in change_cols if c in df_filtered.columns]
+            chg_df   = df_filtered[chg_show].copy()
+
+            has_change = chg_df["changes"].apply(
+                lambda x: x not in ["↔ No change", "No prior scan", "First scan", "–", None, ""]
+            ) if "changes" in chg_df.columns else pd.Series([True]*len(chg_df))
+
+            changed_df  = chg_df[has_change]
+            unchanged_df = chg_df[~has_change]
+
+            if not changed_df.empty:
+                st.markdown(f"**{len(changed_df)} tickers with notable changes:**")
+                for _, row in changed_df.head(20).iterrows():
+                    tk       = row.get("ticker","")
+                    chg_txt  = str(row.get("changes","–"))
+                    ds       = row.get("delta_score")
+                    score    = row.get("apex_score","–")
+                    stage    = str(row.get("stage","–"))
+                    of_bias  = str(row.get("of_bias","–"))
+                    vwap_p   = str(row.get("vwap_position","–"))
+
+                    if any(x in chg_txt for x in ["▲","🆕","Stage 2","Reclaimed","Breakout","🚀","📈"]):
+                        border = "#3fb950"
+                    elif any(x in chg_txt for x in ["▼","Lost","Stage 4","📉"]):
+                        border = "#f85149"
+                    elif any(x in chg_txt for x in ["🎯","📐","🔄"]):
+                        border = "#d29922"
+                    else:
+                        border = "#30363d"
+
+                    ds_str = f"({'+' if (ds or 0)>0 else ''}{ds:.0f} pts)" if pd.notna(ds) else ""
+                    ds_color = "#3fb950" if (ds or 0) > 0 else ("#f85149" if (ds or 0) < 0 else "#8b949e")
+
+                    st.markdown(
+                        f'<div style="background:#0d1117;border-left:3px solid {border};'
+                        f'border-radius:0 8px 8px 0;padding:12px 16px;margin:5px 0;'
+                        f'display:flex;align-items:center;gap:16px;">'
+                        f'<div style="min-width:60px;">'
+                        f'<span style="font-weight:800;font-size:1rem;color:#e6edf3;">{tk}</span></div>'
+                        f'<div style="min-width:80px;">'
+                        f'<span style="color:#8b949e;font-size:0.75rem;">SCORE</span><br>'
+                        f'<span style="font-weight:700;">{score}</span> '
+                        f'<span style="font-size:0.8rem;color:{ds_color};">{ds_str}</span></div>'
+                        f'<div style="min-width:130px;">'
+                        f'<span style="color:#8b949e;font-size:0.75rem;">STAGE / OF / VWAP</span><br>'
+                        f'<span style="font-size:0.8rem;color:#c9d1d9;">{stage[:10]} · {of_bias[:8]} · {vwap_p[:12]}</span></div>'
+                        f'<div style="flex:1;">'
+                        f'<span style="color:#8b949e;font-size:0.75rem;">WHAT CHANGED</span><br>'
+                        f'<span style="color:{border};font-size:0.88rem;font-weight:600;">{chg_txt}</span></div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+            else:
+                st.markdown('<div class="metric-card" style="text-align:center;color:#8b949e;">↔ No significant changes since last scan — market conditions are stable.</div>', unsafe_allow_html=True)
+
+            if not unchanged_df.empty:
+                with st.expander(f"↔ {len(unchanged_df)} tickers with no significant change"):
+                    st.dataframe(
+                        unchanged_df[["ticker","apex_score","stage","of_bias","vwap_position"]].style
+                        .format({"apex_score": "{:.0f}"}, na_rep="–"),
+                        use_container_width=True, hide_index=True
+                    )
+
+        st.download_button("⬇ Download CSV", df_filtered.to_csv().encode("utf-8"),
+            file_name=f"apexscan_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+            mime="text/csv")
         
     
 # ══════════════════════════════════════════════════════════════════════════════
