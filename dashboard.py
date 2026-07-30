@@ -7779,7 +7779,7 @@ with tabs[20]:
                     st.rerun()
 
 
-with tabs[20]:
+with tabs[19]:
     st.markdown("""
 ### 📖 How to Use ApexScan — Complete Guide
 
