@@ -2126,6 +2126,7 @@ if run_btn or _auto_fired:
                 )
 
         df_raw  = run_scan(cfg, universe_override=_universe_override,
+                log_new_discoveries(df_raw)                  
                            market=_scan_market)
         if not df_raw.empty:
             save_report(df_raw)
@@ -8494,6 +8495,123 @@ Always set a **minimum 2:1 reward:risk** before entering any trade.
 
 ---
 > ⚠️ ApexScan is for research and education only — not financial advice.
+
+with tabs[22]:
+    st.markdown("### 📡 Discovery Tracker")
+    st.caption(
+        "Every ticker ApexScan has ever surfaced, logged automatically at the moment of "
+        "discovery — price, score, stage. This answers one question honestly: does a higher "
+        "Apex Score actually lead to better forward returns? No cherry-picking, no editing."
+    )
+
+    _disc = load_discoveries()
+
+    if not _disc:
+        st.info("No discoveries logged yet. Run scans normally — every new ticker gets tracked automatically from here on.")
+    else:
+        c1, c2 = st.columns([1, 3])
+        with c1:
+            refresh_btn = st.button("🔄 Refresh All Prices", use_container_width=True,
+                                     help="Pulls current price for every tracked ticker and recomputes % change since discovery.")
+
+        if refresh_btn:
+            with st.spinner(f"Refreshing {len(_disc)} tracked tickers…"):
+                for item in _disc:
+                    live = fetch_price(item["ticker"])
+                    if live and live.get("price"):
+                        item["current_price"] = live["price"]
+                        item["last_checked"]  = datetime.now().strftime("%Y-%m-%d")
+                        if item.get("discovery_price"):
+                            item["pct_change"] = round(
+                                (live["price"] / item["discovery_price"] - 1) * 100, 2
+                            )
+                        item["days_tracked"] = (
+                            pd.Timestamp.now() - pd.to_datetime(item["discovered_at"])
+                        ).days
+            save_discoveries(_disc)
+            st.success("✅ Refreshed.")
+            st.rerun()
+
+        dd = pd.DataFrame(_disc)
+        dd["pct_change"]  = pd.to_numeric(dd.get("pct_change"), errors="coerce")
+        dd["apex_score"]  = pd.to_numeric(dd.get("apex_score"), errors="coerce")
+        dd["days_tracked"] = pd.to_numeric(dd.get("days_tracked"), errors="coerce")
+
+        tracked = dd.dropna(subset=["pct_change"])
+
+        st.markdown("---")
+        k1, k2, k3, k4, k5 = st.columns(5)
+        k1.metric("Total Discoveries", len(dd))
+        k2.metric("Refreshed / Tracked", len(tracked))
+        if not tracked.empty:
+            win_rate = round((tracked["pct_change"] > 0).mean() * 100, 1)
+            avg_ret  = round(tracked["pct_change"].mean(), 2)
+            med_ret  = round(tracked["pct_change"].median(), 2)
+            k3.metric("Win Rate", f"{win_rate}%")
+            k4.metric("Avg Return", f"{avg_ret:+.1f}%")
+            k5.metric("Median Return", f"{med_ret:+.1f}%")
+        else:
+            k3.metric("Win Rate", "–")
+            k4.metric("Avg Return", "–")
+            k5.metric("Median Return", "–")
+
+        if len(tracked) < 30:
+            st.warning(
+                f"⚠️ Only {len(tracked)} refreshed observations — statistically unreliable. "
+                "Wait for at least 30-50 before drawing conclusions about edge."
+            )
+
+        st.markdown("---")
+
+        # ── THE key validation: does score predict outcome? ────────────
+        if not tracked.empty:
+            st.markdown("#### 🎯 Does Apex Score Predict Returns? (The Real Test)")
+            buckets = [("80-100", 80, 101), ("65-79", 65, 80), ("50-64", 50, 65), ("<50", 0, 50)]
+            rows = []
+            for label, lo, hi in buckets:
+                b = tracked[(tracked["apex_score"] >= lo) & (tracked["apex_score"] < hi)]
+                if not b.empty:
+                    rows.append({
+                        "Score Range": label,
+                        "N": len(b),
+                        "Win Rate": f"{(b['pct_change']>0).mean()*100:.1f}%",
+                        "Avg Return": f"{b['pct_change'].mean():+.2f}%",
+                    })
+            if rows:
+                st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+                st.caption(
+                    "If higher score buckets don't show meaningfully better win rate / avg return "
+                    "than lower buckets, the score isn't adding predictive value yet — worth "
+                    "revisiting the weighting in scanner.py."
+                )
+
+        st.markdown("---")
+        st.markdown("#### 📋 Full Discovery Log")
+        show = dd[["ticker","discovered_at","discovery_price","apex_score","stage",
+                   "current_price","pct_change","days_tracked","theme"]].copy()
+        show = show.sort_values("discovered_at", ascending=False)
+
+        def _c(v):
+            try: return "color:#3fb950;font-weight:700" if float(v)>0 else "color:#f85149;font-weight:700"
+            except: return ""
+
+        st.dataframe(
+            show.style.map(_c, subset=["pct_change"]).format({
+                "discovery_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+                "current_price":   lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+                "pct_change":      lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
+                "apex_score":      "{:.0f}",
+                "days_tracked":    lambda v: f"{int(v)}d" if pd.notna(v) else "–",
+            }, na_rep="–"),
+            use_container_width=True, height=500
+        )
+
+        st.download_button(
+            "⬇ Export Discovery Log (CSV)",
+            show.to_csv(index=False).encode("utf-8"),
+            file_name=f"apexscan_discoveries_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv",
+        )
 
 ---
 
