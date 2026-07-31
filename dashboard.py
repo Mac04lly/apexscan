@@ -2125,10 +2125,10 @@ if run_btn or _auto_fired:
                     f"— {_stats_line}"
                 )
 
-        df_raw  = run_scan(cfg, universe_override=_universe_override,
-                log_new_discoveries(df_raw)                  
-                           market=_scan_market)
+        df_raw  = run_scan(cfg, universe_override=_universe_override,                     
+                       market=_scan_market)
         if not df_raw.empty:
+            log_new_discoveries(df_raw) 
             save_report(df_raw)
             try:
                 alert_settings = load_alert_settings()
