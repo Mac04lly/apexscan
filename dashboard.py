@@ -1838,6 +1838,7 @@ tabs = st.tabs([
     "👁 Setup Monitor",
     "🏛 Long-Term Investing",
     "📖 Guide",
+     "📡 Discovery Tracker",
 ])
 
 
