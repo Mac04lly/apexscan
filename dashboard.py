@@ -9,6 +9,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import streamlit as st
+from strategies import get_strategy
 import pandas as pd
 import numpy as np
 import plotly.express as px
