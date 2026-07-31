@@ -6283,7 +6283,7 @@ with tabs[15]:
 # TAB 19 — LONG-TERM INVESTING
 # ══════════════════════════════════════════════════════════════════════════════
 
-with tabs[21]:
+with tabs[20]:
     st.markdown("### 🏛 Long-Term Investing Review")
     st.caption(
         "Fundamentals-weighted analysis for 1–10 year holds — ROE, revenue/earnings growth, "
@@ -6668,7 +6668,7 @@ with tabs[16]:
                 st.error(f"Error comparing scans: {_de}")
 
 
-with tabs[18]:
+with tabs[17]:
     st.markdown("### ✅ Pre-Buy Checklist")
     st.caption(
         "Run every stock through this 15-point checklist before buying. "
@@ -8027,7 +8027,7 @@ CHECKLIST RESULTS ({len([c for c in checks if c["pass"]])}/{len(checks)} passed)
                 )
 
 
-with tabs[19]:
+with tabs[18]:
     st.markdown("### 📓 Trade Journal")
     st.caption("Track every trade from checklist to outcome. Builds your personal edge statistics over time.")
 
@@ -8260,7 +8260,7 @@ with tabs[19]:
                     st.plotly_chart(_fig_j, use_container_width=True)
 
 
-with tabs[20]:
+with tabs[19]:
     st.markdown("### 👁 Setup Monitor")
     st.caption(
         "Stocks you're watching for checklist status improvement. "
@@ -8367,7 +8367,7 @@ with tabs[20]:
                     st.rerun()
 
 
-with tabs[19]:
+with tabs[21]:
     st.markdown("""
 ### 📖 How to Use ApexScan — Complete Guide
 
