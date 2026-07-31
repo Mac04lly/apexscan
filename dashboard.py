@@ -6279,9 +6279,211 @@ with tabs[15]:
             </div>
             """, unsafe_allow_html=True)
 
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 19 — LONG-TERM INVESTING
+# ══════════════════════════════════════════════════════════════════════════════
+
+with tabs[21]:
+    st.markdown("### 🏛 Long-Term Investing Review")
+    st.caption(
+        "Fundamentals-weighted analysis for 1–10 year holds — ROE, revenue/earnings growth, "
+        "debt levels, free cash flow, and PEG ratio layered on top of the technical Apex Score. "
+        "Runs on your current scan data — no re-scan needed."
+    )
+
+    if df.empty:
+        st.info("Run a Live Scan or Load Last Report first — Long-Term view uses the same scan data as the Leaderboard.")
+    else:
+        lt_strategy = get_strategy("long_term")
+
+        @st.cache_data(ttl=300, show_spinner=False)
+        def _compute_long_term_scores(_df_hash: str, records: list) -> pd.DataFrame:
+            rows = []
+            for rec in records:
+                evaluated = lt_strategy.evaluate(dict(rec))
+                rows.append(evaluated)
+            return pd.DataFrame(rows)
+
+        _lt_records = df.to_dict("records")
+        _lt_hash = str(len(_lt_records)) + str(df["ticker"].tolist()[:5] if "ticker" in df.columns else "")
+        lt_df = _compute_long_term_scores(_lt_hash, _lt_records)
+
+        if "strategy_score" not in lt_df.columns:
+            st.warning("Could not compute long-term scores — scan data may be missing fundamentals.")
+        else:
+            lt_df["strategy_score"] = pd.to_numeric(lt_df["strategy_score"], errors="coerce")
+            lt_df = lt_df.sort_values("strategy_score", ascending=False)
+
+            # ── Fundamentals coverage check ─────────────────────────────────
+            fund_cols = ["roe", "revenue_growth", "earnings_growth", "debt_to_equity", "free_cash_flow", "peg_ratio"]
+            available_fund_cols = [c for c in fund_cols if c in lt_df.columns]
+            coverage = 0
+            if available_fund_cols:
+                coverage = lt_df[available_fund_cols].notna().any(axis=1).sum()
+
+            if coverage == 0:
+                st.markdown(
+                    '<div style="background:#2a2200;border:1px solid #d29922;border-radius:8px;'
+                    'padding:14px 18px;margin-bottom:16px;">'
+                    '⚠️ <b style="color:#d29922;">No fundamentals data found in this scan.</b><br>'
+                    '<span style="color:#c9d1d9;font-size:0.88rem;">'
+                    'Fundamentals (ROE, revenue growth, debt levels, FCF, PEG) are fetched in Pass 3 '
+                    'of the scan — for the top 30 tickers by default. Scores below are falling back to '
+                    'the technical Apex Score alone. Increase <code>fundamentals.max_calls_per_scan</code> '
+                    'in config.yaml, or scan a smaller universe so more tickers get fundamentals enrichment.'
+                    '</span></div>',
+                    unsafe_allow_html=True
+                )
+            else:
+                st.caption(f"📊 Fundamentals available for {coverage} of {len(lt_df)} tickers in this scan.")
+
+            # ── Summary KPIs ───────────────────────────────────────────────
+            k1, k2, k3, k4 = st.columns(4)
+            strong_buy = int((lt_df["strategy_recommendation"] == "Strong Buy").sum())
+            buy_n      = int((lt_df["strategy_recommendation"] == "Buy").sum())
+            hold_n     = int((lt_df["strategy_recommendation"] == "Hold").sum())
+            top_score  = lt_df["strategy_score"].max()
+
+            with k1:
+                st.markdown(f'<div class="metric-card"><h3>Strong Buy</h3><div class="value green">{strong_buy}</div></div>', unsafe_allow_html=True)
+            with k2:
+                st.markdown(f'<div class="metric-card"><h3>Buy</h3><div class="value blue">{buy_n}</div></div>', unsafe_allow_html=True)
+            with k3:
+                st.markdown(f'<div class="metric-card"><h3>Hold</h3><div class="value amber">{hold_n}</div></div>', unsafe_allow_html=True)
+            with k4:
+                st.markdown(f'<div class="metric-card"><h3>Top LT Score</h3><div class="value green">{top_score:.0f}</div></div>', unsafe_allow_html=True)
+
+            st.markdown("---")
+
+            # ── Recommendation filter ────────────────────────────────────
+            rec_filter = st.multiselect(
+                "Filter by Recommendation",
+                ["Strong Buy", "Buy", "Hold", "Avoid", "Not a Dividend Candidate"],
+                default=["Strong Buy", "Buy"],
+                key="lt_rec_filter",
+            )
+            lt_show = lt_df[lt_df["strategy_recommendation"].isin(rec_filter)] if rec_filter else lt_df
+
+            # ── Table ───────────────────────────────────────────────────
+            want_cols = [
+                "ticker", "theme", "price", "mcap_category",
+                "strategy_score", "strategy_recommendation",
+                "roe", "revenue_growth", "earnings_growth",
+                "debt_to_equity", "peg_ratio", "apex_score",
+            ]
+            show_cols = [c for c in want_cols if c in lt_show.columns]
+            lt_disp = lt_show[show_cols].head(50).copy()
+
+            def _color_rec(v):
+                if v == "Strong Buy": return "color:#3fb950;font-weight:700"
+                if v == "Buy":        return "color:#3fb950"
+                if v == "Hold":       return "color:#d29922"
+                if v == "Avoid":      return "color:#f85149"
+                return "color:#8b949e"
+
+            lt_fmt = {
+                "price": "${:.2f}",
+                "strategy_score": "{:.0f}",
+                "apex_score": "{:.0f}",
+                "roe": lambda v: f"{v*100:.1f}%" if pd.notna(v) else "–",
+                "revenue_growth": lambda v: f"{v*100:+.1f}%" if pd.notna(v) else "–",
+                "earnings_growth": lambda v: f"{v*100:+.1f}%" if pd.notna(v) else "–",
+                "debt_to_equity": lambda v: f"{v:.0f}" if pd.notna(v) else "–",
+                "peg_ratio": lambda v: f"{v:.2f}" if pd.notna(v) else "–",
+            }
+            active_lt_fmt = {k: v for k, v in lt_fmt.items() if k in lt_disp.columns}
+
+            styled_lt = lt_disp.style.format(active_lt_fmt, na_rep="–")
+            if "strategy_recommendation" in lt_disp.columns:
+                styled_lt = styled_lt.map(_color_rec, subset=["strategy_recommendation"])
+            if "strategy_score" in lt_disp.columns:
+                styled_lt = styled_lt.map(color_score, subset=["strategy_score"])
+
+            st.dataframe(styled_lt, use_container_width=True, height=520)
+
+            st.download_button(
+                "⬇ Download Long-Term Analysis (CSV)",
+                lt_show.to_csv(index=False).encode("utf-8"),
+                file_name=f"apexscan_longterm_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                mime="text/csv",
+            )
+
+            # ── Single-ticker deep breakdown ─────────────────────────────
+            st.markdown("---")
+            st.markdown("#### 🔍 Ticker Breakdown")
+            lt_pick = st.selectbox(
+                "Select a ticker for full fundamentals breakdown",
+                lt_show["ticker"].tolist() if "ticker" in lt_show.columns else [],
+                key="lt_ticker_pick",
+            )
+            if lt_pick:
+                _row = lt_df[lt_df["ticker"] == lt_pick]
+                if not _row.empty:
+                    _r = _row.iloc[0]
+                    _rec = _r.get("strategy_recommendation", "–")
+                    _rec_color = {
+                        "Strong Buy": "#3fb950", "Buy": "#3fb950",
+                        "Hold": "#d29922", "Avoid": "#f85149",
+                    }.get(_rec, "#8b949e")
+
+                    st.markdown(f"""
+                    <div style="background:#161b22;border:1px solid {_rec_color};border-radius:12px;padding:20px 24px;">
+                      <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                          <div style="font-size:1.6rem;font-weight:800;color:#e6edf3;">{lt_pick}</div>
+                          <div style="color:#8b949e;font-size:0.85rem;">{_r.get('theme','–')}</div>
+                        </div>
+                        <div style="text-align:right;">
+                          <div style="font-size:2rem;font-weight:900;color:{_rec_color};">{_r.get('strategy_score',0):.0f}</div>
+                          <div style="color:{_rec_color};font-weight:700;">{_rec}</div>
+                        </div>
+                      </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    f1, f2, f3 = st.columns(3)
+                    _roe = _r.get("roe")
+                    _rg  = _r.get("revenue_growth")
+                    _eg  = _r.get("earnings_growth")
+                    _de  = _r.get("debt_to_equity")
+                    _fcf = _r.get("free_cash_flow")
+                    _peg = _r.get("peg_ratio")
+
+                    f1.metric("ROE", f"{_roe*100:.1f}%" if pd.notna(_roe) else "–",
+                               help="Return on Equity. >20% = excellent, >10% = decent.")
+                    f1.metric("Revenue Growth", f"{_rg*100:+.1f}%" if pd.notna(_rg) else "–",
+                               help="YoY revenue growth. >15% = strong.")
+                    f2.metric("Earnings Growth", f"{_eg*100:+.1f}%" if pd.notna(_eg) else "–",
+                               help="YoY earnings growth. >15% = strong.")
+                    f2.metric("Debt/Equity", f"{_de:.0f}" if pd.notna(_de) else "–",
+                               help="<100 = healthy, <200 = manageable, >200 = risky.")
+                    f3.metric("Free Cash Flow", "✅ Positive" if pd.notna(_fcf) and _fcf > 0 else ("❌ Negative" if pd.notna(_fcf) else "–"),
+                               help="Positive FCF = the company generates real cash beyond expenses.")
+                    f3.metric("PEG Ratio", f"{_peg:.2f}" if pd.notna(_peg) else "–",
+                               help="<1.0 = undervalued relative to growth, >2.5 = expensive.")
+
+                    st.caption(
+                        "📌 Long-Term score weights: 30% technical Apex Score, then ROE, revenue growth, "
+                        "earnings growth, debt/equity, positive FCF, and PEG ratio — each contributing "
+                        "up to 15 points when data is available. Missing fundamentals simply reduce the "
+                        "weighted total rather than penalizing the stock."
+                    )
+
+            st.markdown("---")
+            st.markdown("""
+            #### 💡 How to read this tab
+            - **Strong Buy (≥80)** — excellent fundamentals across most metrics, technically sound too
+            - **Buy (65–79)** — solid long-term case, worth building a position gradually
+            - **Hold (45–64)** — mixed signals, fine to hold existing shares but not a strong new-buy case
+            - **Avoid (<45)** — weak fundamentals or heavy debt; better long-term candidates exist
+            - Unlike the Leaderboard (which is *swing-trade momentum* focused), this tab rewards companies
+              with real earnings power, manageable debt, and reasonable valuation — the kind of stock you
+              can hold through a full market cycle, not just the next few weeks.
+            """)
+
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 17 — GUIDE
+# TAB 18 — GUIDE
 # ══════════════════════════════════════════════════════════════════════════════
 
 with tabs[16]:
