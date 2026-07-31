@@ -166,7 +166,7 @@ def save_journal(journal: list):
             with open(_tmp,"w") as _f: json.dump(journal, _f, indent=2, default=str)
             import shutil; shutil.move(str(_tmp), str(_p))
         except Exception: pass
-      _DISC_FILE = _PORT_DIR / "discoveries.json" if "_PORT_DIR" in dir() else Path("data/discoveries.json")
+_DISC_FILE = _PORT_DIR / "discoveries.json" if "_PORT_DIR" in dir() else Path("data/discoveries.json")
 _DISC_TMP  = Path("/tmp/apexscan_discoveries.json")
 
 def load_discoveries() -> list:
