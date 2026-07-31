@@ -166,6 +166,57 @@ def save_journal(journal: list):
             with open(_tmp,"w") as _f: json.dump(journal, _f, indent=2, default=str)
             import shutil; shutil.move(str(_tmp), str(_p))
         except Exception: pass
+      _DISC_FILE = _PORT_DIR / "discoveries.json" if "_PORT_DIR" in dir() else Path("data/discoveries.json")
+_DISC_TMP  = Path("/tmp/apexscan_discoveries.json")
+
+def load_discoveries() -> list:
+    for _p in (_DISC_FILE, _DISC_TMP):
+        try:
+            if _p.exists() and _p.stat().st_size > 2:
+                with open(_p) as _f:
+                    _d = json.load(_f)
+                if isinstance(_d, list): return _d
+        except Exception: pass
+    return []
+
+def save_discoveries(items: list):
+    for _p in (_DISC_FILE, _DISC_TMP):
+        try:
+            _p.parent.mkdir(parents=True, exist_ok=True)
+            _tmp = _p.with_suffix(".tmp")
+            with open(_tmp, "w") as _f: json.dump(items, _f, indent=2, default=str)
+            import shutil; shutil.move(str(_tmp), str(_p))
+        except Exception: pass
+
+def log_new_discoveries(scan_df: pd.DataFrame):
+    """Called once per scan. Logs any ticker not already tracked."""
+    if scan_df is None or scan_df.empty:
+        return
+    _existing = load_discoveries()
+    _existing_tickers = {d["ticker"] for d in _existing}
+    _new = []
+    for _, row in scan_df.iterrows():
+        tk = row.get("ticker")
+        if not tk or tk in _existing_tickers:
+            continue
+        _new.append({
+            "ticker":            tk,
+            "discovered_at":     datetime.now().strftime("%Y-%m-%d"),
+            "discovery_price":   float(row.get("price", 0) or 0),
+            "apex_score":        float(row.get("apex_score", 0) or 0),
+            "stage":             str(row.get("stage", "")),
+            "theme":             str(row.get("theme", "")),
+            "breaking_out":      bool(row.get("breaking_out", False)),
+            "of_bias":           str(row.get("of_bias", "")),
+            # filled in on refresh:
+            "last_checked":      None,
+            "current_price":     None,
+            "pct_change":        None,
+            "days_tracked":      None,
+        })
+        _existing_tickers.add(tk)
+    if _new:
+        save_discoveries(_existing + _new)      
 
 # ── Checklist watchlist storage (setups to monitor for status change) ──────────
 _CHKWATCH_FILE = _PORT_DIR / "checklist_watchlist.json" if "_PORT_DIR" in dir() else Path("data/checklist_watchlist.json")
