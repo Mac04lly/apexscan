@@ -210,6 +210,7 @@ def save_discoveries(items: list):
                              message=f"Update discoveries.json ({len(items)} tracked)")
 def log_new_discoveries(scan_df: pd.DataFrame):
     """Called once per scan. Logs any ticker not already tracked."""
+     log.info(f"Discovery Tracker: GitHub sync {'succeeded' if ok else 'failed — using local file only'}.")
     if scan_df is None or scan_df.empty:
         return
     _existing = load_discoveries()
