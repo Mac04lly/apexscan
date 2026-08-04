@@ -206,11 +206,9 @@ def save_discoveries(items: list):
     _save_discoveries_local(items)
     token, repo = _gh_creds()
     if token and repo:
-        save_json_to_github(token, repo, "data/discoveries.json", items,
+        ok = save_json_to_github(token, repo, "data/discoveries.json", items,
                              message=f"Update discoveries.json ({len(items)} tracked)")
-def log_new_discoveries(scan_df: pd.DataFrame):
-    """Called once per scan. Logs any ticker not already tracked."""
-     log.info(f"Discovery Tracker: GitHub sync {'succeeded' if ok else 'failed — using local file only'}.")
+        log.info(f"Discovery Tracker: GitHub sync {'succeeded' if ok else 'failed — using local file only'}.")
     if scan_df is None or scan_df.empty:
         return
     _existing = load_discoveries()
