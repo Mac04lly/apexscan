@@ -235,8 +235,11 @@ def log_new_discoveries(scan_df: pd.DataFrame):
             "days_tracked":      None,
         })
         _existing_tickers.add(tk)
-    if _new:
-        save_discoveries(_existing + _new)      
+   if _new:
+        save_discoveries(_existing + _new)
+        log.info(f"Discovery Tracker: logged {len(_new)} new ticker(s) — {len(_existing)+len(_new)} total tracked.")
+    else:
+        log.info(f"Discovery Tracker: no new tickers this scan (all {len(scan_df)} already tracked).")   
 
 # ── Checklist watchlist storage (setups to monitor for status change) ──────────
 _CHKWATCH_FILE = _PORT_DIR / "checklist_watchlist.json" if "_PORT_DIR" in dir() else Path("data/checklist_watchlist.json")
