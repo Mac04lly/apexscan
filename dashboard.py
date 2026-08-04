@@ -169,7 +169,30 @@ def save_journal(journal: list):
 _DISC_FILE = _PORT_DIR / "discoveries.json" if "_PORT_DIR" in dir() else Path("data/discoveries.json")
 _DISC_TMP  = Path("/tmp/apexscan_discoveries.json")
 
+from modules.gh_storage import load_json_from_github, save_json_to_github
+
+def _gh_creds():
+    try:
+        return st.secrets.get("github_token", ""), st.secrets.get("github_repo", "")
+    except Exception:
+        return "", ""
+
+def _save_discoveries_local(items: list):
+    for _p in (_DISC_FILE, _DISC_TMP):
+        try:
+            _p.parent.mkdir(parents=True, exist_ok=True)
+            _tmp = _p.with_suffix(".tmp")
+            with open(_tmp, "w") as _f: json.dump(items, _f, indent=2, default=str)
+            import shutil; shutil.move(str(_tmp), str(_p))
+        except Exception: pass
+
 def load_discoveries() -> list:
+    token, repo = _gh_creds()
+    if token and repo:
+        data, _ = load_json_from_github(token, repo, "data/discoveries.json")
+        if isinstance(data, list):
+            _save_discoveries_local(data)   # keep local cache warm for speed
+            return data
     for _p in (_DISC_FILE, _DISC_TMP):
         try:
             if _p.exists() and _p.stat().st_size > 2:
@@ -180,14 +203,11 @@ def load_discoveries() -> list:
     return []
 
 def save_discoveries(items: list):
-    for _p in (_DISC_FILE, _DISC_TMP):
-        try:
-            _p.parent.mkdir(parents=True, exist_ok=True)
-            _tmp = _p.with_suffix(".tmp")
-            with open(_tmp, "w") as _f: json.dump(items, _f, indent=2, default=str)
-            import shutil; shutil.move(str(_tmp), str(_p))
-        except Exception: pass
-
+    _save_discoveries_local(items)
+    token, repo = _gh_creds()
+    if token and repo:
+        save_json_to_github(token, repo, "data/discoveries.json", items,
+                             message=f"Update discoveries.json ({len(items)} tracked)")
 def log_new_discoveries(scan_df: pd.DataFrame):
     """Called once per scan. Logs any ticker not already tracked."""
     if scan_df is None or scan_df.empty:
