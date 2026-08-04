@@ -900,7 +900,8 @@ def analyze_stock(ticker: str, cfg: dict,
                     _ngx_idx = ngnm_get_index(ngnm_key)
                 _ngx_bench = _ngx_idx["df"]["Close"] if _ngx_idx else None
         else:
-            if hist_override is not None and len(hist_override) > 0:
+            _min_bars_check = cfg["scan"]["min_history_bars"]
+            if hist_override is not None and len(hist_override) >= _min_bars_check:
                 hist = hist_override
             else:
                 hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
