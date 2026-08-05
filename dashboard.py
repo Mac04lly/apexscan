@@ -8527,6 +8527,33 @@ Always set a **minimum 2:1 reward:risk** before entering any trade.
 ---
 > ⚠️ ApexScan is for research and education only — not financial advice.
 
+---
+
+#### 🔑 API Key Setup & Verification
+
+**Alpha Vantage (for real EPS data):**
+1. Go to **alphavantage.co** → click **Get Free API Key**
+2. Open `config.yaml` in VS Code
+3. Find the line: `alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE"`
+4. Replace the placeholder with your actual key (keep the quote marks)
+5. Save the file (Ctrl+S)
+6. **Restart the dashboard** — close CMD, reopen it, run the command again
+7. The sidebar will show 🟢 Alpha Vantage ✓ Active when it's working
+
+**Important:** After editing config.yaml you MUST restart the dashboard.
+Just saving the file is not enough — Streamlit needs to reload.
+
+**Finnhub (for news sentiment):**
+Same process — paste your key at `finnhub_key:` in config.yaml.
+
+**Free tier limits:**
+- Alpha Vantage free: 25 API calls/day, 5/minute
+- Each stock in the scan uses 3 AV calls (earnings + income + overview)
+- Cached for 24h so repeated scans don't burn your quota
+- With 45 tickers: first scan uses ~45 calls (exceeds daily free limit)
+- **Solution:** Add `cache_hours: 168` (1 week) in config.yaml under `alpha_vantage:` to cache aggressively and stay within quota
+    """)
+
 with tabs[22]:
     st.markdown("### 📡 Discovery Tracker")
     st.caption(
@@ -8649,30 +8676,3 @@ with tabs[22]:
             file_name=f"apexscan_discoveries_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv",
         )
-
----
-
-#### 🔑 API Key Setup & Verification
-
-**Alpha Vantage (for real EPS data):**
-1. Go to **alphavantage.co** → click **Get Free API Key**
-2. Open `config.yaml` in VS Code
-3. Find the line: `alpha_vantage_key: "YOUR_ALPHA_VANTAGE_KEY_HERE"`
-4. Replace the placeholder with your actual key (keep the quote marks)
-5. Save the file (Ctrl+S)
-6. **Restart the dashboard** — close CMD, reopen it, run the command again
-7. The sidebar will show 🟢 Alpha Vantage ✓ Active when it's working
-
-**Important:** After editing config.yaml you MUST restart the dashboard.
-Just saving the file is not enough — Streamlit needs to reload.
-
-**Finnhub (for news sentiment):**
-Same process — paste your key at `finnhub_key:` in config.yaml.
-
-**Free tier limits:**
-- Alpha Vantage free: 25 API calls/day, 5/minute
-- Each stock in the scan uses 3 AV calls (earnings + income + overview)
-- Cached for 24h so repeated scans don't burn your quota
-- With 45 tickers: first scan uses ~45 calls (exceeds daily free limit)
-- **Solution:** Add `cache_hours: 168` (1 week) in config.yaml under `alpha_vantage:` to cache aggressively and stay within quota
-    """)
