@@ -19,6 +19,11 @@ import yfinance as yf
 from pathlib import Path
 from datetime import datetime, timedelta
 import json
+import logging
+
+log = logging.getLogger("apexscan.dashboard")
+if not log.handlers:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 from scanner import load_config, run_scan, save_report
 from modules.universe import build_universe, get_universe_stats
