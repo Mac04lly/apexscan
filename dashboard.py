@@ -2367,7 +2367,7 @@ with tabs[0]:
             want = ["ticker","theme","price","mcap_category","stage",
                     "perf_1m_%","perf_3m_%","perf_6m_%",
                     "rs_3m","rs_r2500_3m","rs_r3000g_3m","rs_multi_leader",
-                    "vol_surge_x","near_52wh","pattern",
+                    "vol_surge_x","near_52wh","breaking_out","pattern",
                     "earn_momentum","eps_growth_%","eps_surprise_%","consec_beats","apex_score"]
         elif col_view == "Order Flow":
             want = ["ticker","price","of_bias","of_up_vol_ratio",
@@ -2425,6 +2425,7 @@ with tabs[0]:
             "rs_r2500_3m":  lambda v: f"{v:.0f}" if pd.notna(v) and v not in (0, None) else "–",
             "rs_r3000g_3m": lambda v: f"{v:.0f}" if pd.notna(v) and v not in (0, None) else "–",
             "rs_multi_leader": lambda v: "✅" if v is True or str(v).lower()=="true" else "–",
+            "breaking_out":    lambda v: "🚀" if v is True or str(v).lower()=="true" else "–",
             "adr_%": lambda v: f"{v:.1f}%" if pd.notna(v) else "–",
             "vs_50ma_%": pct_fmt, "vs_200ma_%": pct_fmt,
             "vol_surge_x": "{:.1f}x",
