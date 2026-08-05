@@ -209,6 +209,9 @@ def save_discoveries(items: list):
         ok = save_json_to_github(token, repo, "data/discoveries.json", items,
                              message=f"Update discoveries.json ({len(items)} tracked)")
         log.info(f"Discovery Tracker: GitHub sync {'succeeded' if ok else 'failed — using local file only'}.")
+
+
+def log_new_discoveries(scan_df: pd.DataFrame):
     if scan_df is None or scan_df.empty:
         return
     _existing = load_discoveries()
@@ -234,7 +237,7 @@ def save_discoveries(items: list):
             "days_tracked":      None,
         })
         _existing_tickers.add(tk)
-   if _new:
+    if _new:
         save_discoveries(_existing + _new)
         log.info(f"Discovery Tracker: logged {len(_new)} new ticker(s) — {len(_existing)+len(_new)} total tracked.")
     else:
