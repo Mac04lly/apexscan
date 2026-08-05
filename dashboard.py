@@ -8536,6 +8536,12 @@ with tabs[22]:
     )
 
     _disc = load_discoveries()
+    st.caption(
+        f"🔧 Debug: reading `{_DISC_FILE.resolve()}` — "
+        f"exists: {_DISC_FILE.exists()}, "
+        f"size: {(_DISC_FILE.stat().st_size if _DISC_FILE.exists() else 0)} bytes, "
+        f"loaded {len(_disc)} record(s)."
+    )
 
     if not _disc:
         st.info("No discoveries logged yet. Run scans normally — every new ticker gets tracked automatically from here on.")
