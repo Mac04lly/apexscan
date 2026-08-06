@@ -246,7 +246,49 @@ def log_new_discoveries(scan_df: pd.DataFrame):
         save_discoveries(_existing + _new)
         log.info(f"Discovery Tracker: logged {len(_new)} new ticker(s) — {len(_existing)+len(_new)} total tracked.")
     else:
-        log.info(f"Discovery Tracker: no new tickers this scan (all {len(scan_df)} already tracked).")   
+        log.info(f"Discovery Tracker: no new tickers this scan (all {len(scan_df)} already tracked).")
+
+
+def _refresh_discovery_prices(disc_list: list) -> list:
+    """Fetches current price for every tracked ticker and recomputes
+    pct_change/days_tracked. Shared by the manual button and the
+    automatic once-daily trigger below, so both stay in sync."""
+    for item in disc_list:
+        live = fetch_price(item["ticker"])
+        if live and live.get("price"):
+            item["current_price"] = live["price"]
+            item["last_checked"]  = datetime.now().strftime("%Y-%m-%d")
+            if item.get("discovery_price"):
+                item["pct_change"] = round(
+                    (live["price"] / item["discovery_price"] - 1) * 100, 2
+                )
+            item["days_tracked"] = (
+                pd.Timestamp.now() - pd.to_datetime(item["discovered_at"])
+            ).days
+    return disc_list
+
+
+def _discoveries_due_for_refresh(disc_list: list) -> bool:
+    """True if there's at least one tracked ticker that hasn't been
+    price-checked yet today. Empty/never-checked items count as due."""
+    if not disc_list:
+        return False
+    today = datetime.now().strftime("%Y-%m-%d")
+    return any(item.get("last_checked") != today for item in disc_list)
+
+
+def auto_refresh_discoveries_if_due():
+    """Runs once per page load. If it's a new calendar day since the last
+    refresh, silently updates all tracked prices — no button click or
+    Discovery Tracker tab visit required. Cheap no-op on every other load."""
+    _disc = load_discoveries()
+    if _discoveries_due_for_refresh(_disc):
+        try:
+            _disc = _refresh_discovery_prices(_disc)
+            save_discoveries(_disc)
+            log.info(f"Discovery Tracker: auto-refreshed {len(_disc)} tracked ticker(s) for today.")
+        except Exception as e:
+            log.warning(f"Discovery Tracker: auto-refresh failed, will retry next page load: {e}")   
 
 # ── Checklist watchlist storage (setups to monitor for status change) ──────────
 _CHKWATCH_FILE = _PORT_DIR / "checklist_watchlist.json" if "_PORT_DIR" in dir() else Path("data/checklist_watchlist.json")
@@ -2049,6 +2091,10 @@ _autoscan_state   = _autoscan_load()
 _autoscan_trigger = check_autoscan_trigger(_autoscan_state)
 _auto_fired       = False
 _scan_market      = "us"
+
+# Once-per-day price refresh for the Discovery Tracker — independent of
+# whether scan auto-scan is enabled. Cheap no-op if already refreshed today.
+auto_refresh_discoveries_if_due()
 
 if _autoscan_trigger and not run_btn:
     _auto_fired = True
@@ -8580,18 +8626,7 @@ with tabs[22]:
 
         if refresh_btn:
             with st.spinner(f"Refreshing {len(_disc)} tracked tickers…"):
-                for item in _disc:
-                    live = fetch_price(item["ticker"])
-                    if live and live.get("price"):
-                        item["current_price"] = live["price"]
-                        item["last_checked"]  = datetime.now().strftime("%Y-%m-%d")
-                        if item.get("discovery_price"):
-                            item["pct_change"] = round(
-                                (live["price"] / item["discovery_price"] - 1) * 100, 2
-                            )
-                        item["days_tracked"] = (
-                            pd.Timestamp.now() - pd.to_datetime(item["discovered_at"])
-                        ).days
+                _disc = _refresh_discovery_prices(_disc)
             save_discoveries(_disc)
             st.success("✅ Refreshed.")
             st.rerun()
