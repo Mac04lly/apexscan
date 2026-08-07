@@ -1071,7 +1071,7 @@ def generate_scan_briefing(df: pd.DataFrame) -> str:
                 pat  = r.get("pattern","")
                 vs   = r.get("vol_surge_x")
                 lines.append(
-                    f"- **{tk}** @ ${float(p):.2f if p else '–'} | Score: {_val(sc,'.0f')} | "
+                    f"- **{tk}** @ ${_val(p,'.2f')} | Score: {_val(sc,'.0f')} | "
                     f"Pattern: {pat} | Vol surge: {_val(vs,'.1f')}×"
                 )
             lines.append("")
@@ -1960,8 +1960,8 @@ tabs = st.tabs([
     "📓 Trade Journal",
     "👁 Setup Monitor",
     "🏛 Long-Term Investing",
+    "📡 Discovery Tracker",
     "📖 Guide",
-     "📡 Discovery Tracker",
 ])
 
 
@@ -8534,7 +8534,7 @@ with tabs[19]:
                     st.rerun()
 
 
-with tabs[21]:
+with tabs[22]:
     st.markdown("""
 ### 📖 How to Use ApexScan — Complete Guide
 
@@ -8637,7 +8637,7 @@ Same process — paste your key at `finnhub_key:` in config.yaml.
 - **Solution:** Add `cache_hours: 168` (1 week) in config.yaml under `alpha_vantage:` to cache aggressively and stay within quota
     """)
 
-with tabs[22]:
+with tabs[21]:
     st.markdown("### 📡 Discovery Tracker")
     st.caption(
         "Every ticker ApexScan has ever surfaced, logged automatically at the moment of "
