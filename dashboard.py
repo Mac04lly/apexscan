@@ -2639,13 +2639,50 @@ with tabs[0]:
 
 with tabs[1]:
     st.markdown("### 📈 Price Chart + Moving Averages + VWAP")
-    ticker_opts = df["ticker"].tolist() if not df.empty else ["NVDA","AAPL","TSM","ASML"]
-    ca, cb, cc = st.columns([2, 1, 1])
-    with ca: sel = st.selectbox("Ticker", ticker_opts)
-    with cb: period = st.selectbox("Period", ["3mo","6mo","1y","2y"], index=1)
-    with cc:
-        show_vwap   = st.checkbox("VWAP", value=True)
-        show_swings = st.checkbox("Swing Levels", value=True)
+
+    if df.empty:
+        st.info("📊 No scan data loaded yet. Click **Run Live Scan Now** or **Load Last Report** "
+                "in the sidebar — this chart will then let you pick any ticker from your results.")
+        sel = None
+    else:
+        with st.expander("❓ What am I looking at? (plain-English guide)"):
+            st.markdown("""
+**Candlesticks (green/red bars)** — each bar is one trading day. Green = price closed
+higher than it opened that day (buyers in control). Red = closed lower (sellers in control).
+The wick (thin line) shows the day's full high-to-low range.
+
+**50 MA / 200 MA (orange / blue dotted lines)** — the average closing price over the last
+50 or 200 days. Think of these as the stock's "recent trend" (50) and "long-term trend" (200).
+- Price **above both**, with 50 MA above 200 MA → healthy uptrend (this is "Stage 2" in ApexScan)
+- Price **below both** → downtrend, best avoided
+- Lines tangled together → no clear trend yet, still forming a base
+
+**VWAP band (purple line + shaded zone)** — the volume-weighted average price over the
+last 20 days: where most of the actual buying/selling has happened, not just the closing
+price. Price staying **above** the purple line = buyers are willing to pay up, a bullish sign.
+Price **below** it = selling pressure winning. The shaded band is the "normal" trading range —
+a price poking outside it is stretched further than usual, in either direction.
+
+**Swing High / Swing Low (dashed red/green horizontal lines)** — the most recent notable
+peak and trough. These act like a ceiling and floor: a break *above* the swing high often
+confirms strength; a break *below* the swing low often confirms weakness.
+
+**Volume bars (bottom panel)** — how many shares traded each day. Big green volume on an
+up day, or big red volume on a down day, means the move had real conviction behind it —
+not just a quiet drift.
+
+*Note: ApexScan doesn't currently compute RSI — its momentum read comes from Relative
+Strength vs. the S&P 500 (the `rs_3m`/`rs_6m` columns on the Leaderboard) instead, which
+compares this stock's performance to the overall market rather than just itself.*
+            """)
+
+        ticker_opts = df["ticker"].tolist()
+        ca, cb, cc = st.columns([2, 1, 1])
+        with ca: sel = st.selectbox("Ticker", ticker_opts)
+        with cb: period = st.selectbox("Period", ["3mo","6mo","1y","2y"], index=1)
+        with cc:
+            show_vwap   = st.checkbox("VWAP", value=True)
+            show_swings = st.checkbox("Swing Levels", value=True)
 
     if sel:
         hist = fetch_hist(sel, period)
