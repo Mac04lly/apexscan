@@ -216,6 +216,42 @@ def save_discoveries(items: list):
         log.info(f"Discovery Tracker: GitHub sync {'succeeded' if ok else 'failed — using local file only'}.")
 
 
+_CHARTNOTES_FILE = _PORT_DIR / "chart_notes.json" if "_PORT_DIR" in dir() else Path("data/chart_notes.json")
+_CHARTNOTES_TMP  = Path("/tmp/apexscan_chart_notes.json")
+
+def _save_chart_notes_local(notes: dict):
+    for _p in (_CHARTNOTES_FILE, _CHARTNOTES_TMP):
+        try:
+            _p.parent.mkdir(parents=True, exist_ok=True)
+            _tmp = _p.with_suffix(".tmp")
+            with open(_tmp, "w") as _f: json.dump(notes, _f, indent=2, default=str)
+            import shutil; shutil.move(str(_tmp), str(_p))
+        except Exception: pass
+
+def _load_chart_notes() -> dict:
+    token, repo = _gh_creds()
+    if token and repo:
+        data, _ = load_json_from_github(token, repo, "data/chart_notes.json")
+        if isinstance(data, dict):
+            _save_chart_notes_local(data)
+            return data
+    for _p in (_CHARTNOTES_FILE, _CHARTNOTES_TMP):
+        try:
+            if _p.exists() and _p.stat().st_size > 2:
+                with open(_p) as _f:
+                    _d = json.load(_f)
+                if isinstance(_d, dict): return _d
+        except Exception: pass
+    return {}
+
+def _save_chart_notes(notes: dict):
+    _save_chart_notes_local(notes)
+    token, repo = _gh_creds()
+    if token and repo:
+        save_json_to_github(token, repo, "data/chart_notes.json", notes,
+                             message=f"Update chart notes ({len(notes)} ticker(s))")
+
+
 def log_new_discoveries(scan_df: pd.DataFrame):
     if scan_df is None or scan_df.empty:
         return
@@ -2375,7 +2411,7 @@ with tabs[0]:
 
         theme_filter = st.radio(
             "📊 Quick Filter",
-            ["🌐 All", "🚀 Growth Leaders", "💎 Emerging Gems", "🎯 Early Entry"],
+            ["🌐 All", "🚀 Growth Leaders", "💎 Emerging Gems", "🎯 Early Entry", "🔥 Breakouts"],
             horizontal=True, key="lb_theme_filter"
         )
         if theme_filter == "💎 Emerging Gems":
@@ -2388,6 +2424,19 @@ with tabs[0]:
             if "market_cap" in df_filtered.columns:
                 mcap_num = pd.to_numeric(df_filtered["market_cap"], errors="coerce")
                 df_filtered = df_filtered[mcap_num >= 10_000_000_000]
+        elif theme_filter == "🔥 Breakouts":
+            st.markdown(
+                '<div style="background:#2a1a0a;border:1px solid #f0883e;border-radius:8px;'
+                'padding:10px 16px;margin-bottom:10px;font-size:0.85rem;color:#f0883e;">'
+                '🔥 <b>Breakouts</b> — stocks clearing a base or prior resistance on above-average '
+                'volume today. Confirmed strength, but already in motion — check entry risk before chasing.'
+                '</div>',
+                unsafe_allow_html=True
+            )
+            if "breaking_out" in df_filtered.columns:
+                df_filtered = df_filtered[
+                    df_filtered["breaking_out"].astype(str).str.lower().isin(["true","1"])
+                ]
         elif theme_filter == "🎯 Early Entry":
             st.markdown(
                 '<div style="background:#1a2a1a;border:1px solid #3fb950;border-radius:8px;'
@@ -6629,11 +6678,46 @@ with tabs[20]:
                     f3.metric("PEG Ratio", f"{_peg:.2f}" if pd.notna(_peg) else "–",
                                help="<1.0 = undervalued relative to growth, >2.5 = expensive.")
 
+                    g1, g2, g3 = st.columns(3)
+                    _gm    = _r.get("gross_margin")
+                    _cr    = _r.get("current_ratio")
+                    _qr    = _r.get("quick_ratio")
+                    _ncash = _r.get("net_cash_position")
+                    _ocf   = _r.get("operating_cashflow")
+                    _inst  = _r.get("institutional_ownership")
+                    _short = _r.get("short_pct_float")
+                    _beta  = _r.get("beta")
+                    _fpe   = _r.get("forward_pe")
+
+                    g1.metric("Gross Margin", f"{_gm*100:.1f}%" if pd.notna(_gm) else "–",
+                               help="Cost efficiency of producing goods/services. Stable or expanding = healthy.")
+                    g1.metric("Current Ratio", f"{_cr:.2f}" if pd.notna(_cr) else "–",
+                               help="Short-term liquidity. Above 1.0 (ideally 1.5–2.0) = can cover 1-year debts.")
+                    g2.metric("Quick Ratio", f"{_qr:.2f}" if pd.notna(_qr) else "–",
+                               help="Like Current Ratio but excludes inventory — a stricter liquidity test.")
+                    g2.metric("Net Cash Position", (f"${_ncash/1e9:+.2f}B" if pd.notna(_ncash) else "–"),
+                               help="Total cash minus total debt. Positive = more cash than debt, a protective buffer.")
+                    g3.metric("Institutional Ownership", f"{_inst*100:.0f}%" if pd.notna(_inst) else "–",
+                               help="% of shares held by funds/institutions. Higher = more 'smart money' confidence.")
+                    g3.metric("Beta", f"{_beta:.2f}" if pd.notna(_beta) else "–",
+                               help="Volatility vs. the S&P 500. 1.0 = moves with the market, >1.5 = notably more volatile.")
+
+                    with st.expander("More: Short Interest, Operating Cash Flow, Forward P/E"):
+                        h1, h2, h3 = st.columns(3)
+                        h1.metric("Short % of Float", f"{_short*100:.1f}%" if pd.notna(_short) else "–",
+                                   help="Higher = more bearish bets outstanding; also raises squeeze potential.")
+                        h2.metric("Operating Cash Flow", (f"${_ocf/1e9:.2f}B" if pd.notna(_ocf) and _ocf >= 0 else (f"-${abs(_ocf)/1e9:.2f}B" if pd.notna(_ocf) else "–")),
+                                   help="Cash generated by actual operations — checks that profit is backed by real cash, not just accounting.")
+                        h3.metric("Forward P/E", f"{_fpe:.1f}" if pd.notna(_fpe) else "–",
+                                   help="Price relative to NEXT year's expected earnings — shows if growth is priced in.")
+
                     st.caption(
                         "📌 Long-Term score weights: 30% technical Apex Score, then ROE, revenue growth, "
                         "earnings growth, debt/equity, positive FCF, and PEG ratio — each contributing "
                         "up to 15 points when data is available. Missing fundamentals simply reduce the "
-                        "weighted total rather than penalizing the stock."
+                        "weighted total rather than penalizing the stock. The additional metrics below "
+                        "(gross margin, liquidity, ownership, beta, etc.) are shown for context but don't "
+                        "currently affect the score itself."
                     )
 
             st.markdown("---")
@@ -6647,6 +6731,99 @@ with tabs[20]:
               with real earnings power, manageable debt, and reasonable valuation — the kind of stock you
               can hold through a full market cycle, not just the next few weeks.
             """)
+
+            st.markdown("---")
+            st.markdown("### 📐 Annotated Long-Term Chart")
+            st.caption(
+                "Draw your own trend lines and support/resistance zones directly on the chart using "
+                "the toolbar above it — same idea as marking up a chart in TradingView. Reference "
+                "levels (52-week high, recent swing high/low) are auto-plotted as a starting point."
+            )
+
+            lt_c1, lt_c2 = st.columns([2, 1])
+            with lt_c1:
+                lt_chart_ticker = st.selectbox("Chart ticker", lt_df["ticker"].tolist(), key="lt_chart_ticker")
+            with lt_c2:
+                lt_chart_period = st.selectbox("Period", ["6mo","1y","2y","5y"], index=2, key="lt_chart_period")
+
+            lt_hist = fetch_hist(lt_chart_ticker, lt_chart_period)
+            if lt_hist.empty:
+                st.warning("Couldn't load price history for this ticker.")
+            else:
+                lt_fig = go.Figure()
+                lt_fig.add_trace(go.Candlestick(
+                    x=lt_hist.index, open=lt_hist["Open"], high=lt_hist["High"],
+                    low=lt_hist["Low"], close=lt_hist["Close"], name="Price",
+                    increasing_line_color="#3fb950", decreasing_line_color="#f85149",
+                ))
+                lt_fig.add_trace(go.Scatter(x=lt_hist.index, y=lt_hist["MA50"],
+                    line=dict(color="#d29922", width=1.5), name="50 MA"))
+                lt_fig.add_trace(go.Scatter(x=lt_hist.index, y=lt_hist["MA200"],
+                    line=dict(color="#388bfd", width=1.5, dash="dot"), name="200 MA"))
+
+                _high52 = float(lt_hist["Close"].rolling(min(252, len(lt_hist))).max().iloc[-1]) if len(lt_hist) >= 20 else None
+                if _high52 and pd.notna(_high52):
+                    lt_fig.add_hline(y=_high52, line_color="#c9d1d9", line_dash="dot", line_width=1,
+                                      opacity=0.6, annotation_text=f"52w High ${_high52:.2f}",
+                                      annotation_position="right")
+
+                _lt_row = lt_df[lt_df["ticker"] == lt_chart_ticker]
+                if not _lt_row.empty:
+                    _sh = _lt_row.iloc[0].get("ms_swing_high")
+                    _sl = _lt_row.iloc[0].get("ms_swing_low")
+                    if _sh and pd.notna(_sh):
+                        lt_fig.add_hline(y=_sh, line_color="#f85149", line_dash="dash", line_width=1,
+                                          opacity=0.7, annotation_text=f"Swing High ${_sh:.2f}",
+                                          annotation_position="right")
+                    if _sl and pd.notna(_sl):
+                        lt_fig.add_hline(y=_sl, line_color="#3fb950", line_dash="dash", line_width=1,
+                                          opacity=0.7, annotation_text=f"Swing Low ${_sl:.2f}",
+                                          annotation_position="right")
+
+                lt_fig.update_layout(
+                    height=520, template="plotly_dark",
+                    margin=dict(l=10, r=10, t=30, b=10),
+                    xaxis_rangeslider_visible=False,
+                    dragmode="drawline",
+                    newshape=dict(line_color="#c084fc", line_width=2),
+                )
+
+                st.plotly_chart(lt_fig, use_container_width=True, config={
+                    "modeBarButtonsToAdd": ["drawline", "drawopenpath", "drawrect", "drawcircle", "eraseshape"],
+                    "displaylogo": False,
+                })
+                st.caption(
+                    "⚠️ Drawings are for the current view only — they won't be saved if you switch "
+                    "tickers or reload the page. Use the notes box below to save your actual analysis."
+                )
+
+                with st.expander("❓ What am I looking at?"):
+                    st.markdown("""
+- **Candles** — daily price action. Green = closed up, red = closed down.
+- **50 MA / 200 MA** — the stock's recent (50-day) and long-term (200-day) trend. Price above
+  both, with 50 above 200, is the healthiest setup for a long-term hold.
+- **Dotted gray line (52-week High)** — the highest close in the past year. Trading near this
+  line shows strength; drifting far below it can mean either "room to run" once the trend turns,
+  or genuine weakness if the gap keeps widening.
+- **Dashed red/green lines (Swing High/Low)** — the most recent notable peak and trough, from
+  ApexScan's market-structure detection. These often act as a ceiling and floor — a confirmed
+  break above the swing high, or below the swing low, tends to signal the next real move.
+- **Drawing toolbar (above the chart)** — line, open path (freehand), rectangle, circle, and
+  eraser tools, for marking your own trend lines or zones exactly like TradingView.
+                    """)
+
+                _cn = _load_chart_notes()
+                _existing_note = _cn.get(lt_chart_ticker, "")
+                lt_note = st.text_area(
+                    f"📝 Your notes on {lt_chart_ticker}",
+                    value=_existing_note, height=100,
+                    placeholder="e.g. Watching for a break and hold above $14.89 — bulls rejected here twice already.",
+                    key=f"lt_note_{lt_chart_ticker}",
+                )
+                if st.button("💾 Save Note", key=f"lt_save_note_{lt_chart_ticker}"):
+                    _cn[lt_chart_ticker] = lt_note
+                    _save_chart_notes(_cn)
+                    st.success("Saved.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
