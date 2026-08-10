@@ -355,8 +355,13 @@ def get_fundamentals_data(ticker: str) -> Dict:
     """
     Extended fundamentals for strategy scoring (Long-Term/Dividend/Value).
     Uses yf.Ticker(ticker).info — a free HTTP call, no paid API involved.
-    Only called for stocks that already passed the scan gates (Pass 3 below),
+    Only called for stocks that already passed the scan gates (Pass 3),
     not the full universe, to keep request volume reasonable. Cached per session.
+
+    Note: Asset Turnover and Inventory Turnover are NOT included — they
+    aren't in yfinance's free .info endpoint and would need separate
+    balance-sheet/income-statement calls per stock, adding real latency
+    to every scan. Left out deliberately rather than added unreliably.
     """
     if ticker in _fundamentals_cache:
         return _fundamentals_cache[ticker]
@@ -366,6 +371,11 @@ def get_fundamentals_data(ticker: str) -> Dict:
         "dividend_5y_avg": None, "price_to_sales": None, "ev_to_ebitda": None,
         "operating_margin": None, "profit_margin": None,
         "revenue_growth": None, "earnings_growth": None,
+        # ── new additions ──
+        "gross_margin": None, "current_ratio": None, "quick_ratio": None,
+        "net_cash_position": None, "operating_cashflow": None,
+        "institutional_ownership": None, "short_pct_float": None,
+        "beta": None, "forward_pe": None,
     }
     try:
         info = yf.Ticker(ticker).info or {}
@@ -382,11 +392,26 @@ def get_fundamentals_data(ticker: str) -> Dict:
         result["profit_margin"]    = info.get("profitMargins")
         result["revenue_growth"]   = info.get("revenueGrowth")
         result["earnings_growth"]  = info.get("earningsGrowth")
+
+        # ── new additions ──
+        result["gross_margin"]     = info.get("grossMargins")
+        result["current_ratio"]    = info.get("currentRatio")
+        result["quick_ratio"]      = info.get("quickRatio")
+        result["operating_cashflow"] = info.get("operatingCashflow")
+        result["institutional_ownership"] = info.get("heldPercentInstitutions")
+        result["short_pct_float"]  = info.get("shortPercentOfFloat")
+        result["beta"]             = info.get("beta")
+        result["forward_pe"]       = info.get("forwardPE")
+
+        total_cash = info.get("totalCash")
+        total_debt = info.get("totalDebt")
+        if total_cash is not None and total_debt is not None:
+            result["net_cash_position"] = total_cash - total_debt
+
     except Exception as e:
         log.debug(f"Fundamentals fetch failed {ticker}: {e}")
     _fundamentals_cache[ticker] = result
     return result
-
 def gem_score_boost(score: float, rs3: float, breaking_out: bool,
                     of_score: int, pa_score: int, gem_cfg: dict,
                     ee_score: int = 0, mcap: float = None) -> float:
