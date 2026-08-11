@@ -290,6 +290,129 @@ def _stage_rank_from_label(stage_label: str):
     return _STAGE_RANK_FROM_LABEL.get(str(stage_label).strip()[:1])
 
 
+def compute_invalidation_price(row: dict) -> dict:
+    """
+    A concrete, single price level: 'this thesis is dead if price closes
+    below $X'. Primary level is the 200-day moving average, derived from
+    price + vs_200ma_% (already computed by the scanner — no new data
+    needed), since that's the structural line a long-term uptrend thesis
+    actually depends on. A tighter alternative (recent swing low) is
+    included too, for anyone managing risk more actively.
+    Returns {"primary": float|None, "primary_basis": str, "tight": float|None}.
+    """
+    price = row.get("price")
+    vs200 = row.get("vs_200ma_%")
+    swing_low = row.get("ms_swing_low")
+
+    primary, basis = None, None
+    try:
+        if price and vs200 is not None and pd.notna(vs200):
+            primary = round(float(price) / (1 + float(vs200) / 100), 2)
+            basis = "200-day moving average"
+    except Exception:
+        pass
+
+    if primary is None and price:
+        # Fallback when vs_200ma_% is unavailable — a generic 15% drawdown line
+        try:
+            primary = round(float(price) * 0.85, 2)
+            basis = "15% drawdown from discovery (200MA unavailable)"
+        except Exception:
+            pass
+
+    tight = None
+    try:
+        if swing_low and pd.notna(swing_low):
+            tight = round(float(swing_low), 2)
+    except Exception:
+        pass
+
+    return {"primary": primary, "primary_basis": basis or "–", "tight": tight}
+
+
+def generate_bull_bear_thesis(row: dict) -> dict:
+    """
+    Rule-based Bull/Bear thesis, built entirely from fields the scanner
+    already computes — no new data source, no fabricated reasoning.
+    Returns {"bull": [str, ...], "bear": [str, ...]}. Either list can be
+    empty if nothing in the data supports that side.
+    """
+    def _f(key, default=None):
+        v = row.get(key, default)
+        try:
+            return float(v) if v is not None and pd.notna(v) else default
+        except (TypeError, ValueError):
+            return default
+
+    bull, bear = [], []
+
+    rs3   = _f("rs_3m")
+    rg    = _f("revenue_growth")
+    eg    = _f("earnings_growth")
+    de    = _f("debt_to_equity")
+    fcf   = _f("free_cash_flow")
+    inst  = _f("institutional_ownership")
+    short = _f("short_pct_float")
+    beta  = _f("beta")
+    peg   = _f("peg_ratio")
+    vwap_pct = _f("vs_vwap_%")
+    above200 = bool(row.get("above_200ma"))
+    ma50gt200 = bool(row.get("ma50_gt_ma200"))
+    weekly_conf = bool(row.get("weekly_confirmed"))
+    breaking_out = bool(row.get("breaking_out"))
+    of_bias = str(row.get("of_bias", ""))
+    liquidity_warn = bool(row.get("liquidity_warn"))
+    avg_vol = row.get("avg_volume_30d")
+    divergence = bool(row.get("divergence"))
+
+    # ── Bull case ──────────────────────────────────────────────────────
+    if above200 and ma50gt200:
+        bull.append("Confirmed Stage 2 uptrend — price above both the 50-day and 200-day averages.")
+    if rs3 is not None and rs3 > 50:
+        bull.append(f"Strong relative strength — outperforming the S&P 500 by {rs3:.0f} points over 3 months.")
+    if rg is not None and rg > 0.05:
+        bull.append(f"Revenue growing {rg*100:.1f}% year-over-year.")
+    if eg is not None and eg > 0.10:
+        bull.append(f"Earnings growing {eg*100:.1f}% year-over-year.")
+    if weekly_conf:
+        bull.append("Weekly timeframe confirms the uptrend, not just daily.")
+    if breaking_out:
+        bull.append("Breaking out of a base on above-average volume today.")
+    if of_bias in ("Bullish", "Strong Bullish"):
+        bull.append(f"Order flow shows sustained buying pressure ({of_bias}).")
+    if de is not None and de < 100:
+        bull.append("Healthy balance sheet — manageable debt relative to equity.")
+    if fcf is not None and fcf > 0:
+        bull.append("Generating positive free cash flow.")
+    if inst is not None and inst > 0.5:
+        bull.append(f"High institutional ownership ({inst*100:.0f}%) — real money already positioned.")
+    if divergence:
+        bull.append("Fundamentals improving while price has pulled back — a possible mispricing.")
+
+    # ── Bear case ──────────────────────────────────────────────────────
+    if not above200:
+        bear.append("Below its 200-day moving average — the long-term uptrend isn't confirmed.")
+    if de is not None and de > 150:
+        bear.append(f"Elevated debt relative to equity (D/E {de:.0f}).")
+    if fcf is not None and fcf < 0:
+        bear.append("Negative free cash flow — currently burning cash.")
+    if rs3 is not None and rs3 < 0:
+        bear.append("Weak relative strength — underperforming the broader market.")
+    if short is not None and short > 0.10:
+        bear.append(f"Elevated short interest ({short*100:.0f}% of float) — meaningful bearish positioning.")
+    if liquidity_warn:
+        _vol_txt = f"{int(avg_vol):,}" if avg_vol else "low"
+        bear.append(f"Thin liquidity ({_vol_txt} avg. daily volume) — harder to enter/exit cleanly.")
+    if beta is not None and beta > 1.5:
+        bear.append(f"High volatility relative to the market (beta {beta:.2f}).")
+    if vwap_pct is not None and vwap_pct > 15:
+        bear.append(f"Extended {vwap_pct:.0f}% above VWAP — may be overbought in the short term.")
+    if peg is not None and peg > 2.5:
+        bear.append(f"Valuation looks rich relative to growth (PEG {peg:.2f}).")
+
+    return {"bull": bull, "bear": bear}
+
+
 def log_new_discoveries(scan_df: pd.DataFrame):
     if scan_df is None or scan_df.empty:
         return
@@ -301,6 +424,7 @@ def log_new_discoveries(scan_df: pd.DataFrame):
         if not tk or tk in _existing_tickers:
             continue
         _discovery_stage = str(row.get("stage", ""))
+        _inval = compute_invalidation_price(row.to_dict() if hasattr(row, "to_dict") else dict(row))
         _new.append({
             "ticker":            tk,
             "discovered_at":     datetime.now().strftime("%Y-%m-%d"),
@@ -311,6 +435,8 @@ def log_new_discoveries(scan_df: pd.DataFrame):
             "theme":             str(row.get("theme", "")),
             "breaking_out":      bool(row.get("breaking_out", False)),
             "of_bias":           str(row.get("of_bias", "")),
+            "invalidation_price": _inval.get("primary"),
+            "invalidation_basis": _inval.get("primary_basis"),
             # filled in on refresh:
             "last_checked":      None,
             "current_price":     None,
@@ -318,6 +444,7 @@ def log_new_discoveries(scan_df: pd.DataFrame):
             "days_tracked":      None,
             "current_stage_rank": None,
             "thesis_status":     "– Not checked yet",
+            "invalidated":       False,
         })
         _existing_tickers.add(tk)
     if _new:
@@ -354,6 +481,12 @@ def _refresh_discovery_prices(disc_list: list) -> list:
                 _disc_rank = _stage_rank_from_label(item.get("stage", ""))
                 item["discovery_stage_rank"] = _disc_rank
             item["thesis_status"] = _thesis_status(_disc_rank, _cur_rank)
+
+            _inval_price = item.get("invalidation_price")
+            if _inval_price is not None:
+                item["invalidated"] = bool(live["price"] < _inval_price)
+                if item["invalidated"]:
+                    item["thesis_status"] = "🔴 Invalidated"
     return disc_list
 
 
@@ -6895,6 +7028,42 @@ with tabs[20]:
                             unsafe_allow_html=True
                         )
 
+                    # ── Bull/Bear Thesis + Invalidation Trigger ─────────────
+                    st.markdown("---")
+                    _thesis = generate_bull_bear_thesis(_r if isinstance(_r, dict) else _r.to_dict())
+                    tb1, tb2 = st.columns(2)
+                    with tb1:
+                        st.markdown("**✅ Why We Like It**")
+                        if _thesis["bull"]:
+                            for pt in _thesis["bull"]:
+                                st.markdown(f"- {pt}")
+                        else:
+                            st.caption("Nothing in the current data clearly supports a bull case.")
+                    with tb2:
+                        st.markdown("**⚠️ What Could Make Us Wrong**")
+                        if _thesis["bear"]:
+                            for pt in _thesis["bear"]:
+                                st.markdown(f"- {pt}")
+                        else:
+                            st.caption("No notable red flags in the current data.")
+                    st.caption(
+                        "Auto-generated from this stock's own scan data — not a prediction, "
+                        "just a plain-English translation of the numbers above."
+                    )
+
+                    _inval = compute_invalidation_price(_r if isinstance(_r, dict) else _r.to_dict())
+                    if _inval.get("primary"):
+                        _tight_txt = f" (tighter alternative: recent swing low at ${_inval['tight']:.2f})" if _inval.get("tight") else ""
+                        st.markdown(
+                            f'<div style="background:#2a1215;border:1px solid #f85149;border-radius:8px;'
+                            f'padding:10px 16px;margin-top:6px;font-size:0.85rem;color:#ffa198;">'
+                            f'🚫 <b>Invalidation Trigger</b> — this thesis is dead if price closes below '
+                            f'<b>${_inval["primary"]:.2f}</b> ({_inval["primary_basis"]}){_tight_txt}. '
+                            f'A close below that level breaks the structural reason this stock is here.'
+                            f'</div>',
+                            unsafe_allow_html=True
+                        )
+
                     f1, f2, f3 = st.columns(3)
                     _roe = _r.get("roe")
                     _rg  = _r.get("revenue_growth")
@@ -9116,13 +9285,20 @@ with tabs[21]:
                     "(derived from live price vs. its 50/200-day averages — no extra API calls "
                     "needed since this reuses the daily price refresh)."
                 )
-                t1, t2, t3 = st.columns(3)
+                t1, t2, t3, t4 = st.columns(4)
                 _strengthened = int((_checked["thesis_status"] == "📈 Strengthened").sum())
                 _weakened     = int((_checked["thesis_status"] == "⚠️ Weakened").sum())
                 _unchanged    = int((_checked["thesis_status"] == "➡️ Unchanged").sum())
+                _invalidated  = int((_checked["thesis_status"] == "🔴 Invalidated").sum())
                 t1.metric("📈 Strengthened", _strengthened)
                 t2.metric("⚠️ Weakened", _weakened)
                 t3.metric("➡️ Unchanged", _unchanged)
+                t4.metric("🔴 Invalidated", _invalidated)
+                if _invalidated > 0:
+                    st.error(
+                        f"🔴 {_invalidated} tracked stock(s) have closed below their invalidation "
+                        "price — the original thesis for these no longer holds structurally."
+                    )
                 if _weakened > 0:
                     st.info(
                         f"{_weakened} tracked stock(s) have weakened since discovery — worth a "
@@ -9156,7 +9332,8 @@ with tabs[21]:
         st.markdown("---")
         st.markdown("#### 📋 Full Discovery Log")
         _log_cols = ["ticker","discovered_at","discovery_price","apex_score","stage",
-                     "current_price","pct_change","thesis_status","days_tracked","theme"]
+                     "current_price","pct_change","thesis_status","invalidation_price",
+                     "days_tracked","theme"]
         _log_cols = [c for c in _log_cols if c in dd.columns]
         show = dd[_log_cols].copy()
         show = show.sort_values("discovered_at", ascending=False)
@@ -9170,6 +9347,7 @@ with tabs[21]:
                 "discovery_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
                 "current_price":   lambda v: f"${v:.2f}" if pd.notna(v) else "–",
                 "pct_change":      lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
+                "invalidation_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
                 "apex_score":      "{:.0f}",
                 "days_tracked":    lambda v: f"{int(v)}d" if pd.notna(v) else "–",
             }, na_rep="–"),
