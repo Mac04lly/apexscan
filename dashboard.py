@@ -252,6 +252,44 @@ def _save_chart_notes(notes: dict):
                              message=f"Update chart notes ({len(notes)} ticker(s))")
 
 
+def _derive_stage_rank(price, ma50, ma200) -> int:
+    """Cheap stage classification from price/MA50/MA200 alone — no extra
+    network call needed, since fetch_price() already returns these.
+    Rank order: higher = healthier trend. Mirrors scanner.py's Stage
+    logic but simplified (no RS/volume — this is a lightweight signal
+    for tracking change over time, not a full re-scan)."""
+    if price is None or ma50 is None or ma200 is None:
+        return None
+    try:
+        if price > ma50 > ma200: return 2   # Uptrend
+        if price > ma200 > ma50: return 1   # Base
+        if price < ma50 < ma200: return -1  # Downtrend
+        if price < ma200:        return 0   # Topping/Decline
+        return None
+    except Exception:
+        return None
+
+
+def _thesis_status(discovery_stage_rank, current_stage_rank) -> str:
+    if discovery_stage_rank is None or current_stage_rank is None:
+        return "– Not enough data"
+    if current_stage_rank > discovery_stage_rank:
+        return "📈 Strengthened"
+    if current_stage_rank < discovery_stage_rank:
+        return "⚠️ Weakened"
+    return "➡️ Unchanged"
+
+
+_STAGE_RANK_FROM_LABEL = {
+    "2": 2, "1": 1, "4": -1, "3": 0,  # matches the leading digit in scanner.py's stage strings
+}
+
+def _stage_rank_from_label(stage_label: str):
+    if not stage_label:
+        return None
+    return _STAGE_RANK_FROM_LABEL.get(str(stage_label).strip()[:1])
+
+
 def log_new_discoveries(scan_df: pd.DataFrame):
     if scan_df is None or scan_df.empty:
         return
@@ -262,12 +300,14 @@ def log_new_discoveries(scan_df: pd.DataFrame):
         tk = row.get("ticker")
         if not tk or tk in _existing_tickers:
             continue
+        _discovery_stage = str(row.get("stage", ""))
         _new.append({
             "ticker":            tk,
             "discovered_at":     datetime.now().strftime("%Y-%m-%d"),
             "discovery_price":   float(row.get("price", 0) or 0),
             "apex_score":        float(row.get("apex_score", 0) or 0),
-            "stage":             str(row.get("stage", "")),
+            "stage":             _discovery_stage,
+            "discovery_stage_rank": _stage_rank_from_label(_discovery_stage),
             "theme":             str(row.get("theme", "")),
             "breaking_out":      bool(row.get("breaking_out", False)),
             "of_bias":           str(row.get("of_bias", "")),
@@ -276,6 +316,8 @@ def log_new_discoveries(scan_df: pd.DataFrame):
             "current_price":     None,
             "pct_change":        None,
             "days_tracked":      None,
+            "current_stage_rank": None,
+            "thesis_status":     "– Not checked yet",
         })
         _existing_tickers.add(tk)
     if _new:
@@ -286,9 +328,12 @@ def log_new_discoveries(scan_df: pd.DataFrame):
 
 
 def _refresh_discovery_prices(disc_list: list) -> list:
-    """Fetches current price for every tracked ticker and recomputes
-    pct_change/days_tracked. Shared by the manual button and the
-    automatic once-daily trigger below, so both stay in sync."""
+    """Fetches current price for every tracked ticker, recomputes
+    pct_change/days_tracked, AND derives whether the original technical
+    thesis (the stage it was discovered in) has strengthened, weakened,
+    or held — using the MA50/MA200 that fetch_price() already returns,
+    so this adds zero extra network calls. Shared by the manual button
+    and the automatic once-daily trigger below, so both stay in sync."""
     for item in disc_list:
         live = fetch_price(item["ticker"])
         if live and live.get("price"):
@@ -301,6 +346,14 @@ def _refresh_discovery_prices(disc_list: list) -> list:
             item["days_tracked"] = (
                 pd.Timestamp.now() - pd.to_datetime(item["discovered_at"])
             ).days
+
+            _cur_rank = _derive_stage_rank(live.get("price"), live.get("ma50"), live.get("ma200"))
+            item["current_stage_rank"] = _cur_rank
+            _disc_rank = item.get("discovery_stage_rank")
+            if _disc_rank is None:
+                _disc_rank = _stage_rank_from_label(item.get("stage", ""))
+                item["discovery_stage_rank"] = _disc_rank
+            item["thesis_status"] = _thesis_status(_disc_rank, _cur_rank)
     return disc_list
 
 
@@ -1677,6 +1730,27 @@ def fetch_hist(ticker: str, period: str = "1y") -> pd.DataFrame:
     except:
         return pd.DataFrame()
 
+@st.cache_data(ttl=3600)
+def _get_mcap_tier(ticker: str) -> str:
+    """Classifies a ticker's risk bucket by market cap for the Portfolio
+    Risk Exposure breakdown. Core = mega/large cap (blue-chip, lower
+    volatility). Swing = mid cap. Speculative = small/micro cap — higher
+    risk/reward, the 'degenerate plays' bucket. Cached 1h since market
+    cap doesn't move fast enough to need fresher data than that."""
+    try:
+        info = yf.Ticker(ticker).fast_info
+        mcap = getattr(info, "market_cap", None)
+        if not mcap:
+            return "Unknown"
+        if mcap >= 10_000_000_000:
+            return "Core"
+        if mcap >= 2_000_000_000:
+            return "Swing"
+        return "Speculative"
+    except Exception:
+        return "Unknown"
+
+
 @st.cache_data(ttl=600)
 def fetch_price(ticker: str) -> dict:
     """Return current price, 52w high, MA50, MA200 for a ticker."""
@@ -2852,6 +2926,60 @@ compares this stock's performance to the overall market rather than just itself.
                 n4.metric("Structure",    str(row_data.get("ms_structure","–")))
                 n5.metric("PA Patterns",  str(row_data.get("pa_patterns","None"))[:30])
 
+                # ── Risk/Reward Calculator ──────────────────────────────
+                st.markdown("---")
+                st.markdown("#### ⚖️ Risk/Reward Calculator")
+                st.caption(
+                    "Defaults are pre-filled from this stock's current price and its recent "
+                    "swing high/low — adjust any of them to match your actual trade plan."
+                )
+
+                _rr_price = float(row_data.get("price", 0) or 0)
+                _rr_sh    = row_data.get("ms_swing_high")
+                _rr_sl    = row_data.get("ms_swing_low")
+                _default_stop   = float(_rr_sl) if _rr_sl and pd.notna(_rr_sl) else round(_rr_price * 0.92, 2)
+                _default_target = float(_rr_sh) if _rr_sh and pd.notna(_rr_sh) and _rr_sh > _rr_price else round(_rr_price * 1.20, 2)
+
+                rr1, rr2, rr3 = st.columns(3)
+                with rr1:
+                    rr_entry = st.number_input("Entry Price ($)", min_value=0.01,
+                                                value=round(_rr_price, 2) if _rr_price else 1.0,
+                                                step=0.01, key=f"rr_entry_{sel}")
+                with rr2:
+                    rr_stop = st.number_input("Stop Loss ($)", min_value=0.01,
+                                               value=_default_stop, step=0.01, key=f"rr_stop_{sel}",
+                                               help="Defaults to the recent swing low, if available.")
+                with rr3:
+                    rr_target = st.number_input("Target ($)", min_value=0.01,
+                                                 value=_default_target, step=0.01, key=f"rr_target_{sel}",
+                                                 help="Defaults to the recent swing high, if available.")
+
+                if rr_entry and rr_stop and rr_target:
+                    _risk   = rr_entry - rr_stop
+                    _reward = rr_target - rr_entry
+                    if _risk > 0 and _reward > 0:
+                        _rr_ratio = _reward / _risk
+                        if _rr_ratio >= 3:
+                            _rr_color, _rr_label = "#3fb950", "🟢 Excellent asymmetry"
+                        elif _rr_ratio >= 1.5:
+                            _rr_color, _rr_label = "#d29922", "🟡 Acceptable"
+                        else:
+                            _rr_color, _rr_label = "#f85149", "🔴 Poor risk/reward"
+
+                        rc1, rc2, rc3, rc4 = st.columns(4)
+                        rc1.metric("Risk ($)", f"${_risk:.2f}")
+                        rc2.metric("Reward ($)", f"${_reward:.2f}")
+                        rc3.metric("R:R Ratio", f"1 : {_rr_ratio:.1f}")
+                        rc4.markdown(
+                            f'<div style="padding-top:8px;"><span style="background:{_rr_color}22;'
+                            f'color:{_rr_color};padding:6px 14px;border-radius:8px;font-weight:700;">'
+                            f'{_rr_label}</span></div>', unsafe_allow_html=True
+                        )
+                    elif _risk <= 0:
+                        st.warning("Stop Loss should be below Entry Price.")
+                    elif _reward <= 0:
+                        st.warning("Target should be above Entry Price.")
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — THEME HEATMAP
@@ -3518,6 +3646,77 @@ with tabs[3]:
                             margin=dict(t=40,b=20,l=20,r=20),
                         )
                         st.plotly_chart(fig_r, use_container_width=True)
+
+            # ── Portfolio Risk Exposure (Core / Swing / Speculative) ──────
+            if holdings:
+                st.markdown("---")
+                st.markdown("#### 🎯 Portfolio Risk Exposure")
+                st.caption(
+                    "Classifies each holding by market cap: **Core** (mega/large cap, $10B+) — "
+                    "blue-chip, lower volatility, meant to survive full market cycles. **Swing** "
+                    "(mid cap, $2–10B) — higher growth, moderate risk. **Speculative** (small/micro "
+                    "cap, <$2B) — highest risk/reward, the 'degenerate plays' bucket."
+                )
+
+                _bucket_rows = []
+                for h in holdings:
+                    tk    = h["ticker"]
+                    qty   = float(h.get("qty", 0) or 0)
+                    live  = fetch_price(tk)
+                    price = live.get("price") if live else None
+                    value = round(price * qty, 2) if price else 0.0
+                    tier  = _get_mcap_tier(tk)
+                    _bucket_rows.append({"Ticker": tk, "Value": value, "Bucket": tier})
+
+                _bdf = pd.DataFrame(_bucket_rows)
+                _total_value = _bdf["Value"].sum()
+
+                if _total_value > 0:
+                    _bucket_pct = (
+                        _bdf.groupby("Bucket")["Value"].sum() / _total_value * 100
+                    ).to_dict()
+                    _core_pct  = _bucket_pct.get("Core", 0)
+                    _swing_pct = _bucket_pct.get("Swing", 0)
+                    _spec_pct  = _bucket_pct.get("Speculative", 0)
+                    _unk_pct   = _bucket_pct.get("Unknown", 0)
+
+                    b1, b2, b3, b4 = st.columns(4)
+                    b1.metric("Core", f"{_core_pct:.0f}%")
+                    b2.metric("Swing", f"{_swing_pct:.0f}%")
+                    b3.metric("Speculative", f"{_spec_pct:.0f}%")
+                    if _unk_pct > 0:
+                        b4.metric("Unknown", f"{_unk_pct:.0f}%",
+                                   help="Market cap data unavailable for these tickers.")
+
+                    if _spec_pct > 25:
+                        st.warning(
+                            f"⚠️ Risk status: **ELEVATED** — {_spec_pct:.0f}% of your portfolio is in "
+                            "Speculative (small/micro cap) holdings. That's a real, high-conviction "
+                            "choice if intentional — worth confirming it still matches your risk tolerance."
+                        )
+                    elif _core_pct < 30 and _spec_pct + _swing_pct > 50:
+                        st.info(
+                            f"ℹ️ Risk status: **GROWTH-TILTED** — only {_core_pct:.0f}% in Core holdings. "
+                            "Not necessarily wrong, just worth being a deliberate choice, not a drift."
+                        )
+                    else:
+                        st.success("✅ Risk status: **HEALTHY** — reasonably balanced across risk buckets.")
+
+                    fig_buckets = px.pie(
+                        _bdf.groupby("Bucket")["Value"].sum().reset_index(),
+                        values="Value", names="Bucket", hole=0.5,
+                        color="Bucket",
+                        color_discrete_map={"Core": "#3fb950", "Swing": "#d29922",
+                                             "Speculative": "#f85149", "Unknown": "#8b949e"},
+                    )
+                    fig_buckets.update_layout(
+                        paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
+                        font_color="#e6edf3", height=300,
+                        margin=dict(t=20,b=20,l=20,r=20),
+                    )
+                    st.plotly_chart(fig_buckets, use_container_width=True)
+                else:
+                    st.info("Couldn't fetch current prices to compute risk exposure right now.")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 5 — EARNINGS CALENDAR
@@ -6530,6 +6729,19 @@ with tabs[20]:
             lt_df["strategy_score"] = pd.to_numeric(lt_df["strategy_score"], errors="coerce")
             lt_df = lt_df.sort_values("strategy_score", ascending=False)
 
+            # ── Fundamental / Price Divergence ──────────────────────────────
+            # Flags stocks where the business is improving (revenue + earnings
+            # growth) while the price has pulled back — a potential mispricing,
+            # as opposed to momentum names where price and fundamentals already
+            # agree. Thresholds are deliberately meaningful (not noise-level):
+            # >5% revenue growth OR >10% earnings growth, alongside a >5% pullback.
+            _rg_num = pd.to_numeric(lt_df.get("revenue_growth"), errors="coerce")
+            _eg_num = pd.to_numeric(lt_df.get("earnings_growth"), errors="coerce")
+            _p3_num = pd.to_numeric(lt_df.get("perf_3m_%"), errors="coerce")
+            _fund_improving = (_rg_num > 0.05) | (_eg_num > 0.10)
+            _price_pullback = _p3_num < -5
+            lt_df["divergence"] = (_fund_improving & _price_pullback).fillna(False)
+
             # ── Fundamentals coverage check ─────────────────────────────────
             fund_cols = ["roe", "revenue_growth", "earnings_growth", "debt_to_equity", "free_cash_flow", "peg_ratio"]
             available_fund_cols = [c for c in fund_cols if c in lt_df.columns]
@@ -6572,18 +6784,30 @@ with tabs[20]:
             st.markdown("---")
 
             # ── Recommendation filter ────────────────────────────────────
-            rec_filter = st.multiselect(
-                "Filter by Recommendation",
-                ["Strong Buy", "Buy", "Hold", "Avoid", "Not a Dividend Candidate"],
-                default=["Strong Buy", "Buy"],
-                key="lt_rec_filter",
-            )
+            rf1, rf2 = st.columns([3, 1])
+            with rf1:
+                rec_filter = st.multiselect(
+                    "Filter by Recommendation",
+                    ["Strong Buy", "Buy", "Hold", "Avoid", "Not a Dividend Candidate"],
+                    default=["Strong Buy", "Buy"],
+                    key="lt_rec_filter",
+                )
+            with rf2:
+                st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+                divergence_only = st.checkbox("📉📈 Divergence only", key="lt_divergence_only",
+                    help="Show only stocks where revenue/earnings growth is improving while "
+                         "price has pulled back — a potential mispricing, not a momentum name.")
             lt_show = lt_df[lt_df["strategy_recommendation"].isin(rec_filter)] if rec_filter else lt_df
+            if divergence_only:
+                lt_show = lt_show[lt_show["divergence"] == True]
+                if lt_show.empty:
+                    st.info("No divergence candidates in this scan right now — that's normal, "
+                            "this is a specific, less-common setup.")
 
             # ── Table ───────────────────────────────────────────────────
             want_cols = [
                 "ticker", "theme", "price", "mcap_category",
-                "strategy_score", "strategy_recommendation",
+                "strategy_score", "strategy_recommendation", "divergence",
                 "roe", "revenue_growth", "earnings_growth",
                 "debt_to_equity", "peg_ratio", "apex_score",
             ]
@@ -6601,6 +6825,7 @@ with tabs[20]:
                 "price": "${:.2f}",
                 "strategy_score": "{:.0f}",
                 "apex_score": "{:.0f}",
+                "divergence": lambda v: "📉📈 Yes" if v is True else "–",
                 "roe": lambda v: f"{v*100:.1f}%" if pd.notna(v) else "–",
                 "revenue_growth": lambda v: f"{v*100:+.1f}%" if pd.notna(v) else "–",
                 "earnings_growth": lambda v: f"{v*100:+.1f}%" if pd.notna(v) else "–",
@@ -6656,6 +6881,19 @@ with tabs[20]:
                       </div>
                     </div>
                     """, unsafe_allow_html=True)
+
+                    if bool(_r.get("divergence")):
+                        st.markdown(
+                            '<div style="background:#1c2333;border:1px solid #a371f7;border-radius:8px;'
+                            'padding:10px 16px;margin-top:10px;font-size:0.85rem;color:#d2a8ff;">'
+                            '📉📈 <b>Fundamental/Price Divergence</b> — revenue and/or earnings growth is '
+                            'meaningfully positive while the price has pulled back over the last 3 months. '
+                            'This can mean the market hasn\'t caught up to improving fundamentals yet — '
+                            'or that the pullback is pricing in a real risk the numbers don\'t show yet. '
+                            'Worth digging into <i>why</i> the price fell before treating this as a signal.'
+                            '</div>',
+                            unsafe_allow_html=True
+                        )
 
                     f1, f2, f3 = st.columns(3)
                     _roe = _r.get("roe")
@@ -8823,12 +9061,6 @@ with tabs[21]:
     )
 
     _disc = load_discoveries()
-    st.caption(
-        f"🔧 Debug: reading `{_DISC_FILE.resolve()}` — "
-        f"exists: {_DISC_FILE.exists()}, "
-        f"size: {(_DISC_FILE.stat().st_size if _DISC_FILE.exists() else 0)} bytes, "
-        f"loaded {len(_disc)} record(s)."
-    )
 
     if not _disc:
         st.info("No discoveries logged yet. Run scans normally — every new ticker gets tracked automatically from here on.")
@@ -8874,6 +9106,29 @@ with tabs[21]:
                 "Wait for at least 30-50 before drawing conclusions about edge."
             )
 
+        # ── What Changed? Thesis tracking ───────────────────────────────
+        if "thesis_status" in dd.columns:
+            _checked = dd[dd["thesis_status"].astype(str) != "– Not checked yet"]
+            if not _checked.empty:
+                st.markdown("#### 🔎 What Changed? (Thesis Tracking)")
+                st.caption(
+                    "Compares each stock's trend today against the stage it was discovered in "
+                    "(derived from live price vs. its 50/200-day averages — no extra API calls "
+                    "needed since this reuses the daily price refresh)."
+                )
+                t1, t2, t3 = st.columns(3)
+                _strengthened = int((_checked["thesis_status"] == "📈 Strengthened").sum())
+                _weakened     = int((_checked["thesis_status"] == "⚠️ Weakened").sum())
+                _unchanged    = int((_checked["thesis_status"] == "➡️ Unchanged").sum())
+                t1.metric("📈 Strengthened", _strengthened)
+                t2.metric("⚠️ Weakened", _weakened)
+                t3.metric("➡️ Unchanged", _unchanged)
+                if _weakened > 0:
+                    st.info(
+                        f"{_weakened} tracked stock(s) have weakened since discovery — worth a "
+                        "second look before assuming the original setup still holds."
+                    )
+
         st.markdown("---")
 
         # ── THE key validation: does score predict outcome? ────────────
@@ -8900,8 +9155,10 @@ with tabs[21]:
 
         st.markdown("---")
         st.markdown("#### 📋 Full Discovery Log")
-        show = dd[["ticker","discovered_at","discovery_price","apex_score","stage",
-                   "current_price","pct_change","days_tracked","theme"]].copy()
+        _log_cols = ["ticker","discovered_at","discovery_price","apex_score","stage",
+                     "current_price","pct_change","thesis_status","days_tracked","theme"]
+        _log_cols = [c for c in _log_cols if c in dd.columns]
+        show = dd[_log_cols].copy()
         show = show.sort_values("discovered_at", ascending=False)
 
         def _c(v):
