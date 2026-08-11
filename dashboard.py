@@ -6875,6 +6875,100 @@ with tabs[20]:
             _price_pullback = _p3_num < -5
             lt_df["divergence"] = (_fund_improving & _price_pullback).fillna(False)
 
+            # ── Peer / Sector-Relative Valuation ─────────────────────────────
+            # Compares each stock's valuation to the median of its own theme
+            # WITHIN THIS SCAN — not a fixed external peer list (which would
+            # need paid data), but a real, live comparison against whatever
+            # else in the same sector actually showed up today. EV/EBITDA is
+            # the primary multiple (works for growth companies without
+            # positive earnings); falls back to PE if EV/EBITDA is missing.
+            _ev_num = pd.to_numeric(lt_df.get("ev_to_ebitda"), errors="coerce")
+            _pe_num = pd.to_numeric(lt_df.get("pe_ratio"), errors="coerce")
+            lt_df["_val_metric_value"] = _ev_num.where(_ev_num.notna() & (_ev_num > 0), _pe_num)
+            lt_df["_val_metric_name"] = np.where(_ev_num.notna() & (_ev_num > 0), "EV/EBITDA", "P/E")
+
+            _sector_median = (
+                lt_df[lt_df["_val_metric_value"] > 0]
+                .groupby("theme")["_val_metric_value"]
+                .transform("median")
+            )
+            lt_df["sector_median_valuation"] = _sector_median
+            lt_df["sector_peer_count"] = lt_df.groupby("theme")["_val_metric_value"].transform(
+                lambda s: s.notna().sum()
+            )
+            lt_df["valuation_vs_sector_%"] = np.where(
+                (lt_df["_val_metric_value"] > 0) & (lt_df["sector_median_valuation"] > 0),
+                (lt_df["_val_metric_value"] / lt_df["sector_median_valuation"] - 1) * 100,
+                np.nan,
+            )
+
+            def _growth_adjusted_label(row):
+                disc = row.get("valuation_vs_sector_%")
+                rg   = row.get("revenue_growth")
+                if pd.isna(disc):
+                    return "– Not enough peer data"
+                cheap = disc < -10
+                expensive = disc > 10
+                strong_growth = pd.notna(rg) and rg > 0.15
+                weak_growth   = pd.notna(rg) and rg < 0.05
+                if cheap and strong_growth:   return "🟢 Attractive — cheap AND growing"
+                if cheap and weak_growth:     return "🟡 Cheap, but growth is weak — check why"
+                if expensive and strong_growth: return "🟡 Priced for growth — high expectations baked in"
+                if expensive and weak_growth: return "🔴 Expensive without growth to support it"
+                return "➡️ Roughly in line with peers"
+
+            lt_df["growth_adjusted_valuation"] = lt_df.apply(_growth_adjusted_label, axis=1)
+
+            # ── Unified Risk Score (0-100, higher = riskier) ─────────────────
+            # Combines beta, debt, liquidity, market-cap tier, and short
+            # interest — all already fetched, no new data needed. Missing
+            # components are simply skipped rather than penalized, same
+            # philosophy as the Long-Term strategy score itself.
+            def _risk_score_row(row):
+                parts = []
+                beta = row.get("beta")
+                if pd.notna(beta):
+                    if beta > 2.0:   parts.append(100)
+                    elif beta > 1.5: parts.append(75)
+                    elif beta > 1.0: parts.append(50)
+                    else:            parts.append(25)
+                de = row.get("debt_to_equity")
+                if pd.notna(de):
+                    if de > 200:   parts.append(100)
+                    elif de > 100: parts.append(60)
+                    else:          parts.append(20)
+                if row.get("liquidity_warn"):
+                    parts.append(100)
+                elif pd.notna(row.get("liquidity_score")):
+                    parts.append({3: 0, 2: 30, 1: 60, 0: 100}.get(int(row.get("liquidity_score")), 50))
+                mcat = str(row.get("mcap_category", ""))
+                if mcat in ("Micro Cap", "Small Cap"):
+                    parts.append(80)
+                elif mcat == "Mid Cap":
+                    parts.append(50)
+                elif mcat in ("Large Cap", "Mega Cap"):
+                    parts.append(20)
+                short = row.get("short_pct_float")
+                if pd.notna(short):
+                    if short > 0.15:   parts.append(90)
+                    elif short > 0.10: parts.append(60)
+                    elif short > 0.05: parts.append(30)
+                    else:              parts.append(10)
+                if not parts:
+                    return None
+                return round(sum(parts) / len(parts), 0)
+
+            lt_df["risk_score"] = lt_df.apply(_risk_score_row, axis=1)
+
+            def _risk_label(v):
+                if pd.isna(v): return "– Unknown"
+                if v <= 25:  return "🟢 Low"
+                if v <= 50:  return "🟡 Moderate"
+                if v <= 75:  return "🟠 Elevated"
+                return "🔴 High"
+
+            lt_df["risk_label"] = lt_df["risk_score"].apply(_risk_label)
+
             # ── Fundamentals coverage check ─────────────────────────────────
             fund_cols = ["roe", "revenue_growth", "earnings_growth", "debt_to_equity", "free_cash_flow", "peg_ratio"]
             available_fund_cols = [c for c in fund_cols if c in lt_df.columns]
@@ -6941,6 +7035,7 @@ with tabs[20]:
             want_cols = [
                 "ticker", "theme", "price", "mcap_category",
                 "strategy_score", "strategy_recommendation", "divergence",
+                "valuation_vs_sector_%", "risk_label",
                 "roe", "revenue_growth", "earnings_growth",
                 "debt_to_equity", "peg_ratio", "apex_score",
             ]
@@ -6959,6 +7054,7 @@ with tabs[20]:
                 "strategy_score": "{:.0f}",
                 "apex_score": "{:.0f}",
                 "divergence": lambda v: "📉📈 Yes" if v is True else "–",
+                "valuation_vs_sector_%": lambda v: f"{v:+.0f}% vs peers" if pd.notna(v) else "–",
                 "roe": lambda v: f"{v*100:.1f}%" if pd.notna(v) else "–",
                 "revenue_growth": lambda v: f"{v*100:+.1f}%" if pd.notna(v) else "–",
                 "earnings_growth": lambda v: f"{v*100:+.1f}%" if pd.notna(v) else "–",
@@ -7063,6 +7159,37 @@ with tabs[20]:
                             f'</div>',
                             unsafe_allow_html=True
                         )
+
+                    # ── Peer/Sector Valuation + Unified Risk Score ──────────
+                    st.markdown("---")
+                    v1, v2 = st.columns(2)
+                    with v1:
+                        st.markdown("**⚖️ Valuation vs. Sector (this scan)**")
+                        _vs_pct   = _r.get("valuation_vs_sector_%")
+                        _val_name = _r.get("_val_metric_name", "multiple")
+                        _val_val  = _r.get("_val_metric_value")
+                        _sec_med  = _r.get("sector_median_valuation")
+                        _peer_n   = _r.get("sector_peer_count")
+                        if pd.notna(_vs_pct):
+                            st.metric(
+                                f"{_val_name}: {_val_val:.1f}x vs. sector median {_sec_med:.1f}x",
+                                f"{_vs_pct:+.0f}%",
+                                delta_color="inverse",
+                                help=f"Compared against {int(_peer_n)} peer(s) in the same theme from this scan — "
+                                     f"not a fixed external peer list."
+                            )
+                            st.caption(str(_r.get("growth_adjusted_valuation", "")))
+                        else:
+                            st.caption("Not enough peer data in this theme/scan to compare valuation.")
+                    with v2:
+                        st.markdown("**🎯 Unified Risk Score**")
+                        _rs = _r.get("risk_score")
+                        _rl = _r.get("risk_label", "– Unknown")
+                        if pd.notna(_rs):
+                            st.metric("Risk Score (0=lowest, 100=highest)", f"{_rs:.0f}/100")
+                            st.caption(f"{_rl} — combines beta, debt/equity, liquidity, market-cap tier, and short interest.")
+                        else:
+                            st.caption("Not enough data to compute a risk score for this stock.")
 
                     f1, f2, f3 = st.columns(3)
                     _roe = _r.get("roe")
