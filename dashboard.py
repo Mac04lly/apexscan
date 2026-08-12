@@ -153,7 +153,22 @@ if dispatch_alert is None:
 _JOURNAL_FILE = _PORT_DIR / "trade_journal.json"  if "_PORT_DIR" in dir() else Path("data/trade_journal.json")
 _JOURNAL_TMP  = Path("/tmp/apexscan_journal.json")
 
+def _save_journal_local(journal: list):
+    for _p in (_JOURNAL_FILE, _JOURNAL_TMP):
+        try:
+            _p.parent.mkdir(parents=True, exist_ok=True)
+            _tmp = _p.with_suffix(".tmp")
+            with open(_tmp,"w") as _f: json.dump(journal, _f, indent=2, default=str)
+            import shutil; shutil.move(str(_tmp), str(_p))
+        except Exception: pass
+
 def load_journal() -> list:
+    token, repo = _gh_creds()
+    if token and repo:
+        data, _ = load_json_from_github(token, repo, "data/trade_journal.json")
+        if isinstance(data, list):
+            _save_journal_local(data)
+            return data
     for _p in (_JOURNAL_FILE, _JOURNAL_TMP):
         try:
             if _p.exists() and _p.stat().st_size > 2:
@@ -164,13 +179,11 @@ def load_journal() -> list:
     return []
 
 def save_journal(journal: list):
-    for _p in (_JOURNAL_FILE, _JOURNAL_TMP):
-        try:
-            _p.parent.mkdir(parents=True, exist_ok=True)
-            _tmp = _p.with_suffix(".tmp")
-            with open(_tmp,"w") as _f: json.dump(journal, _f, indent=2, default=str)
-            import shutil; shutil.move(str(_tmp), str(_p))
-        except Exception: pass
+    _save_journal_local(journal)
+    token, repo = _gh_creds()
+    if token and repo:
+        save_json_to_github(token, repo, "data/trade_journal.json", journal,
+                             message=f"Update trade_journal.json ({len(journal)} entries)")
 _DISC_FILE = _PORT_DIR / "discoveries.json" if "_PORT_DIR" in dir() else Path("data/discoveries.json")
 _DISC_TMP  = Path("/tmp/apexscan_discoveries.json")
 
@@ -757,7 +770,22 @@ def auto_refresh_discoveries_if_due():
 _CHKWATCH_FILE = _PORT_DIR / "checklist_watchlist.json" if "_PORT_DIR" in dir() else Path("data/checklist_watchlist.json")
 _CHKWATCH_TMP  = Path("/tmp/apexscan_chkwatch.json")
 
+def _save_chk_watchlist_local(items: list):
+    for _p in (_CHKWATCH_FILE, _CHKWATCH_TMP):
+        try:
+            _p.parent.mkdir(parents=True, exist_ok=True)
+            _tmp = _p.with_suffix(".tmp")
+            with open(_tmp,"w") as _f: json.dump(items, _f, indent=2, default=str)
+            import shutil; shutil.move(str(_tmp), str(_p))
+        except Exception: pass
+
 def load_chk_watchlist() -> list:
+    token, repo = _gh_creds()
+    if token and repo:
+        data, _ = load_json_from_github(token, repo, "data/checklist_watchlist.json")
+        if isinstance(data, list):
+            _save_chk_watchlist_local(data)
+            return data
     for _p in (_CHKWATCH_FILE, _CHKWATCH_TMP):
         try:
             if _p.exists() and _p.stat().st_size > 2:
@@ -768,18 +796,15 @@ def load_chk_watchlist() -> list:
     return []
 
 def save_chk_watchlist(items: list):
-    for _p in (_CHKWATCH_FILE, _CHKWATCH_TMP):
-        try:
-            _p.parent.mkdir(parents=True, exist_ok=True)
-            _tmp = _p.with_suffix(".tmp")
-            with open(_tmp,"w") as _f: json.dump(items, _f, indent=2, default=str)
-            import shutil; shutil.move(str(_tmp), str(_p))
-        except Exception: pass
+    _save_chk_watchlist_local(items)
+    token, repo = _gh_creds()
+    if token and repo:
+        save_json_to_github(token, repo, "data/checklist_watchlist.json", items,
+                             message=f"Update checklist_watchlist.json ({len(items)} items)")
 # ── Persistent Watchlist Engine ───────────────────────────────────────────────
-# Always override the module stubs with a robust JSON-backed implementation.
-# Streamlit Cloud: uses /tmp/apexscan_watchlists.json (survives rerenders,
-# clears on dyno restart — acceptable; users must re-add after server restarts).
-# Local / self-hosted: uses watchlists.json next to dashboard.py (permanent).
+# GitHub-backed, same durable pattern as Discovery Tracker/Trade Journal/
+# Checklist Watchlist — replaces the old local-only fallback, which was
+# explicitly documented as wiping on every redeploy.
 import json as _json, os as _os
 
 _WL_LOCAL  = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "watchlists.json")
@@ -802,10 +827,28 @@ def _wl_path():
     except Exception:
         return _WL_TMP
 
-def load_watchlists():
-    """Load watchlists from JSON file, merging with defaults so new lists always appear."""
+def _save_watchlists_local(wls):
     path = _wl_path()
+    try:
+        with open(path, "w") as _f:
+            _json.dump(wls, _f, indent=2)
+    except Exception:
+        pass
+
+def load_watchlists():
+    """Load watchlists, preferring the durable GitHub copy, merging with
+    defaults so new lists always appear."""
     data = dict(_WL_DEFAULTS)
+    token, repo = _gh_creds()
+    if token and repo:
+        gh_data, _ = load_json_from_github(token, repo, "data/watchlists.json")
+        if isinstance(gh_data, dict):
+            for k, v in gh_data.items():
+                if isinstance(v, list):
+                    data[k] = v
+            _save_watchlists_local(data)
+            return data
+    path = _wl_path()
     if _os.path.exists(path):
         try:
             with open(path, "r") as _f:
@@ -819,14 +862,12 @@ def load_watchlists():
     return data
 
 def save_watchlists(wls):
-    """Save watchlists to JSON file. Always writes to ensure persistence."""
-    path = _wl_path()
-    try:
-        with open(path, "w") as _f:
-            _json.dump(wls, _f, indent=2)
-    except Exception as _e:
-        import streamlit as _st
-        _st.error(f"⚠️ Could not save watchlists: {_e}")
+    """Save watchlists locally (fast path) and sync to GitHub (durable)."""
+    _save_watchlists_local(wls)
+    token, repo = _gh_creds()
+    if token and repo:
+        save_json_to_github(token, repo, "data/watchlists.json", wls,
+                             message="Update watchlists.json")
 
 def add_ticker(wls, list_name, ticker):
     ticker = ticker.upper().strip()
@@ -954,6 +995,17 @@ These are long-term conviction plays — only hold what you can stomach losing s
 </div>"""
 
 def load_latest_report() -> pd.DataFrame:
+    token, repo = _gh_creds()
+    if token and repo:
+        try:
+            data, _ = load_json_from_github(token, repo, "data/last_report.json")
+            if isinstance(data, list) and data:
+                _df = pd.DataFrame(data)
+                if "rank" in _df.columns:
+                    _df = _df.set_index("rank")
+                return _df
+        except Exception as e:
+            log.warning(f"Last-report GitHub load failed, falling back to local file: {e}")
     reports = sorted(Path("reports").glob("scan_*.csv"), reverse=True)
     if reports:
         return pd.read_csv(reports[0], index_col="rank")
@@ -1938,6 +1990,17 @@ def build_excel_download(ticker_row: pd.Series, ticker_name: str) -> bytes:
 
 def load_previous_report() -> pd.DataFrame:
     """Load the second-most-recent scan report for delta comparison."""
+    token, repo = _gh_creds()
+    if token and repo:
+        try:
+            data, _ = load_json_from_github(token, repo, "data/previous_report.json")
+            if isinstance(data, list) and data:
+                _df = pd.DataFrame(data)
+                if "rank" in _df.columns:
+                    _df = _df.set_index("rank")
+                return _df
+        except Exception as e:
+            log.warning(f"Previous-report GitHub load failed, falling back to local file: {e}")
     reports = sorted(Path("reports").glob("scan_*.csv"), reverse=True)
     if len(reports) >= 2:
         return pd.read_csv(reports[1], index_col="rank")
@@ -2249,7 +2312,14 @@ def _port_read(path: Path):
     return None
 
 def load_portfolio() -> list:
-    """Load holdings from primary file, /tmp mirror, or backup — never silently lose data."""
+    """Load holdings — GitHub first (durable across redeploys), then local
+    primary file, /tmp mirror, or backup as fallbacks."""
+    token, repo = _gh_creds()
+    if token and repo:
+        data, _ = load_json_from_github(token, repo, "data/portfolio.json")
+        if isinstance(data, list):
+            save_portfolio(data)  # keep all local mirrors warm
+            return data
     for src_path in (_PORT_FILE, _PORT_TMP, _PORT_BACKUP):
         data = _port_read(src_path)
         if data is not None and isinstance(data, list):
@@ -2259,13 +2329,23 @@ def load_portfolio() -> list:
     return []
 
 def save_portfolio(holdings: list):
-    """Write to primary + /tmp mirror + backup simultaneously."""
+    """Write to primary + /tmp mirror + backup, then sync to GitHub (durable)."""
     _port_write(_PORT_FILE,   holdings)
     _port_write(_PORT_TMP,    holdings)
     _port_write(_PORT_BACKUP, holdings)
+    token, repo = _gh_creds()
+    if token and repo:
+        save_json_to_github(token, repo, "data/portfolio.json", holdings,
+                             message=f"Update portfolio.json ({len(holdings)} holding(s))")
 
 def load_trade_log() -> list:
-    """Load closed-position trade history."""
+    """Load closed-position trade history — GitHub first, then local."""
+    token, repo = _gh_creds()
+    if token and repo:
+        data, _ = load_json_from_github(token, repo, "data/trade_log.json")
+        if isinstance(data, list):
+            save_trade_log(data)
+            return data
     for src_path in (_TRADELOG_FILE, _TRADELOG_TMP):
         data = _port_read(src_path)
         if data is not None and isinstance(data, list):
@@ -2275,6 +2355,10 @@ def load_trade_log() -> list:
 def save_trade_log(log: list):
     _port_write(_TRADELOG_FILE, log)
     _port_write(_TRADELOG_TMP,  log)
+    token, repo = _gh_creds()
+    if token and repo:
+        save_json_to_github(token, repo, "data/trade_log.json", log,
+                             message=f"Update trade_log.json ({len(log)} entries)")
 
 def close_position(holdings: list, trade_log: list, ticker: str,
                    close_price: float, close_date: str, qty_close: float = None) -> tuple:
@@ -2690,6 +2774,21 @@ if run_btn or _auto_fired:
         if not df_raw.empty:
             log_new_discoveries(df_raw) 
             save_report(df_raw)
+            try:
+                _token, _repo = _gh_creds()
+                if _token and _repo:
+                    # Rotate the current "last" report into "previous" before
+                    # overwriting it, so Scan Delta's 2-report comparison
+                    # survives redeploys too, not just the single latest report.
+                    _old_last, _ = load_json_from_github(_token, _repo, "data/last_report.json")
+                    if isinstance(_old_last, list) and _old_last:
+                        save_json_to_github(_token, _repo, "data/previous_report.json", _old_last,
+                                             message="Rotate previous_report.json")
+                    _report_records = df_raw.reset_index().to_dict("records")
+                    save_json_to_github(_token, _repo, "data/last_report.json", _report_records,
+                                         message=f"Update last_report.json ({len(_report_records)} tickers)")
+            except Exception as _rep_sync_err:
+                log.warning(f"Last-report GitHub sync failed, local file still saved: {_rep_sync_err}")
             try:
                 alert_settings = load_alert_settings()
                 if alert_settings.get("alerts_enabled"):
