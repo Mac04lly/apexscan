@@ -3432,7 +3432,15 @@ compares this stock's performance to the overall market rather than just itself.
                 else:
                     _default_entry  = round(_rr_price, 2) if _rr_price else 1.0
                     _default_stop   = float(_rr_sl) if _rr_sl and pd.notna(_rr_sl) else round(_rr_price * 0.92, 2)
-                _default_target = float(_rr_sh) if _rr_sh and pd.notna(_rr_sh) and _rr_sh > _rr_price else round(_rr_price * 1.20, 2)
+                # Compare the target against the ACTUAL default entry (not just current
+                # price) — these can differ once the Entry Plan is involved (e.g. a
+                # pullback entry sits below current price). Require the swing high to be
+                # meaningfully (2%+) above entry, or fall back to a % target from entry —
+                # never current price — so target can't silently land below entry.
+                if _rr_sh and pd.notna(_rr_sh) and _rr_sh > _default_entry * 1.02:
+                    _default_target = round(float(_rr_sh), 2)
+                else:
+                    _default_target = round(_default_entry * 1.20, 2)
 
                 rr1, rr2, rr3 = st.columns(3)
                 with rr1:
