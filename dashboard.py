@@ -413,6 +413,247 @@ def generate_bull_bear_thesis(row: dict) -> dict:
     return {"bull": bull, "bear": bear}
 
 
+def generate_entry_plan(row: dict) -> dict:
+    """
+    Translates the setup ApexScan already detected (breakout, pullback,
+    fresh trend cross, base, extended, or no clean setup) into a concrete
+    'buy between $X and $Y, stop at $Z' plan — the specific answer to
+    'what price do I actually place my order at,' not just raw signals
+    left for the user to interpret themselves.
+
+    Priority order matches how a discretionary trader reads these setups:
+    an active breakout takes priority over a passive base, which takes
+    priority over 'no clean entry right now.' Every number here comes
+    from fields the scanner already computes — nothing fabricated.
+
+    Returns {"setup_type": str, "entry_low": float|None, "entry_high": float|None,
+             "stop": float|None, "reasoning": str}
+    """
+    def _f(key, default=None):
+        v = row.get(key, default)
+        try:
+            return float(v) if v is not None and pd.notna(v) else default
+        except (TypeError, ValueError):
+            return default
+
+    price   = _f("price")
+    vs50    = _f("vs_50ma_%")
+    vwap    = _f("vwap")
+    vwap_pct = _f("vs_vwap_%")
+    swing_hi = _f("ms_swing_high")
+    swing_lo = _f("ms_swing_low")
+    adr     = _f("adr_%", 3.0)
+    above200 = bool(row.get("above_200ma"))
+    breaking_out = bool(row.get("breaking_out"))
+    pullback_50 = bool(row.get("pullback_to_50ma"))
+    fresh_cross = bool(row.get("fresh_200ma_cross")) or bool(row.get("fresh_50ma_cross"))
+    low_adr_base = bool(row.get("low_adr_base"))
+
+    _no_plan = {"setup_type": "No Setup Detected", "entry_low": None, "entry_high": None,
+                "stop": None, "reasoning": "Not enough data to build an entry plan for this stock."}
+    if price is None:
+        return _no_plan
+
+    if not above200:
+        return {
+            "setup_type": "Not in a Confirmed Uptrend",
+            "entry_low": None, "entry_high": None, "stop": None,
+            "reasoning": "This stock isn't above its 200-day average yet — ApexScan's swing/momentum "
+                         "criteria don't support an entry here. Wait for Stage 2 confirmation first.",
+        }
+
+    # ── Priority 1: extended above VWAP — explicit don't-chase guidance ──
+    if vwap_pct is not None and vwap_pct > 15 and vwap:
+        return {
+            "setup_type": "Extended — Wait for Pullback",
+            "entry_low": round(vwap, 2), "entry_high": round(vwap * 1.02, 2),
+            "stop": round(swing_lo, 2) if swing_lo else round(vwap * 0.94, 2),
+            "reasoning": f"Price is {vwap_pct:.0f}% above VWAP — stretched. Chasing here has poor "
+                         f"risk/reward. Wait for a pullback toward VWAP (~${vwap:.2f}) before entering.",
+        }
+
+    # ── Priority 2: active breakout today ─────────────────────────────────
+    if breaking_out:
+        _buffer = price * (adr / 100) * 0.5
+        return {
+            "setup_type": "Breakout Entry",
+            "entry_low": round(price, 2), "entry_high": round(price + _buffer, 2),
+            "stop": round(swing_lo, 2) if swing_lo else round(price * 0.93, 2),
+            "reasoning": "Breaking out today on above-average volume — buy at or slightly above the "
+                         "current price. Don't chase more than about half a day's typical range above it.",
+        }
+
+    # ── Priority 3: pulling back to the rising 50-day average ────────────
+    if pullback_50 and vs50 is not None:
+        ma50 = price / (1 + vs50 / 100)
+        return {
+            "setup_type": "Pullback Entry",
+            "entry_low": round(ma50 * 0.99, 2), "entry_high": round(ma50 * 1.02, 2),
+            "stop": round(swing_lo, 2) if swing_lo else round(ma50 * 0.95, 2),
+            "reasoning": f"Pulling back to the rising 50-day average (~${ma50:.2f}) — a common "
+                         f"lower-risk entry within an already-established uptrend.",
+        }
+
+    # ── Priority 4: fresh trend cross — early, higher risk ────────────────
+    if fresh_cross:
+        return {
+            "setup_type": "Fresh Trend Entry",
+            "entry_low": round(price * 0.99, 2), "entry_high": round(price * 1.02, 2),
+            "stop": round(swing_lo, 2) if swing_lo else round(price * 0.92, 2),
+            "reasoning": "Just crossed above a key moving average — early in a potential new trend. "
+                         "This is inherently a higher-risk, earlier entry than a pullback would be.",
+        }
+
+    # ── Priority 5: tight base, not yet broken out ────────────────────────
+    if low_adr_base and swing_hi:
+        return {
+            "setup_type": "Base Breakout Entry (not yet triggered)",
+            "entry_low": round(swing_hi * 0.995, 2), "entry_high": round(swing_hi * 1.01, 2),
+            "stop": round(swing_lo, 2) if swing_lo else round(price * 0.95, 2),
+            "reasoning": f"Consolidating in a tight base. Set an alert or buy order just above "
+                         f"${swing_hi:.2f} (the top of the base) — don't buy before it actually breaks.",
+        }
+
+    # ── Fallback: confirmed uptrend, but no fresh trigger right now ───────
+    _watch_pts = []
+    if vs50 is not None:
+        ma50 = price / (1 + vs50 / 100)
+        _watch_pts.append(f"a pullback to the 50-day average (~${ma50:.2f})")
+    if swing_hi:
+        _watch_pts.append(f"a breakout above ${swing_hi:.2f} (recent swing high)")
+    _watch_txt = " or ".join(_watch_pts) if _watch_pts else "a clearer trigger to form"
+    return {
+        "setup_type": "No Fresh Trigger — Watch and Wait",
+        "entry_low": None, "entry_high": None, "stop": None,
+        "reasoning": f"Confirmed uptrend, but no fresh entry trigger right now. Watch for {_watch_txt} "
+                     f"before entering, rather than buying at today's price with no clear reference point.",
+    }
+
+
+def compute_auto_trendline(hist: pd.DataFrame, direction: str = "up", window: int = 5):
+    """
+    Detects real swing points in the price history and fits a trendline
+    through the most recent ones — an actual computed line showing market
+    direction, drawn fresh every time the chart renders (not a manually
+    drawn shape, so there's no persistence problem: it's recalculated from
+    the data itself, same as the moving averages already are).
+
+    direction="up" fits a support line through recent swing LOWS (for an
+    uptrend). direction="down" fits a resistance line through recent
+    swing HIGHS. Returns None if there isn't enough data for a meaningful
+    fit — no fabricated line when the data doesn't support one.
+    """
+    if hist is None or len(hist) < window * 2 + 10:
+        return None
+
+    col = "Low" if direction == "up" else "High"
+    vals = hist[col].values
+    n = len(vals)
+    pivots = []
+    for i in range(window, n - window):
+        seg = vals[i - window: i + window + 1]
+        if direction == "up" and vals[i] == seg.min():
+            pivots.append((i, vals[i]))
+        elif direction == "down" and vals[i] == seg.max():
+            pivots.append((i, vals[i]))
+
+    if len(pivots) < 2:
+        return None
+
+    recent = pivots[-4:] if len(pivots) >= 4 else pivots[-2:]
+    xs = np.array([p[0] for p in recent], dtype=float)
+    ys = np.array([p[1] for p in recent], dtype=float)
+
+    try:
+        slope, intercept = np.polyfit(xs, ys, 1)
+    except Exception:
+        return None
+
+    x_start, x_end = xs[0], float(n - 1)
+    y_start = slope * x_start + intercept
+    y_end = slope * x_end + intercept
+
+    return {
+        "dates": [hist.index[int(x_start)], hist.index[int(x_end)]],
+        "values": [round(float(y_start), 2), round(float(y_end), 2)],
+        "slope": float(slope),
+    }
+
+
+def generate_chart_reading(row: dict) -> str:
+    """
+    A dynamic, per-stock plain-English reading of the chart AS IT STANDS
+    RIGHT NOW — not a generic glossary of what indicators mean. Built
+    entirely from fields the scanner already computes.
+    """
+    def _f(key, default=None):
+        v = row.get(key, default)
+        try:
+            return float(v) if v is not None and pd.notna(v) else default
+        except (TypeError, ValueError):
+            return default
+
+    ticker   = row.get("ticker", "This stock")
+    stage    = str(row.get("stage", "an unclear stage"))
+    vs200    = _f("vs_200ma_%")
+    vs50     = _f("vs_50ma_%")
+    pct_off_high = _f("pct_off_high_%")
+    swing_hi = _f("ms_swing_high")
+    swing_lo = _f("ms_swing_low")
+    structure = str(row.get("ms_structure", ""))
+    hh_hl    = bool(row.get("ms_hh_hl"))
+    vwap_pct = _f("vs_vwap_%")
+    adr      = _f("adr_%")
+    rs3      = _f("rs_3m")
+    price    = _f("price")
+
+    sentences = []
+
+    if vs200 is not None:
+        _dir = "above" if vs200 >= 0 else "below"
+        sentences.append(f"{ticker} is trading {abs(vs200):.1f}% {_dir} its 200-day average, "
+                          f"consistent with its current stage ({stage}).")
+
+    if structure and structure not in ("Insufficient Data", "Transitioning", ""):
+        if hh_hl:
+            sentences.append("The recent swing pattern shows higher highs and higher lows — "
+                              "a genuine uptrend structure, not just a drifting price.")
+        else:
+            sentences.append(f"Market structure currently reads '{structure}', meaning the "
+                              "recent trend isn't cleanly confirmed either way yet.")
+
+    if price and swing_hi and swing_hi > price:
+        _dist = (swing_hi / price - 1) * 100
+        sentences.append(f"Price sits {_dist:.1f}% below its recent swing high (${swing_hi:.2f}) — "
+                          "that level is the next resistance to watch.")
+    elif price and swing_hi and swing_hi <= price:
+        sentences.append(f"Price is at or above its recent swing high (${swing_hi:.2f}) — "
+                          "no overhead resistance from recent price action.")
+    if price and swing_lo:
+        _dist_lo = (price / swing_lo - 1) * 100
+        sentences.append(f"The recent swing low (${swing_lo:.2f}) sits {_dist_lo:.1f}% below "
+                          "current price — a natural support/stop reference.")
+
+    if vwap_pct is not None:
+        if vwap_pct > 15:
+            sentences.append(f"Price is stretched {vwap_pct:.0f}% above VWAP — extended in the "
+                              "short term, higher chase risk right now.")
+        elif vwap_pct < -10:
+            sentences.append(f"Price is {abs(vwap_pct):.0f}% below VWAP — recent selling has "
+                              "pushed it below where most volume has actually traded.")
+
+    if rs3 is not None:
+        if rs3 > 100:
+            sentences.append(f"It's outperforming the S&P 500 by {rs3:.0f} points over 3 months — "
+                              "genuine leadership, not just moving with the market.")
+        elif rs3 < 0:
+            sentences.append("It's underperforming the S&P 500 over the last 3 months.")
+
+    if not sentences:
+        return f"Not enough data to generate a specific reading for {ticker} right now."
+    return " ".join(sentences)
+
+
 def log_new_discoveries(scan_df: pd.DataFrame):
     if scan_df is None or scan_df.empty:
         return
@@ -3059,29 +3300,50 @@ compares this stock's performance to the overall market rather than just itself.
                 n4.metric("Structure",    str(row_data.get("ms_structure","–")))
                 n5.metric("PA Patterns",  str(row_data.get("pa_patterns","None"))[:30])
 
+                # ── Entry Plan ───────────────────────────────────────────
+                st.markdown("---")
+                st.markdown("#### 🎯 Entry Plan")
+                _plan = generate_entry_plan(row_data.to_dict() if hasattr(row_data, "to_dict") else dict(row_data))
+                _has_zone = _plan.get("entry_low") is not None and _plan.get("entry_high") is not None
+
+                if _has_zone:
+                    ep1, ep2, ep3 = st.columns(3)
+                    ep1.metric("Setup", _plan["setup_type"])
+                    ep2.metric("Buy Zone", f"${_plan['entry_low']:.2f} – ${_plan['entry_high']:.2f}")
+                    ep3.metric("Suggested Stop", f"${_plan['stop']:.2f}" if _plan.get("stop") else "–")
+                else:
+                    st.markdown(f"**{_plan['setup_type']}**")
+                st.caption(_plan["reasoning"])
+
                 # ── Risk/Reward Calculator ──────────────────────────────
                 st.markdown("---")
                 st.markdown("#### ⚖️ Risk/Reward Calculator")
                 st.caption(
-                    "Defaults are pre-filled from this stock's current price and its recent "
-                    "swing high/low — adjust any of them to match your actual trade plan."
+                    "Defaults are pre-filled from the Entry Plan above when a clear setup was "
+                    "detected — otherwise from current price and recent swing high/low. Adjust "
+                    "any of them to match your actual trade plan."
                 )
 
                 _rr_price = float(row_data.get("price", 0) or 0)
                 _rr_sh    = row_data.get("ms_swing_high")
                 _rr_sl    = row_data.get("ms_swing_low")
-                _default_stop   = float(_rr_sl) if _rr_sl and pd.notna(_rr_sl) else round(_rr_price * 0.92, 2)
+                if _has_zone:
+                    _default_entry  = round((_plan["entry_low"] + _plan["entry_high"]) / 2, 2)
+                    _default_stop   = _plan["stop"] if _plan.get("stop") else round(_rr_price * 0.92, 2)
+                else:
+                    _default_entry  = round(_rr_price, 2) if _rr_price else 1.0
+                    _default_stop   = float(_rr_sl) if _rr_sl and pd.notna(_rr_sl) else round(_rr_price * 0.92, 2)
                 _default_target = float(_rr_sh) if _rr_sh and pd.notna(_rr_sh) and _rr_sh > _rr_price else round(_rr_price * 1.20, 2)
 
                 rr1, rr2, rr3 = st.columns(3)
                 with rr1:
                     rr_entry = st.number_input("Entry Price ($)", min_value=0.01,
-                                                value=round(_rr_price, 2) if _rr_price else 1.0,
+                                                value=_default_entry if _default_entry else 1.0,
                                                 step=0.01, key=f"rr_entry_{sel}")
                 with rr2:
                     rr_stop = st.number_input("Stop Loss ($)", min_value=0.01,
                                                value=_default_stop, step=0.01, key=f"rr_stop_{sel}",
-                                               help="Defaults to the recent swing low, if available.")
+                                               help="Defaults to the Entry Plan's suggested stop, if available.")
                 with rr3:
                     rr_target = st.number_input("Target ($)", min_value=0.01,
                                                  value=_default_target, step=0.01, key=f"rr_target_{sel}",
@@ -7269,9 +7531,10 @@ with tabs[20]:
             st.markdown("---")
             st.markdown("### 📐 Annotated Long-Term Chart")
             st.caption(
-                "Draw your own trend lines and support/resistance zones directly on the chart using "
-                "the toolbar above it — same idea as marking up a chart in TradingView. Reference "
-                "levels (52-week high, recent swing high/low) are auto-plotted as a starting point."
+                "The diagonal trendline is computed automatically from this stock's actual swing "
+                "points — recalculated fresh every time, so it's always current, not something "
+                "you have to draw yourself. Manual drawing tools are still available above the "
+                "chart if you want to mark up your own levels on top of it."
             )
 
             lt_c1, lt_c2 = st.columns([2, 1])
@@ -7302,9 +7565,11 @@ with tabs[20]:
                                       annotation_position="right")
 
                 _lt_row = lt_df[lt_df["ticker"] == lt_chart_ticker]
+                _lt_row_dict = {}
                 if not _lt_row.empty:
-                    _sh = _lt_row.iloc[0].get("ms_swing_high")
-                    _sl = _lt_row.iloc[0].get("ms_swing_low")
+                    _lt_row_dict = _lt_row.iloc[0].to_dict()
+                    _sh = _lt_row_dict.get("ms_swing_high")
+                    _sl = _lt_row_dict.get("ms_swing_low")
                     if _sh and pd.notna(_sh):
                         lt_fig.add_hline(y=_sh, line_color="#f85149", line_dash="dash", line_width=1,
                                           opacity=0.7, annotation_text=f"Swing High ${_sh:.2f}",
@@ -7313,6 +7578,19 @@ with tabs[20]:
                         lt_fig.add_hline(y=_sl, line_color="#3fb950", line_dash="dash", line_width=1,
                                           opacity=0.7, annotation_text=f"Swing Low ${_sl:.2f}",
                                           annotation_position="right")
+
+                # ── Automated trendline — direction from the stock's own trend ──
+                _uptrend = bool(_lt_row_dict.get("above_200ma")) and bool(_lt_row_dict.get("ma50_gt_ma200"))
+                _trend_dir = "up" if _uptrend else "down"
+                _trendline = compute_auto_trendline(lt_hist, direction=_trend_dir)
+                if _trendline:
+                    _tl_color = "#3fb950" if _trend_dir == "up" else "#f85149"
+                    _tl_label = "Auto Trendline (support)" if _trend_dir == "up" else "Auto Trendline (resistance)"
+                    lt_fig.add_trace(go.Scatter(
+                        x=_trendline["dates"], y=_trendline["values"],
+                        line=dict(color=_tl_color, width=2, dash="solid"),
+                        name=_tl_label, mode="lines",
+                    ))
 
                 lt_fig.update_layout(
                     height=520, template="plotly_dark",
@@ -7327,11 +7605,19 @@ with tabs[20]:
                     "displaylogo": False,
                 })
                 st.caption(
-                    "⚠️ Drawings are for the current view only — they won't be saved if you switch "
-                    "tickers or reload the page. Use the notes box below to save your actual analysis."
+                    "⚠️ Hand-drawn markup (toolbar above) is for the current view only — it won't "
+                    "save if you switch tickers or reload. The auto trendline, MAs, and reference "
+                    "levels ARE automatic and always current. Use the notes box below to save your own analysis."
                 )
 
-                with st.expander("❓ What am I looking at?"):
+                # ── Dynamic, per-stock chart reading ────────────────────
+                st.markdown("#### 🗣️ Chart Reading")
+                if _lt_row_dict:
+                    st.info(generate_chart_reading(_lt_row_dict))
+                else:
+                    st.caption("Not enough scan data for this ticker to generate a reading.")
+
+                with st.expander("❓ What does each element mean? (general glossary)"):
                     st.markdown("""
 - **Candles** — daily price action. Green = closed up, red = closed down.
 - **50 MA / 200 MA** — the stock's recent (50-day) and long-term (200-day) trend. Price above
@@ -7342,8 +7628,11 @@ with tabs[20]:
 - **Dashed red/green lines (Swing High/Low)** — the most recent notable peak and trough, from
   ApexScan's market-structure detection. These often act as a ceiling and floor — a confirmed
   break above the swing high, or below the swing low, tends to signal the next real move.
+- **Solid green/red diagonal (Auto Trendline)** — fitted automatically through the stock's most
+  recent swing points. Green = support line under an uptrend; red = resistance line over a
+  downtrend. A close clearly through this line is often the first sign the trend is changing.
 - **Drawing toolbar (above the chart)** — line, open path (freehand), rectangle, circle, and
-  eraser tools, for marking your own trend lines or zones exactly like TradingView.
+  eraser tools, for marking your own trend lines or zones on top of the automated ones.
                     """)
 
                 _cn = _load_chart_notes()
