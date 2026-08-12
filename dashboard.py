@@ -8045,9 +8045,14 @@ with tabs[17]:
                         return "🚫 Do Not Buy", "#f85149"
 
                     # ── QUALITY CHECKS (mirrors items 6–9) ─────────────────────
+                    # Recalibrated: order flow only counts against a stock when it's
+                    # actively bearish, not merely "Neutral" — order flow is a noisy,
+                    # day-to-day rolling measure, and treating "Neutral" the same as
+                    # "Bearish" was effectively vetoing most otherwise-good setups on
+                    # any given day for reasons unrelated to the stock's real quality.
                     _q_fails = 0
                     if _score < 65:                       _q_fails += 1   # #6
-                    if "bullish" not in _of:              _q_fails += 1   # #7
+                    if "bearish" in _of:                  _q_fails += 1   # #7
                     _fund_ok = (
                         "strong" in _earn_m or _eps_acc or
                         (_eps_g is not None and _eps_g >= 25) or _beats >= 3
@@ -8061,16 +8066,19 @@ with tabs[17]:
                     _pat_ok    = _pattern not in ("–","None","nan","") and "none" not in _pattern.lower()  # #12
                     _timing_fails = sum([not _entry_ok, not _vwap_ok, not _pat_ok])
 
-                    # ── VERDICT — identical logic to full checklist ─────────────
-                    _all_pass     = _q_fails == 0 and _timing_fails == 0
-                    _timing_only  = _q_fails == 0 and _timing_fails > 0
-                    _partial      = _q_fails <= 2 and _timing_fails <= 1
-
-                    if _all_pass:
+                    # ── VERDICT — graduated, not a rigid all-7-conditions-or-nothing
+                    # gate. The original version required every single quality AND
+                    # timing check to pass simultaneously for "Ready to Buy" — with 7
+                    # largely independent conditions, the odds of all aligning at once
+                    # are low enough that it could return zero results across an entire
+                    # scan, which isn't useful as a screening tool. This keeps a real,
+                    # meaningfully high bar (still requires near-perfect quality) while
+                    # actually being able to differentiate between candidates.
+                    if _q_fails <= 1 and _timing_fails == 0:
                         return "✅ Ready to Buy", "#3fb950"
-                    elif _timing_only:
+                    elif _q_fails <= 1 and _timing_fails >= 1:
                         return "⏳ Wait for Entry", "#388bfd"
-                    elif _partial:
+                    elif _q_fails == 2:
                         return "⚠️ Reduced Size", "#d29922"
                     else:
                         return "🚫 Skip", "#f85149"
