@@ -25,7 +25,7 @@ log = logging.getLogger("apexscan.dashboard")
 if not log.handlers:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
-from scanner import load_config, run_scan, save_report
+from scanner import load_config, run_scan, save_report, run_short_scan
 from modules.universe import build_universe, get_universe_stats
 import time as _time
 from datetime import timezone as _timezone
@@ -7754,6 +7754,76 @@ with tabs[20]:
                     _cn[lt_chart_ticker] = lt_note
                     _save_chart_notes(_cn)
                     st.success("Saved.")
+
+    st.markdown("---")
+    st.markdown("### 🔻 Short Candidates")
+    st.markdown(
+        '<div style="background:#2a1215;border:1px solid #f85149;border-radius:8px;'
+        'padding:12px 16px;margin-bottom:10px;font-size:0.85rem;color:#ffa198;">'
+        '⚠️ <b>This is not investment advice — it\'s a technical screen, and shorting carries '
+        'risks long positions don\'t.</b> Loss is theoretically unlimited (price can rise '
+        'indefinitely). It requires a margin account and borrowed shares — not all stocks '
+        'are easy or cheap to borrow. A sudden rally can trigger a short squeeze, accelerating '
+        'losses fast. This screen finds stocks in a <i>confirmed technical downtrend</i> — it '
+        'does not know your risk tolerance, position sizing, or account type, and it has far '
+        'less real-world validation behind it than the long-side scanner.'
+        '</div>',
+        unsafe_allow_html=True
+    )
+    st.caption(
+        "Separate from the main scan — click below to run it. Finds US stocks below both "
+        "their 50 and 200-day averages, with negative relative strength and a bearish "
+        "technical structure. Illiquid stocks are excluded entirely (shorting them is "
+        "materially riskier than going long)."
+    )
+
+    short_run_btn = st.button("🔻 Run Short Scan", key="short_scan_btn")
+    if short_run_btn:
+        with st.spinner("Scanning for confirmed downtrends…"):
+            _short_universe, _ = build_universe(preset="full", cache_hours=24)
+            short_df = run_short_scan(cfg, universe_override=_short_universe)
+        st.session_state["short_scan_df"] = short_df
+
+    short_df = st.session_state.get("short_scan_df", pd.DataFrame())
+
+    if not short_df.empty:
+        sc1, sc2, sc3 = st.columns(3)
+        sc1.metric("Candidates Found", len(short_df))
+        sc2.metric("Top Short Score", f"{short_df['short_score'].max():.0f}")
+        sc3.metric(
+            "Avg. 3m Underperformance",
+            f"{short_df['rs_3m'].mean():.0f}" if "rs_3m" in short_df.columns else "–"
+        )
+
+        short_show_cols = [c for c in [
+            "ticker", "theme", "price", "mcap_category", "stage",
+            "short_score", "perf_3m_%", "rs_3m", "pct_off_low_%",
+            "breaking_down", "pattern", "of_bias", "avg_volume_30d",
+        ] if c in short_df.columns]
+        short_disp = short_df[short_show_cols].head(50).copy()
+
+        st.dataframe(
+            short_disp.style.format({
+                "price": "${:.2f}",
+                "short_score": "{:.0f}",
+                "perf_3m_%": "{:+.1f}%",
+                "rs_3m": "{:+.0f}",
+                "pct_off_low_%": "{:+.1f}%",
+                "breaking_down": lambda v: "🔻 Yes" if v is True else "–",
+                "avg_volume_30d": lambda v: f"{int(v):,}" if pd.notna(v) else "–",
+            }, na_rep="–"),
+            use_container_width=True, height=420,
+        )
+        st.caption(
+            "Short Score mirrors the Apex Score's logic in reverse — weakness, negative "
+            "relative strength, and confirmed downtrend structure score higher, the same "
+            "way strength scores higher on the long side. Not yet validated against real "
+            "forward returns the way the long-side Discovery Tracker validates Apex Score — "
+            "treat this as a starting screen for your own research, not a ranked signal."
+        )
+    elif short_run_btn:
+        st.info("No stocks currently meet the short-candidate criteria (confirmed downtrend, "
+                "negative relative strength, adequate liquidity). That's a real result, not an error.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
