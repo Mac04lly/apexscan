@@ -12034,12 +12034,12 @@
     "of_bias": "Neutral",
     "invalidation_price": 175.47,
     "invalidation_basis": "200-day moving average",
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
+    "last_checked": "2026-08-13",
+    "current_price": 179.51,
+    "pct_change": 0.0,
+    "days_tracked": 0,
+    "current_stage_rank": 2,
+    "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
   },
   {
@@ -12054,12 +12054,12 @@
     "of_bias": "Bullish",
     "invalidation_price": 72.41,
     "invalidation_basis": "200-day moving average",
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
+    "last_checked": "2026-08-13",
+    "current_price": 72.48,
+    "pct_change": 0.0,
+    "days_tracked": 0,
+    "current_stage_rank": 1,
+    "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
   }
 ]
