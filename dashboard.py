@@ -7780,8 +7780,9 @@ with tabs[20]:
     short_run_btn = st.button("🔻 Run Short Scan", key="short_scan_btn")
     if short_run_btn:
         with st.spinner("Scanning for confirmed downtrends…"):
+            _short_cfg = load_config("config.yaml")
             _short_universe, _ = build_universe(preset="full", cache_hours=24)
-            short_df = run_short_scan(cfg, universe_override=_short_universe)
+            short_df = run_short_scan(_short_cfg, universe_override=_short_universe)
         st.session_state["short_scan_df"] = short_df
 
     short_df = st.session_state.get("short_scan_df", pd.DataFrame())
