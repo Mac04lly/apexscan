@@ -1534,12 +1534,209 @@ def run_scan(cfg: dict, markets: List[str] = None,
     return df
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# SHORT-SIDE SCANNER (Phase: Short Candidates)
+# Entirely new, self-contained pipeline — does NOT call, modify, or share
+# gating logic with analyze_stock()/run_scan(). The long-only scan above is
+# completely untouched by anything in this section. Reuses the same proven
+# lower-level building blocks (get_benchmark, compute_rs, order flow, VWAP,
+# market structure) computed the identical way, scored in the opposite
+# direction. US equities only.
+# ══════════════════════════════════════════════════════════════════════════════
+
+def detect_breakdown(hist: pd.DataFrame, lookback_weeks: int = 8) -> Tuple[bool, str]:
+    """Bearish mirror of detect_base_breakout() — a support level breaking
+    DOWN on above-average volume, instead of a base breaking up."""
+    bars = min(lookback_weeks * 5, len(hist) - 1)
+    if bars < 15:
+        return False, "Insufficient data"
+    window    = hist.iloc[-bars:]
+    current   = hist["Close"].iloc[-1]
+    high      = window["High"].max()
+    low       = window["Low"].min()
+    avg_vol   = window["Volume"].mean()
+    today_vol = hist["Volume"].iloc[-1]
+    depth     = (high - low) / high * 100 if high else 0
+    vol_surge = today_vol > avg_vol * 1.4
+    pivot     = current <= low * 1.005
+    if depth < 12 and pivot and vol_surge:  return True,  "Support Breakdown"
+    if depth < 12 and pivot:                return False, "Tight — Watch Vol"
+    if current <= low * 1.05:               return False, "Near Support (No Vol)"
+    return False, f"Distributing ({depth:.0f}%)"
+
+
+def analyze_stock_short(ticker: str, cfg: dict,
+                        hist_override: Optional[pd.DataFrame] = None) -> Optional[Dict]:
+    """
+    Short-candidate analysis — the bearish mirror of analyze_stock(). A
+    completely separate function so the long-only pipeline is never at
+    risk of being altered. US equities only (no NGX branch).
+    """
+    thresholds   = cfg["thresholds"]["us"]
+    bench_symbol = cfg["benchmarks"]["us"]
+
+    try:
+        if hist_override is not None and len(hist_override) > 0:
+            hist = hist_override
+        else:
+            hist = yf.Ticker(ticker).history(period=cfg["scan"]["history_period"])
+
+        if len(hist) < cfg["scan"]["min_history_bars"]:
+            return None
+
+        close         = hist["Close"]
+        current_price = close.iloc[-1]
+
+        perf_1m = performance_pct(close, 21)
+        perf_3m = performance_pct(close, 63)
+        perf_6m = performance_pct(close, 126)
+
+        low_52w = close.rolling(min(252, len(close))).min().iloc[-1]
+        if pd.isna(low_52w) or low_52w == 0:
+            low_52w = float(close.min())
+        near_52wl   = bool(current_price <= low_52w * 1.05)
+        pct_off_low = round((current_price / low_52w - 1) * 100, 1) if low_52w else 0.0
+
+        ma50  = close.rolling(50).mean().iloc[-1]
+        ma200 = close.rolling(200).mean().iloc[-1]
+        if pd.isna(ma200):
+            log.debug(f"{ticker}: 200MA not computable, skipping (short scan)")
+            return None
+
+        below_50ma  = bool(current_price < ma50)
+        below_200ma = bool(current_price < ma200)
+        ma50_lt_200 = bool(ma50 < ma200)
+        stage       = detect_stage(current_price, ma50, ma200)
+
+        # ── Hard gate: only a confirmed downtrend qualifies as a short
+        # candidate — mirrors the long side's Stage 2 requirement exactly,
+        # just inverted. This is the ONLY reason a stock below its 200MA
+        # now appears anywhere in ApexScan's output.
+        if not (below_200ma and ma50_lt_200):
+            return None
+
+        bench = get_benchmark(bench_symbol)
+        rs_3m = compute_rs(close, bench, 63)
+        rs_6m = compute_rs(close, bench, 126)
+
+        adr        = adr_pct(hist, 20)
+        vol_today  = int(hist["Volume"].iloc[-1])
+        vol_avg_20 = int(hist["Volume"].rolling(20).mean().iloc[-1]) if len(hist) >= 20 else vol_today
+        breaking_down, pattern = detect_breakdown(hist)
+
+        of_data   = order_flow_persistence(hist, cfg.get("advanced", {}).get("of_lookback", 10))
+        vwap_data = compute_vwap(hist, cfg.get("advanced", {}).get("vwap_lookback", 20))
+        ms_data   = detect_market_structure(hist, cfg.get("advanced", {}).get("swing_lookback", 5))
+
+        mcap_data = get_market_cap_data(ticker)
+        # Shorting illiquid names is materially more dangerous than going
+        # long them (hard to borrow, hard to cover cleanly) — hard exclude
+        # rather than just a warning flag.
+        if mcap_data.get("liquidity_warn"):
+            return None
+
+        theme = "Unknown"
+        try:
+            _yf_info   = yf.Ticker(ticker).fast_info
+            _yf_sector = getattr(_yf_info, "sector", None)
+            theme = _yf_sector or "Unknown"
+        except Exception:
+            pass
+
+        # ── Short Score — bearish mirror of the Apex Score's weighting ──
+        score = 0
+        if perf_3m < -thresholds.get("min_3m_perf", 5): score += min(40, abs(perf_3m))
+        if rs_3m < -thresholds.get("rs_rating_min", 20): score += 25
+        elif rs_3m < -10:                                 score += 12
+        if below_200ma and ma50_lt_200:                   score += 15
+        if near_52wl:                                      score += 10
+        if breaking_down:                                  score += 10
+        if of_data["of_directional_bias"] in ("Bearish", "Strong Bearish"):
+            score += of_data["of_persistence_score"]
+        if ms_data.get("ms_lh_ll"):                        score += 3
+
+        # Penalties — signs the downtrend may be exhausting/reversing
+        if perf_3m > 0:  score -= 15
+        if rs_3m > 0:    score -= 10
+        if of_data["of_directional_bias"] in ("Bullish", "Strong Bullish"): score -= 8
+        if pct_off_low > 30: score -= 5  # already bounced meaningfully off the low
+
+        score = max(0, min(100, round(score, 1)))
+
+        return {
+            "ticker": ticker, "price": round(current_price, 2), "stage": stage,
+            "perf_1m_%": perf_1m, "perf_3m_%": perf_3m, "perf_6m_%": perf_6m,
+            "rs_3m": rs_3m, "rs_6m": rs_6m,
+            "below_50ma": below_50ma, "below_200ma": below_200ma, "ma50_lt_ma200": ma50_lt_200,
+            "near_52wl": near_52wl, "pct_off_low_%": pct_off_low,
+            "adr_%": adr, "volume": vol_today, "vol_avg_20": vol_avg_20,
+            "breaking_down": breaking_down, "pattern": pattern,
+            "of_bias": of_data["of_directional_bias"], "of_score": of_data["of_persistence_score"],
+            "vwap_position": vwap_data["vwap_position"], "vs_vwap_%": vwap_data["vs_vwap_%"],
+            "ms_structure": ms_data["ms_structure"], "ms_lh_ll": ms_data.get("ms_lh_ll", False),
+            "theme": theme, "market_cap": mcap_data.get("market_cap"),
+            "mcap_category": mcap_data.get("mcap_category"),
+            "avg_volume_30d": mcap_data.get("avg_volume_30d"),
+            "short_pct_float": None,  # filled in by dashboard.py's fundamentals enrichment, same as the long side
+            "short_score": score,
+            "scanned_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        }
+    except Exception as e:
+        log.warning(f"Short analysis error on {ticker}: {e}")
+        return None
+
+
+def run_short_scan(cfg: dict, universe_override: list = None) -> pd.DataFrame:
+    """
+    Standalone short-candidate scan. Does NOT call run_scan() and shares
+    no gating/scoring logic with it — completely independent pipeline,
+    US equities only, so the long-only scan is never at risk of being
+    altered by anything here.
+    """
+    if universe_override is not None:
+        if universe_override and isinstance(universe_override[0], dict):
+            tickers = [t["ticker"] for t in universe_override if "ticker" in t]
+        else:
+            tickers = list(universe_override)
+    else:
+        tickers = build_watchlist(cfg, "us")
+
+    tickers = [t for t in tickers if not t.upper().endswith((".LG", ".NG"))]
+    log.info(f"Short scan: {len(tickers)} US tickers…")
+
+    _bench_cache.clear()
+    _mcap_cache.clear()
+    get_benchmark(cfg["benchmarks"]["us"], cfg["scan"]["history_period"])
+
+    _batch_hist = batch_fetch_history(tickers, cfg["scan"]["history_period"])
+
+    results = []
+    pause = cfg["scan"]["rate_limit_pause"]
+    min_score = cfg.get("short_scan", {}).get("min_score", 40)
+
+    for i, ticker in enumerate(tickers):
+        time.sleep(0.35)
+        if i > 0 and i % 8 == 0:
+            time.sleep(pause)
+        data = analyze_stock_short(ticker, cfg, hist_override=_batch_hist.get(ticker))
+        if data is None:
+            continue
+        if data["short_score"] < min_score:
+            continue
+        results.append(data)
+
+    if not results:
+        log.warning("Short scan: no candidates passed filters.")
+        return pd.DataFrame()
+
+    df = pd.DataFrame(results).sort_values("short_score", ascending=False).reset_index(drop=True)
+    df.index += 1
+    df.index.name = "rank"
+    log.info(f"Short scan complete: {len(df)} candidates.")
+    return df
+
+
 def save_report(df: pd.DataFrame, report_dir: str = "reports") -> str:
-    Path(report_dir).mkdir(exist_ok=True)
-    filename = f"{report_dir}/scan_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
-    df.to_csv(filename, encoding="utf-8")
-    log.info(f"Saved → {filename}")
-    return filename
     Path(report_dir).mkdir(exist_ok=True)
     filename = f"{report_dir}/scan_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
     df.to_csv(filename, encoding="utf-8")
@@ -1568,4 +1765,4 @@ if __name__ == "__main__":
         print(df[cols].head(args.top).to_string())
         save_report(df)
     else:
-        print("No setups matched current filters.")               
+        print("No setups matched current filters.")
