@@ -22,5 +22,17 @@
       "peg_ratio": NaN
     },
     "as_of": "2026-08-14"
+  },
+  "DXCM": {
+    "fields": {
+      "roe": 0.38491002,
+      "revenue_growth": 0.131,
+      "earnings_growth": 0.436,
+      "debt_to_equity": 53.346,
+      "gross_margin": 0.62473,
+      "free_cash_flow": 1021162496.0,
+      "peg_ratio": NaN
+    },
+    "as_of": "2026-08-14"
   }
 }
