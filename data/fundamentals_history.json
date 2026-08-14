@@ -10,5 +10,17 @@
       "peg_ratio": NaN
     },
     "as_of": "2026-08-14"
+  },
+  "EXPD": {
+    "fields": {
+      "roe": 0.4267,
+      "revenue_growth": 0.321,
+      "earnings_growth": 0.515,
+      "debt_to_equity": 26.745,
+      "gross_margin": 0.13549,
+      "free_cash_flow": 797562240.0,
+      "peg_ratio": NaN
+    },
+    "as_of": "2026-08-14"
   }
 }
