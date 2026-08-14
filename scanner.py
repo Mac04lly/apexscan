@@ -92,6 +92,34 @@ def get_finnhub_news(ticker: str, api_key: str) -> Dict:
         return {"news_count": 0, "sentiment": "N/A"}
 
 
+def get_recent_headlines(ticker: str, api_key: str, n: int = 2, days: int = 14) -> List[str]:
+    """
+    Fetches actual recent headline text (not just a count) — used to give
+    qualitative 'why is this stock moving' context for short candidates,
+    since a score alone doesn't explain a decline. Reuses the same
+    Finnhub endpoint as get_finnhub_news; a separate, additive function
+    so the existing count-only one is never touched. Returns an empty
+    list on any failure — never raises, never blocks a scan.
+    """
+    if not api_key or api_key.startswith("YOUR_"):
+        return []
+    try:
+        end   = datetime.now()
+        start = end - timedelta(days=days)
+        url   = (
+            f"https://finnhub.io/api/v1/company-news"
+            f"?symbol={ticker}&from={start.strftime('%Y-%m-%d')}"
+            f"&to={end.strftime('%Y-%m-%d')}&token={api_key}"
+        )
+        resp = requests.get(url, timeout=5)
+        resp.raise_for_status()
+        articles = resp.json()[:n]
+        return [a.get("headline", "").strip() for a in articles if a.get("headline")]
+    except Exception as e:
+        log.debug(f"Finnhub headlines error {ticker}: {e}")
+        return []
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # TECHNICAL HELPERS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1587,6 +1615,7 @@ def analyze_stock_short(ticker: str, cfg: dict,
         close         = hist["Close"]
         current_price = close.iloc[-1]
 
+        perf_1w = performance_pct(close, 5)
         perf_1m = performance_pct(close, 21)
         perf_3m = performance_pct(close, 63)
         perf_6m = performance_pct(close, 126)
@@ -1607,6 +1636,7 @@ def analyze_stock_short(ticker: str, cfg: dict,
         below_200ma = bool(current_price < ma200)
         ma50_lt_200 = bool(ma50 < ma200)
         stage       = detect_stage(current_price, ma50, ma200)
+        vs_200ma_pct = round((current_price / ma200 - 1) * 100, 2) if ma200 else None
 
         # ── Hard gate: only a confirmed downtrend qualifies as a short
         # candidate — mirrors the long side's Stage 2 requirement exactly,
@@ -1663,11 +1693,19 @@ def analyze_stock_short(ticker: str, cfg: dict,
 
         score = max(0, min(100, round(score, 1)))
 
+        # Recent headlines — qualitative "why" context for a decline, not
+        # just the numeric score. Fetched here (not earlier) since it's
+        # only worth the API call for a candidate that already passed
+        # every other gate — keeps the scan fast for the full universe.
+        _finnhub_key = cfg.get("finnhub_key", "")
+        _headlines = get_recent_headlines(ticker, _finnhub_key, n=2, days=14) if _finnhub_key else []
+
         return {
             "ticker": ticker, "price": round(current_price, 2), "stage": stage,
-            "perf_1m_%": perf_1m, "perf_3m_%": perf_3m, "perf_6m_%": perf_6m,
+            "perf_1w_%": perf_1w, "perf_1m_%": perf_1m, "perf_3m_%": perf_3m, "perf_6m_%": perf_6m,
             "rs_3m": rs_3m, "rs_6m": rs_6m,
             "below_50ma": below_50ma, "below_200ma": below_200ma, "ma50_lt_ma200": ma50_lt_200,
+            "vs_200ma_%": vs_200ma_pct,
             "near_52wl": near_52wl, "pct_off_low_%": pct_off_low,
             "adr_%": adr, "volume": vol_today, "vol_avg_20": vol_avg_20,
             "breaking_down": breaking_down, "pattern": pattern,
@@ -1678,6 +1716,7 @@ def analyze_stock_short(ticker: str, cfg: dict,
             "mcap_category": mcap_data.get("mcap_category"),
             "avg_volume_30d": mcap_data.get("avg_volume_30d"),
             "short_pct_float": None,  # filled in by dashboard.py's fundamentals enrichment, same as the long side
+            "recent_headlines": _headlines,
             "short_score": score,
             "scanned_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
         }
