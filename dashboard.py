@@ -265,6 +265,241 @@ def _save_chart_notes(notes: dict):
                              message=f"Update chart notes ({len(notes)} ticker(s))")
 
 
+# ── Fundamentals change history — tracks how each stock's fundamentals
+# have moved since the last time Long-Term Investing pulled fresh data,
+# so improvement/deterioration is visible, not just a static snapshot. ──
+_FUNDHIST_FILE = _PORT_DIR / "fundamentals_history.json" if "_PORT_DIR" in dir() else Path("data/fundamentals_history.json")
+_FUNDHIST_TMP  = Path("/tmp/apexscan_fundamentals_history.json")
+_FUND_TRACKED_FIELDS = ["roe", "revenue_growth", "earnings_growth", "debt_to_equity",
+                         "gross_margin", "free_cash_flow", "peg_ratio"]
+
+def _save_fund_history_local(hist: dict):
+    for _p in (_FUNDHIST_FILE, _FUNDHIST_TMP):
+        try:
+            _p.parent.mkdir(parents=True, exist_ok=True)
+            _tmp = _p.with_suffix(".tmp")
+            with open(_tmp, "w") as _f: json.dump(hist, _f, indent=2, default=str)
+            import shutil; shutil.move(str(_tmp), str(_p))
+        except Exception: pass
+
+def load_fund_history() -> dict:
+    token, repo = _gh_creds()
+    if token and repo:
+        data, _ = load_json_from_github(token, repo, "data/fundamentals_history.json")
+        if isinstance(data, dict):
+            _save_fund_history_local(data)
+            return data
+    for _p in (_FUNDHIST_FILE, _FUNDHIST_TMP):
+        try:
+            if _p.exists() and _p.stat().st_size > 2:
+                with open(_p) as _f:
+                    _d = json.load(_f)
+                if isinstance(_d, dict): return _d
+        except Exception: pass
+    return {}
+
+def save_fund_history(hist: dict):
+    _save_fund_history_local(hist)
+    token, repo = _gh_creds()
+    if token and repo:
+        save_json_to_github(token, repo, "data/fundamentals_history.json", hist,
+                             message=f"Update fundamentals_history.json ({len(hist)} ticker(s))")
+
+
+def compute_fundamentals_trend(ticker: str, current: dict, history: dict) -> dict:
+    """
+    Compares a stock's current fundamentals against the last snapshot on
+    record for it (if any), and returns a trend verdict + the specific
+    field-level deltas. Does NOT save — caller decides when to persist
+    the new snapshot (so a single read-only view doesn't silently update
+    history; only an actual scan refresh should).
+    """
+    prior = history.get(ticker)
+    snapshot = {k: current.get(k) for k in _FUND_TRACKED_FIELDS}
+
+    if not prior:
+        return {"trend": "🆕 First snapshot", "as_of": None, "deltas": [], "snapshot": snapshot}
+
+    prior_fields = prior.get("fields", {})
+    improved, weakened, deltas = 0, 0, []
+    for k in _FUND_TRACKED_FIELDS:
+        old_v, new_v = prior_fields.get(k), current.get(k)
+        if old_v is None or new_v is None:
+            continue
+        try:
+            old_v, new_v = float(old_v), float(new_v)
+        except (TypeError, ValueError):
+            continue
+        if abs(new_v - old_v) < 1e-9:
+            continue
+        # Lower is "better" (improving) only for debt_to_equity/peg_ratio
+        better = (new_v < old_v) if k in ("debt_to_equity", "peg_ratio") else (new_v > old_v)
+        if better: improved += 1
+        else:      weakened += 1
+        deltas.append({"field": k, "old": round(old_v, 3), "new": round(new_v, 3), "improved": better})
+
+    if not deltas:
+        trend = "➡️ Unchanged since last check"
+    elif improved > weakened:
+        trend = "📈 Improving"
+    elif weakened > improved:
+        trend = "📉 Weakening"
+    else:
+        trend = "↔️ Mixed"
+
+    return {"trend": trend, "as_of": prior.get("as_of"), "deltas": deltas, "snapshot": snapshot}
+
+
+# ── Short Candidate Tracker — mirrors Discovery Tracker's structure and
+# philosophy exactly, for the short side: log new candidates, refresh
+# daily, track whether the decline is deepening or reversing. ──────────
+_SHORTDISC_FILE = _PORT_DIR / "short_discoveries.json" if "_PORT_DIR" in dir() else Path("data/short_discoveries.json")
+_SHORTDISC_TMP  = Path("/tmp/apexscan_short_discoveries.json")
+
+def _save_short_discoveries_local(items: list):
+    for _p in (_SHORTDISC_FILE, _SHORTDISC_TMP):
+        try:
+            _p.parent.mkdir(parents=True, exist_ok=True)
+            _tmp = _p.with_suffix(".tmp")
+            with open(_tmp, "w") as _f: json.dump(items, _f, indent=2, default=str)
+            import shutil; shutil.move(str(_tmp), str(_p))
+        except Exception: pass
+
+def load_short_discoveries() -> list:
+    token, repo = _gh_creds()
+    if token and repo:
+        data, _ = load_json_from_github(token, repo, "data/short_discoveries.json")
+        if isinstance(data, list):
+            _save_short_discoveries_local(data)
+            return data
+    for _p in (_SHORTDISC_FILE, _SHORTDISC_TMP):
+        try:
+            if _p.exists() and _p.stat().st_size > 2:
+                with open(_p) as _f:
+                    _d = json.load(_f)
+                if isinstance(_d, list): return _d
+        except Exception: pass
+    return []
+
+def save_short_discoveries(items: list):
+    _save_short_discoveries_local(items)
+    token, repo = _gh_creds()
+    if token and repo:
+        save_json_to_github(token, repo, "data/short_discoveries.json", items,
+                             message=f"Update short_discoveries.json ({len(items)} tracked)")
+
+
+def compute_short_invalidation_price(row: dict) -> dict:
+    """
+    The bearish mirror of compute_invalidation_price(): a short thesis
+    breaks if price closes back ABOVE this level. Primary level is the
+    200-day moving average — derived exactly from price + vs_200ma_%,
+    same technique as the long side, now that the short scanner returns
+    vs_200ma_% too. Falls back to a generic buffer only if that field is
+    genuinely missing (e.g. older tracked entries from before this fix).
+    """
+    price = row.get("price")
+    vs200 = row.get("vs_200ma_%")
+    try:
+        if price and vs200 is not None and pd.notna(vs200):
+            level = round(float(price) / (1 + float(vs200) / 100), 2)
+            return {"primary": level, "primary_basis": "200-day moving average"}
+    except Exception:
+        pass
+    if price:
+        try:
+            return {"primary": round(float(price) * 1.08, 2),
+                    "primary_basis": "≈8% above discovery price (200MA unavailable)"}
+        except Exception:
+            pass
+    return {"primary": None, "primary_basis": "–"}
+
+
+def log_new_short_candidates(short_df: pd.DataFrame):
+    if short_df is None or short_df.empty:
+        return
+    _existing = load_short_discoveries()
+    _existing_tickers = {d["ticker"] for d in _existing}
+    _new = []
+    for _, row in short_df.iterrows():
+        tk = row.get("ticker")
+        if not tk or tk in _existing_tickers:
+            continue
+        _row_dict = row.to_dict()
+        _inval = compute_short_invalidation_price(_row_dict)
+        _new.append({
+            "ticker":              tk,
+            "discovered_at":       datetime.now().strftime("%Y-%m-%d"),
+            "discovery_price":     float(row.get("price", 0) or 0),
+            "short_score":         float(row.get("short_score", 0) or 0),
+            "stage":               str(row.get("stage", "")),
+            "theme":               str(row.get("theme", "")),
+            "recent_headlines":    row.get("recent_headlines", []),
+            "invalidation_price":  _inval.get("primary"),
+            "invalidation_basis":  _inval.get("primary_basis"),
+            # filled in on refresh:
+            "last_checked":        None,
+            "current_price":       None,
+            "pct_change_1w":       None,
+            "pct_change_1m":       None,
+            "pct_change_since_discovery": None,
+            "short_status":        "– Not checked yet",
+            "invalidated":         False,
+        })
+        _existing_tickers.add(tk)
+    if _new:
+        save_short_discoveries(_existing + _new)
+        log.info(f"Short Tracker: logged {len(_new)} new candidate(s) — {len(_existing)+len(_new)} total tracked.")
+
+
+def _refresh_short_prices(disc_list: list) -> list:
+    """
+    Daily refresh for tracked short candidates. Unlike the long side,
+    a FALLING price is the thesis working — status language reflects
+    that directly rather than reusing "strengthened/weakened" framing
+    that would read backwards for a short position.
+    """
+    for item in disc_list:
+        live = fetch_price(item["ticker"])
+        if not (live and live.get("price")):
+            continue
+        cur_price = live["price"]
+        item["current_price"] = cur_price
+        item["last_checked"]  = datetime.now().strftime("%Y-%m-%d")
+
+        # chg_pct from fetch_price is the 1-day change; for weekly/monthly
+        # trajectory we need history, so pull it once per refresh.
+        _hist = fetch_hist(item["ticker"], "3mo")
+        if not _hist.empty and len(_hist) >= 22:
+            _close = _hist["Close"]
+            try:
+                item["pct_change_1w"] = round((cur_price / _close.iloc[-6] - 1) * 100, 2) if len(_close) >= 6 else None
+                item["pct_change_1m"] = round((cur_price / _close.iloc[-22] - 1) * 100, 2) if len(_close) >= 22 else None
+            except Exception:
+                pass
+
+        if item.get("discovery_price"):
+            item["pct_change_since_discovery"] = round(
+                (cur_price / item["discovery_price"] - 1) * 100, 2
+            )
+
+        _inval_price = item.get("invalidation_price")
+        if _inval_price is not None:
+            item["invalidated"] = bool(cur_price > _inval_price)
+
+        if item["invalidated"]:
+            item["short_status"] = "🔴 Invalidated — price reversed above thesis level"
+        elif item.get("pct_change_since_discovery") is not None:
+            _chg = item["pct_change_since_discovery"]
+            if _chg < -5:
+                item["short_status"] = "📉 Deepening — thesis working"
+            elif _chg > 5:
+                item["short_status"] = "📈 Reversing — watch closely"
+            else:
+                item["short_status"] = "➡️ Holding roughly steady"
+    return disc_list
+
+
 def _derive_stage_rank(price, ma50, ma200) -> int:
     """Cheap stage classification from price/MA50/MA200 alone — no extra
     network call needed, since fetch_price() already returns these.
@@ -765,6 +1000,19 @@ def auto_refresh_discoveries_if_due():
             log.info(f"Discovery Tracker: auto-refreshed {len(_disc)} tracked ticker(s) for today.")
         except Exception as e:
             log.warning(f"Discovery Tracker: auto-refresh failed, will retry next page load: {e}")   
+
+def auto_refresh_short_tracker_if_due():
+    """Sibling of auto_refresh_discoveries_if_due(), for the short side.
+    Reuses the same once-per-day due-check logic (works on any list with
+    'last_checked' entries, not specific to the long side's field names)."""
+    _short_disc = load_short_discoveries()
+    if _discoveries_due_for_refresh(_short_disc):
+        try:
+            _short_disc = _refresh_short_prices(_short_disc)
+            save_short_discoveries(_short_disc)
+            log.info(f"Short Tracker: auto-refreshed {len(_short_disc)} tracked candidate(s) for today.")
+        except Exception as e:
+            log.warning(f"Short Tracker: auto-refresh failed, will retry next page load: {e}")
 
 # ── Checklist watchlist storage (setups to monitor for status change) ──────────
 _CHKWATCH_FILE = _PORT_DIR / "checklist_watchlist.json" if "_PORT_DIR" in dir() else Path("data/checklist_watchlist.json")
@@ -2663,6 +2911,7 @@ _scan_market      = "us"
 # Once-per-day price refresh for the Discovery Tracker — independent of
 # whether scan auto-scan is enabled. Cheap no-op if already refreshed today.
 auto_refresh_discoveries_if_due()
+auto_refresh_short_tracker_if_due()
 
 if _autoscan_trigger and not run_btn:
     _auto_fired = True
@@ -7560,6 +7809,36 @@ with tabs[20]:
                         else:
                             st.caption("Not enough data to compute a risk score for this stock.")
 
+                    # ── Fundamentals Change Tracking ─────────────────────
+                    st.markdown("**📊 Fundamentals Trend**")
+                    _fund_hist = load_fund_history()
+                    _fund_trend = compute_fundamentals_trend(lt_pick, _r, _fund_hist)
+                    st.markdown(_fund_trend["trend"])
+                    if _fund_trend["as_of"]:
+                        st.caption(f"Compared against the snapshot from {_fund_trend['as_of']}.")
+                    if _fund_trend["deltas"]:
+                        _delta_lines = []
+                        _field_labels = {
+                            "roe": "ROE", "revenue_growth": "Revenue Growth",
+                            "earnings_growth": "Earnings Growth", "debt_to_equity": "Debt/Equity",
+                            "gross_margin": "Gross Margin", "free_cash_flow": "Free Cash Flow",
+                            "peg_ratio": "PEG Ratio",
+                        }
+                        for d in _fund_trend["deltas"]:
+                            _icon = "📈" if d["improved"] else "📉"
+                            _delta_lines.append(f"{_icon} {_field_labels.get(d['field'], d['field'])}: {d['old']} → {d['new']}")
+                        st.caption(" · ".join(_delta_lines))
+                    elif _fund_trend["trend"] != "🆕 First snapshot":
+                        st.caption("No meaningful change in tracked fundamentals since the last check.")
+                    # Persist the current snapshot for next time — only for the
+                    # one ticker actually being viewed, not the whole table, to
+                    # keep write volume low as you browse different stocks.
+                    _fund_hist[lt_pick] = {
+                        "fields": _fund_trend["snapshot"],
+                        "as_of": datetime.now().strftime("%Y-%m-%d"),
+                    }
+                    save_fund_history(_fund_hist)
+
                     f1, f2, f3 = st.columns(3)
                     _roe = _r.get("roe")
                     _rg  = _r.get("revenue_growth")
@@ -7784,6 +8063,8 @@ with tabs[20]:
             _short_universe, _ = build_universe(preset="full", cache_hours=24)
             short_df = run_short_scan(_short_cfg, universe_override=_short_universe)
         st.session_state["short_scan_df"] = short_df
+        if not short_df.empty:
+            log_new_short_candidates(short_df)
 
     short_df = st.session_state.get("short_scan_df", pd.DataFrame())
 
@@ -7798,7 +8079,7 @@ with tabs[20]:
 
         short_show_cols = [c for c in [
             "ticker", "theme", "price", "mcap_category", "stage",
-            "short_score", "perf_3m_%", "rs_3m", "pct_off_low_%",
+            "short_score", "perf_1w_%", "perf_1m_%", "perf_3m_%", "rs_3m", "pct_off_low_%",
             "breaking_down", "pattern", "of_bias", "avg_volume_30d",
         ] if c in short_df.columns]
         short_disp = short_df[short_show_cols].head(50).copy()
@@ -7807,6 +8088,8 @@ with tabs[20]:
             short_disp.style.format({
                 "price": "${:.2f}",
                 "short_score": "{:.0f}",
+                "perf_1w_%": "{:+.1f}%",
+                "perf_1m_%": "{:+.1f}%",
                 "perf_3m_%": "{:+.1f}%",
                 "rs_3m": "{:+.0f}",
                 "pct_off_low_%": "{:+.1f}%",
@@ -7825,6 +8108,78 @@ with tabs[20]:
     elif short_run_btn:
         st.info("No stocks currently meet the short-candidate criteria (confirmed downtrend, "
                 "negative relative strength, adequate liquidity). That's a real result, not an error.")
+
+    # ── Short Tracker — persistent, mirrors Discovery Tracker for the
+    # red side. Shows regardless of whether a fresh scan ran this session,
+    # since it holds history across sessions, not just the current result.
+    st.markdown("---")
+    st.markdown("#### 📊 Short Tracker")
+    st.caption(
+        "Every candidate the short scan has ever surfaced, refreshed automatically once a "
+        "day. Weekly and monthly figures show trajectory — is the decline deepening or "
+        "stabilizing — not just the total move since discovery."
+    )
+
+    _short_tracked = load_short_discoveries()
+    if not _short_tracked:
+        st.info("No short candidates tracked yet — run the short scan above at least once.")
+    else:
+        _sdf = pd.DataFrame(_short_tracked)
+        _checked = _sdf[_sdf["short_status"].astype(str) != "– Not checked yet"] if "short_status" in _sdf.columns else pd.DataFrame()
+
+        if not _checked.empty:
+            d1, d2, d3, d4 = st.columns(4)
+            _deepening    = int((_checked["short_status"] == "📉 Deepening — thesis working").sum())
+            _reversing    = int((_checked["short_status"] == "📈 Reversing — watch closely").sum())
+            _steady       = int((_checked["short_status"] == "➡️ Holding roughly steady").sum())
+            _short_inval  = int((_checked["short_status"] == "🔴 Invalidated — price reversed above thesis level").sum())
+            d1.metric("📉 Deepening", _deepening)
+            d2.metric("📈 Reversing", _reversing)
+            d3.metric("➡️ Steady", _steady)
+            d4.metric("🔴 Invalidated", _short_inval)
+            if _short_inval > 0:
+                st.error(
+                    f"🔴 {_short_inval} tracked short candidate(s) have reversed above their "
+                    "invalidation price — the downtrend thesis for these no longer holds."
+                )
+            if _reversing > 0:
+                st.warning(
+                    f"⚠️ {_reversing} tracked candidate(s) are reversing (price up 5%+ since "
+                    "discovery) — if you're actually short any of these, worth a direct look."
+                )
+
+        _short_log_cols = [c for c in [
+            "ticker", "discovered_at", "discovery_price", "short_score", "stage",
+            "current_price", "pct_change_1w", "pct_change_1m", "pct_change_since_discovery",
+            "short_status", "invalidation_price", "theme",
+        ] if c in _sdf.columns]
+        _short_show = _sdf[_short_log_cols].copy().sort_values("discovered_at", ascending=False)
+
+        st.dataframe(
+            _short_show.style.format({
+                "discovery_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+                "current_price":   lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+                "pct_change_1w":   lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
+                "pct_change_1m":   lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
+                "pct_change_since_discovery": lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
+                "invalidation_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+                "short_score":     "{:.0f}",
+            }, na_rep="–"),
+            use_container_width=True, height=380,
+        )
+
+        # Recent headlines — qualitative "why" for the top tracked candidates
+        _with_news = [d for d in _short_tracked if d.get("recent_headlines")]
+        if _with_news:
+            with st.expander("📰 Recent headlines for tracked candidates"):
+                for d in _with_news[:15]:
+                    st.markdown(f"**{d['ticker']}**")
+                    for h in d.get("recent_headlines", [])[:2]:
+                        st.caption(f"• {h}")
+
+        _csv_short = _sdf.to_csv(index=False).encode("utf-8")
+        st.download_button("⬇️ Download Short Tracker CSV", _csv_short,
+                            "short_tracker.csv", "text/csv", key="dl_short_tracker")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
