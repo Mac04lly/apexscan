@@ -427,6 +427,7 @@ def log_new_short_candidates(short_df: pd.DataFrame):
             continue
         _row_dict = row.to_dict()
         _inval = compute_short_invalidation_price(_row_dict)
+        _earn = fetch_earnings(tk)
         _new.append({
             "ticker":              tk,
             "discovered_at":       datetime.now().strftime("%Y-%m-%d"),
@@ -437,6 +438,7 @@ def log_new_short_candidates(short_df: pd.DataFrame):
             "recent_headlines":    row.get("recent_headlines", []),
             "invalidation_price":  _inval.get("primary"),
             "invalidation_basis":  _inval.get("primary_basis"),
+            "next_earnings":       _earn.get("next_earnings"),
             # filled in on refresh:
             "last_checked":        None,
             "current_price":       None,
@@ -482,6 +484,19 @@ def _refresh_short_prices(disc_list: list) -> list:
             item["pct_change_since_discovery"] = round(
                 (cur_price / item["discovery_price"] - 1) * 100, 2
             )
+
+        # Re-check earnings date only if missing or already passed —
+        # avoids re-fetching a still-valid future date every single day.
+        _stored_earn = item.get("next_earnings")
+        _needs_earn_check = not _stored_earn
+        if _stored_earn:
+            try:
+                _needs_earn_check = pd.to_datetime(_stored_earn).date() < datetime.now().date()
+            except Exception:
+                _needs_earn_check = True
+        if _needs_earn_check:
+            _earn = fetch_earnings(item["ticker"])
+            item["next_earnings"] = _earn.get("next_earnings")
 
         _inval_price = item.get("invalidation_price")
         if _inval_price is not None:
@@ -914,11 +929,18 @@ def log_new_discoveries(scan_df: pd.DataFrame):
             continue
         _discovery_stage = str(row.get("stage", ""))
         _inval = compute_invalidation_price(row.to_dict() if hasattr(row, "to_dict") else dict(row))
+        # Reuse next_earnings if the scan already enriched it (top-N stocks
+        # get this from Alpha Vantage during Pass 2); otherwise fetch fresh
+        # via the free yfinance-based fetch_earnings().
+        _next_earn = row.get("next_earnings")
+        if not _next_earn:
+            _next_earn = fetch_earnings(tk).get("next_earnings")
         _new.append({
             "ticker":            tk,
             "discovered_at":     datetime.now().strftime("%Y-%m-%d"),
             "discovery_price":   float(row.get("price", 0) or 0),
             "apex_score":        float(row.get("apex_score", 0) or 0),
+            "apex_score_raw":    float(row.get("apex_score_raw", row.get("apex_score", 0)) or 0),
             "stage":             _discovery_stage,
             "discovery_stage_rank": _stage_rank_from_label(_discovery_stage),
             "theme":             str(row.get("theme", "")),
@@ -926,6 +948,7 @@ def log_new_discoveries(scan_df: pd.DataFrame):
             "of_bias":           str(row.get("of_bias", "")),
             "invalidation_price": _inval.get("primary"),
             "invalidation_basis": _inval.get("primary_basis"),
+            "next_earnings":     _next_earn,
             # filled in on refresh:
             "last_checked":      None,
             "current_price":     None,
@@ -962,6 +985,18 @@ def _refresh_discovery_prices(disc_list: list) -> list:
             item["days_tracked"] = (
                 pd.Timestamp.now() - pd.to_datetime(item["discovered_at"])
             ).days
+
+            # Re-check earnings date only if missing or already passed —
+            # avoids re-fetching a still-valid future date every single day.
+            _stored_earn = item.get("next_earnings")
+            _needs_earn_check = not _stored_earn
+            if _stored_earn:
+                try:
+                    _needs_earn_check = pd.to_datetime(_stored_earn).date() < datetime.now().date()
+                except Exception:
+                    _needs_earn_check = True
+            if _needs_earn_check:
+                item["next_earnings"] = fetch_earnings(item["ticker"]).get("next_earnings")
 
             _cur_rank = _derive_stage_rank(live.get("price"), live.get("ma50"), live.get("ma200"))
             item["current_stage_rank"] = _cur_rank
@@ -8148,10 +8183,31 @@ with tabs[20]:
                     "discovery) — if you're actually short any of these, worth a direct look."
                 )
 
+        # ── Earnings-soon warning — real UPSIDE risk for a short position ──
+        if "next_earnings" in _sdf.columns:
+            _today = datetime.now().date()
+            _soon = []
+            for _, r in _sdf.iterrows():
+                _ne = r.get("next_earnings")
+                if not _ne:
+                    continue
+                try:
+                    _days_out = (pd.to_datetime(_ne).date() - _today).days
+                    if 0 <= _days_out <= 7:
+                        _soon.append((r["ticker"], _days_out, _ne))
+                except Exception:
+                    continue
+            if _soon:
+                _soon.sort(key=lambda x: x[1])
+                _soon_txt = " · ".join(f"{tk} ({d}d, {dt})" for tk, d, dt in _soon)
+                st.warning(f"⚠️ **Earnings within 7 days:** {_soon_txt} — a short position has "
+                           f"unlimited upside risk; an earnings surprise can gap the price up "
+                           f"hard and fast, unlike the capped risk of a long position.")
+
         _short_log_cols = [c for c in [
             "ticker", "discovered_at", "discovery_price", "short_score", "stage",
             "current_price", "pct_change_1w", "pct_change_1m", "pct_change_since_discovery",
-            "short_status", "invalidation_price", "theme",
+            "short_status", "invalidation_price", "next_earnings", "theme",
         ] if c in _sdf.columns]
         _short_show = _sdf[_short_log_cols].copy().sort_values("discovered_at", ascending=False)
 
@@ -8163,6 +8219,7 @@ with tabs[20]:
                 "pct_change_1m":   lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
                 "pct_change_since_discovery": lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
                 "invalidation_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+                "next_earnings":   lambda v: v if v else "–",
                 "short_score":     "{:.0f}",
             }, na_rep="–"),
             use_container_width=True, height=380,
@@ -10267,10 +10324,28 @@ with tabs[21]:
         # ── THE key validation: does score predict outcome? ────────────
         if not tracked.empty:
             st.markdown("#### 🎯 Does Apex Score Predict Returns? (The Real Test)")
-            buckets = [("80-100", 80, 101), ("65-79", 65, 80), ("50-64", 50, 65), ("<50", 0, 50)]
+            _has_raw = "apex_score_raw" in tracked.columns and tracked["apex_score_raw"].notna().any()
+            _score_col = "apex_score_raw" if _has_raw else "apex_score"
+            if _has_raw:
+                st.caption(
+                    "Using the **uncapped raw score** for these buckets, not the displayed 0-100 "
+                    "score — many stocks tie at the visible 100 ceiling (the raw total routinely "
+                    "exceeds 150+), which used to collapse very different quality levels into one "
+                    "bucket and made this test far less meaningful than it looked."
+                )
+                buckets = [("150+", 150, 10_000), ("125-149", 125, 150), ("100-124", 100, 125),
+                           ("80-99", 80, 100), ("65-79", 65, 80), ("50-64", 50, 65), ("<50", 0, 50)]
+            else:
+                st.caption(
+                    "⚠️ These tracked entries predate the raw-score fix, so this is still using "
+                    "the displayed (capped) score — newly discovered stocks will use the "
+                    "uncapped score automatically."
+                )
+                buckets = [("80-100", 80, 101), ("65-79", 65, 80), ("50-64", 50, 65), ("<50", 0, 50)]
+
             rows = []
             for label, lo, hi in buckets:
-                b = tracked[(tracked["apex_score"] >= lo) & (tracked["apex_score"] < hi)]
+                b = tracked[(tracked[_score_col] >= lo) & (tracked[_score_col] < hi)]
                 if not b.empty:
                     rows.append({
                         "Score Range": label,
@@ -10287,10 +10362,31 @@ with tabs[21]:
                 )
 
         st.markdown("---")
+
+        # ── Earnings-soon warning — real gap risk for anything held through it ──
+        if "next_earnings" in dd.columns:
+            _today = datetime.now().date()
+            _soon = []
+            for _, r in dd.iterrows():
+                _ne = r.get("next_earnings")
+                if not _ne:
+                    continue
+                try:
+                    _days_out = (pd.to_datetime(_ne).date() - _today).days
+                    if 0 <= _days_out <= 7:
+                        _soon.append((r["ticker"], _days_out, _ne))
+                except Exception:
+                    continue
+            if _soon:
+                _soon.sort(key=lambda x: x[1])
+                _soon_txt = " · ".join(f"{tk} ({d}d, {dt})" for tk, d, dt in _soon)
+                st.warning(f"⚠️ **Earnings within 7 days:** {_soon_txt} — a surprise miss right "
+                           f"after discovery is one of the fastest ways a fresh long thesis breaks.")
+
         st.markdown("#### 📋 Full Discovery Log")
-        _log_cols = ["ticker","discovered_at","discovery_price","apex_score","stage",
+        _log_cols = ["ticker","discovered_at","discovery_price","apex_score","apex_score_raw","stage",
                      "current_price","pct_change","thesis_status","invalidation_price",
-                     "days_tracked","theme"]
+                     "next_earnings","days_tracked","theme"]
         _log_cols = [c for c in _log_cols if c in dd.columns]
         show = dd[_log_cols].copy()
         show = show.sort_values("discovered_at", ascending=False)
@@ -10305,6 +10401,7 @@ with tabs[21]:
                 "current_price":   lambda v: f"${v:.2f}" if pd.notna(v) else "–",
                 "pct_change":      lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
                 "invalidation_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+                "next_earnings":   lambda v: v if v else "–",
                 "apex_score":      "{:.0f}",
                 "days_tracked":    lambda v: f"{int(v)}d" if pd.notna(v) else "–",
             }, na_rep="–"),
