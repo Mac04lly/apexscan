@@ -1233,6 +1233,12 @@ def analyze_stock(ticker: str, cfg: dict,
         elif not wk_data["weekly_confirmed"] and not wk_data["weekly_contradicts"]:
             score -= 3
 
+        # Preserve the full-resolution score BEFORE the 0-100 display clamp.
+        # Many genuinely different-quality stocks can tie at the visible
+        # 100 ceiling (the raw total routinely exceeds 150+); score_raw
+        # keeps them properly differentiated for ranking/analysis without
+        # changing the displayed apex_score or any existing scan threshold.
+        score_raw = score
         score = max(0, min(100, round(score, 1)))
 
         if is_gem:
@@ -1244,6 +1250,28 @@ def analyze_stock(ticker: str, cfg: dict,
                 ee_score = ee_data["early_entry_score"],
                 mcap     = mcap_data.get("market_cap"),
             )
+            # Mirror gem_score_boost's bonus formula for the raw score too —
+            # duplicated intentionally rather than refactoring the existing,
+            # already-tested function, so its behavior is never at risk.
+            _boosts = gem_cfg.get("score_boosts", {})
+            _raw_bonus = 0
+            if rs_3m >= _boosts.get("rs_bonus_threshold", 150):
+                _raw_bonus += _boosts.get("rs_bonus_points", 5)
+            elif rs_3m >= 100:
+                _raw_bonus += 3
+            if breaking_out:
+                _raw_bonus += _boosts.get("breakout_bonus", 5) + 3
+            _raw_bonus += of_data["of_persistence_score"] * (_boosts.get("of_persistence_multiplier", 1.5) - 1)
+            _raw_bonus += pa_data["pa_score"] * (_boosts.get("pa_patterns_multiplier", 1.4) - 1)
+            _raw_bonus += ee_data["early_entry_score"] * 1.5
+            _mcap_val = mcap_data.get("market_cap")
+            if _mcap_val is not None:
+                if _mcap_val < 300_000_000:       _raw_bonus += 6
+                elif _mcap_val < 1_000_000_000:   _raw_bonus += 4
+                elif _mcap_val < 2_000_000_000:   _raw_bonus += 2
+            score_raw += _raw_bonus
+
+        score_raw = round(score_raw, 1)
 
         pa_summary = " | ".join(pa_data["pa_patterns"]) if pa_data["pa_patterns"] else "None"
 
@@ -1336,6 +1364,7 @@ def analyze_stock(ticker: str, cfg: dict,
             "weekly_contradicts":      wk_data["weekly_contradicts"],
             "weekly_score":            wk_data["weekly_score"],
             "apex_score":      score,
+            "apex_score_raw":  score_raw,
             "scanned_at":      datetime.now().strftime("%Y-%m-%d %H:%M"),
             "market_cap":      mcap_data["market_cap"],
             "market_cap_bn":   mcap_data["market_cap_bn"],
@@ -1475,7 +1504,11 @@ def run_scan(cfg: dict, markets: List[str] = None,
         diagnostics.log_summary(log)
         return pd.DataFrame()
 
-    results.sort(key=lambda x: x["apex_score"], reverse=True)
+    # Sort by displayed score first (keeps existing threshold/UI behavior
+    # identical), then by raw score as a tiebreaker — many stocks tie at
+    # the visible 100 ceiling, and without this, that tie is broken by
+    # arbitrary list order rather than true underlying quality.
+    results.sort(key=lambda x: (x["apex_score"], x.get("apex_score_raw", x["apex_score"])), reverse=True)
 
     if use_av and av_max > 0:
         api_calls_made = 0
@@ -1546,7 +1579,11 @@ def run_scan(cfg: dict, markets: List[str] = None,
     #    fullest data available (AV EPS + fundamentals), not just Pass 1 data.
     results = [selected_strategy.evaluate(r) for r in results]
 
-    df = pd.DataFrame(results).sort_values("apex_score", ascending=False).reset_index(drop=True)
+    df = pd.DataFrame(results)
+    if "apex_score_raw" in df.columns:
+        df = df.sort_values(["apex_score", "apex_score_raw"], ascending=[False, False]).reset_index(drop=True)
+    else:
+        df = df.sort_values("apex_score", ascending=False).reset_index(drop=True)
     df.index += 1
     df.index.name = "rank"
     diagnostics.log_summary(log)
