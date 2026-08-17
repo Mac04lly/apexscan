@@ -989,6 +989,26 @@ def analyze_stock(ticker: str, cfg: dict,
         vs_50ma_pct  = price_vs_ma(current_price, ma50)
         vs_200ma_pct = price_vs_ma(current_price, ma200)
 
+        # ── Moving-average slope — is the trend turning, not just where
+        # price sits relative to it. Computed live from history already
+        # fetched, no cross-session tracking needed. A "flattening or
+        # turning higher" 50/200-day average, while still building a base,
+        # is a real pre-breakout tell that a static above/below check misses.
+        ma50_series  = close.rolling(50).mean()
+        ma200_series = close.rolling(200).mean()
+        ma50_slope_pct, ma200_slope_pct = None, None
+        ma50_turning_up, ma200_turning_up = False, False
+        if len(ma50_series.dropna()) > 10:
+            _ma50_then = ma50_series.iloc[-11]
+            if pd.notna(_ma50_then) and _ma50_then != 0:
+                ma50_slope_pct = round((ma50 / _ma50_then - 1) * 100, 2)
+                ma50_turning_up = ma50_slope_pct > -0.5   # flat or rising, not still declining
+        if len(ma200_series.dropna()) > 20:
+            _ma200_then = ma200_series.iloc[-21]
+            if pd.notna(_ma200_then) and _ma200_then != 0:
+                ma200_slope_pct = round((ma200 / _ma200_then - 1) * 100, 2)
+                ma200_turning_up = ma200_slope_pct > -0.3
+
         if _is_ngx and _ngx_bench is not None and len(_ngx_bench) > 63:
             bench = _ngx_bench
             log.info(f"{ticker}: using NGX All-Share benchmark for RS")
@@ -1294,6 +1314,10 @@ def analyze_stock(ticker: str, cfg: dict,
             "adr_%":           adr,
             "vs_50ma_%":       vs_50ma_pct,
             "vs_200ma_%":      vs_200ma_pct,
+            "ma50_slope_%":    ma50_slope_pct,
+            "ma200_slope_%":   ma200_slope_pct,
+            "ma50_turning_up": ma50_turning_up,
+            "ma200_turning_up": ma200_turning_up,
             "volume":          vol_today,
             "vol_filter":      vol_filter,
             "vol_surge_x":     vol_surge,
