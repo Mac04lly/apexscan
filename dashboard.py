@@ -271,7 +271,8 @@ def _save_chart_notes(notes: dict):
 _FUNDHIST_FILE = _PORT_DIR / "fundamentals_history.json" if "_PORT_DIR" in dir() else Path("data/fundamentals_history.json")
 _FUNDHIST_TMP  = Path("/tmp/apexscan_fundamentals_history.json")
 _FUND_TRACKED_FIELDS = ["roe", "revenue_growth", "earnings_growth", "debt_to_equity",
-                         "gross_margin", "free_cash_flow", "peg_ratio"]
+                         "gross_margin", "free_cash_flow", "peg_ratio",
+                         "institutional_ownership", "rs_3m"]
 
 def _save_fund_history_local(hist: dict):
     for _p in (_FUNDHIST_FILE, _FUNDHIST_TMP):
@@ -348,6 +349,67 @@ def compute_fundamentals_trend(ticker: str, current: dict, history: dict) -> dic
         trend = "↔️ Mixed"
 
     return {"trend": trend, "as_of": prior.get("as_of"), "deltas": deltas, "snapshot": snapshot}
+
+
+def compute_inflection_score(row: dict, fund_trend: dict) -> dict:
+    """
+    'Fundamentals first, technicals confirm' framework — positioning while
+    a base is still forming, before the breakout is obvious to everyone
+    else. Six criteria, each pass/fail/unknown (institutional accumulation
+    and RS trend need at least one prior snapshot to evaluate — they show
+    'unknown' the first time a stock is checked, same honest limitation as
+    the Fundamentals Trend badge this reuses).
+    """
+    def _f(key, default=None):
+        v = row.get(key, default)
+        try:
+            return float(v) if v is not None and pd.notna(v) else default
+        except (TypeError, ValueError):
+            return default
+
+    stage      = str(row.get("stage", ""))
+    above200   = bool(row.get("above_200ma"))
+    ma50gt200  = bool(row.get("ma50_gt_ma200"))
+    eps_g      = _f("eps_growth_%")
+    eps_accel  = bool(row.get("eps_accel"))
+    fresh50    = bool(row.get("fresh_50ma_cross"))
+    pullback50 = bool(row.get("pullback_to_50ma"))
+    ma50_up    = row.get("ma50_turning_up")
+    ma200_up   = row.get("ma200_turning_up")
+
+    _inst_delta = next((d for d in fund_trend.get("deltas", []) if d["field"] == "institutional_ownership"), None)
+    _rs_delta   = next((d for d in fund_trend.get("deltas", []) if d["field"] == "rs_3m"), None)
+
+    checks = {
+        "base_after_reclaim": {
+            "label": "Reclaimed 200-day SMA, still basing (Stage 1)",
+            "pass": (above200 and not ma50gt200),
+        },
+        "eps_accelerating": {
+            "label": "EPS growth accelerating 20%+ YoY",
+            "pass": eps_accel or (eps_g is not None and eps_g >= 20),
+        },
+        "institutional_accumulation": {
+            "label": "Institutional ownership rising",
+            "pass": _inst_delta["improved"] if _inst_delta is not None else None,
+        },
+        "rs_improving_in_base": {
+            "label": "Relative strength improving while still basing",
+            "pass": (_rs_delta["improved"] and not ma50gt200) if _rs_delta is not None else None,
+        },
+        "mas_turning_up": {
+            "label": "50/200-day averages flattening or turning higher",
+            "pass": (bool(ma50_up) or bool(ma200_up)) if (ma50_up is not None or ma200_up is not None) else None,
+        },
+        "stage_transition": {
+            "label": "Early signs of Stage 1 → Stage 2 transition",
+            "pass": stage.startswith("1") and (fresh50 or pullback50),
+        },
+    }
+
+    passed  = sum(1 for c in checks.values() if c["pass"] is True)
+    unknown = sum(1 for c in checks.values() if c["pass"] is None)
+    return {"checks": checks, "passed": passed, "unknown": unknown, "total": 6}
 
 
 # ── Short Candidate Tracker — mirrors Discovery Tracker's structure and
@@ -7622,6 +7684,14 @@ with tabs[20]:
 
             lt_df["risk_label"] = lt_df["risk_score"].apply(_risk_label)
 
+            # ── Pre-Breakout Inflection Score — scan-wide ────────────────
+            _scan_fund_hist = load_fund_history()
+            def _infl_row(row):
+                _rd = row.to_dict()
+                _ft = compute_fundamentals_trend(row["ticker"], _rd, _scan_fund_hist)
+                return compute_inflection_score(_rd, _ft)["passed"]
+            lt_df["inflection_score"] = lt_df.apply(_infl_row, axis=1)
+
             # ── Fundamentals coverage check ─────────────────────────────────
             fund_cols = ["roe", "revenue_growth", "earnings_growth", "debt_to_equity", "free_cash_flow", "peg_ratio"]
             available_fund_cols = [c for c in fund_cols if c in lt_df.columns]
@@ -7677,17 +7747,26 @@ with tabs[20]:
                 divergence_only = st.checkbox("📉📈 Divergence only", key="lt_divergence_only",
                     help="Show only stocks where revenue/earnings growth is improving while "
                          "price has pulled back — a potential mispricing, not a momentum name.")
+                inflection_only = st.checkbox("🎯 Inflection candidates (4+/6)", key="lt_inflection_only",
+                    help="Stocks checking at least 4 of the 6 'fundamentals-first, technicals-"
+                         "confirm' boxes — basing after a reclaim, EPS accelerating, RS/institutional "
+                         "trend improving, MAs turning up, early Stage 1→2 transition.")
             lt_show = lt_df[lt_df["strategy_recommendation"].isin(rec_filter)] if rec_filter else lt_df
             if divergence_only:
                 lt_show = lt_show[lt_show["divergence"] == True]
                 if lt_show.empty:
                     st.info("No divergence candidates in this scan right now — that's normal, "
                             "this is a specific, less-common setup.")
+            if inflection_only:
+                lt_show = lt_show[lt_show["inflection_score"] >= 4]
+                if lt_show.empty:
+                    st.info("No stocks currently check 4+ of the 6 inflection boxes — a "
+                            "genuinely uncommon setup by design, not a bug.")
 
             # ── Table ───────────────────────────────────────────────────
             want_cols = [
                 "ticker", "theme", "price", "mcap_category",
-                "strategy_score", "strategy_recommendation", "divergence",
+                "strategy_score", "strategy_recommendation", "divergence", "inflection_score",
                 "valuation_vs_sector_%", "risk_label",
                 "roe", "revenue_growth", "earnings_growth",
                 "debt_to_equity", "peg_ratio", "apex_score",
@@ -7707,6 +7786,7 @@ with tabs[20]:
                 "strategy_score": "{:.0f}",
                 "apex_score": "{:.0f}",
                 "divergence": lambda v: "📉📈 Yes" if v is True else "–",
+                "inflection_score": lambda v: f"🎯 {int(v)}/6" if pd.notna(v) else "–",
                 "valuation_vs_sector_%": lambda v: f"{v:+.0f}% vs peers" if pd.notna(v) else "–",
                 "roe": lambda v: f"{v*100:.1f}%" if pd.notna(v) else "–",
                 "revenue_growth": lambda v: f"{v*100:+.1f}%" if pd.notna(v) else "–",
@@ -7857,7 +7937,8 @@ with tabs[20]:
                             "roe": "ROE", "revenue_growth": "Revenue Growth",
                             "earnings_growth": "Earnings Growth", "debt_to_equity": "Debt/Equity",
                             "gross_margin": "Gross Margin", "free_cash_flow": "Free Cash Flow",
-                            "peg_ratio": "PEG Ratio",
+                            "peg_ratio": "PEG Ratio", "institutional_ownership": "Institutional Ownership",
+                            "rs_3m": "Relative Strength (3m)",
                         }
                         for d in _fund_trend["deltas"]:
                             _icon = "📈" if d["improved"] else "📉"
@@ -7873,6 +7954,28 @@ with tabs[20]:
                         "as_of": datetime.now().strftime("%Y-%m-%d"),
                     }
                     save_fund_history(_fund_hist)
+
+                    # ── Pre-Breakout Inflection Screener ─────────────────
+                    st.markdown("---")
+                    st.markdown("**🎯 Pre-Breakout Inflection Score**")
+                    st.caption(
+                        "Fundamentals first, technicals confirm — positioning while a base is "
+                        "still forming, before the breakout is obvious to everyone else. "
+                        "Six criteria; the more checked, the more interesting the setup."
+                    )
+                    _infl = compute_inflection_score(
+                        _r if isinstance(_r, dict) else _r.to_dict(), _fund_trend
+                    )
+                    _infl_c1, _infl_c2 = st.columns([1, 3])
+                    with _infl_c1:
+                        st.metric("Boxes Checked", f"{_infl['passed']} / {_infl['total']}")
+                        if _infl["unknown"] > 0:
+                            st.caption(f"{_infl['unknown']} criteria need a second check "
+                                       "(no prior snapshot yet) to evaluate.")
+                    with _infl_c2:
+                        for _key, _c in _infl["checks"].items():
+                            _icon = "✅" if _c["pass"] is True else ("❌" if _c["pass"] is False else "❔")
+                            st.markdown(f"{_icon} {_c['label']}")
 
                     f1, f2, f3 = st.columns(3)
                     _roe = _r.get("roe")
