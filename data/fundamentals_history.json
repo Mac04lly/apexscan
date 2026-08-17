@@ -36,5 +36,19 @@
       "peg_ratio": NaN
     },
     "as_of": "2026-08-15"
+  },
+  "ERO": {
+    "fields": {
+      "roe": 0.30806,
+      "revenue_growth": 0.739,
+      "earnings_growth": 0.25,
+      "debt_to_equity": 47.066,
+      "gross_margin": 0.42992002,
+      "free_cash_flow": 47039876.0,
+      "peg_ratio": NaN,
+      "institutional_ownership": 0.74934,
+      "rs_3m": 471.1
+    },
+    "as_of": "2026-08-17"
   }
 }
