@@ -12716,13 +12716,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 26.75,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 27.99,
     "pct_change": 1.38,
-    "days_tracked": 3,
+    "days_tracked": 5,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "GATX",
@@ -12736,13 +12737,14 @@
     "of_bias": "Neutral",
     "invalidation_price": 175.47,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 180.64,
     "pct_change": 0.63,
-    "days_tracked": 2,
+    "days_tracked": 4,
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "CVNA",
@@ -12756,13 +12758,14 @@
     "of_bias": "Bullish",
     "invalidation_price": 72.41,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 75.59,
     "pct_change": 4.29,
-    "days_tracked": 2,
+    "days_tracked": 4,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "HOOD",
@@ -12776,13 +12779,14 @@
     "of_bias": "Bullish",
     "invalidation_price": 97.53,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 95.56,
     "pct_change": -2.8,
-    "days_tracked": 2,
+    "days_tracked": 4,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "POR",
@@ -12796,13 +12800,14 @@
     "of_bias": "Neutral",
     "invalidation_price": 49.66,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 50.76,
     "pct_change": 0.89,
-    "days_tracked": 2,
+    "days_tracked": 4,
     "current_stage_rank": null,
     "thesis_status": "\u2013 Not enough data",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "DIS",
@@ -12816,13 +12821,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 103.5,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 106.85,
     "pct_change": 2.11,
-    "days_tracked": 2,
+    "days_tracked": 4,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "SNDK",
@@ -12836,13 +12842,14 @@
     "of_bias": "Bullish",
     "invalidation_price": 895.49,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 1641.11,
     "pct_change": 15.41,
-    "days_tracked": 2,
+    "days_tracked": 4,
     "current_stage_rank": null,
     "thesis_status": "\u2013 Not enough data",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "MZTI",
@@ -12856,13 +12863,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 139.76,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 116.05,
     "pct_change": -1.74,
-    "days_tracked": 2,
+    "days_tracked": 4,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "DUOL",
@@ -12876,13 +12884,14 @@
     "of_bias": "Bullish",
     "invalidation_price": 139.09,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 132.83,
     "pct_change": -7.82,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "ACHR",
@@ -12896,13 +12905,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 6.72,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 6.62,
     "pct_change": -5.02,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "ZS",
@@ -12916,13 +12926,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 183.77,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 183.6,
     "pct_change": -2.43,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 1,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "RXRX",
@@ -12936,13 +12947,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 3.78,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 3.16,
     "pct_change": -4.53,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": -1,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "HLNE",
@@ -12956,13 +12968,14 @@
     "of_bias": "Bullish",
     "invalidation_price": 107.08,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 104.24,
     "pct_change": -2.75,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "TKO",
@@ -12976,13 +12989,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 195.76,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 201.28,
     "pct_change": 0.8,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "GDDY",
@@ -12996,13 +13010,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 99.01,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 94.91,
     "pct_change": -5.56,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "MSCI",
@@ -13016,13 +13031,14 @@
     "of_bias": "Bearish",
     "invalidation_price": 571.24,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 569.13,
     "pct_change": -1.06,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "BSY",
@@ -13036,13 +13052,14 @@
     "of_bias": "Bullish",
     "invalidation_price": 36.34,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 36.24,
     "pct_change": -0.88,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "PTC",
@@ -13056,13 +13073,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 151.62,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 149.75,
     "pct_change": -2.69,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "CG",
@@ -13076,13 +13094,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 50.95,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 49.28,
     "pct_change": -4.14,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "ICE",
@@ -13096,13 +13115,14 @@
     "of_bias": "Bullish",
     "invalidation_price": 153.7,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 154.73,
     "pct_change": -0.33,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "RDDT",
@@ -13116,13 +13136,14 @@
     "of_bias": "Neutral",
     "invalidation_price": 177.83,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 178.09,
     "pct_change": -0.35,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "EQIX",
@@ -13136,13 +13157,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 937.4,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 1102.1,
     "pct_change": 1.53,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "TLN",
@@ -13156,13 +13178,14 @@
     "of_bias": "Bullish",
     "invalidation_price": 364.14,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 362.74,
     "pct_change": -1.57,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "GEV",
@@ -13176,13 +13199,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 856.93,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 1063.25,
     "pct_change": 0.63,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "IRM",
@@ -13196,13 +13220,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 106.96,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 129.43,
     "pct_change": 2.2,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "PLD",
@@ -13216,13 +13241,14 @@
     "of_bias": "Bullish",
     "invalidation_price": 134.63,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 141.03,
     "pct_change": -0.14,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": null,
     "thesis_status": "\u2013 Not enough data",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "BKR",
@@ -13236,13 +13262,14 @@
     "of_bias": "Bullish",
     "invalidation_price": 56.94,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 64.82,
     "pct_change": 0.48,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "XEL",
@@ -13256,13 +13283,14 @@
     "of_bias": "Neutral",
     "invalidation_price": 78.08,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 79.17,
     "pct_change": 0.29,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": null,
     "thesis_status": "\u2013 Not enough data",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "CMCSA",
@@ -13276,13 +13304,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 26.3,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 26.18,
     "pct_change": -0.57,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "CASY",
@@ -13296,13 +13325,14 @@
     "of_bias": "Neutral",
     "invalidation_price": 706.04,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 846.45,
     "pct_change": -0.67,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "ROK",
@@ -13316,13 +13346,14 @@
     "of_bias": "Neutral",
     "invalidation_price": 414.58,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 449.37,
     "pct_change": 0.08,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": null,
     "thesis_status": "\u2013 Not enough data",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "LNT",
@@ -13336,13 +13367,14 @@
     "of_bias": "Bearish",
     "invalidation_price": 69.34,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 70.6,
     "pct_change": 0.31,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": null,
     "thesis_status": "\u2013 Not enough data",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "WWD",
@@ -13356,13 +13388,14 @@
     "of_bias": "Neutral",
     "invalidation_price": 353.31,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 370.56,
     "pct_change": 1.63,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": null,
     "thesis_status": "\u2013 Not enough data",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "AMT",
@@ -13376,13 +13409,14 @@
     "of_bias": "Bullish",
     "invalidation_price": 175.39,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 175.58,
     "pct_change": -0.39,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "T",
@@ -13396,13 +13430,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 24.6,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 24.89,
     "pct_change": -0.04,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "AEP",
@@ -13416,13 +13451,14 @@
     "of_bias": "Bullish",
     "invalidation_price": 124.76,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 125.6,
     "pct_change": 0.38,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": null,
     "thesis_status": "\u2013 Not enough data",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "ALGM",
@@ -13436,13 +13472,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 38.69,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 44.39,
     "pct_change": 0.11,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": null,
     "thesis_status": "\u2013 Not enough data",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "CDE",
@@ -13456,13 +13493,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 18.53,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 18.81,
     "pct_change": -1.72,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "RGLD",
@@ -13476,13 +13514,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 230.06,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 230.68,
     "pct_change": -0.92,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "next_earnings": null
   },
   {
     "ticker": "HL",
@@ -13496,13 +13535,14 @@
     "of_bias": "Strong Bullish",
     "invalidation_price": 18.48,
     "invalidation_basis": "200-day moving average",
-    "last_checked": "2026-08-15",
+    "last_checked": "2026-08-17",
     "current_price": 18.37,
     "pct_change": -1.87,
-    "days_tracked": 1,
+    "days_tracked": 3,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "next_earnings": null
   },
   {
     "ticker": "RCAT",
@@ -13518,12 +13558,12 @@
     "invalidation_price": 11.0,
     "invalidation_basis": "200-day moving average",
     "next_earnings": null,
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
+    "last_checked": "2026-08-17",
+    "current_price": 11.13,
+    "pct_change": 0.0,
+    "days_tracked": 2,
+    "current_stage_rank": 1,
+    "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
   },
   {
@@ -13540,12 +13580,12 @@
     "invalidation_price": 15.06,
     "invalidation_basis": "200-day moving average",
     "next_earnings": null,
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
+    "last_checked": "2026-08-17",
+    "current_price": 15.23,
+    "pct_change": 0.0,
+    "days_tracked": 2,
+    "current_stage_rank": 1,
+    "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
   },
   {
@@ -13562,12 +13602,12 @@
     "invalidation_price": 9.79,
     "invalidation_basis": "200-day moving average",
     "next_earnings": null,
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
+    "last_checked": "2026-08-17",
+    "current_price": 10.67,
+    "pct_change": 0.0,
+    "days_tracked": 2,
+    "current_stage_rank": 1,
+    "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
   },
   {
@@ -13584,12 +13624,12 @@
     "invalidation_price": 58.11,
     "invalidation_basis": "200-day moving average",
     "next_earnings": null,
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
+    "last_checked": "2026-08-17",
+    "current_price": 59.8,
+    "pct_change": 0.0,
+    "days_tracked": 2,
+    "current_stage_rank": 1,
+    "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
   },
   {
@@ -13606,12 +13646,12 @@
     "invalidation_price": 9.61,
     "invalidation_basis": "200-day moving average",
     "next_earnings": null,
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
+    "last_checked": "2026-08-17",
+    "current_price": 10.66,
+    "pct_change": 0.0,
+    "days_tracked": 2,
+    "current_stage_rank": 1,
+    "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
   },
   {
@@ -13628,12 +13668,12 @@
     "invalidation_price": 97.77,
     "invalidation_basis": "200-day moving average",
     "next_earnings": null,
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
+    "last_checked": "2026-08-17",
+    "current_price": 131.6,
+    "pct_change": 0.0,
+    "days_tracked": 2,
+    "current_stage_rank": 2,
+    "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
   },
   {
@@ -13650,13 +13690,13 @@
     "invalidation_price": 79.54,
     "invalidation_basis": "200-day moving average",
     "next_earnings": null,
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
-    "invalidated": false
+    "last_checked": "2026-08-17",
+    "current_price": 74.13,
+    "pct_change": 0.0,
+    "days_tracked": 2,
+    "current_stage_rank": 0,
+    "thesis_status": "\ud83d\udd34 Invalidated",
+    "invalidated": true
   },
   {
     "ticker": "SSRM",
@@ -13672,12 +13712,12 @@
     "invalidation_price": 26.94,
     "invalidation_basis": "200-day moving average",
     "next_earnings": null,
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
+    "last_checked": "2026-08-17",
+    "current_price": 32.19,
+    "pct_change": 0.0,
+    "days_tracked": 2,
+    "current_stage_rank": 2,
+    "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
   },
   {
@@ -13694,12 +13734,12 @@
     "invalidation_price": 1.9,
     "invalidation_basis": "200-day moving average",
     "next_earnings": null,
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
+    "last_checked": "2026-08-17",
+    "current_price": 2.05,
+    "pct_change": 0.0,
+    "days_tracked": 2,
+    "current_stage_rank": 2,
+    "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
   },
   {
@@ -13716,12 +13756,12 @@
     "invalidation_price": 63.77,
     "invalidation_basis": "200-day moving average",
     "next_earnings": null,
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
+    "last_checked": "2026-08-17",
+    "current_price": 73.02,
+    "pct_change": 0.0,
+    "days_tracked": 2,
+    "current_stage_rank": 2,
+    "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
   },
   {
@@ -13738,12 +13778,12 @@
     "invalidation_price": 53.23,
     "invalidation_basis": "200-day moving average",
     "next_earnings": null,
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
+    "last_checked": "2026-08-17",
+    "current_price": 53.55,
+    "pct_change": 0.0,
+    "days_tracked": 2,
+    "current_stage_rank": 1,
+    "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
   },
   {
@@ -13760,13 +13800,13 @@
     "invalidation_price": 173.56,
     "invalidation_basis": "200-day moving average",
     "next_earnings": null,
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
-    "invalidated": false
+    "last_checked": "2026-08-17",
+    "current_price": 163.32,
+    "pct_change": 0.0,
+    "days_tracked": 2,
+    "current_stage_rank": 0,
+    "thesis_status": "\ud83d\udd34 Invalidated",
+    "invalidated": true
   },
   {
     "ticker": "AVXL",
@@ -13782,12 +13822,12 @@
     "invalidation_price": 3.77,
     "invalidation_basis": "200-day moving average",
     "next_earnings": null,
-    "last_checked": null,
-    "current_price": null,
-    "pct_change": null,
-    "days_tracked": null,
-    "current_stage_rank": null,
-    "thesis_status": "\u2013 Not checked yet",
-    "invalidated": false
+    "last_checked": "2026-08-17",
+    "current_price": 3.22,
+    "pct_change": 0.0,
+    "days_tracked": 2,
+    "current_stage_rank": 0,
+    "thesis_status": "\ud83d\udd34 Invalidated",
+    "invalidated": true
   }
 ]
