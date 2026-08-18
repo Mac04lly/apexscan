@@ -14005,5 +14005,27 @@
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
+  },
+  {
+    "ticker": "OGS",
+    "discovered_at": "2026-08-18",
+    "discovery_price": 81.03,
+    "apex_score": 55.0,
+    "apex_score_raw": 55.0,
+    "stage": "1 \u23f3 Base",
+    "discovery_stage_rank": 1,
+    "theme": "Utilities",
+    "breaking_out": false,
+    "of_bias": "Strong Bullish",
+    "invalidation_price": 80.31,
+    "invalidation_basis": "200-day moving average",
+    "next_earnings": null,
+    "last_checked": null,
+    "current_price": null,
+    "pct_change": null,
+    "days_tracked": null,
+    "current_stage_rank": null,
+    "thesis_status": "\u2013 Not checked yet",
+    "invalidated": false
   }
 ]
