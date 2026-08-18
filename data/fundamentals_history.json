@@ -64,5 +64,19 @@
       "rs_3m": 1097.6
     },
     "as_of": "2026-08-17"
+  },
+  "HUBB": {
+    "fields": {
+      "roe": 0.24444,
+      "revenue_growth": 0.153,
+      "earnings_growth": -0.009,
+      "debt_to_equity": 141.642,
+      "gross_margin": 0.35338002,
+      "free_cash_flow": "495812512",
+      "peg_ratio": NaN,
+      "institutional_ownership": 0.99028,
+      "rs_3m": 145.7
+    },
+    "as_of": "2026-08-18"
   }
 }
