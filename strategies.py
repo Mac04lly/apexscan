@@ -76,28 +76,37 @@ class LongTermStrategy(BaseStrategy):
         fcf         = stock.get("free_cash_flow")
         peg         = stock.get("peg_ratio")
 
+        def _scaled(value, floor, ceiling, max_points, invert=False):
+            """Smooth, graduated credit instead of an all-or-nothing threshold —
+            a value halfway between floor and ceiling earns roughly half the
+            points, not zero. invert=True means lower is better (e.g. debt)."""
+            v = _safe(value)
+            if v is None:
+                return 0.0
+            if invert:
+                frac = (ceiling - v) / (ceiling - floor)
+            else:
+                frac = (v - floor) / (ceiling - floor)
+            return round(max(0.0, min(1.0, frac)) * max_points, 2)
+
         score = apex * 0.30
         fields_seen = 0
 
         if roe is not None:
             fields_seen += 1
-            if _safe(roe) > 0.20: score += 15
-            elif _safe(roe) > 0.10: score += 8
+            score += _scaled(roe, 0.0, 0.25, 15)          # full 15 at ROE >= 25%
 
         if rev_growth is not None:
             fields_seen += 1
-            if _safe(rev_growth) > 0.15: score += 15
-            elif _safe(rev_growth) > 0.05: score += 8
+            score += _scaled(rev_growth, 0.0, 0.20, 15)   # full 15 at growth >= 20%
 
         if earn_growth is not None:
             fields_seen += 1
-            if _safe(earn_growth) > 0.15: score += 15
-            elif _safe(earn_growth) > 0: score += 6
+            score += _scaled(earn_growth, 0.0, 0.20, 15)  # full 15 at growth >= 20%
 
         if debt_to_eq is not None:
             fields_seen += 1
-            if _safe(debt_to_eq) < 100: score += 10
-            elif _safe(debt_to_eq) < 200: score += 4
+            score += _scaled(debt_to_eq, 0.0, 250.0, 10, invert=True)  # full 10 at D/E = 0
 
         if fcf is not None:
             fields_seen += 1
@@ -105,8 +114,7 @@ class LongTermStrategy(BaseStrategy):
 
         if peg is not None:
             fields_seen += 1
-            if 0 < _safe(peg) <= 1.5: score += 10
-            elif 0 < _safe(peg) <= 2.5: score += 4
+            score += _scaled(peg, 3.0, 0.5, 10, invert=True)  # full 10 at PEG <= 0.5
 
         if fields_seen == 0:
             score = apex
