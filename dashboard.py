@@ -10387,10 +10387,17 @@ with tabs[21]:
             k5.metric("Median Return", "–")
 
         if len(tracked) < 30:
+            _pct_ready = min(100, round(len(tracked) / 30 * 100))
             st.warning(
-                f"⚠️ Only {len(tracked)} refreshed observations — statistically unreliable. "
-                "Wait for at least 30-50 before drawing conclusions about edge."
+                f"⚠️ **Sample Readiness: {len(tracked)}/30 minimum ({_pct_ready}%)** — the "
+                "predictive-value table below is real, but not yet statistically trustworthy. "
+                "Keep scanning daily; this fills in on its own as more discoveries get their "
+                "first refresh check."
             )
+            st.progress(_pct_ready / 100)
+        else:
+            st.success(f"✅ **Sample Readiness: {len(tracked)} checked observations** — enough "
+                       "for the predictive-value table below to start being meaningful.")
 
         # ── What Changed? Thesis tracking ───────────────────────────────
         if "thesis_status" in dd.columns:
