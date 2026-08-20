@@ -78,5 +78,19 @@
       "rs_3m": 145.7
     },
     "as_of": "2026-08-18"
+  },
+  "VLO": {
+    "fields": {
+      "roe": 0.27637,
+      "revenue_growth": 0.517,
+      "earnings_growth": 4.535,
+      "debt_to_equity": 40.148,
+      "gross_margin": 0.16118999,
+      "free_cash_flow": 8416374784.0,
+      "peg_ratio": NaN,
+      "institutional_ownership": 0.87101996,
+      "rs_3m": 1481.6
+    },
+    "as_of": "2026-08-20"
   }
 }
