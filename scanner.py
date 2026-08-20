@@ -167,6 +167,13 @@ def detect_stage(price: float, ma50: float, ma200: float) -> str:
     if price > ma200 > ma50:   return "1 ⏳ Base"
     if price < ma50 < ma200:   return "4 🔴 Downtrend"
     if price < ma200:          return "3 ⚠️ Top/Decline"
+    if price > ma50 and price > ma200:
+        # Price has gapped above BOTH averages before the 50-day has had
+        # time to cross above the 200-day — the signature of a sudden,
+        # sharp catalyst move (earnings surprise, drug trial results,
+        # etc.), not a gradual trend. Genuinely bullish right now, but
+        # the moving-average structure itself hasn't confirmed it yet.
+        return "2 ⚡ Uptrend (gap)"
     return "? Unknown"
 
 
