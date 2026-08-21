@@ -92,5 +92,19 @@
       "rs_3m": 1481.6
     },
     "as_of": "2026-08-21"
+  },
+  "ABNB": {
+    "fields": {
+      "roe": 0.34542,
+      "revenue_growth": 0.165,
+      "earnings_growth": 0.334,
+      "debt_to_equity": 32.004,
+      "gross_margin": 0.82901,
+      "free_cash_flow": 3206874880.0,
+      "peg_ratio": NaN,
+      "institutional_ownership": 0.89455,
+      "rs_3m": 0.0
+    },
+    "as_of": "2026-08-21"
   }
 }
