@@ -3120,6 +3120,28 @@ if run_btn or _auto_fired:
         if not df_raw.empty:
             log_new_discoveries(df_raw) 
             save_report(df_raw)
+            # ── V9 Phase 1: Alpha Observation logging ──────────────────
+            # Purely additive — captures an immutable feature snapshot per
+            # new discovery for later predictive-value research. Wrapped
+            # so a failure here can never break the scan or Discovery
+            # Tracker logging it runs alongside.
+            try:
+                from modules.alpha_validation import log_new_observations
+                _market_regime = None
+                try:
+                    from ai.engine import classify_market_regime
+                    _market_regime = classify_market_regime(df_raw)
+                except Exception:
+                    pass
+                _fund_hist_for_obs = load_fund_history()
+                _n_obs = log_new_observations(
+                    df_raw, strategy="swing",
+                    market_regime=_market_regime, fund_history=_fund_hist_for_obs,
+                )
+                if _n_obs:
+                    log.info(f"Alpha Observation System: logged {_n_obs} new observation(s).")
+            except Exception as _obs_err:
+                log.warning(f"Alpha Observation logging skipped this scan: {_obs_err}")
             try:
                 _token, _repo = _gh_creds()
                 if _token and _repo:
