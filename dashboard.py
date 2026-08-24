@@ -3009,6 +3009,11 @@ _scan_market      = "us"
 # whether scan auto-scan is enabled. Cheap no-op if already refreshed today.
 auto_refresh_discoveries_if_due()
 auto_refresh_short_tracker_if_due()
+try:
+    from modules.outcome_engine import auto_compute_outcomes_if_due
+    auto_compute_outcomes_if_due()
+except Exception as _outcome_err:
+    log.warning(f"Outcome Engine skipped this page load: {_outcome_err}")
 
 if _autoscan_trigger and not run_btn:
     _auto_fired = True
@@ -10492,6 +10497,77 @@ with tabs[21]:
                     "than lower buckets, the score isn't adding predictive value yet — worth "
                     "revisiting the weighting in scanner.py."
                 )
+
+            # ── 🔬 Alpha Lab (Preview) — V9 Phase 2/3 ────────────────────
+            # A more rigorous evolution of the table above: fixed-horizon
+            # outcomes (5/10/20/40/60 trading days, frozen once computed —
+            # never re-measured against "whatever day you happened to
+            # check," which is what the table above still does) plus real
+            # confidence intervals and sample-size honesty. Shown alongside
+            # the existing table, not replacing it — both stay useful.
+            st.markdown("---")
+            st.markdown("#### 🔬 Alpha Lab (Preview) — Fixed-Horizon Outcomes")
+            st.caption(
+                "Each stock's return is measured at a FIXED number of trading days after "
+                "discovery, frozen permanently once computed — not 'whatever day you happened "
+                "to check,' which is what the table above does. Includes a 95% confidence "
+                "interval, so a bucket's apparent edge can be judged against real statistical "
+                "uncertainty, not just a single point estimate."
+            )
+            try:
+                from modules.alpha_validation import load_observations
+                from modules.alpha_metrics import compute_alpha_metrics_by_score_bucket
+                from modules.outcome_engine import compute_all_pending_outcomes
+
+                _al_c1, _al_c2 = st.columns([1, 3])
+                with _al_c1:
+                    _al_horizon = st.selectbox("Horizon", ["5D", "10D", "20D", "40D", "60D"],
+                                                index=2, key="alpha_lab_horizon")
+                with _al_c2:
+                    if st.button("🔄 Compute Pending Outcomes Now", key="alpha_lab_compute_btn"):
+                        with st.spinner("Computing any outcomes that have reached their horizon…"):
+                            _n_computed = compute_all_pending_outcomes()
+                        st.success(f"Updated {_n_computed} observation(s)." if _n_computed
+                                   else "Nothing new to compute yet — either everything is already "
+                                        "frozen, or no observations have reached this horizon's "
+                                        "minimum age.")
+
+                _observations = load_observations()
+                if not _observations:
+                    st.info("No Alpha Observations logged yet — these start accumulating "
+                            "automatically from your next scan onward. This is a genuinely new "
+                            "data layer added recently; it has no history before that point.")
+                else:
+                    _alpha_rows = compute_alpha_metrics_by_score_bucket(_observations, _al_horizon)
+                    _alpha_rows = [r for r in _alpha_rows if r["n"] > 0]
+                    if not _alpha_rows:
+                        st.info(f"No observations have reached the {_al_horizon} horizon yet. "
+                                f"{'5D' if _al_horizon=='5D' else 'A shorter horizon'} will populate "
+                                f"first — try 5D, or just let more time pass.")
+                    else:
+                        _alpha_disp = pd.DataFrame([{
+                            "Score Bucket": r["score_bucket"],
+                            "N": r["n"],
+                            "Sample": r["sample_classification"].split(" — ")[0],
+                            "Win Rate": f"{r['win_rate_%']:.1f}%" if r["win_rate_%"] is not None else "–",
+                            "Expectancy": f"{r['expectancy_%']:+.2f}%" if r["expectancy_%"] is not None else "–",
+                            "Median": f"{r['median_return_%']:+.2f}%" if r["median_return_%"] is not None else "–",
+                            "Profit Factor": (f"{r['profit_factor']:.2f}" if isinstance(r["profit_factor"], (int, float)) else "–"),
+                            "95% CI": (f"[{r['confidence_interval_95'][0]:+.1f}%, {r['confidence_interval_95'][1]:+.1f}%]"
+                                       if r["confidence_interval_95"] else "–"),
+                            "Avg Excess vs S&P500": (f"{r['avg_excess_return_%']:+.2f}%"
+                                                       if r["avg_excess_return_%"] is not None else "–"),
+                        } for r in _alpha_rows])
+                        st.dataframe(_alpha_disp, use_container_width=True, hide_index=True)
+                        st.caption(
+                            "A bucket whose 95% CI spans zero (e.g. [-3.1%, +8.4%]) hasn't yet "
+                            "demonstrated a statistically real edge at this horizon, regardless of "
+                            "how good the point estimate looks — that's the honest read, not a "
+                            "discouraging one. 'Too Small'/'Emerging' samples should be treated as "
+                            "directional only."
+                        )
+            except Exception as _alpha_lab_err:
+                st.caption(f"Alpha Lab unavailable this session: {_alpha_lab_err}")
 
         st.markdown("---")
 
