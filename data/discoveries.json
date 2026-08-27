@@ -14973,5 +14973,27 @@
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
+  },
+  {
+    "ticker": "STEP",
+    "discovered_at": "2026-08-27",
+    "discovery_price": 50.71,
+    "apex_score": 23.5,
+    "apex_score_raw": 23.5,
+    "stage": "3 \u26a0\ufe0f Top/Decline",
+    "discovery_stage_rank": 0,
+    "theme": "Information Technology",
+    "breaking_out": false,
+    "of_bias": "Bullish",
+    "invalidation_price": 52.77,
+    "invalidation_basis": "200-day moving average",
+    "next_earnings": null,
+    "last_checked": null,
+    "current_price": null,
+    "pct_change": null,
+    "days_tracked": null,
+    "current_stage_rank": null,
+    "thesis_status": "\u2013 Not checked yet",
+    "invalidated": false
   }
 ]
