@@ -101,6 +101,26 @@ def _render_overview(observations: list, horizon: str):
             "estimated ahead of time."
         )
 
+    st.markdown("---")
+    st.markdown("##### APEX_V1_BASELINE — control group (Apex the Great X, Stage B)")
+    st.caption(
+        "The existing Apex Score system's own track record, computed the same way as everything "
+        "above but restricted to 'discovery'-type observations only — this is the fixed control "
+        "group Apex the Great X's future results will be measured against, not a new signal."
+    )
+    try:
+        from modules.apex10_baseline import compute_baseline_snapshot
+        baseline = compute_baseline_snapshot(observations, horizons=[horizon])
+        bm = baseline["horizons"][horizon]
+        bc1, bc2, bc3 = st.columns(3)
+        bc1.metric("Baseline observations", baseline["total_discovery_observations"])
+        bc2.metric(f"Baseline win rate @ {horizon}",
+                  f"{bm['win_rate_%']:.1f}%" if bm["win_rate_%"] is not None else "–")
+        bc3.metric("Baseline expectancy", _fmt_pct(bm["expectancy_%"]))
+        st.caption(f"Sample: {bm['sample_classification']}")
+    except Exception as e:
+        st.caption(f"Baseline snapshot unavailable this session: {e}")
+
 
 def _render_score_validation(observations: list, horizon: str):
     from modules.alpha_metrics import compute_alpha_metrics_by_score_bucket
