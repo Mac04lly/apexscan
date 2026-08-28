@@ -2851,6 +2851,12 @@ st.markdown("""
 </h1>
 """, unsafe_allow_html=True)
 
+try:
+    from ui.workspace_nav import render_workspace_nav
+    render_workspace_nav()
+except Exception:
+    pass
+
 tabs = st.tabs([
     "🏆 Leaderboard",
     "📈 Chart Viewer",
@@ -10510,7 +10516,7 @@ with tabs[21]:
         st.markdown("---")
         try:
             from ui.alpha_lab import render_alpha_lab
-            render_alpha_lab()
+            render_alpha_lab(load_config("config.yaml"))
         except Exception as _alpha_lab_workspace_err:
             st.caption(f"Alpha Lab unavailable this session: {_alpha_lab_workspace_err}")
 
