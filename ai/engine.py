@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from .providers import OpenAIProvider
-from .prompts import build_market_brief_prompt, build_stock_analysis_prompt
+from .prompts import build_market_brief_prompt, build_stock_analysis_prompt, build_decision_explanation_prompt
 from .cache import AICache
 
 log = logging.getLogger("apexscan.ai")
@@ -83,6 +83,39 @@ class InvestmentIntelligenceEngine:
             return text or ""
         except Exception as e:
             log.debug(f"AI stock analysis failed for {stock.get('ticker')}: {e}")
+            return ""
+
+    def explain_decision(self, stock: Dict[str, Any], evidence: Dict[str, Any]) -> str:
+        """
+        V9 Phase 11 — explains an already-made deterministic decision
+        using only the real score/setup/evidence numbers passed in
+        `evidence` (built by ui/alpha_lab.py from modules/alpha_metrics.py
+        output). Architecture per spec §46:
+
+            DATA -> DETERMINISTIC ANALYSIS -> VALIDATED MODEL ->
+            APEX DECISION -> AI EXPLANATION
+
+        Never the reverse (DATA -> LLM -> BUY). If disabled/unconfigured,
+        returns "" exactly like every other method here — the decision
+        and its evidence remain fully visible in the UI without this;
+        this only adds a plain-English narration of numbers that already
+        exist.
+        """
+        if not self.enabled or not self.provider:
+            return ""
+        try:
+            cache_key = self.cache.key("explain", stock.get("ticker"), stock.get("apex_score_raw"),
+                                        (evidence.get("setup") or {}).get("n"))
+            cached = self.cache.get(cache_key)
+            if cached:
+                return cached
+            prompt = build_decision_explanation_prompt(stock, evidence)
+            text = self.provider.complete(prompt)
+            if text:
+                self.cache.set(cache_key, text)
+            return text or ""
+        except Exception as e:
+            log.debug(f"AI decision explanation failed for {stock.get('ticker')}: {e}")
             return ""
 
 
