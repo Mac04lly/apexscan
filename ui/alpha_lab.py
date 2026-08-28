@@ -21,6 +21,7 @@ pattern already used for the AI layer and the rest of this app.
 """
 from __future__ import annotations
 import logging
+from typing import Optional
 
 import pandas as pd
 import streamlit as st
@@ -256,9 +257,192 @@ def _render_combinations_and_findings(observations: list, horizon: str):
                   f"({f['source'].get('key', '')})")
 
 
-def render_alpha_lab():
+def _render_model_governance(observations: list, horizon: str):
+    """V9 Phase 8 (registry + promotion workflow) and Phase 9
+    (walk-forward readiness/results), together — Phase 9's walk-forward
+    result is exactly what gates a Phase 8 promotion approval, so they
+    share one screen rather than being split across two."""
+    from modules.model_registry import (
+        MODEL_VERSION, get_registry_table, propose_research_model,
+        record_walk_forward_result, approve_promotion, reject_proposal,
+        compare_models, STATUS_RESEARCH,
+    )
+    from modules.walk_forward import walk_forward_readiness
+
+    st.markdown("#### Model Registry")
+    st.caption(
+        "Every version here is a record, never an automatic activation. Promoting a research "
+        "version to production still requires a person to edit `MODEL_VERSION` in "
+        "modules/model_registry.py and redeploy — nothing on this page can do that by itself. "
+        "That split is deliberate: no automated process should be able to change what score "
+        "existing or future observations get tagged with."
+    )
+    try:
+        table = get_registry_table()
+    except Exception as e:
+        st.caption(f"Registry unavailable this session: {e}")
+        table = []
+    if table:
+        disp = pd.DataFrame([{
+            "Version": r["version_id"], "Status": r["status"],
+            "Description": r.get("description", ""), "Created": (r.get("created_at") or "")[:10],
+            "Source Finding": r.get("source_finding") or "–",
+            "Walk-Forward": ("Passed" if (r.get("walk_forward_result") or {}).get("passed")
+                            else ("Failed" if r.get("walk_forward_result") else "Not run")),
+            "Approved By": r.get("approved_by") or "–",
+        } for r in table])
+        st.dataframe(disp, use_container_width=True, hide_index=True)
+    else:
+        st.info("No registry entries yet — one is created automatically for the current "
+                "production version the first time this page loads with GitHub storage configured.")
+
+    st.markdown("---")
+    st.markdown("#### Walk-Forward Validation")
+    st.caption(
+        "Chronological train/test splits only — never random folds, which would leak later "
+        "observations into an earlier 'training' window. Checks whether the best-performing "
+        "setup on earlier data still held up on the data that came immediately after it."
+    )
+    try:
+        wf = walk_forward_readiness(observations, horizon)
+    except Exception as e:
+        st.caption(f"Walk-forward check unavailable this session: {e}")
+        wf = None
+    if wf:
+        if not wf["ready"]:
+            st.info(wf["message"])
+        else:
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Folds usable", f"{wf['folds_usable']} / {wf['folds_run']}")
+            c2.metric("Pass rate", f"{wf['pass_rate']*100:.0f}%" if wf["pass_rate"] is not None else "–")
+            c3.metric("Result", "✅ Passed" if wf["passed"] else "⚠️ Not yet passing")
+            fold_disp = pd.DataFrame(wf["fold_results"])
+            if not fold_disp.empty:
+                st.dataframe(fold_disp, use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+    st.markdown("#### Propose a Research Model")
+    st.caption(
+        "Registers a proposal only — describe what you'd change and why (ideally citing a "
+        "Research Finding from the Combinations & Findings tab). This does not modify any "
+        "scoring code."
+    )
+    with st.form("propose_research_model_form"):
+        pc1, pc2 = st.columns(2)
+        with pc1:
+            new_version_id = st.text_input("Proposed version ID", placeholder="e.g. APEX-9.1")
+        with pc2:
+            proposed_by = st.text_input("Proposed by")
+        description = st.text_area("Description — what would change, and why",
+                                   placeholder="e.g. Increase RS weighting based on Finding #3")
+        source_finding = st.text_input("Source finding (optional)", placeholder="e.g. S2-HIGH-RS setup")
+        submitted = st.form_submit_button("Propose")
+    if submitted:
+        try:
+            propose_research_model(new_version_id.strip(), description.strip(),
+                                   source_finding.strip() or None, proposed_by.strip() or None)
+            st.success(f"Proposed {new_version_id}. It will not affect production scoring.")
+        except Exception as e:
+            st.error(str(e))
+
+    research_versions = [r["version_id"] for r in table if r["status"] == STATUS_RESEARCH]
+    if research_versions:
+        st.markdown("---")
+        st.markdown("#### Record a Walk-Forward Result / Approve")
+        sel_version = st.selectbox("Research version", research_versions, key="gov_sel_version")
+        gc1, gc2 = st.columns(2)
+        with gc1:
+            if st.button("Attach current walk-forward result", key="gov_attach_wf"):
+                try:
+                    wf_result = walk_forward_readiness(observations, horizon)
+                    record_walk_forward_result(sel_version, wf_result)
+                    st.success(f"Recorded walk-forward result for {sel_version}.")
+                except Exception as e:
+                    st.error(str(e))
+        with gc2:
+            approver = st.text_input("Your name (required to approve)", key="gov_approver")
+            if st.button("Approve for activation", key="gov_approve"):
+                try:
+                    approve_promotion(sel_version, approver.strip())
+                    st.success(f"{sel_version} approved. A human still needs to edit "
+                              f"MODEL_VERSION in modules/model_registry.py and redeploy to "
+                              f"actually activate it.")
+                except Exception as e:
+                    st.error(str(e))
+
+    st.markdown("---")
+    st.markdown("#### Compare Two Model Versions")
+    version_ids = [r["version_id"] for r in table] or [MODEL_VERSION]
+    cc1, cc2 = st.columns(2)
+    with cc1:
+        va = st.selectbox("Version A", version_ids, index=0, key="gov_cmp_a")
+    with cc2:
+        vb = st.selectbox("Version B", version_ids, index=min(1, len(version_ids) - 1), key="gov_cmp_b")
+    if va and vb:
+        cmp = compare_models(va, vb, observations, horizon)
+        cmp_disp = pd.DataFrame([_metrics_row_to_disp("Version", {**cmp["metrics_a"], "label": va}),
+                                 _metrics_row_to_disp("Version", {**cmp["metrics_b"], "label": vb})])
+        st.dataframe(cmp_disp, use_container_width=True, hide_index=True)
+        if cmp["metrics_a"]["n"] == 0 or cmp["metrics_b"]["n"] == 0:
+            st.caption("At least one version has zero resolved observations yet — a real "
+                      "comparison needs both to accumulate real evidence first.")
+
+
+def _render_decision_explainer(observations: list, cfg: dict):
+    """V9 Phase 11 — AI Explanation. Only active if ai_enabled + a real
+    API key are configured (same gate as everywhere else this app uses
+    the AI layer); otherwise explains plainly why it's inactive rather
+    than silently doing nothing."""
+    from ai.engine import InvestmentIntelligenceEngine
+    from modules.alpha_metrics import compute_alpha_metrics_by_setup, SETUP_LABELS
+
+    st.caption(
+        "Explains an already-made deterministic decision in plain English, using only the "
+        "score/setup/evidence numbers already computed above — never a new recommendation, "
+        "and never a number the AI invented itself."
+    )
+
+    engine = InvestmentIntelligenceEngine(cfg or {})
+    if not engine.enabled:
+        st.info(
+            "AI explanation is inactive (needs `ai_enabled: true` and a real `openai_api_key` "
+            "in config/secrets — same setting used elsewhere in this app). Everything else on "
+            "this page works without it."
+        )
+        return
+
+    tickers = sorted({o.get("ticker") for o in observations if o.get("ticker")})
+    if not tickers:
+        st.caption("No observations to explain yet.")
+        return
+    sel_ticker = st.selectbox("Ticker", tickers, key="alpha_lab_explain_ticker")
+    matching = [o for o in observations if o.get("ticker") == sel_ticker]
+    if not matching:
+        return
+    latest = sorted(matching, key=lambda o: o.get("timestamp", ""))[-1]
+
+    if st.button("Explain this decision", key="alpha_lab_explain_btn"):
+        with st.spinner("Explaining…"):
+            setup_rows = {s["setup_id"]: s for s in compute_alpha_metrics_by_setup(observations, "20D")}
+            setup_evidence = setup_rows.get(latest.get("setup_id"))
+            stock = {
+                "ticker": latest.get("ticker"), "apex_score": latest.get("apex_score"),
+                "apex_score_raw": latest.get("apex_score_raw"), "stage": latest.get("stage"),
+            }
+            evidence = {"setup": setup_evidence}
+            text = engine.explain_decision(stock, evidence)
+        if text:
+            st.markdown(text)
+        else:
+            st.caption("No explanation returned this session.")
+
+
+def render_alpha_lab(cfg: Optional[dict] = None):
     """Single entry point dashboard.py calls. Loads observations itself
-    — the caller doesn't need to fetch anything first."""
+    — the caller doesn't need to fetch anything first. `cfg` (the app's
+    config.yaml dict) is optional and only used by the Phase 11 Decision
+    Explainer tab to check whether the AI layer is configured; every
+    other tab works without it."""
     st.markdown("## 🧪 Apex Alpha Lab")
     st.caption(
         "Prove what works. Every table below is computed from immutable, timestamped "
@@ -289,7 +473,8 @@ def render_alpha_lab():
             return
 
         tabs = st.tabs(["Overview", "Score Validation", "Setup Alpha", "Feature Alpha",
-                        "Conditional Alpha", "Combinations & Findings"])
+                        "Conditional Alpha", "Combinations & Findings", "Model Governance",
+                        "Explain a Decision"])
 
         with tabs[0]:
             try:
@@ -321,14 +506,17 @@ def render_alpha_lab():
                 _render_combinations_and_findings(observations, horizon)
             except Exception as e:
                 st.caption(f"Combinations & Findings unavailable this session: {e}")
+        with tabs[6]:
+            try:
+                _render_model_governance(observations, horizon)
+            except Exception as e:
+                st.caption(f"Model Governance unavailable this session: {e}")
+        with tabs[7]:
+            try:
+                _render_decision_explainer(observations, cfg)
+            except Exception as e:
+                st.caption(f"Decision Explainer unavailable this session: {e}")
 
-        st.markdown("---")
-        st.caption(
-            "**Model Comparison** — scaffolded for later use: every observation already carries "
-            "a model_version tag (currently APEX-9.0 for all of them). Once a second model "
-            "version exists (e.g. after a reviewed scoring change), this section will compare "
-            "them side by side. Not built yet because there's only one version to compare."
-        )
     except Exception as e:
         log.warning(f"Alpha Lab failed to render: {e}")
         st.caption(f"Alpha Lab unavailable this session: {e}")
