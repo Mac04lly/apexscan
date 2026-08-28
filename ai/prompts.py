@@ -42,3 +42,34 @@ Earnings momentum: {stock.get('earn_momentum')}
 EPS growth: {stock.get('eps_growth_%')}
 
 Write a 3-4 sentence AI summary covering: key strength, key weakness/risk, and a recommendation (Strong Buy / Buy / Watch / Avoid) consistent with the Apex Score. Be specific to the numbers given, not generic."""
+
+
+def build_decision_explanation_prompt(stock: Dict, evidence: Dict) -> str:
+    """
+    V9 Phase 11 — AI Explanation. Per the spec (§46): the AI layer comes
+    AFTER the deterministic decision and validated evidence, and its job
+    is to explain them in plain English — never to invent a price,
+    fundamental, historical statistic, signal, or confidence level of
+    its own. Every number in this prompt is pulled directly from
+    scanner.py's output and modules/alpha_metrics.py's already-computed
+    Alpha Lab evidence; nothing is estimated here.
+    """
+    setup_line = "No matching setup evidence yet (too new / not enough resolved observations)."
+    if evidence.get("setup"):
+        s = evidence["setup"]
+        setup_line = (f"Setup type: {s.get('setup_label', s.get('setup_id'))}. Historical record for "
+                     f"this setup at this horizon: {s.get('n', 0)} resolved observations, "
+                     f"win rate {s.get('win_rate_%')}%, expectancy {s.get('expectancy_%')}%, "
+                     f"sample classification: {s.get('sample_classification')}.")
+
+    return f"""You are explaining ONE deterministic stock decision that ApexScan has already made, using ONLY the numbers given below. Do not invent, estimate, or infer any price, fundamental, historical statistic, signal, or confidence level that is not explicitly provided here — if something isn't given, say it isn't available yet rather than guessing.
+
+Ticker: {stock.get('ticker')}
+Apex Score: {stock.get('apex_score')}/100 (raw, uncapped: {stock.get('apex_score_raw')})
+Stage: {stock.get('stage')}
+{setup_line}
+
+Write 3-5 sentences that:
+1. State what the score and setup mean in plain English.
+2. State how much historical evidence backs this specific setup (the sample size and classification above) — and if the evidence is "Too Small" or there isn't any yet, say so plainly rather than implying confidence that doesn't exist.
+3. Do NOT issue a buy/sell recommendation — only explain what is already known and how reliable it is. This is an explanation of evidence, not new advice."""
