@@ -1627,6 +1627,26 @@ def run_scan(cfg: dict, markets: List[str] = None,
             df["ai_summary"] = [engine.analyze_stock(row) for row in df.to_dict("records")]
     except Exception as ai_error:
         log.warning("AI enrichment skipped; scanner results are preserved: %s", ai_error)
+
+    # ── Apex the Great X — live radar update (connective wiring) ───────────
+    # Reuses THIS scan's already-fetched history (_batch_hist) and the
+    # already-loaded US benchmark — makes ZERO additional network calls.
+    # Off by default (cfg["apex10"]["enabled"]); US-only for now, matching
+    # _batch_hist itself (NGX tickers were never in it — see _batch_tickers
+    # above). Wrapped identically to the AI-enrichment block above: any
+    # failure here is logged and swallowed, never allowed to affect the
+    # scan results this function returns.
+    if requested_market in {"us", "all"}:
+        try:
+            from modules.apex10_integration import process_scan_for_radar
+            _bench_close = get_benchmark(_primary_bench, _period)
+            apex10_summary = process_scan_for_radar(results, _batch_hist, _bench_close, cfg, market="US")
+            if apex10_summary is not None:
+                df.attrs["apex10_radar_summary"] = apex10_summary
+                log.info(f"Apex the Great X radar update: {apex10_summary}")
+        except Exception as apex10_error:
+            log.warning("Apex the Great X radar update skipped; scanner results are preserved: %s", apex10_error)
+
     return df
 
 
