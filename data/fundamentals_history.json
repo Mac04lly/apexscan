@@ -120,5 +120,19 @@
       "rs_3m": 1763.5
     },
     "as_of": "2026-08-28"
+  },
+  "MSFT": {
+    "fields": {
+      "roe": 0.34039003,
+      "revenue_growth": 0.177,
+      "earnings_growth": 0.317,
+      "debt_to_equity": 29.118,
+      "gross_margin": 0.67944,
+      "free_cash_flow": 16545500160.0,
+      "peg_ratio": NaN,
+      "institutional_ownership": 0.75881,
+      "rs_3m": 0.0
+    },
+    "as_of": "2026-08-29"
   }
 }
