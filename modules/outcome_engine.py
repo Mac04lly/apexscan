@@ -16,6 +16,17 @@ fixed historical window — it doesn't change with time, and recomputing
 it "fresher" would be a subtle form of the same hindsight contamination
 the whole Alpha Observation System exists to prevent.
 
+Type-agnostic by design: every function here keys ONLY on `entry_price`,
+`timestamp`, and `outcomes` — there is no branch anywhere on
+observation_type. This was confirmed (not assumed) before
+modules/apex10_tracker.py (Apex the Great X, Stage E/G) was built on
+top of it: as long as a new observation kind provides those same three
+fields with the same meaning, this engine freezes its forward returns
+automatically, with no new code required here. Keep it that way — don't
+add an observation_type branch to this file; if a future observation
+kind needs genuinely different outcome logic, that belongs in a new
+module that calls into (or wraps) this one, not a conditional inside it.
+
 Trading days are counted from REAL fetched price data (actual rows
 returned by yfinance for that ticker), not a calendar-day approximation —
 more accurate given holidays/exchange-specific closures.
