@@ -383,3 +383,36 @@ ng_themes:
     - VFDGROUP.LG     # VFD Group — diversified fintech
     - CAVERTON.LG     # Caverton — logistics/aviation services
     - MULTIVERSE.LG   # Multiverse Mining — small-cap momentum
+
+apex10:
+  # Apex the Great X — off by default. Turning this on makes
+  # scanner.run_scan() call modules/apex10_integration.py after every
+  # scan, using data the scan already fetched (no extra API calls).
+  enabled: false
+
+  # A ticker needs at least this apex10 score (0-100) to get a radar
+  # entry written. Below this, it's not tracked at all -- keeps
+  # data/alpha_observations.json from filling with low-conviction noise.
+  min_radar_score: 50
+
+  # State classification thresholds (modules/apex10_radar.py).
+  score:
+    watch: 60
+    developing: 70
+    ready: 80
+    trigger: 90
+
+  # Minimum average dollar volume (20-day avg volume x last close) for
+  # the liquidity gate. Placeholder values -- not independently
+  # calibrated, especially the NGX figure. See modules/apex10_radar.py.
+  liquidity:
+    us_min_dollar_volume: 5000000
+    ngx_min_dollar_volume: 50000000
+
+  # Resistance-proximity state thresholds, as a % distance below the
+  # nearest overhead high. See modules/apex10_features.py.
+  resistance:
+    imminent_pct: 1.0
+    very_close_pct: 3.0
+    developing_pct: 7.0
+    early_pct: 15.0
