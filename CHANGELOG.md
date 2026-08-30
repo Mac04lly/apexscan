@@ -1,3 +1,21 @@
+# ApexScan v29 — critical fix
+
+## Fixed — GitHub storage silently broke above ~1MB (data/alpha_observations.json was no longer being saved)
+
+`modules/gh_storage.py` used GitHub's Contents API for both reads and writes. That API has a real, undocumented-in-practice ceiling: once a file crosses roughly 1MB, its JSON response's `content` field comes back empty instead of erroring — so reads silently returned nothing, and writes (which read the file first to get its `sha`) then omitted `sha` entirely, which GitHub correctly rejects as "you didn't prove you're updating the existing file" with a 422.
+
+`data/alpha_observations.json` crossed that threshold (confirmed at 1.24MB). Practical effect: **every read logged `Expecting value: line 1 column 1 (char 0)` and every write logged `422 Client Error: Unprocessable Entity` — meaning nothing had actually been persisted to GitHub for a while**, including new Discovery Tracker observations and every one of Apex the Great X's Stage E radar entries. Data visible in the app was being served from Streamlit Cloud's local disk cache only, which is wiped on every redeploy/idle restart.
+
+Fixed by switching `load_json_from_github()` / `save_json_to_github()` to the Git Data API (blob/tree/commit/ref objects), which has no practical size ceiling:
+- Reads: one metadata call (works at any size, still returns `sha` correctly) + one raw-content call (`Accept: application/vnd.github.raw`, streams actual bytes instead of size-limited base64-in-JSON).
+- Writes: the full low-level sequence — read branch head → read its tree → create a new blob → create a new tree (one path changed) → create a new commit → fast-forward the branch ref.
+
+Both public function signatures and return contracts (`(data, sha)` / `bool`) are unchanged — every existing caller (`alpha_validation.py`, `model_registry.py`, `apex10_baseline.py`, `apex10_precursor.py`, `dashboard.py`) needed zero changes. No new token permissions required — the Git Data API write endpoints need the same `repo` scope the Contents API writes already required.
+
+### Testing
+- New `tests/test_gh_storage_large_files.py` — 9 tests using a stateful fake-GitHub harness (in-memory blobs/trees/commits/refs), including the exact regression scenario (metadata `content` field empty, matching real GitHub behavior for large files) and a genuine multi-save, multi-file round trip.
+- Full suite: **152/152 passing**. Whole-repo compile clean. AST check: 23 tabs.
+
 # ApexScan v28
 
 ## New — Model Governance, Walk-Forward Validation, Workspace Navigation, AI Explanation (V9 Phases 8-11)
