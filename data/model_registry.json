@@ -1,0 +1,23 @@
+{
+  "versions": {
+    "APEX-9.0": {
+      "version_id": "APEX-9.0",
+      "status": "production",
+      "description": "Production scoring (backfilled registry entry \u2014 created when governance tracking began, not necessarily when this version actually shipped).",
+      "created_at": "2026-08-30T05:28:36.275421",
+      "promoted_at": "2026-08-30T05:28:36.275437",
+      "promoted_from": null,
+      "source_finding": null,
+      "proposed_by": null,
+      "approved_by": null,
+      "walk_forward_result": null
+    }
+  },
+  "history": [
+    {
+      "event": "backfilled_production_entry",
+      "version_id": "APEX-9.0",
+      "at": "2026-08-30T05:28:36.275445"
+    }
+  ]
+}
