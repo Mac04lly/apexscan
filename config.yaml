@@ -388,7 +388,7 @@ apex10:
   # Apex the Great X — off by default. Turning this on makes
   # scanner.run_scan() call modules/apex10_integration.py after every
   # scan, using data the scan already fetched (no extra API calls).
-  enabled: false
+  enabled: true
 
   # A ticker needs at least this apex10 score (0-100) to get a radar
   # entry written. Below this, it's not tracked at all -- keeps
