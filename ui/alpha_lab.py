@@ -457,6 +457,172 @@ def _render_decision_explainer(observations: list, cfg: dict):
             st.caption("No explanation returned this session.")
 
 
+def _render_pre_breakout_radar(observations: list, radar_obs: list, horizon: str):
+    """Apex the Great X's own view — Stage H. Deliberately separate from
+    every tab above: those are filtered to 'discovery'-type observations
+    only (the original V9/APEX_V1_BASELINE system), and this is the only
+    place apex10_radar entries get their own dedicated display — per the
+    spec's explicit "do not silently mix APEX V1 with Apex the Great X.\""""
+    from modules.apex10_tracker import get_radar_table
+    from modules.alpha_metrics import compute_alpha_metrics
+
+    st.caption(
+        "Live Apex the Great X radar — stocks currently tracked as potential pre-breakout "
+        "candidates because a recent scan scored them above the configured minimum. A row "
+        "existing here is evidence being gathered, not a buy signal — see Model Governance "
+        "and Explain a Decision for how this project keeps those separate."
+    )
+
+    radar_rows = get_radar_table(radar_obs)
+    if not radar_rows:
+        st.info(
+            "No radar entries yet. These accumulate automatically once apex10.enabled is "
+            "true in config.yaml and a scan runs — nothing else needed."
+        )
+        return
+
+    c1, c2 = st.columns(2)
+    with c1:
+        states = sorted({r.get("current_state") for r in radar_rows if r.get("current_state")})
+        state_filter = st.multiselect("State", states, default=states, key="apex10_radar_state_filter")
+    with c2:
+        statuses = sorted({r.get("breakout_status") for r in radar_rows if r.get("breakout_status")})
+        status_filter = st.multiselect("Breakout status", statuses, default=statuses,
+                                       key="apex10_radar_status_filter")
+
+    filtered = [r for r in radar_rows
+               if r.get("current_state") in state_filter and r.get("breakout_status") in status_filter]
+
+    disp_rows = []
+    for r in filtered:
+        first_price, cur_price = r.get("first_radar_price"), r.get("current_price")
+        change_pct = (round((cur_price / first_price - 1) * 100, 1)
+                     if first_price and cur_price else None)
+        disp_rows.append({
+            "Ticker": r["ticker"], "Score": r.get("current_score"), "State": r.get("current_state"),
+            "Evidence": r.get("evidence_quality"), "Days on Radar": r.get("days_on_radar"),
+            "First Seen": r.get("first_radar_date"), "Entry Price": first_price,
+            "Current Price": cur_price, "Change %": change_pct,
+            "Resistance": r.get("resistance_price"),
+            "Dist to Resistance %": r.get("distance_to_resistance_pct"),
+            "Status": r.get("breakout_status"),
+        })
+    st.dataframe(pd.DataFrame(disp_rows), use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+    st.markdown("#### Radar Detail — Score Trajectory")
+    tickers = [r["ticker"] for r in filtered]
+    if tickers:
+        sel = st.selectbox("Ticker", tickers, key="apex10_radar_detail_ticker")
+        entry = next(r for r in filtered if r["ticker"] == sel)
+        history_disp = pd.DataFrame(entry.get("score_history", []))
+        if not history_disp.empty:
+            st.dataframe(history_disp, use_container_width=True, hide_index=True)
+        struct = entry.get("structure", {}) or {}
+        ma = entry.get("moving_averages", {}) or {}
+        st.caption(
+            f"RS: {entry.get('rs')} (5D change {entry.get('rs_trend')}) · "
+            f"Structure: {struct.get('ms_structure', 'n/a')} · "
+            f"MA50 transition: {ma.get('ma50_transition', 'n/a')} · "
+            f"Liquidity gate: {(entry.get('liquidity_gate') or {}).get('passes', 'n/a')}"
+        )
+
+    st.markdown("---")
+    st.markdown("#### Apex the Great X Alpha")
+    st.caption(
+        "The radar's OWN track record — measured only from apex10_radar observations, "
+        "completely separate from the APEX_V1_BASELINE numbers elsewhere in this workspace. "
+        "Will read n=0 until radar entries have had time to reach this horizon."
+    )
+    radar_metrics = compute_alpha_metrics(radar_obs, horizon)
+    rc1, rc2, rc3 = st.columns(3)
+    rc1.metric("N", radar_metrics["n"])
+    rc2.metric("Win Rate", f"{radar_metrics['win_rate_%']:.1f}%" if radar_metrics["win_rate_%"] is not None else "–")
+    rc3.metric("Expectancy", _fmt_pct(radar_metrics["expectancy_%"]))
+    st.caption(f"Sample: {radar_metrics['sample_classification']}")
+
+
+def _render_why_winners_won(observations: list):
+    """Stage F wiring — manual trigger only. Makes real, bounded network
+    calls (see modules/apex10_precursor.py's own safety limits), so this
+    never runs automatically on page load, only on explicit button press."""
+    from modules.apex10_precursor import (
+        run_precursor_study, save_precursor_study, get_latest_precursor_study,
+        aggregate_precursor_findings, MAX_CANDIDATES_HARD_CAP,
+    )
+
+    st.caption(
+        "Reconstructs what confirmed winners looked like BEFORE their moves, using Apex the "
+        "Great X's own feature engine applied to historical dates — never dashboard-recomputed "
+        "with hindsight; every offset is genuinely computed as-of that date. This makes real "
+        "network calls, batched and bounded — run manually, not automatically."
+    )
+
+    with st.expander("Run a new study"):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            min_excess = st.number_input("Min excess return % to qualify as a winner",
+                                         value=20.0, step=5.0, key="apex10_pw_min_excess")
+        with c2:
+            max_cand = st.slider("Max candidates", 5, MAX_CANDIDATES_HARD_CAP, 20,
+                                 key="apex10_pw_max_cand")
+        with c3:
+            study_horizon = st.selectbox("Horizon", HORIZONS, index=2, key="apex10_pw_horizon")
+        if st.button("Run Precursor Study Now", key="apex10_pw_run"):
+            with st.spinner("Fetching history and reconstructing trajectories — this makes real "
+                           "network calls, one batched request for the whole study…"):
+                study = run_precursor_study(observations, min_excess_return_pct=min_excess,
+                                            horizon=study_horizon, max_candidates=max_cand)
+                saved = save_precursor_study(study) if study.get("status") == "ok" else False
+            if study.get("status") == "no_candidates":
+                st.warning(f"No winners found at ≥{min_excess}% excess return @ {study_horizon} yet.")
+            else:
+                st.success(
+                    f"Study complete: {study['trajectories_computed']} of "
+                    f"{study['candidates_considered']} candidates computed"
+                    + (" and saved." if saved else " (not saved — GitHub storage not configured).")
+                )
+            st.session_state["apex10_last_study"] = study
+
+    study = st.session_state.get("apex10_last_study") or get_latest_precursor_study()
+    if not study or study.get("status") != "ok":
+        st.info("No precursor study has been run yet — use the panel above.")
+        return
+
+    st.caption(
+        f"Latest study: {study['trajectories_computed']} of {study['candidates_considered']} "
+        f"candidates computed · filter: excess return ≥ {study['min_excess_return_pct_filter']}% "
+        f"@ {study['horizon']} · computed at {(study.get('computed_at') or '')[:19]}"
+    )
+    if study.get("skipped"):
+        st.caption(f"{len(study['skipped'])} candidate(s) skipped (no usable price data returned).")
+
+    offsets = study.get("offsets_trading_days", [])
+    if not offsets:
+        st.info("This study has no offsets to show.")
+        return
+    default_idx = offsets.index(20) if 20 in offsets else 0
+    offset = st.selectbox("Look-back point (trading days before discovery)", offsets,
+                          index=default_idx, key="apex10_pw_offset")
+    min_n = st.slider("Minimum sample size to report a percentage", 1, 30, 5, key="apex10_pw_min_n")
+
+    agg = aggregate_precursor_findings(study, offset_trading_days=offset, min_n=min_n)
+    if agg["status"] == "insufficient_sample":
+        st.warning(agg["message"])
+        return
+
+    st.markdown(f"**n = {agg['n']} winner(s)** had usable data at this look-back point.")
+    cond_disp = pd.DataFrame([{
+        "Condition": name.replace("_", " ").title(), "Count": c["count"], "N": c["n"], "%": c["pct"],
+    } for name, c in agg["conditions"].items()])
+    st.dataframe(cond_disp, use_container_width=True, hide_index=True)
+    st.caption(
+        "Historical association among ApexScan's own winners, not a causal claim — and not "
+        "bias-free: these are only winners this app itself already discovered and scanned, "
+        "never an unbiased sample of every historical winner in the market."
+    )
+
+
 def render_alpha_lab(cfg: Optional[dict] = None):
     """Single entry point dashboard.py calls. Loads observations itself
     — the caller doesn't need to fetch anything first. `cfg` (the app's
@@ -473,6 +639,7 @@ def render_alpha_lab(cfg: Optional[dict] = None):
     try:
         from modules.alpha_validation import load_observations
         from modules.outcome_engine import compute_all_pending_outcomes
+        from modules.apex10_baseline import get_observation_type
 
         c1, c2 = st.columns([1, 3])
         with c1:
@@ -492,50 +659,67 @@ def render_alpha_lab(cfg: Optional[dict] = None):
             )
             return
 
+        # Split ONCE here, per the spec's explicit "do not silently mix APEX
+        # V1 with Apex the Great X" — every existing tab below (Overview
+        # through Explain a Decision) gets discovery_obs only, exactly as
+        # it always has; only the two new tabs at the end see radar_obs.
+        discovery_obs = [o for o in observations if get_observation_type(o) == "discovery"]
+        radar_obs = [o for o in observations if get_observation_type(o) == "apex10_radar"]
+
         tabs = st.tabs(["Overview", "Score Validation", "Setup Alpha", "Feature Alpha",
                         "Conditional Alpha", "Combinations & Findings", "Model Governance",
-                        "Explain a Decision"])
+                        "Explain a Decision", "Pre-Breakout Radar", "Why Winners Won"])
 
         with tabs[0]:
             try:
-                _render_overview(observations, horizon)
+                _render_overview(discovery_obs, horizon)
             except Exception as e:
                 st.caption(f"Overview unavailable this session: {e}")
         with tabs[1]:
             try:
-                _render_score_validation(observations, horizon)
+                _render_score_validation(discovery_obs, horizon)
             except Exception as e:
                 st.caption(f"Score Validation unavailable this session: {e}")
         with tabs[2]:
             try:
-                _render_setup_alpha(observations, horizon)
+                _render_setup_alpha(discovery_obs, horizon)
             except Exception as e:
                 st.caption(f"Setup Alpha unavailable this session: {e}")
         with tabs[3]:
             try:
-                _render_feature_alpha(observations, horizon)
+                _render_feature_alpha(discovery_obs, horizon)
             except Exception as e:
                 st.caption(f"Feature Alpha unavailable this session: {e}")
         with tabs[4]:
             try:
-                _render_conditional_alpha(observations, horizon)
+                _render_conditional_alpha(discovery_obs, horizon)
             except Exception as e:
                 st.caption(f"Conditional Alpha unavailable this session: {e}")
         with tabs[5]:
             try:
-                _render_combinations_and_findings(observations, horizon)
+                _render_combinations_and_findings(discovery_obs, horizon)
             except Exception as e:
                 st.caption(f"Combinations & Findings unavailable this session: {e}")
         with tabs[6]:
             try:
-                _render_model_governance(observations, horizon)
+                _render_model_governance(discovery_obs, horizon)
             except Exception as e:
                 st.caption(f"Model Governance unavailable this session: {e}")
         with tabs[7]:
             try:
-                _render_decision_explainer(observations, cfg)
+                _render_decision_explainer(discovery_obs, cfg)
             except Exception as e:
                 st.caption(f"Decision Explainer unavailable this session: {e}")
+        with tabs[8]:
+            try:
+                _render_pre_breakout_radar(observations, radar_obs, horizon)
+            except Exception as e:
+                st.caption(f"Pre-Breakout Radar unavailable this session: {e}")
+        with tabs[9]:
+            try:
+                _render_why_winners_won(discovery_obs)
+            except Exception as e:
+                st.caption(f"Why Winners Won unavailable this session: {e}")
 
     except Exception as e:
         log.warning(f"Alpha Lab failed to render: {e}")
