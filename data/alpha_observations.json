@@ -46733,10 +46733,16 @@
     "current_score": 60.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 60.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 60.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -46835,10 +46841,16 @@
     "current_score": 87.6,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 87.6,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 87.6,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -46937,10 +46949,16 @@
     "current_score": 71.1,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.1,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.1,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -47039,10 +47057,16 @@
     "current_score": 54.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -47141,10 +47165,16 @@
     "current_score": 62.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -47243,10 +47273,16 @@
     "current_score": 79.0,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 79.0,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 79.0,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -47345,10 +47381,16 @@
     "current_score": 63.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 63.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 63.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -47447,10 +47489,16 @@
     "current_score": 57.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -47549,10 +47597,16 @@
     "current_score": 62.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -47651,10 +47705,16 @@
     "current_score": 51.7,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 51.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 51.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -47753,10 +47813,16 @@
     "current_score": 86.7,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 86.7,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 86.7,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -47855,10 +47921,16 @@
     "current_score": 63.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 63.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 63.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -47957,10 +48029,16 @@
     "current_score": 70.5,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.5,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.5,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -48059,10 +48137,16 @@
     "current_score": 69.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -48161,10 +48245,16 @@
     "current_score": 71.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -48263,10 +48353,16 @@
     "current_score": 71.2,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.2,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.2,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -48365,10 +48461,16 @@
     "current_score": 73.4,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.4,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.4,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -48467,10 +48569,16 @@
     "current_score": 61.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -48569,10 +48677,16 @@
     "current_score": 66.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 66.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 66.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -48671,10 +48785,16 @@
     "current_score": 73.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -48773,10 +48893,16 @@
     "current_score": 72.1,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.1,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.1,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -48875,10 +49001,16 @@
     "current_score": 67.7,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.7,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -48977,10 +49109,16 @@
     "current_score": 76.9,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 76.9,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 76.9,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -49079,10 +49217,16 @@
     "current_score": 76.6,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 76.6,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 76.6,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -49181,10 +49325,16 @@
     "current_score": 75.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 75.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 75.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -49283,10 +49433,16 @@
     "current_score": 67.9,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.9,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -49385,10 +49541,16 @@
     "current_score": 66.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 66.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 66.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -49487,10 +49649,16 @@
     "current_score": 90.3,
     "current_state": "TRIGGER",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 90.3,
+        "state": "TRIGGER",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 90.3,
         "state": "TRIGGER",
         "evidence_quality": "MEDIUM"
@@ -49589,10 +49757,16 @@
     "current_score": 87.1,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 87.1,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 87.1,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -49691,10 +49865,16 @@
     "current_score": 58.9,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.9,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.9,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -49793,10 +49973,16 @@
     "current_score": 58.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -49895,10 +50081,16 @@
     "current_score": 57.5,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.5,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.5,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -49997,10 +50189,16 @@
     "current_score": 69.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -50099,10 +50297,16 @@
     "current_score": 51.5,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 51.5,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 51.5,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -50201,10 +50405,16 @@
     "current_score": 70.4,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.4,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.4,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -50303,10 +50513,16 @@
     "current_score": 50.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 50.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 50.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -50405,10 +50621,16 @@
     "current_score": 70.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -50507,10 +50729,16 @@
     "current_score": 84.4,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 84.4,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 84.4,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -50609,10 +50837,16 @@
     "current_score": 60.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 60.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 60.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -50711,10 +50945,16 @@
     "current_score": 73.4,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.4,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.4,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -50813,10 +51053,16 @@
     "current_score": 61.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -50915,10 +51161,16 @@
     "current_score": 79.9,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 79.9,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 79.9,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -51017,10 +51269,16 @@
     "current_score": 73.2,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.2,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.2,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -51119,10 +51377,16 @@
     "current_score": 57.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -51221,10 +51485,16 @@
     "current_score": 89.3,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 89.3,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 89.3,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -51323,10 +51593,16 @@
     "current_score": 62.7,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.7,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -51425,10 +51701,16 @@
     "current_score": 77.1,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 77.1,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 77.1,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -51527,10 +51809,16 @@
     "current_score": 77.1,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 77.1,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 77.1,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -51629,10 +51917,16 @@
     "current_score": 59.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 59.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 59.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -51731,10 +52025,16 @@
     "current_score": 70.5,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.5,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.5,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -51833,10 +52133,16 @@
     "current_score": 78.7,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 78.7,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 78.7,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -51935,10 +52241,16 @@
     "current_score": 57.7,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -52037,10 +52349,16 @@
     "current_score": 75.9,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 75.9,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 75.9,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -52139,10 +52457,16 @@
     "current_score": 74.9,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 74.9,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 74.9,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -52241,10 +52565,16 @@
     "current_score": 90.6,
     "current_state": "TRIGGER",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 90.6,
+        "state": "TRIGGER",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 90.6,
         "state": "TRIGGER",
         "evidence_quality": "MEDIUM"
@@ -52343,10 +52673,16 @@
     "current_score": 72.4,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.4,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.4,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -52445,10 +52781,16 @@
     "current_score": 70.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -52547,10 +52889,16 @@
     "current_score": 67.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -52649,10 +52997,16 @@
     "current_score": 77.0,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 77.0,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 77.0,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -52751,10 +53105,16 @@
     "current_score": 73.4,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.4,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.4,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -52853,10 +53213,16 @@
     "current_score": 73.2,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.2,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.2,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -52955,10 +53321,16 @@
     "current_score": 81.6,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 81.6,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 81.6,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -53057,10 +53429,16 @@
     "current_score": 75.2,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 75.2,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 75.2,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -53159,10 +53537,16 @@
     "current_score": 59.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 59.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 59.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -53261,10 +53645,16 @@
     "current_score": 82.4,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 82.4,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 82.4,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -53363,10 +53753,16 @@
     "current_score": 66.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 66.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 66.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -53465,10 +53861,16 @@
     "current_score": 56.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 56.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 56.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -53567,10 +53969,16 @@
     "current_score": 68.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -53669,10 +54077,16 @@
     "current_score": 72.0,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.0,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.0,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -53771,10 +54185,16 @@
     "current_score": 72.9,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.9,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.9,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -53873,10 +54293,16 @@
     "current_score": 73.2,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.2,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.2,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -53975,10 +54401,16 @@
     "current_score": 70.1,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.1,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.1,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -54077,10 +54509,16 @@
     "current_score": 73.0,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.0,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.0,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -54179,10 +54617,16 @@
     "current_score": 61.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -54281,10 +54725,16 @@
     "current_score": 69.7,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.7,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -54383,10 +54833,16 @@
     "current_score": 76.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 76.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 76.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -54485,10 +54941,16 @@
     "current_score": 65.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 65.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 65.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -54587,10 +55049,16 @@
     "current_score": 62.7,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.7,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -54689,10 +55157,16 @@
     "current_score": 66.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 66.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 66.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -54791,10 +55265,16 @@
     "current_score": 54.7,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -54893,10 +55373,16 @@
     "current_score": 67.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -54995,10 +55481,16 @@
     "current_score": 73.2,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.2,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.2,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -55097,10 +55589,16 @@
     "current_score": 63.4,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 63.4,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 63.4,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -55199,10 +55697,16 @@
     "current_score": 50.0,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 50.0,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 50.0,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -55301,10 +55805,16 @@
     "current_score": 64.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -55403,10 +55913,16 @@
     "current_score": 87.6,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 87.6,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 87.6,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -55505,10 +56021,16 @@
     "current_score": 74.5,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 74.5,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 74.5,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -55607,10 +56129,16 @@
     "current_score": 55.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 55.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 55.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -55709,10 +56237,16 @@
     "current_score": 88.9,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 88.9,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 88.9,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -55811,10 +56345,16 @@
     "current_score": 65.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 65.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 65.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -55913,10 +56453,16 @@
     "current_score": 63.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 63.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 63.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -56015,10 +56561,16 @@
     "current_score": 52.4,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 52.4,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 52.4,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -56117,10 +56669,16 @@
     "current_score": 64.7,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.7,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -56219,10 +56777,16 @@
     "current_score": 75.5,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 75.5,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 75.5,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -56321,10 +56885,16 @@
     "current_score": 50.0,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 50.0,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 50.0,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -56423,10 +56993,16 @@
     "current_score": 65.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 65.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 65.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -56525,10 +57101,16 @@
     "current_score": 63.7,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 63.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 63.7,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -56627,10 +57209,16 @@
     "current_score": 71.1,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.1,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.1,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -56729,10 +57317,16 @@
     "current_score": 70.1,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.1,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.1,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -56831,10 +57425,16 @@
     "current_score": 59.3,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 59.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 59.3,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -56933,10 +57533,16 @@
     "current_score": 66.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 66.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 66.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -57035,10 +57641,16 @@
     "current_score": 57.9,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.9,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.9,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -57137,10 +57749,16 @@
     "current_score": 76.9,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 76.9,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 76.9,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -57239,10 +57857,16 @@
     "current_score": 64.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -57341,10 +57965,16 @@
     "current_score": 61.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -57443,10 +58073,16 @@
     "current_score": 72.5,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.5,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.5,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -57545,10 +58181,16 @@
     "current_score": 60.4,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 60.4,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 60.4,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -57647,10 +58289,16 @@
     "current_score": 75.7,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 75.7,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 75.7,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -57749,10 +58397,16 @@
     "current_score": 72.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -57851,10 +58505,16 @@
     "current_score": 58.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -57953,10 +58613,16 @@
     "current_score": 69.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -58055,10 +58721,16 @@
     "current_score": 68.4,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.4,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.4,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -58157,10 +58829,16 @@
     "current_score": 64.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -58259,10 +58937,16 @@
     "current_score": 53.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 53.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 53.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -58361,10 +59045,16 @@
     "current_score": 67.9,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.9,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -58463,10 +59153,16 @@
     "current_score": 55.5,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 55.5,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 55.5,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -58565,10 +59261,16 @@
     "current_score": 54.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -58667,10 +59369,16 @@
     "current_score": 55.2,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 55.2,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 55.2,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -58769,10 +59477,16 @@
     "current_score": 65.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 65.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 65.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -58871,10 +59585,16 @@
     "current_score": 56.5,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 56.5,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 56.5,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -58973,10 +59693,16 @@
     "current_score": 73.6,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.6,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.6,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -59075,10 +59801,16 @@
     "current_score": 77.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 77.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 77.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -59177,10 +59909,16 @@
     "current_score": 74.1,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 74.1,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 74.1,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -59279,10 +60017,16 @@
     "current_score": 88.1,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 88.1,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 88.1,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -59381,10 +60125,16 @@
     "current_score": 63.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 63.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 63.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -59483,10 +60233,16 @@
     "current_score": 67.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -59585,10 +60341,16 @@
     "current_score": 63.9,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 63.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 63.9,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -59687,10 +60449,16 @@
     "current_score": 85.2,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 85.2,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 85.2,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -59789,10 +60557,16 @@
     "current_score": 71.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -59891,10 +60665,16 @@
     "current_score": 65.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 65.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 65.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -59993,10 +60773,16 @@
     "current_score": 69.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -60095,10 +60881,16 @@
     "current_score": 73.9,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.9,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.9,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -60197,10 +60989,16 @@
     "current_score": 69.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -60299,10 +61097,16 @@
     "current_score": 60.9,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 60.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 60.9,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -60401,10 +61205,16 @@
     "current_score": 67.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -60503,10 +61313,16 @@
     "current_score": 63.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 63.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 63.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -60605,10 +61421,16 @@
     "current_score": 68.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -60707,10 +61529,16 @@
     "current_score": 80.9,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 80.9,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 80.9,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -60809,10 +61637,16 @@
     "current_score": 62.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -60911,10 +61745,16 @@
     "current_score": 72.6,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.6,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.6,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -61013,10 +61853,16 @@
     "current_score": 65.9,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 65.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 65.9,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -61115,10 +61961,16 @@
     "current_score": 64.4,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.4,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.4,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -61217,10 +62069,16 @@
     "current_score": 71.1,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.1,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.1,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -61319,10 +62177,16 @@
     "current_score": 68.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -61421,10 +62285,16 @@
     "current_score": 67.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -61523,10 +62393,16 @@
     "current_score": 69.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -61625,10 +62501,16 @@
     "current_score": 60.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 60.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 60.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -61727,10 +62609,16 @@
     "current_score": 70.0,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.0,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.0,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -61829,10 +62717,16 @@
     "current_score": 83.6,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 83.6,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 83.6,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -61931,10 +62825,16 @@
     "current_score": 68.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -62033,10 +62933,16 @@
     "current_score": 70.0,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.0,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.0,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -62135,10 +63041,16 @@
     "current_score": 60.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 60.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 60.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -62237,10 +63149,16 @@
     "current_score": 72.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -62339,10 +63257,16 @@
     "current_score": 73.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -62441,10 +63365,16 @@
     "current_score": 72.6,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.6,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.6,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -62543,10 +63473,16 @@
     "current_score": 62.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -62645,10 +63581,16 @@
     "current_score": 62.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -62747,10 +63689,16 @@
     "current_score": 59.0,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 59.0,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 59.0,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -62849,10 +63797,16 @@
     "current_score": 71.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -62951,10 +63905,16 @@
     "current_score": 73.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -63053,10 +64013,16 @@
     "current_score": 57.9,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.9,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.9,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -63155,10 +64121,16 @@
     "current_score": 50.0,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 50.0,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 50.0,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -63257,10 +64229,16 @@
     "current_score": 57.3,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.3,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -63359,10 +64337,16 @@
     "current_score": 59.9,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 59.9,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 59.9,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -63461,10 +64445,16 @@
     "current_score": 78.9,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 78.9,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 78.9,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -63563,10 +64553,16 @@
     "current_score": 66.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 66.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 66.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -63665,10 +64661,16 @@
     "current_score": 74.5,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 74.5,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 74.5,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -63767,10 +64769,16 @@
     "current_score": 61.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -63869,10 +64877,16 @@
     "current_score": 54.3,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.3,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -63971,10 +64985,16 @@
     "current_score": 66.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 66.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 66.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -64073,10 +65093,16 @@
     "current_score": 81.3,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 81.3,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 81.3,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -64175,10 +65201,16 @@
     "current_score": 61.4,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.4,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.4,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -64277,10 +65309,16 @@
     "current_score": 69.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -64379,10 +65417,16 @@
     "current_score": 71.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -64481,10 +65525,16 @@
     "current_score": 90.1,
     "current_state": "TRIGGER",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 90.1,
+        "state": "TRIGGER",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 90.1,
         "state": "TRIGGER",
         "evidence_quality": "MEDIUM"
@@ -64583,10 +65633,16 @@
     "current_score": 72.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -64685,10 +65741,16 @@
     "current_score": 69.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -64787,10 +65849,16 @@
     "current_score": 66.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 66.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 66.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -64889,10 +65957,16 @@
     "current_score": 55.3,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 55.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 55.3,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -64991,10 +66065,16 @@
     "current_score": 68.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -65093,10 +66173,16 @@
     "current_score": 66.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 66.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 66.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -65195,10 +66281,16 @@
     "current_score": 59.4,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 59.4,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 59.4,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -65297,10 +66389,16 @@
     "current_score": 60.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 60.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 60.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -65399,10 +66497,16 @@
     "current_score": 68.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -65501,10 +66605,16 @@
     "current_score": 66.9,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 66.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 66.9,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -65603,10 +66713,16 @@
     "current_score": 83.7,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 83.7,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 83.7,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -65705,10 +66821,16 @@
     "current_score": 61.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -65807,10 +66929,16 @@
     "current_score": 61.4,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.4,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.4,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -65909,10 +67037,16 @@
     "current_score": 78.4,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 78.4,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 78.4,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -66011,10 +67145,16 @@
     "current_score": 61.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -66113,10 +67253,16 @@
     "current_score": 64.4,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.4,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.4,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -66215,10 +67361,16 @@
     "current_score": 56.2,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 56.2,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 56.2,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -66317,10 +67469,16 @@
     "current_score": 64.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -66419,10 +67577,16 @@
     "current_score": 58.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -66521,10 +67685,16 @@
     "current_score": 68.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -66623,10 +67793,16 @@
     "current_score": 54.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -66725,10 +67901,16 @@
     "current_score": 68.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -66827,10 +68009,16 @@
     "current_score": 64.7,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.7,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -66929,10 +68117,16 @@
     "current_score": 55.2,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 55.2,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 55.2,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -67031,10 +68225,16 @@
     "current_score": 52.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 52.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 52.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -67133,10 +68333,16 @@
     "current_score": 72.0,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.0,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.0,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -67235,10 +68441,16 @@
     "current_score": 55.0,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 55.0,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 55.0,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -67337,10 +68549,16 @@
     "current_score": 51.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 51.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 51.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -67439,10 +68657,16 @@
     "current_score": 71.4,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.4,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.4,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -67541,10 +68765,16 @@
     "current_score": 85.2,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 85.2,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 85.2,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -67643,10 +68873,16 @@
     "current_score": 79.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 79.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 79.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -67745,10 +68981,16 @@
     "current_score": 68.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -67847,10 +69089,16 @@
     "current_score": 64.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -67949,10 +69197,16 @@
     "current_score": 70.4,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.4,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.4,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -68051,10 +69305,16 @@
     "current_score": 61.9,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.9,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -68153,10 +69413,16 @@
     "current_score": 58.4,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.4,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.4,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -68255,10 +69521,16 @@
     "current_score": 71.4,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.4,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.4,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -68357,10 +69629,16 @@
     "current_score": 61.7,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.7,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -68459,10 +69737,16 @@
     "current_score": 75.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 75.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 75.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -68561,10 +69845,16 @@
     "current_score": 56.7,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 56.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 56.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -68663,10 +69953,16 @@
     "current_score": 76.2,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 76.2,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 76.2,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -68765,10 +70061,16 @@
     "current_score": 72.5,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.5,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.5,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -68867,10 +70169,16 @@
     "current_score": 83.1,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 83.1,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 83.1,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -68969,10 +70277,16 @@
     "current_score": 72.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -69071,10 +70385,16 @@
     "current_score": 57.4,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.4,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.4,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -69173,10 +70493,16 @@
     "current_score": 70.7,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.7,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.7,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -69275,10 +70601,16 @@
     "current_score": 53.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 53.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 53.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -69377,10 +70709,16 @@
     "current_score": 67.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -69479,10 +70817,16 @@
     "current_score": 76.0,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 76.0,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 76.0,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -69581,10 +70925,16 @@
     "current_score": 71.7,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.7,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.7,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -69683,10 +71033,16 @@
     "current_score": 61.4,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.4,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.4,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -69785,10 +71141,16 @@
     "current_score": 58.9,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.9,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.9,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -69887,10 +71249,16 @@
     "current_score": 67.7,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.7,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -69989,10 +71357,16 @@
     "current_score": 78.7,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 78.7,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 78.7,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -70091,10 +71465,16 @@
     "current_score": 62.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -70193,10 +71573,16 @@
     "current_score": 68.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -70295,10 +71681,16 @@
     "current_score": 51.3,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 51.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 51.3,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -70397,10 +71789,16 @@
     "current_score": 77.0,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 77.0,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 77.0,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -70499,10 +71897,16 @@
     "current_score": 66.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 66.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 66.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -70601,10 +72005,16 @@
     "current_score": 52.5,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 52.5,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 52.5,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -70703,10 +72113,16 @@
     "current_score": 77.9,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 77.9,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 77.9,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -70805,10 +72221,16 @@
     "current_score": 73.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -70907,10 +72329,16 @@
     "current_score": 57.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -71009,10 +72437,16 @@
     "current_score": 53.7,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 53.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 53.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -71111,10 +72545,16 @@
     "current_score": 69.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -71213,10 +72653,16 @@
     "current_score": 56.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 56.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 56.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -71315,10 +72761,16 @@
     "current_score": 52.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 52.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 52.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -71417,10 +72869,16 @@
     "current_score": 78.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 78.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 78.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -71519,10 +72977,16 @@
     "current_score": 61.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -71621,10 +73085,16 @@
     "current_score": 65.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 65.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 65.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -71723,10 +73193,16 @@
     "current_score": 72.9,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.9,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.9,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -71825,10 +73301,16 @@
     "current_score": 70.6,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.6,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.6,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -71927,10 +73409,16 @@
     "current_score": 61.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -72029,10 +73517,16 @@
     "current_score": 59.3,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 59.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 59.3,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -72131,10 +73625,16 @@
     "current_score": 69.9,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.9,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -72233,10 +73733,16 @@
     "current_score": 66.4,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 66.4,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 66.4,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -72335,10 +73841,16 @@
     "current_score": 68.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -72437,10 +73949,16 @@
     "current_score": 69.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -72539,10 +74057,16 @@
     "current_score": 71.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -72641,10 +74165,16 @@
     "current_score": 58.7,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -72743,10 +74273,16 @@
     "current_score": 64.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -72845,10 +74381,16 @@
     "current_score": 52.7,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 52.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 52.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -72947,10 +74489,16 @@
     "current_score": 61.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -73049,10 +74597,16 @@
     "current_score": 55.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 55.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 55.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -73151,10 +74705,16 @@
     "current_score": 56.9,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 56.9,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 56.9,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -73253,10 +74813,16 @@
     "current_score": 71.0,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.0,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.0,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -73355,10 +74921,16 @@
     "current_score": 56.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 56.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 56.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -73457,10 +75029,16 @@
     "current_score": 69.9,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.9,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -73559,10 +75137,16 @@
     "current_score": 54.2,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.2,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.2,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -73661,10 +75245,16 @@
     "current_score": 68.9,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.9,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -73763,10 +75353,16 @@
     "current_score": 69.9,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.9,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -73865,10 +75461,16 @@
     "current_score": 73.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -73967,10 +75569,16 @@
     "current_score": 57.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -74069,10 +75677,16 @@
     "current_score": 65.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 65.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 65.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -74171,10 +75785,16 @@
     "current_score": 53.2,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 53.2,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 53.2,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -74273,10 +75893,16 @@
     "current_score": 73.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -74375,10 +76001,16 @@
     "current_score": 50.0,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 50.0,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 50.0,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -74477,10 +76109,16 @@
     "current_score": 62.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -74579,10 +76217,16 @@
     "current_score": 70.1,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.1,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.1,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -74681,10 +76325,16 @@
     "current_score": 57.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -74783,10 +76433,16 @@
     "current_score": 58.2,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.2,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.2,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -74885,10 +76541,16 @@
     "current_score": 61.4,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.4,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.4,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -74987,10 +76649,16 @@
     "current_score": 61.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -75089,10 +76757,16 @@
     "current_score": 71.5,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 71.5,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 71.5,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -75191,10 +76865,16 @@
     "current_score": 50.4,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 50.4,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 50.4,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -75293,10 +76973,16 @@
     "current_score": 57.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -75395,10 +77081,16 @@
     "current_score": 64.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -75497,10 +77189,16 @@
     "current_score": 60.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 60.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 60.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -75599,10 +77297,16 @@
     "current_score": 56.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 56.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 56.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -75701,10 +77405,16 @@
     "current_score": 59.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 59.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 59.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -75803,10 +77513,16 @@
     "current_score": 76.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 76.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 76.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -75905,10 +77621,16 @@
     "current_score": 65.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 65.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 65.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -76007,10 +77729,16 @@
     "current_score": 62.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -76109,10 +77837,16 @@
     "current_score": 61.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -76211,10 +77945,16 @@
     "current_score": 73.1,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.1,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.1,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -76313,10 +78053,16 @@
     "current_score": 61.4,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.4,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.4,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -76415,10 +78161,16 @@
     "current_score": 62.7,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.7,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -76517,10 +78269,16 @@
     "current_score": 60.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 60.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 60.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -76619,10 +78377,16 @@
     "current_score": 60.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 60.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 60.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -76721,10 +78485,16 @@
     "current_score": 65.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 65.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 65.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -76823,10 +78593,16 @@
     "current_score": 53.0,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 53.0,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 53.0,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -76925,10 +78701,16 @@
     "current_score": 50.5,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 50.5,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 50.5,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -77027,10 +78809,16 @@
     "current_score": 54.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -77129,10 +78917,16 @@
     "current_score": 69.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -77231,10 +79025,16 @@
     "current_score": 62.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -77333,10 +79133,16 @@
     "current_score": 51.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 51.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 51.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -77435,10 +79241,16 @@
     "current_score": 72.2,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.2,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.2,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -77537,10 +79349,16 @@
     "current_score": 64.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -77639,10 +79457,16 @@
     "current_score": 51.2,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 51.2,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 51.2,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -77741,10 +79565,16 @@
     "current_score": 67.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -77843,10 +79673,16 @@
     "current_score": 56.7,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 56.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 56.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -77945,10 +79781,16 @@
     "current_score": 67.9,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.9,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -78047,10 +79889,16 @@
     "current_score": 56.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 56.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 56.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -78149,10 +79997,16 @@
     "current_score": 64.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -78251,10 +80105,16 @@
     "current_score": 62.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -78353,10 +80213,16 @@
     "current_score": 69.4,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.4,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.4,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -78455,10 +80321,16 @@
     "current_score": 58.9,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.9,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.9,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -78557,10 +80429,16 @@
     "current_score": 57.0,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.0,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.0,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -78659,10 +80537,16 @@
     "current_score": 62.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -78761,10 +80645,16 @@
     "current_score": 62.2,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.2,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -78863,10 +80753,16 @@
     "current_score": 55.5,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 55.5,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 55.5,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -78965,10 +80861,16 @@
     "current_score": 68.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -79067,10 +80969,16 @@
     "current_score": 60.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 60.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 60.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -79169,10 +81077,16 @@
     "current_score": 58.9,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.9,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.9,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -79271,10 +81185,16 @@
     "current_score": 72.5,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.5,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.5,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -79373,10 +81293,16 @@
     "current_score": 51.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 51.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 51.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -79475,10 +81401,16 @@
     "current_score": 74.6,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 74.6,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 74.6,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -79577,10 +81509,16 @@
     "current_score": 74.4,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 74.4,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 74.4,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -79679,10 +81617,16 @@
     "current_score": 58.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -79781,10 +81725,16 @@
     "current_score": 62.5,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.5,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.5,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -79883,10 +81833,16 @@
     "current_score": 58.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -79985,10 +81941,16 @@
     "current_score": 50.9,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 50.9,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 50.9,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -80087,10 +82049,16 @@
     "current_score": 56.2,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 56.2,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 56.2,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -80189,10 +82157,16 @@
     "current_score": 58.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -80291,10 +82265,16 @@
     "current_score": 62.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -80393,10 +82373,16 @@
     "current_score": 51.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 51.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 51.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -80495,10 +82481,16 @@
     "current_score": 54.7,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -80597,10 +82589,16 @@
     "current_score": 59.3,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 59.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 59.3,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -80699,10 +82697,16 @@
     "current_score": 54.0,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.0,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.0,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -80801,10 +82805,16 @@
     "current_score": 55.7,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 55.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 55.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -80903,10 +82913,16 @@
     "current_score": 60.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 60.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 60.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -81005,10 +83021,16 @@
     "current_score": 65.7,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 65.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 65.7,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -81107,10 +83129,16 @@
     "current_score": 60.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 60.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 60.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -81209,10 +83237,16 @@
     "current_score": 65.7,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 65.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 65.7,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -81311,10 +83345,16 @@
     "current_score": 78.8,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 78.8,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 78.8,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -81413,10 +83453,16 @@
     "current_score": 59.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 59.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 59.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -81515,10 +83561,16 @@
     "current_score": 61.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -81617,10 +83669,16 @@
     "current_score": 50.2,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 50.2,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 50.2,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -81719,10 +83777,16 @@
     "current_score": 58.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -81821,10 +83885,16 @@
     "current_score": 57.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -81923,10 +83993,16 @@
     "current_score": 65.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 65.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 65.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -82025,10 +84101,16 @@
     "current_score": 79.1,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 79.1,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 79.1,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -82127,10 +84209,16 @@
     "current_score": 57.7,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -82229,10 +84317,16 @@
     "current_score": 83.8,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 83.8,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 83.8,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -82331,10 +84425,16 @@
     "current_score": 80.1,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 80.1,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 80.1,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -82433,10 +84533,16 @@
     "current_score": 57.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -82535,10 +84641,16 @@
     "current_score": 77.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 77.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 77.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -82637,10 +84749,16 @@
     "current_score": 54.3,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.3,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -82739,10 +84857,16 @@
     "current_score": 67.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -82841,10 +84965,16 @@
     "current_score": 72.7,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.7,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.7,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -82943,10 +85073,16 @@
     "current_score": 76.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 76.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 76.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -83045,10 +85181,16 @@
     "current_score": 55.3,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 55.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 55.3,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -83147,10 +85289,16 @@
     "current_score": 63.1,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 63.1,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 63.1,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -83249,10 +85397,16 @@
     "current_score": 63.0,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 63.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 63.0,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -83351,10 +85505,16 @@
     "current_score": 69.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -83453,10 +85613,16 @@
     "current_score": 69.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -83555,10 +85721,16 @@
     "current_score": 54.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -83657,10 +85829,16 @@
     "current_score": 51.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 51.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 51.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -83759,10 +85937,16 @@
     "current_score": 57.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -83861,10 +86045,16 @@
     "current_score": 69.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 69.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 69.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -83963,10 +86153,16 @@
     "current_score": 55.4,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 55.4,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 55.4,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -84065,10 +86261,16 @@
     "current_score": 59.6,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 59.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 59.6,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -84167,10 +86369,16 @@
     "current_score": 53.4,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 53.4,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 53.4,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -84269,10 +86477,16 @@
     "current_score": 59.4,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 59.4,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 59.4,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -84371,10 +86585,16 @@
     "current_score": 54.0,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.0,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.0,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -84473,10 +86693,16 @@
     "current_score": 50.1,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 50.1,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 50.1,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -84575,10 +86801,16 @@
     "current_score": 54.3,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.3,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -84677,10 +86909,16 @@
     "current_score": 64.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 64.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 64.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -84779,10 +87017,16 @@
     "current_score": 62.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 62.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 62.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -84881,10 +87125,16 @@
     "current_score": 57.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 57.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 57.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -84983,10 +87233,16 @@
     "current_score": 54.5,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 54.5,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 54.5,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -85085,10 +87341,16 @@
     "current_score": 53.8,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 53.8,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 53.8,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -85187,10 +87449,16 @@
     "current_score": 53.3,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 53.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 53.3,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -85289,10 +87557,16 @@
     "current_score": 58.7,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 58.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 58.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -85391,10 +87665,16 @@
     "current_score": 67.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 67.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 67.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -85493,10 +87773,16 @@
     "current_score": 61.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 61.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 61.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -85595,10 +87881,16 @@
     "current_score": 70.9,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.9,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.9,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -85697,10 +87989,16 @@
     "current_score": 55.2,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 55.2,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 55.2,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -85799,10 +88097,16 @@
     "current_score": 73.2,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 73.2,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 73.2,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -85901,10 +88205,16 @@
     "current_score": 72.3,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 72.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 72.3,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -86003,10 +88313,16 @@
     "current_score": 70.0,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 70.0,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 70.0,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -86105,10 +88421,16 @@
     "current_score": 63.6,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 63.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 63.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -86207,10 +88529,16 @@
     "current_score": 82.3,
     "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 82.3,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 82.3,
         "state": "READY",
         "evidence_quality": "MEDIUM"
@@ -86309,10 +88637,16 @@
     "current_score": 68.8,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 68.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 68.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
@@ -86411,10 +88745,16 @@
     "current_score": 52.3,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 52.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 52.3,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
@@ -86513,10 +88853,16 @@
     "current_score": 53.3,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-08-30",
+        "score": 53.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-08-31",
         "score": 53.3,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
