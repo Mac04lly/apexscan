@@ -407,6 +407,55 @@ def _render_model_governance(observations: list, horizon: str):
             st.caption("At least one version has zero resolved observations yet — a real "
                       "comparison needs both to accumulate real evidence first.")
 
+    st.markdown("---")
+    st.markdown("#### Data Integrity Health Check")
+    st.caption(
+        "Built after a real incident: data/alpha_observations.json silently failed to load AND "
+        "save for a period once it crossed GitHub's old ~1MB size ceiling — fixed, but that "
+        "failure sat undetected until write volume happened to surface it in logs. This runs the "
+        "same diagnostic on demand: verifies every known persisted store loads correctly, and "
+        "separately proves the write pipeline itself works via a dedicated sentinel file — never "
+        "by touching real data. Makes real GitHub API calls; run manually, not automatically."
+    )
+    if st.button("Run Health Check Now", key="data_health_run_btn"):
+        try:
+            from modules.data_health import check_all_stores, check_write_pipeline, summarize
+            token = st.secrets.get("github_token", "")
+            repo = st.secrets.get("github_repo", "")
+            if not (token and repo):
+                st.warning("GitHub storage isn't configured (github_token / github_repo) — "
+                          "nothing to check.")
+            else:
+                with st.spinner("Checking every persisted store and verifying the write pipeline…"):
+                    store_results = check_all_stores(token, repo)
+                    write_result = check_write_pipeline(token, repo)
+                summary = summarize(store_results, write_result)
+                st.session_state["data_health_last_result"] = (store_results, write_result, summary)
+        except Exception as e:
+            st.error(f"Health check failed to run: {e}")
+
+    cached = st.session_state.get("data_health_last_result")
+    if cached:
+        store_results, write_result, summary = cached
+        if summary["overall_status"] == "ok":
+            st.success(f"✅ All {summary['stores_checked']} stores load correctly, and the write "
+                      f"pipeline round-tripped successfully.")
+        else:
+            st.error(f"⚠️ Attention needed: {summary['stores_with_problems']} store(s) with "
+                    f"problems, write pipeline status: {summary['write_pipeline_status']}.")
+        if summary["stores_flagged_large"]:
+            st.caption(f"{summary['stores_flagged_large']} store(s) flagged as large "
+                      f"(≥3MB) — informational, not a failure: "
+                      f"{', '.join(summary['large_paths'])}")
+        store_disp = pd.DataFrame([{
+            "Store": r["path"], "Status": r["status"],
+            "Size": (f"{r['size_bytes']/1024:.0f} KB" if r["size_bytes"] else "–"),
+            "Records": r["record_count"] if r["record_count"] is not None else "–",
+            "Detail": r["detail"] or "",
+        } for r in store_results])
+        st.dataframe(store_disp, use_container_width=True, hide_index=True)
+        st.caption(f"Write pipeline: {write_result['status']} — {write_result.get('detail', '')}")
+
 
 def _render_decision_explainer(observations: list, cfg: dict):
     """V9 Phase 11 — AI Explanation. Only active if ai_enabled + a real
