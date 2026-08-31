@@ -94090,5 +94090,83 @@
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
     "outcomes": {}
+  },
+  {
+    "observation_id": "6a469ae0-49a8-4df2-932d-bebd2347889d",
+    "ticker": "DG",
+    "market": "US",
+    "timestamp": "2026-08-31 14:08:06",
+    "model_version": "APEX-9.0",
+    "strategy_version": "SWING-2.0",
+    "apex_score": 80.3,
+    "apex_score_raw": 80.3,
+    "stage": "1 \u23f3 Base",
+    "setup_id": "S2-MA-RECLAIM",
+    "strategy": "swing",
+    "market_regime": "Sideways",
+    "technical_features": {
+      "perf_3m_%": 18.3,
+      "perf_1m_%": -2.1,
+      "perf_1w_%": null,
+      "rs_3m": 2024.9,
+      "rs_percentile": 65.8,
+      "stage": "1 \u23f3 Base",
+      "vs_50ma_%": 3.0,
+      "vs_200ma_%": 0.4,
+      "ma50_gt_ma200": false,
+      "volume_ratio": 1.24,
+      "volume_persistence": 7,
+      "vwap_position": "Above VWAP",
+      "market_structure": "Transitioning",
+      "hh_hl": false,
+      "breakout_status": false,
+      "base_depth": null,
+      "adr_%": 2.78,
+      "volatility": 2.78,
+      "price_action_pattern": "None",
+      "weekly_confirmation": false,
+      "early_entry_condition": "Fresh 200MA Cross (6d ago) | Low-ADR Base (2.8%)"
+    },
+    "fundamental_features": {
+      "revenue_growth": null,
+      "earnings_growth": null,
+      "eps_growth_%": null,
+      "roe": null,
+      "gross_margin": null,
+      "operating_margin": null,
+      "free_cash_flow": null,
+      "debt_to_equity": null,
+      "current_ratio": null,
+      "quick_ratio": null,
+      "net_cash_position": null,
+      "institutional_ownership": null,
+      "institutional_ownership_change": null,
+      "short_pct_float": null,
+      "beta": null
+    },
+    "valuation_features": {
+      "pe_ratio": null,
+      "forward_pe": null,
+      "ev_to_ebitda": null,
+      "peg_ratio": null,
+      "valuation_vs_sector_%": null
+    },
+    "risk_features": {
+      "risk_score": null,
+      "risk_label": null,
+      "liquidity_warn": false,
+      "avg_volume_30d": 2853270
+    },
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Consumer Discretionary",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "entry_price": 125.09,
+    "stop_price": null,
+    "target_price": null,
+    "risk_reward": null,
+    "benchmark_price": null
   }
 ]
