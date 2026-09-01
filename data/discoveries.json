@@ -15215,5 +15215,27 @@
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
+  },
+  {
+    "ticker": "AGCO",
+    "discovered_at": "2026-09-01",
+    "discovery_price": 118.31,
+    "apex_score": 56.2,
+    "apex_score_raw": 56.2,
+    "stage": "1 \u23f3 Base",
+    "discovery_stage_rank": 1,
+    "theme": "Industrials",
+    "breaking_out": false,
+    "of_bias": "Strong Bullish",
+    "invalidation_price": 114.09,
+    "invalidation_basis": "200-day moving average",
+    "next_earnings": null,
+    "last_checked": null,
+    "current_price": null,
+    "pct_change": null,
+    "days_tracked": null,
+    "current_stage_rank": null,
+    "thesis_status": "\u2013 Not checked yet",
+    "invalidated": false
   }
 ]
