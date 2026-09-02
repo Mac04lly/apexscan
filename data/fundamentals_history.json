@@ -148,5 +148,19 @@
       "rs_3m": 1784.3
     },
     "as_of": "2026-08-30"
+  },
+  "PCTY": {
+    "fields": {
+      "roe": 0.21972999,
+      "revenue_growth": 0.11,
+      "earnings_growth": 0.276,
+      "debt_to_equity": 10.887,
+      "gross_margin": 0.69281995,
+      "free_cash_flow": 359865120.0,
+      "peg_ratio": null,
+      "institutional_ownership": 0.89274,
+      "rs_3m": 3718.2
+    },
+    "as_of": "2026-09-02"
   }
 }
