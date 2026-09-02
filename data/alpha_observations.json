@@ -75,7 +75,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 0.274,
+        "mfe_%": 0.549,
+        "mae_%": -0.0,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.161,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "5ea412a9-9f1d-45cf-b72c-801f26983d7c",
@@ -153,7 +163,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.452,
+        "mfe_%": 5.43,
+        "mae_%": -7.24,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.887,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "92dc4242-8015-4101-a2e4-376a6bba2dce",
@@ -231,7 +251,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.909,
+        "mfe_%": 4.32,
+        "mae_%": -4.831,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.344,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "a786c36e-67f9-46b0-a650-2608f5a09fd1",
@@ -309,7 +339,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.341,
+        "mfe_%": 5.7,
+        "mae_%": -4.385,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.776,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "198a5f41-c8d3-4996-8182-11cfb6d03cb7",
@@ -387,7 +427,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 1.353,
+        "mfe_%": 9.382,
+        "mae_%": -2.055,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 0.918,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "ba281a9f-778a-4a09-8a4c-210bb35d534d",
@@ -465,7 +515,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 13.509,
+        "mfe_%": 25.669,
+        "mae_%": -8.32,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 13.074,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "22f9f35f-27f7-4406-a941-318d444f6120",
@@ -543,7 +603,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -6.96,
+        "mfe_%": 1.528,
+        "mae_%": -7.751,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -7.395,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "0a5088d6-07b5-4920-a2c5-11a41c0fe0e8",
@@ -621,7 +691,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.826,
+        "mfe_%": 6.72,
+        "mae_%": -3.197,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.261,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "6bcc9f13-b3d8-4514-a1ff-27e22632ddba",
@@ -699,7 +779,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 7.242,
+        "mfe_%": 7.781,
+        "mae_%": -3.159,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 6.807,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "a6f0f4e3-7cca-4a6e-8d19-120a1fc1cae1",
@@ -777,7 +867,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.0,
+        "mfe_%": 4.271,
+        "mae_%": -3.119,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.435,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "3573fc3d-4ffa-4e59-b54c-aeaee0306031",
@@ -855,7 +955,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -5.809,
+        "mfe_%": 3.577,
+        "mae_%": -6.139,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -6.244,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "a8a7bdfb-ed33-4b7c-9e9a-58ac2094e00a",
@@ -933,7 +1043,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.655,
+        "mfe_%": 1.396,
+        "mae_%": -6.059,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -5.09,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "7375633b-7f4f-4472-9f46-6245e718285b",
@@ -1011,7 +1131,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 0.245,
+        "mfe_%": 0.245,
+        "mae_%": -0.03,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.19,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "d7b565f0-a81f-4889-8301-3d3e58c10ba6",
@@ -1089,7 +1219,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 9.594,
+        "mfe_%": 12.75,
+        "mae_%": -4.314,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 9.159,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "617288cf-f7d3-43a2-9839-036dbf376462",
@@ -1167,7 +1307,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.494,
+        "mfe_%": 4.087,
+        "mae_%": -6.964,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.929,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "4bc0942e-e123-4561-9d76-855b77838ea7",
@@ -1245,7 +1395,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.553,
+        "mfe_%": 1.377,
+        "mae_%": -4.345,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.988,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "74a08b0f-10da-483a-8cd0-ab7675688b35",
@@ -1323,7 +1483,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 11.687,
+        "mfe_%": 11.951,
+        "mae_%": -3.672,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 11.252,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "532bbf8e-64b8-465b-ba1e-524b979375c9",
@@ -1401,7 +1571,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.619,
+        "mfe_%": 1.798,
+        "mae_%": -3.929,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.054,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "afba2fea-a1e5-4693-a0fb-d149850bab53",
@@ -1479,7 +1659,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.597,
+        "mfe_%": 4.317,
+        "mae_%": -6.475,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.032,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "3d09114b-d058-47d3-be68-53a1fd56f61d",
@@ -1557,7 +1747,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.07,
+        "mfe_%": 3.995,
+        "mae_%": -6.89,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.505,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "3620b478-4eee-4274-a8a1-24c3b6ad30af",
@@ -1635,7 +1835,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -5.551,
+        "mfe_%": 0.346,
+        "mae_%": -6.974,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -5.986,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "7bd47574-956d-4b7d-b2a0-2c43fb1a2fdd",
@@ -1713,7 +1923,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 13.911,
+        "mfe_%": 14.491,
+        "mae_%": -1.556,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 13.476,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "938a56f2-854c-43cf-9e60-1b2649a748b2",
@@ -1791,7 +2011,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 6.392,
+        "mfe_%": 16.905,
+        "mae_%": -3.869,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 5.957,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "517c0747-2e35-48b7-bd1f-acecf56a2c3d",
@@ -1869,7 +2099,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -6.514,
+        "mfe_%": 1.546,
+        "mae_%": -7.826,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -6.949,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "95c64ac4-33a4-458b-ae32-e70ddb2c4d72",
@@ -1947,7 +2187,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.773,
+        "mfe_%": 2.586,
+        "mae_%": -3.869,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.208,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "4c0d6c6c-83cf-454d-8fe0-761c02811f67",
@@ -2025,7 +2275,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 7.53,
+        "mfe_%": 8.286,
+        "mae_%": -1.011,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 7.095,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "a488f7d6-3f0d-4130-ae72-d3d1a3f7f7b6",
@@ -2103,7 +2363,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -8.001,
+        "mfe_%": 0.293,
+        "mae_%": -10.052,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -8.436,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "dd776086-360a-43b7-9227-75d591ac5497",
@@ -2181,7 +2451,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.453,
+        "mfe_%": 4.786,
+        "mae_%": -2.894,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.888,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "b34d529f-6c57-4f81-964f-feb2a6eb2a79",
@@ -2259,7 +2539,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.523,
+        "mfe_%": 0.888,
+        "mae_%": -4.529,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.958,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "826c7a55-c1be-487e-a9b0-a7946f5c1d2c",
@@ -2337,7 +2627,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 0.641,
+        "mfe_%": 6.926,
+        "mae_%": -4.197,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 0.206,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "74961bc1-24d3-4489-9b01-3bc47524ea8b",
@@ -2415,7 +2715,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 6.61,
+        "mfe_%": 8.898,
+        "mae_%": -1.017,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 6.175,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "fea70f4f-9564-4f19-84f4-064cebda83d1",
@@ -2493,7 +2803,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.349,
+        "mfe_%": 17.409,
+        "mae_%": -7.53,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.784,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "7bb5bb1d-5c96-4aa6-930d-a6d40ff665ff",
@@ -2571,7 +2891,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 2.118,
+        "mfe_%": 3.074,
+        "mae_%": -4.45,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 1.683,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "3e3c1ded-d5b5-42f3-8df6-1335c121fe39",
@@ -2649,7 +2979,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.236,
+        "mfe_%": 1.029,
+        "mae_%": -7.171,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.671,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "dff5824c-1a04-4e84-a3c1-656bdc75261b",
@@ -2727,7 +3067,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 5.315,
+        "mfe_%": 6.08,
+        "mae_%": -3.811,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 4.88,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "6fdeedab-f183-4a75-9389-79249c73abd5",
@@ -2805,7 +3155,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -6.413,
+        "mfe_%": 1.947,
+        "mae_%": -7.777,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -6.848,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "a96736a0-d19c-4627-8cb5-21346e85596b",
@@ -2883,7 +3243,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.424,
+        "mfe_%": 4.395,
+        "mae_%": -3.257,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.859,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "ea3ec023-2633-493c-ab59-a3dd747d821f",
@@ -2961,7 +3331,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 12.141,
+        "mfe_%": 15.039,
+        "mae_%": -1.488,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 11.706,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "d59a9510-d134-43d7-a1cd-7f6820bdbfbf",
@@ -3039,7 +3419,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.327,
+        "mfe_%": 0.972,
+        "mae_%": -5.527,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.762,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "8302f2a7-dcb2-4ef6-a548-02fc2b1d4b36",
@@ -3117,7 +3507,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.09,
+        "mfe_%": 5.161,
+        "mae_%": -5.952,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.525,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "3c661369-743a-4976-9bed-3deeeea363d9",
@@ -3195,7 +3595,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.102,
+        "mfe_%": 3.405,
+        "mae_%": -4.881,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.537,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "5223efd7-ba7f-4bae-8270-d6083533c884",
@@ -3273,7 +3683,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 6.975,
+        "mfe_%": 7.534,
+        "mae_%": -0.746,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 6.54,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "916cdea0-f246-44ac-9a7a-494f47d30a80",
@@ -3351,7 +3771,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 0.262,
+        "mfe_%": 0.57,
+        "mae_%": -4.274,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.173,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "53efa175-1905-462a-846c-7ed8ad3f820f",
@@ -3429,7 +3859,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 0.083,
+        "mfe_%": 7.208,
+        "mae_%": -2.071,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.352,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "83a8776c-1d18-47b8-acd9-b8e59a4408ae",
@@ -3507,7 +3947,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -5.96,
+        "mfe_%": 3.832,
+        "mae_%": -8.978,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -6.395,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "0b51f1c0-13c6-4b29-a1c0-bb2e73a81e6a",
@@ -3585,7 +4035,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -12.433,
+        "mfe_%": -3.138,
+        "mae_%": -15.571,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -12.868,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "e925a75c-9f33-45ed-87ce-c5ab564ae8de",
@@ -3663,7 +4123,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 1.783,
+        "mfe_%": 5.198,
+        "mae_%": -1.451,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 1.348,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "9b637333-a150-4657-a242-b0beb39d9d79",
@@ -3741,7 +4211,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.213,
+        "mfe_%": 2.048,
+        "mae_%": -7.056,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.648,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "9fe10fda-55a2-425b-87a6-4c9feb546a28",
@@ -3819,7 +4299,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.243,
+        "mfe_%": 1.081,
+        "mae_%": -4.264,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.678,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "7e9f3746-4743-45e1-8962-dc0993dd9350",
@@ -3897,7 +4387,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.608,
+        "mfe_%": 13.023,
+        "mae_%": -4.502,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.043,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "12d8ca59-872a-4d29-9af6-a64e533058be",
@@ -3975,7 +4475,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -10.474,
+        "mfe_%": 0.499,
+        "mae_%": -12.469,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -10.909,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "9326c606-e51c-48a4-b149-fe719ab8d314",
@@ -4053,7 +4563,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 3.125,
+        "mfe_%": 5.375,
+        "mae_%": -3.75,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 2.69,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "dc7d30f7-de52-490e-8a87-9c8f8f67ad38",
@@ -4131,7 +4651,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.71,
+        "mfe_%": 0.679,
+        "mae_%": -5.104,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -5.145,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "7e40daf5-dd80-412f-bc9a-567386f11971",
@@ -4209,7 +4739,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 7.098,
+        "mfe_%": 9.708,
+        "mae_%": -5.95,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 6.663,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "ec6d608a-4f3e-4a58-b164-f1eb3b45a8cb",
@@ -4287,7 +4827,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.689,
+        "mfe_%": 1.66,
+        "mae_%": -6.527,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.124,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "4fbc39d8-9a6b-4306-8ccd-4307c7a55dd2",
@@ -4365,7 +4915,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.446,
+        "mfe_%": 5.275,
+        "mae_%": -4.782,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.881,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "5ac5b7f1-fd10-419b-b7b4-bafc60d9c127",
@@ -4443,7 +5003,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 0.847,
+        "mfe_%": 8.475,
+        "mae_%": -2.072,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 0.412,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "73fde0e5-505d-4fd1-b956-f711491ddaf2",
@@ -4521,7 +5091,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.416,
+        "mfe_%": 4.759,
+        "mae_%": -5.069,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.851,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "d4190302-d26f-4f0a-bc69-44a58abce721",
@@ -4599,7 +5179,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -6.82,
+        "mfe_%": 1.958,
+        "mae_%": -11.3,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -7.255,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "7c34b214-c052-4d3a-93d7-aba62305616b",
@@ -4677,7 +5267,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.155,
+        "mfe_%": 6.479,
+        "mae_%": -3.211,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.59,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "01308ae5-a3f4-47c9-9012-d28d45f4e308",
@@ -4755,7 +5355,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.235,
+        "mfe_%": 3.445,
+        "mae_%": -5.546,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.67,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "94e7ea12-c8fb-4ee2-9b37-cf499c31a14b",
@@ -4833,7 +5443,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.906,
+        "mfe_%": 7.058,
+        "mae_%": -3.481,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.341,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "03efe040-f7b8-46dc-9e4a-9824d6b475d8",
@@ -4911,7 +5531,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.102,
+        "mfe_%": 4.681,
+        "mae_%": -5.647,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.537,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "dfcfe265-1186-40f3-a6e2-df49d38feec1",
@@ -4989,7 +5619,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.857,
+        "mfe_%": 6.931,
+        "mae_%": -4.673,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.292,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "258f35e2-769b-4f10-a24d-41abbe1d24f5",
@@ -5067,7 +5707,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.109,
+        "mfe_%": 5.78,
+        "mae_%": -5.141,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.544,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "aa166fbe-5099-44cc-888b-914409eab343",
@@ -5145,7 +5795,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.567,
+        "mfe_%": 3.742,
+        "mae_%": -5.431,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.002,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "ae54d8fe-ba88-49d4-bb91-33e5286fc945",
@@ -5223,7 +5883,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.306,
+        "mfe_%": 5.742,
+        "mae_%": -6.22,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.741,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "ae87e997-c40c-4b29-9c1c-86a19b2bbc6e",
@@ -5301,7 +5971,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -8.299,
+        "mfe_%": 5.15,
+        "mae_%": -9.394,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -8.734,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "6704e0bb-a2ef-492a-bfd4-c14ded6d1de7",
@@ -5379,7 +6059,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.599,
+        "mfe_%": 2.33,
+        "mae_%": -5.686,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.034,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "ca1a3d4c-811c-457a-be89-ee82d725b7ed",
@@ -5457,7 +6147,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.718,
+        "mfe_%": 9.058,
+        "mae_%": -1.915,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.153,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "def9f4c8-5143-4967-907f-e8eca09cbf48",
@@ -5535,7 +6235,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.371,
+        "mfe_%": 5.216,
+        "mae_%": -4.267,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.806,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "b69781ff-ab0b-439b-ae9f-b14bc430188c",
@@ -5613,7 +6323,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 0.701,
+        "mfe_%": 4.601,
+        "mae_%": -0.866,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 0.266,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "80007ec7-276d-4dad-aa1c-3320cf7d7fc0",
@@ -5691,7 +6411,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.234,
+        "mfe_%": 3.275,
+        "mae_%": -1.209,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.669,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "3625cfd9-f12b-45ad-9127-935ae51a8602",
@@ -5769,7 +6499,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -10.446,
+        "mfe_%": -0.264,
+        "mae_%": -12.894,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -10.881,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "bef1e48e-b9d5-41fb-8fb7-485a6046cc80",
@@ -5847,7 +6587,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 2.575,
+        "mfe_%": 12.446,
+        "mae_%": -4.292,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 2.14,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "1b8eb9a3-a8d2-4858-8361-8f8d3e791585",
@@ -5925,7 +6675,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.735,
+        "mfe_%": 3.064,
+        "mae_%": -7.103,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -5.17,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "6b5f93e1-40be-47bc-b740-2017b2890e4e",
@@ -6003,7 +6763,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -9.14,
+        "mfe_%": 0.778,
+        "mae_%": -9.338,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -9.575,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "0d09a099-a8e4-414b-afa6-02f2a6573aa5",
@@ -6081,7 +6851,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -6.481,
+        "mfe_%": 4.167,
+        "mae_%": -7.323,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -6.916,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "3cc155e1-a11d-4f0e-b4d5-268242f9c43b",
@@ -6159,7 +6939,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.857,
+        "mfe_%": 2.571,
+        "mae_%": -8.143,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.292,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "e5ec0071-365e-4ee4-8fd3-8e8254df5435",
@@ -6237,7 +7027,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -13.072,
+        "mfe_%": 0.352,
+        "mae_%": -14.332,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -13.507,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "e4d3c91b-752f-485a-b735-f7fcb65be4ee",
@@ -6315,7 +7115,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -13.58,
+        "mfe_%": 13.58,
+        "mae_%": -14.198,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -14.015,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "ecc9ab00-8878-485e-bdb8-114ae83f9f96",
@@ -6393,7 +7203,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 2.273,
+        "mfe_%": 7.323,
+        "mae_%": -2.778,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 1.838,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "2a83da36-caea-41cc-878b-51bb5d5f7170",
@@ -6471,7 +7291,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.797,
+        "mfe_%": 2.159,
+        "mae_%": -5.037,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -5.232,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "13884503-ce86-4ca8-95a2-677923cd2806",
@@ -6549,7 +7379,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -5.87,
+        "mfe_%": 0.398,
+        "mae_%": -6.404,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -6.305,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "7d50e55c-1cd1-4bb4-aeb3-bae08a4d2d3a",
@@ -6627,7 +7467,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.756,
+        "mfe_%": 3.21,
+        "mae_%": -3.179,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.191,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "d2d6f8bf-e01d-4f57-8d2d-d4a3a091a6c6",
@@ -6705,7 +7555,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.042,
+        "mfe_%": 2.662,
+        "mae_%": -3.327,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.477,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "9a054930-5bd6-4239-9c1c-d6b12b2dc84d",
@@ -6783,7 +7643,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -5.267,
+        "mfe_%": 0.634,
+        "mae_%": -6.811,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -5.702,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "3f3ea438-189d-4d9c-bdc6-1371bf8eb45d",
@@ -6861,7 +7731,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.934,
+        "mfe_%": 2.818,
+        "mae_%": -3.007,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.369,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "2f14f5f7-8f07-40d2-a76b-a768f386cbd9",
@@ -6939,7 +7819,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.083,
+        "mfe_%": 2.324,
+        "mae_%": -3.931,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.518,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "b87b5c5f-4dde-4555-8118-b202e2bcc055",
@@ -7017,7 +7907,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.817,
+        "mfe_%": 2.218,
+        "mae_%": -3.989,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.252,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "45c7cb9f-5629-42dc-bff7-fa98c2bec97e",
@@ -7095,7 +7995,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 3.493,
+        "mfe_%": 4.391,
+        "mae_%": -3.618,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 3.058,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "efa852b8-69dc-4231-8398-69fda68031c7",
@@ -7173,7 +8083,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.63,
+        "mfe_%": 5.656,
+        "mae_%": -4.749,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.065,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "9940e1b0-534d-4131-84ba-3418a9482f36",
@@ -7251,7 +8171,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.421,
+        "mfe_%": 2.987,
+        "mae_%": -4.629,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.856,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "a11f8d5a-070f-4180-87bb-321366a6907a",
@@ -7329,7 +8259,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.782,
+        "mfe_%": 1.975,
+        "mae_%": -4.285,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.217,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "7562e4ae-bb38-406e-ba1d-538d59fde8f1",
@@ -7407,7 +8347,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -6.683,
+        "mfe_%": 3.47,
+        "mae_%": -10.7,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -7.118,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "15b3b574-aca1-42ef-9b34-53cbf6d22dc0",
@@ -7485,7 +8435,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.734,
+        "mfe_%": 2.679,
+        "mae_%": -13.029,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.169,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "cdccc2c0-8fc9-435d-aaf1-a6ee7d435f05",
@@ -7563,7 +8523,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.354,
+        "mfe_%": 2.751,
+        "mae_%": -3.676,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.789,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "3e23f2a7-d552-4790-bb9c-abf2812f754e",
@@ -7641,7 +8611,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 1.375,
+        "mfe_%": 10.024,
+        "mae_%": -4.199,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 0.94,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "118728fe-e784-4057-8ece-aa6458a1da80",
@@ -7719,7 +8699,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 0.527,
+        "mfe_%": 2.09,
+        "mae_%": -2.563,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 0.092,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "c5323cd4-75f6-47c6-ac8e-9aeaf2e2ffb8",
@@ -7797,7 +8787,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 2.884,
+        "mfe_%": 3.993,
+        "mae_%": -3.973,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 2.449,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "d613f1db-e86c-4e4e-84c2-aed37ddb6a64",
@@ -7875,7 +8875,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 4.022,
+        "mfe_%": 5.812,
+        "mae_%": -3.3,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 3.587,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "5bb08e96-c2bf-4c85-86a6-626a2bcffa48",
@@ -7953,7 +8963,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -9.748,
+        "mfe_%": 1.145,
+        "mae_%": -10.775,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -10.183,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "1d6a26e5-28f7-4a44-aaff-bb3a1fea8ec1",
@@ -8031,7 +9051,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.026,
+        "mfe_%": 0.557,
+        "mae_%": -2.802,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.461,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "94121a76-fa8a-4c40-b469-d2c1edc53dd4",
@@ -8109,7 +9139,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.402,
+        "mfe_%": 6.18,
+        "mae_%": -1.94,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.837,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "2d20eb06-d995-4719-aa10-ecd647cc9985",
@@ -8187,7 +9227,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 0.553,
+        "mfe_%": 1.66,
+        "mae_%": -2.835,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 0.118,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "d790bf64-142f-424c-9ea5-537c82f7bd0b",
@@ -8265,7 +9315,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 4.408,
+        "mfe_%": 5.816,
+        "mae_%": -6.104,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 3.973,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "82f82244-3208-4a35-9f5e-2eaafa451e76",
@@ -8343,7 +9403,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 3.142,
+        "mfe_%": 4.265,
+        "mae_%": -2.701,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 2.707,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "d5461121-05eb-4bec-97df-4753ddee70d1",
@@ -8421,7 +9491,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -14.435,
+        "mfe_%": 1.357,
+        "mae_%": -15.646,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -14.87,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "b3fd1b46-83e6-442a-bf73-5d5380f49afb",
@@ -8499,7 +9579,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.014,
+        "mfe_%": 0.249,
+        "mae_%": -0.069,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.449,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "3ec0be3a-6720-45a8-9c43-9d88a197e3d0",
@@ -8577,7 +9667,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 1.528,
+        "mfe_%": 3.207,
+        "mae_%": -3.837,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 1.093,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "688e20af-e83c-481f-a93f-9ca431bb5e14",
@@ -8655,7 +9755,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.178,
+        "mfe_%": 3.285,
+        "mae_%": -2.915,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.613,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "114839a8-be33-4b5c-8c29-f4cda0fd532d",
@@ -8733,7 +9843,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.719,
+        "mfe_%": 4.252,
+        "mae_%": -10.169,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.154,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "84ba4f2b-f8fa-49f5-94f0-67d1a702c082",
@@ -8811,7 +9931,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.151,
+        "mfe_%": 1.753,
+        "mae_%": -3.034,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.586,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "2aa843bf-4390-4373-8355-c00e52c84a1a",
@@ -8889,7 +10019,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.3,
+        "mfe_%": 11.19,
+        "mae_%": -10.425,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.735,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "13ad7286-ea6d-41ec-86d1-8e64d6c854e8",
@@ -8967,7 +10107,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 13.014,
+        "mfe_%": 14.836,
+        "mae_%": -6.314,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 12.579,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "12523db8-563d-43d4-b2c1-1155b95dfc98",
@@ -9045,7 +10195,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.094,
+        "mfe_%": 1.406,
+        "mae_%": -1.992,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.529,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "5d796784-fe78-4136-94b0-73a483ac8b9a",
@@ -9123,7 +10283,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 2.298,
+        "mfe_%": 2.763,
+        "mae_%": -0.884,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 1.863,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "d27cd323-fd96-4131-9e82-cf62265f3832",
@@ -9201,7 +10371,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 15.244,
+        "mfe_%": 19.5,
+        "mae_%": -3.618,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 14.809,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "38668d10-f886-4f09-ac1b-0142c87f5fcc",
@@ -9279,7 +10459,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 1.359,
+        "mfe_%": 2.572,
+        "mae_%": -1.854,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 0.924,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "56df098f-47d9-401d-987d-40d081f80e6b",
@@ -9357,7 +10547,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.129,
+        "mfe_%": 1.904,
+        "mae_%": -0.41,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.564,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "9debda2e-f84b-42b2-b85b-e2403fe96355",
@@ -9435,7 +10635,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 1.276,
+        "mfe_%": 4.427,
+        "mae_%": -0.022,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 0.841,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "180d7cb8-9295-4012-bdc5-120fbbfe74d6",
@@ -9513,7 +10723,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.63,
+        "mfe_%": 1.446,
+        "mae_%": -4.124,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.065,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "3bb6a839-d66a-4cf6-a05c-e291884dec51",
@@ -9591,7 +10811,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.175,
+        "mfe_%": 1.457,
+        "mae_%": -3.461,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.61,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "92f3319a-f1c5-41cd-9184-95624aef6eed",
@@ -9669,7 +10899,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.264,
+        "mfe_%": 4.369,
+        "mae_%": -4.022,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.699,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "4b603d05-fe48-4400-a043-0a816b899261",
@@ -9747,7 +10987,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.408,
+        "mfe_%": 1.61,
+        "mae_%": -10.732,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.843,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "d3c55614-ae74-4530-a712-747c0aa49aea",
@@ -9825,7 +11075,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.311,
+        "mfe_%": 0.756,
+        "mae_%": -6.056,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.746,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "4302ed9e-021f-42cd-a4e5-ee80ed3cbc26",
@@ -9903,7 +11163,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 4.487,
+        "mfe_%": 4.819,
+        "mae_%": -2.654,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 4.052,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "0d00607e-1266-4c09-9ef0-cf34f8cc1e99",
@@ -9981,7 +11251,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.361,
+        "mfe_%": 1.51,
+        "mae_%": -4.744,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.796,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "5dda30f4-9748-46b4-bedb-7ed861094c32",
@@ -10059,7 +11339,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.386,
+        "mfe_%": 0.271,
+        "mae_%": -5.231,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.821,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "81cc13b0-4ca2-44ed-86fd-9a26e385c21b",
@@ -10137,7 +11427,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.06,
+        "mfe_%": 0.133,
+        "mae_%": -4.741,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.495,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "183da2f5-d41f-40d6-90b8-b9d0cbf4f429",
@@ -10215,7 +11515,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.406,
+        "mfe_%": 0.607,
+        "mae_%": -7.666,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.841,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "4dfe4ba6-13ee-4766-894a-3d87fdfef2ce",
@@ -10293,7 +11603,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 31.254,
+        "mfe_%": 41.804,
+        "mae_%": -1.917,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 30.819,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "37ba2a29-c5d1-4a11-8168-967bc2295ad6",
@@ -10371,7 +11691,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -5.293,
+        "mfe_%": 0.812,
+        "mae_%": -6.528,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -5.728,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "026b6e47-b293-4439-84e7-44ed035b66ed",
@@ -10449,7 +11779,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 1.324,
+        "mfe_%": 2.392,
+        "mae_%": 0.082,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 0.889,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "b34398fc-aa67-4d0e-9a75-9400fdb86f6d",
@@ -10527,7 +11867,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.14,
+        "mfe_%": 2.865,
+        "mae_%": -4.458,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.575,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "026cdad1-e06e-4b3e-a930-cd1ec968295e",
@@ -10605,7 +11955,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.602,
+        "mfe_%": -0.067,
+        "mae_%": -5.977,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.037,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "4e25316c-6b2a-4208-924a-b59086ce4426",
@@ -10683,7 +12043,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 0.141,
+        "mfe_%": 11.418,
+        "mae_%": -3.39,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.294,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "23924928-025b-41de-9b2e-0ef4a4deab40",
@@ -10761,7 +12131,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.686,
+        "mfe_%": 2.146,
+        "mae_%": -0.8,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.121,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "59b7947f-98f8-49c6-8ff3-7b414fbf2bc6",
@@ -10839,7 +12219,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.325,
+        "mfe_%": 2.055,
+        "mae_%": -2.493,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.76,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "24a04bc7-83a6-4809-b53a-a20a3df1f96b",
@@ -10917,7 +12307,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.644,
+        "mfe_%": 1.394,
+        "mae_%": -2.887,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.079,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "de263a37-9fcc-4b49-9e3b-6bd07d065370",
@@ -10995,7 +12395,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 1.603,
+        "mfe_%": 4.263,
+        "mae_%": -1.745,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 1.168,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "4f631194-c4ab-44ae-b70a-4d19211589cf",
@@ -11073,7 +12483,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.921,
+        "mfe_%": 2.191,
+        "mae_%": -3.288,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.356,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "333a7987-e32a-4253-8f8a-ae549589874f",
@@ -11151,7 +12571,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.677,
+        "mfe_%": 2.031,
+        "mae_%": -4.882,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -5.112,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "717ada0e-4054-429b-b286-adc8d75a1683",
@@ -11229,7 +12659,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 1.905,
+        "mfe_%": 2.511,
+        "mae_%": -0.584,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 1.47,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "d343b309-7332-4336-afcb-665ad9beff05",
@@ -11307,7 +12747,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 5.502,
+        "mfe_%": 9.307,
+        "mae_%": -0.442,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 5.067,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "69d737c7-4f0b-41a3-bede-52b649a32a54",
@@ -11385,7 +12835,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.617,
+        "mfe_%": 0.838,
+        "mae_%": -4.768,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.052,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "91fb4b17-9b16-4e28-b37c-647e04a272af",
@@ -11463,7 +12923,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 28.045,
+        "mfe_%": 29.384,
+        "mae_%": -5.579,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 27.61,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "1da77c51-c991-4108-9cfa-d0f772c037dd",
@@ -11541,7 +13011,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -5.55,
+        "mfe_%": 1.482,
+        "mae_%": -5.61,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -5.985,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "65964d37-cf52-42c9-916e-c59d24e301b1",
@@ -11619,7 +13099,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.629,
+        "mfe_%": 3.404,
+        "mae_%": -1.725,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.064,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "d609083d-56ea-403d-b827-726282fa5106",
@@ -11697,7 +13187,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.61,
+        "mfe_%": 2.556,
+        "mae_%": -3.872,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.045,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "88a628cb-61d0-45ae-85e8-4fa6df44de58",
@@ -11775,7 +13275,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 2.286,
+        "mfe_%": 4.951,
+        "mae_%": -5.072,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 1.851,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "7c81f1bc-68ce-434a-9f3b-9583b842fde9",
@@ -11853,7 +13363,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 6.489,
+        "mfe_%": 7.623,
+        "mae_%": -0.061,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 6.054,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "e0d17e4e-9dd6-4ff1-801f-b4d082ba1cce",
@@ -11931,7 +13451,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.208,
+        "mfe_%": 1.986,
+        "mae_%": -5.307,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.643,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "7d9b6b33-fee6-4f42-ba96-70980fc5021b",
@@ -12009,7 +13539,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.674,
+        "mfe_%": 1.146,
+        "mae_%": -2.042,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.109,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "c9a853cd-5841-4cd9-9a88-5c65efa4dfd2",
@@ -12087,7 +13627,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.356,
+        "mfe_%": 1.524,
+        "mae_%": -0.851,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.791,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "f2c526d8-808e-441a-9b1d-8f52d7ce2a5e",
@@ -12165,7 +13715,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 6.779,
+        "mfe_%": 8.232,
+        "mae_%": -8.347,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 6.344,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "69aff2db-bfe0-4e1c-b122-b76121a6368f",
@@ -12243,7 +13803,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 3.151,
+        "mfe_%": 7.388,
+        "mae_%": -4.09,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 2.716,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "0be2c871-ab02-4636-8320-e7a511ea5cb9",
@@ -12321,7 +13891,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.59,
+        "mfe_%": 1.348,
+        "mae_%": -3.327,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.025,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "b7f33d0c-105f-4f44-be3e-cee476471010",
@@ -12399,7 +13979,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 2.373,
+        "mfe_%": 4.073,
+        "mae_%": -0.037,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 1.938,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "f6144a2d-d2d2-48d2-aa5b-15ecaceb551d",
@@ -12477,7 +14067,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 3.691,
+        "mfe_%": 6.863,
+        "mae_%": -1.571,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 3.256,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "77401317-01cd-4fa6-ba9b-7ba122b61a48",
@@ -12555,7 +14155,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.02,
+        "mfe_%": 1.789,
+        "mae_%": -4.887,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.455,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "4242cd48-8d43-4703-80db-8eb7208c2000",
@@ -12633,7 +14243,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.446,
+        "mfe_%": 1.426,
+        "mae_%": -1.006,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.881,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "063c5f10-fa7d-4326-92f2-2edaedc6ed45",
@@ -12711,7 +14331,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -5.557,
+        "mfe_%": 0.72,
+        "mae_%": -5.68,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -5.992,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "9a2e1209-576c-4637-926c-d9d6286de7ab",
@@ -12789,7 +14419,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.291,
+        "mfe_%": 1.555,
+        "mae_%": -2.088,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.726,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "04b94501-1b03-4355-9bc0-47b9c81d1170",
@@ -12867,7 +14507,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.076,
+        "mfe_%": 0.798,
+        "mae_%": -3.742,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.511,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "a47c3884-fe91-4c97-8c9f-c1aaeb1fc247",
@@ -12945,7 +14595,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.223,
+        "mfe_%": 0.736,
+        "mae_%": -4.767,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.658,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "e2976733-817f-406f-9277-46e91ae4f6e1",
@@ -13023,7 +14683,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -4.229,
+        "mfe_%": 0.561,
+        "mae_%": -4.517,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.664,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "9411d37e-19b3-4155-a2bc-a2eeee7c2fd2",
@@ -13101,7 +14771,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.424,
+        "mfe_%": 0.818,
+        "mae_%": -4.241,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.859,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "a5ec55a0-ba42-4163-9b6a-4d95cc09997f",
@@ -13179,7 +14859,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.578,
+        "mfe_%": 1.708,
+        "mae_%": -2.754,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.013,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "1b0e0f7f-57dd-4f84-bb9e-8189403f5195",
@@ -13257,7 +14947,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.022,
+        "mfe_%": 0.725,
+        "mae_%": -2.973,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.457,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "5b71b925-1f59-4cfc-a514-f0efe2ed897e",
@@ -13335,7 +15035,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.591,
+        "mfe_%": 2.339,
+        "mae_%": -4.851,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.026,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "51eca66b-2fff-4569-a4a8-4a51290856e0",
@@ -13413,7 +15123,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -5.384,
+        "mfe_%": 0.6,
+        "mae_%": -6.087,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -5.819,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "0f4f28db-bf4b-41ea-bd11-913216aad6c2",
@@ -13491,7 +15211,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.937,
+        "mfe_%": 0.042,
+        "mae_%": -4.821,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.372,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "d533f9b8-afa9-4bcb-a29c-f45f7001a094",
@@ -13569,7 +15299,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 3.687,
+        "mfe_%": 4.974,
+        "mae_%": -2.738,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 3.252,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "98aa1acd-0ea5-4d48-931d-4678295aee11",
@@ -13647,7 +15387,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 4.083,
+        "mfe_%": 5.591,
+        "mae_%": -7.113,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 3.648,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "aceabb4e-d8a8-4d05-9e31-cbc0a3d486e2",
@@ -13725,7 +15475,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.078,
+        "mfe_%": 3.344,
+        "mae_%": -0.173,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.513,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "400dedea-b62c-4653-9316-b731b209bc02",
@@ -13803,7 +15563,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -7.28,
+        "mfe_%": 0.454,
+        "mae_%": -7.482,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -7.715,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "f323a003-bb14-49d5-8155-1f79a5f70a87",
@@ -13881,7 +15651,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.667,
+        "mfe_%": 1.526,
+        "mae_%": -2.744,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.102,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "3c358794-e514-4d0b-a970-6bd20ce85710",
@@ -13959,7 +15739,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -14.371,
+        "mfe_%": 3.823,
+        "mae_%": -15.468,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -14.806,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "9fcac57b-d48b-429f-8a0c-e23b04d4f352",
@@ -14037,7 +15827,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 2.374,
+        "mfe_%": 5.122,
+        "mae_%": -0.375,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 1.939,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "cf97c6e2-b126-49a8-9286-b081c25fd44e",
@@ -14115,7 +15915,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -3.649,
+        "mfe_%": 1.25,
+        "mae_%": -4.349,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -4.084,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "59fd2535-3700-4f4d-ac28-7bf4f8db46d2",
@@ -14193,7 +16003,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -5.042,
+        "mfe_%": 2.288,
+        "mae_%": -5.517,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -5.477,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "21207a21-d857-47dd-96e9-59f2f11af093",
@@ -14271,7 +16091,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.809,
+        "mfe_%": 1.715,
+        "mae_%": -0.841,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.244,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "4b43ec20-66f9-4451-8d5e-30d958a3075c",
@@ -14349,7 +16179,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 1.086,
+        "mfe_%": 4.213,
+        "mae_%": -0.527,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 0.651,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "2c6906fd-f779-441c-9a72-4b5933c2dcb1",
@@ -14427,7 +16267,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.92,
+        "mfe_%": 2.212,
+        "mae_%": -2.414,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.355,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "97a8b7cc-9a70-4727-bb1d-a4c170b65831",
@@ -14505,7 +16355,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 2.271,
+        "mfe_%": 4.703,
+        "mae_%": -0.064,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 1.836,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "fd6183af-9fa0-42c0-9567-c3feef2971e6",
@@ -14583,7 +16443,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -8.58,
+        "mfe_%": 1.735,
+        "mae_%": -8.894,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -9.015,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "f78e0ed5-5c85-447b-a616-27321ce3605a",
@@ -14661,7 +16531,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 0.344,
+        "mfe_%": 2.766,
+        "mae_%": -0.86,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.091,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "4c3155ea-0610-430c-b5e4-9ad224b10400",
@@ -14739,7 +16619,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.624,
+        "mfe_%": 1.317,
+        "mae_%": -2.372,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.059,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "85afb42e-f2f7-4898-aa5a-b415ab2fbc2c",
@@ -14817,7 +16707,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.833,
+        "mfe_%": 0.2,
+        "mae_%": -8.189,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.268,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "afb8337b-df37-4f6e-8723-7209293e09a0",
@@ -14895,7 +16795,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.637,
+        "mfe_%": 1.113,
+        "mae_%": -3.78,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -3.072,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "53f386ca-5afe-4831-9e3e-056a9aaa3899",
@@ -14973,7 +16883,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.128,
+        "mfe_%": 0.993,
+        "mae_%": -3.333,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.563,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "00775ada-561f-4635-861b-fc083d1ea20a",
@@ -15051,7 +16971,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -8.415,
+        "mfe_%": 0.778,
+        "mae_%": -15.876,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -8.85,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "324c5c0e-ad37-42b0-842c-c58b26c8da97",
@@ -15129,7 +17059,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.56,
+        "mfe_%": 1.652,
+        "mae_%": -2.239,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.995,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "f0c7d5ff-cabc-4faa-b9c8-9e542bcafce6",
@@ -15207,7 +17147,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -0.405,
+        "mfe_%": 3.502,
+        "mae_%": -1.042,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -0.84,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "47441991-0839-4191-93b3-f44cd3da2d99",
@@ -15285,7 +17235,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.006,
+        "mfe_%": 2.784,
+        "mae_%": -1.62,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.441,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "03ec74d3-de6c-4e8c-b3bc-1b180cdd3b41",
@@ -15363,7 +17323,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": 0.98,
+        "mfe_%": 2.38,
+        "mae_%": -1.198,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": 0.545,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "8a06102e-204f-4457-bcbd-65fe87041838",
@@ -15441,7 +17411,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.751,
+        "mfe_%": -0.105,
+        "mae_%": -5.492,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.186,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "8eda7a05-3423-4605-90ed-25dc754f9e31",
@@ -15519,7 +17499,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -2.204,
+        "mfe_%": 0.72,
+        "mae_%": -3.943,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -2.639,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "dbc3201b-6e25-4ae0-8694-c21e6b392ed0",
@@ -15597,7 +17587,17 @@
     "stop_price": null,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "5D": {
+        "forward_return_%": -1.343,
+        "mfe_%": 2.038,
+        "mae_%": -2.06,
+        "benchmark_return_%": 0.435,
+        "excess_return_%": -1.778,
+        "computed_at": "2026-09-02"
+      }
+    }
   },
   {
     "observation_id": "20b83646-fae9-42ab-a935-e65a1d12b405",
