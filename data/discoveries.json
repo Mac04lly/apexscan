@@ -15259,5 +15259,27 @@
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
+  },
+  {
+    "ticker": "LYB",
+    "discovered_at": "2026-09-03",
+    "discovery_price": 66.57,
+    "apex_score": 77.6,
+    "apex_score_raw": 77.6,
+    "stage": "2 \u2705 Uptrend",
+    "discovery_stage_rank": 2,
+    "theme": "Materials",
+    "breaking_out": false,
+    "of_bias": "Strong Bullish",
+    "invalidation_price": 59.02,
+    "invalidation_basis": "200-day moving average",
+    "next_earnings": null,
+    "last_checked": null,
+    "current_price": null,
+    "pct_change": null,
+    "days_tracked": null,
+    "current_stage_rank": null,
+    "thesis_status": "\u2013 Not checked yet",
+    "invalidated": false
   }
 ]
