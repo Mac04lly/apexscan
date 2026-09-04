@@ -49983,11 +49983,11 @@
     "market": "US",
     "first_radar_date": "2026-08-30",
     "first_radar_price": 105.3499984741211,
-    "current_price": 109.43000030517578,
-    "current_score": 64.8,
+    "current_price": 110.76000213623047,
+    "current_score": 67.7,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 4,
+    "days_on_radar": 5,
     "score_history": [
       {
         "date": "2026-08-30",
@@ -50018,11 +50018,17 @@
         "score": 64.8,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-09-04",
+        "score": 67.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
       }
     ],
     "score_components": {
       "rs_improvement": 0.0,
-      "breakout_proximity": 0.8,
+      "breakout_proximity": 1.0,
       "structure_compression": 0.637,
       "volume_behavior": 0.6,
       "higher_low_structure": 1.0,
@@ -50034,9 +50040,9 @@
       "market_regime": null
     },
     "resistance_price": 111.15,
-    "distance_to_resistance_pct": 1.55,
-    "rs": 1255.7,
-    "rs_trend": -1792.1,
+    "distance_to_resistance_pct": 0.35,
+    "rs": 1112.6,
+    "rs_trend": -1935.2,
     "structure": {
       "ms_structure": "Bullish (HH/HL)",
       "ms_hh_hl": true,
@@ -50047,37 +50053,37 @@
       "higher_lows_flat_resistance": true
     },
     "volatility": {
-      "atr_pct_5": 2.574,
-      "atr_pct_10": 2.29,
-      "atr_pct_20": 3.234,
-      "atr_ratio_5_20": 0.796,
-      "bb_width_pct": 12.064,
+      "atr_pct_5": 2.604,
+      "atr_pct_10": 2.292,
+      "atr_pct_20": 3.211,
+      "atr_ratio_5_20": 0.811,
+      "bb_width_pct": 12.432,
       "range_ratio_5_20": 0.363,
-      "volatility_percentile": 65.4,
+      "volatility_percentile": 61.8,
       "volatility_contraction": true,
       "volatility_contraction_acceleration": false
     },
     "volume": {
-      "avg_volume_5": 1191985.0,
-      "avg_volume_10": 1386972.0,
-      "avg_volume_20": 2245301.0,
-      "avg_volume_50": 1987268.0,
-      "relative_volume": 0.161,
-      "up_down_volume_ratio": 0.821,
+      "avg_volume_5": 1505840.0,
+      "avg_volume_10": 1543900.0,
+      "avg_volume_20": 2323765.0,
+      "avg_volume_50": 2018654.0,
+      "relative_volume": 0.936,
+      "up_down_volume_ratio": 0.937,
       "volume_trend": "FALLING",
       "volume_contraction": true
     },
     "moving_averages": {
-      "price_vs_20ma_pct": 3.73,
-      "price_vs_50ma_pct": 21.74,
-      "price_vs_200ma_pct": 47.87,
-      "ma50_slope": 0.8432,
-      "ma50_acceleration": 0.0335,
-      "ma200_slope": 0.2587,
-      "ma200_acceleration": 0.0029,
+      "price_vs_20ma_pct": 4.93,
+      "price_vs_50ma_pct": 23.18,
+      "price_vs_200ma_pct": 49.65,
+      "ma50_slope": 0.8446,
+      "ma50_acceleration": 0.0349,
+      "ma200_slope": 0.2591,
+      "ma200_acceleration": 0.0033,
       "ma50_transition": "ACCELERATING_UP",
       "ma200_transition": "ACCELERATING_UP",
-      "ma_compression_pct": 14.51
+      "ma_compression_pct": 14.36
     },
     "sector_confirmation": {
       "stock_vs_sector": "UNKNOWN",
@@ -50090,7 +50096,7 @@
     },
     "liquidity_gate": {
       "passes": true,
-      "dollar_volume": 245703289.0,
+      "dollar_volume": 257380216.0,
       "min_required": 5000000.0,
       "market": "US"
     },
@@ -106491,25 +106497,31 @@
     "market": "US",
     "first_radar_date": "2026-09-03",
     "first_radar_price": 135.91000366210938,
-    "current_price": 135.91000366210938,
-    "current_score": 72.5,
-    "current_state": "DEVELOPING",
+    "current_price": 144.82000732421875,
+    "current_score": 86.5,
+    "current_state": "READY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 1,
     "score_history": [
       {
         "date": "2026-09-03",
         "score": 72.5,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-09-04",
+        "score": 86.5,
+        "state": "READY",
+        "evidence_quality": "MEDIUM"
       }
     ],
     "score_components": {
       "rs_improvement": 1.0,
-      "breakout_proximity": 0.8,
-      "structure_compression": 0.675,
-      "volume_behavior": 0.6,
-      "higher_low_structure": 0.5,
+      "breakout_proximity": 1.0,
+      "structure_compression": 0.558,
+      "volume_behavior": 1.0,
+      "higher_low_structure": 1.0,
       "ma50_transition": 1.0,
       "ma200_transition": 0.0,
       "sector_confirmation": null,
@@ -106517,51 +106529,51 @@
       "fundamental_acceleration": null,
       "market_regime": null
     },
-    "resistance_price": 139.78,
-    "distance_to_resistance_pct": 2.77,
-    "rs": 304.4,
-    "rs_trend": 989.1,
+    "resistance_price": 144.92,
+    "distance_to_resistance_pct": 0.07,
+    "rs": 410.7,
+    "rs_trend": 1095.4,
     "structure": {
       "ms_structure": "Bullish (HH/HL)",
       "ms_hh_hl": true,
-      "ms_last_swing_high": 139.78,
+      "ms_last_swing_high": 105.5,
       "ms_last_swing_low": 91.67,
-      "base_depth_pct": 36.18,
-      "base_duration_bars": 5,
-      "higher_lows_flat_resistance": false
+      "base_depth_pct": 38.44,
+      "base_duration_bars": 0,
+      "higher_lows_flat_resistance": true
     },
     "volatility": {
-      "atr_pct_5": 6.678,
-      "atr_pct_10": 7.086,
-      "atr_pct_20": 5.947,
-      "atr_ratio_5_20": 1.123,
-      "bb_width_pct": 56.335,
-      "range_ratio_5_20": 0.325,
-      "volatility_percentile": 30.8,
+      "atr_pct_5": 7.358,
+      "atr_pct_10": 7.196,
+      "atr_pct_20": 5.853,
+      "atr_ratio_5_20": 1.257,
+      "bb_width_pct": 58.876,
+      "range_ratio_5_20": 0.442,
+      "volatility_percentile": 28.8,
       "volatility_contraction": false,
       "volatility_contraction_acceleration": false
     },
     "volume": {
-      "avg_volume_5": 20910585.0,
-      "avg_volume_10": 28535152.0,
-      "avg_volume_20": 26212341.0,
-      "avg_volume_50": 22807448.0,
-      "relative_volume": 0.526,
-      "up_down_volume_ratio": 2.093,
+      "avg_volume_5": 27498000.0,
+      "avg_volume_10": 31828860.0,
+      "avg_volume_20": 27859195.0,
+      "avg_volume_50": 23466190.0,
+      "relative_volume": 1.911,
+      "up_down_volume_ratio": 2.296,
       "volume_trend": "RISING",
-      "volume_contraction": true
+      "volume_contraction": false
     },
     "moving_averages": {
-      "price_vs_20ma_pct": 20.34,
-      "price_vs_50ma_pct": 33.02,
-      "price_vs_200ma_pct": -2.44,
-      "ma50_slope": 0.2396,
-      "ma50_acceleration": 0.9909,
-      "ma200_slope": -0.3754,
-      "ma200_acceleration": 0.2656,
+      "price_vs_20ma_pct": 27.73,
+      "price_vs_50ma_pct": 41.49,
+      "price_vs_200ma_pct": 3.93,
+      "ma50_slope": 0.2486,
+      "ma50_acceleration": 0.9999,
+      "ma200_slope": -0.3736,
+      "ma200_acceleration": 0.2674,
       "ma50_transition": "ACCELERATING_UP",
       "ma200_transition": "FALLING",
-      "ma_compression_pct": 27.32
+      "ma_compression_pct": 25.55
     },
     "sector_confirmation": {
       "stock_vs_sector": "UNKNOWN",
@@ -106574,7 +106586,7 @@
     },
     "liquidity_gate": {
       "passes": true,
-      "dollar_volume": 3562519361.0,
+      "dollar_volume": 4034568824.0,
       "min_required": 5000000.0,
       "market": "US"
     },
@@ -106818,5 +106830,2555 @@
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
+  },
+  {
+    "ticker": "RSKD",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 6.929999828338623,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 6.929999828338623,
+    "current_price": 6.929999828338623,
+    "current_score": 60.2,
+    "current_state": "WATCH",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 60.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 0.0,
+      "breakout_proximity": 1.0,
+      "structure_compression": 0.517,
+      "volume_behavior": 1.0,
+      "higher_low_structure": 0.5,
+      "ma50_transition": 0.7,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 6.98,
+    "distance_to_resistance_pct": 0.72,
+    "rs": 931.1,
+    "rs_trend": -345.0,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 6.61,
+      "ms_last_swing_low": 5.84,
+      "base_depth_pct": 29.3,
+      "base_duration_bars": 0,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 5.065,
+      "atr_pct_10": 3.665,
+      "atr_pct_20": 4.697,
+      "atr_ratio_5_20": 1.078,
+      "bb_width_pct": 28.086,
+      "range_ratio_5_20": 0.483,
+      "volatility_percentile": 95.7,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 2795260.0,
+      "avg_volume_10": 1996700.0,
+      "avg_volume_20": 2322735.0,
+      "avg_volume_50": 1407572.0,
+      "relative_volume": 2.676,
+      "up_down_volume_ratio": 1.266,
+      "volume_trend": "FALLING",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 13.67,
+      "price_vs_50ma_pct": 25.18,
+      "price_vs_200ma_pct": 43.21,
+      "ma50_slope": 0.4717,
+      "ma50_acceleration": -0.0115,
+      "ma200_slope": 0.1447,
+      "ma200_acceleration": 0.0074,
+      "ma50_transition": "TURNING_UP",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 10.06
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 16096553.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "KURA",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 13.149999618530273,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 13.149999618530273,
+    "current_price": 13.149999618530273,
+    "current_score": 50.5,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 50.5,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 0.0,
+      "breakout_proximity": 0.5,
+      "structure_compression": 0.936,
+      "volume_behavior": 0.6,
+      "higher_low_structure": 0.0,
+      "ma50_transition": 1.0,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 13.9,
+    "distance_to_resistance_pct": 5.4,
+    "rs": 1023.6,
+    "rs_trend": -443.7,
+    "structure": {
+      "ms_structure": "Transitioning",
+      "ms_hh_hl": false,
+      "ms_last_swing_high": 13.9,
+      "ms_last_swing_low": 8.82,
+      "base_depth_pct": 36.55,
+      "base_duration_bars": 7,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 3.828,
+      "atr_pct_10": 5.46,
+      "atr_pct_20": 5.553,
+      "atr_ratio_5_20": 0.689,
+      "bb_width_pct": 45.126,
+      "range_ratio_5_20": 0.214,
+      "volatility_percentile": 58.4,
+      "volatility_contraction": true,
+      "volatility_contraction_acceleration": true
+    },
+    "volume": {
+      "avg_volume_5": 1726260.0,
+      "avg_volume_10": 2380520.0,
+      "avg_volume_20": 2352065.0,
+      "avg_volume_50": 1849788.0,
+      "relative_volume": 0.793,
+      "up_down_volume_ratio": 4.378,
+      "volume_trend": "FLAT",
+      "volume_contraction": true
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 11.13,
+      "price_vs_50ma_pct": 19.01,
+      "price_vs_200ma_pct": 34.24,
+      "ma50_slope": 0.5828,
+      "ma50_acceleration": 0.209,
+      "ma200_slope": 0.1328,
+      "ma200_acceleration": 0.0878,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 9.53
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 30929654.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "APGE",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 135.07000732421875,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 135.07000732421875,
+    "current_price": 135.07000732421875,
+    "current_score": 56.7,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 56.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 0.0,
+      "breakout_proximity": 1.0,
+      "structure_compression": 0.918,
+      "volume_behavior": 0.0,
+      "higher_low_structure": 1.0,
+      "ma50_transition": 0.7,
+      "ma200_transition": 0.7,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 135.09,
+    "distance_to_resistance_pct": 0.01,
+    "rs": 1123.8,
+    "rs_trend": -2105.7,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 134.88,
+      "ms_last_swing_low": 134.03,
+      "base_depth_pct": 1.28,
+      "base_duration_bars": 2,
+      "higher_lows_flat_resistance": true
+    },
+    "volatility": {
+      "atr_pct_5": 0.039,
+      "atr_pct_10": 0.061,
+      "atr_pct_20": 0.103,
+      "atr_ratio_5_20": 0.379,
+      "bb_width_pct": 0.6,
+      "range_ratio_5_20": 0.232,
+      "volatility_percentile": 0.0,
+      "volatility_contraction": true,
+      "volatility_contraction_acceleration": true
+    },
+    "volume": {
+      "avg_volume_5": 1754120.0,
+      "avg_volume_10": 1427420.0,
+      "avg_volume_20": 1332620.0,
+      "avg_volume_50": 1653444.0,
+      "relative_volume": 0.0,
+      "up_down_volume_ratio": 1.583,
+      "volume_trend": "RISING",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 0.2,
+      "price_vs_50ma_pct": 0.67,
+      "price_vs_200ma_pct": 46.31,
+      "ma50_slope": 0.5163,
+      "ma50_acceleration": -0.2863,
+      "ma200_slope": 0.413,
+      "ma200_acceleration": -0.0357,
+      "ma50_transition": "TURNING_UP",
+      "ma200_transition": "TURNING_UP",
+      "ma_compression_pct": 30.99
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 179996993.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "HOOD",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 124.72000122070312,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 124.72000122070312,
+    "current_price": 124.72000122070312,
+    "current_score": 63.9,
+    "current_state": "WATCH",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 63.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 1.0,
+      "structure_compression": 0.276,
+      "volume_behavior": 1.0,
+      "higher_low_structure": 0.0,
+      "ma50_transition": 0.7,
+      "ma200_transition": 0.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 124.88,
+    "distance_to_resistance_pct": 0.13,
+    "rs": 1039.3,
+    "rs_trend": 215.9,
+    "structure": {
+      "ms_structure": "Transitioning",
+      "ms_hh_hl": false,
+      "ms_last_swing_high": 112.45,
+      "ms_last_swing_low": 91.44,
+      "base_depth_pct": 32.99,
+      "base_duration_bars": 0,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 6.272,
+      "atr_pct_10": 6.234,
+      "atr_pct_20": 5.037,
+      "atr_ratio_5_20": 1.245,
+      "bb_width_pct": 32.716,
+      "range_ratio_5_20": 0.724,
+      "volatility_percentile": 14.6,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 24696040.0,
+      "avg_volume_10": 24796260.0,
+      "avg_volume_20": 20325490.0,
+      "avg_volume_50": 21603918.0,
+      "relative_volume": 2.378,
+      "up_down_volume_ratio": 1.808,
+      "volume_trend": "RISING",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 22.45,
+      "price_vs_50ma_pct": 22.42,
+      "price_vs_200ma_pct": 31.19,
+      "ma50_slope": 0.1302,
+      "ma50_acceleration": -0.0418,
+      "ma200_slope": -0.1256,
+      "ma200_acceleration": 0.1066,
+      "ma50_transition": "TURNING_UP",
+      "ma200_transition": "FALLING",
+      "ma_compression_pct": 5.46
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 2534995138.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "FRSH",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 13.359999656677246,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 13.359999656677246,
+    "current_price": 13.359999656677246,
+    "current_score": 56.0,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 56.0,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 0.0,
+      "breakout_proximity": 0.5,
+      "structure_compression": 0.817,
+      "volume_behavior": 0.6,
+      "higher_low_structure": 0.5,
+      "ma50_transition": 1.0,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 13.99,
+    "distance_to_resistance_pct": 4.5,
+    "rs": 839.4,
+    "rs_trend": -1219.1,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 12.2,
+      "ms_last_swing_low": 12.57,
+      "base_depth_pct": 30.2,
+      "base_duration_bars": 4,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 3.114,
+      "atr_pct_10": 3.402,
+      "atr_pct_20": 3.663,
+      "atr_ratio_5_20": 0.85,
+      "bb_width_pct": 20.393,
+      "range_ratio_5_20": 0.333,
+      "volatility_percentile": 31.3,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": true
+    },
+    "volume": {
+      "avg_volume_5": 3710460.0,
+      "avg_volume_10": 3919540.0,
+      "avg_volume_20": 5578720.0,
+      "avg_volume_50": 14081962.0,
+      "relative_volume": 0.25,
+      "up_down_volume_ratio": 1.157,
+      "volume_trend": "FALLING",
+      "volume_contraction": true
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 3.83,
+      "price_vs_50ma_pct": 15.64,
+      "price_vs_200ma_pct": 31.16,
+      "ma50_slope": 0.7353,
+      "ma50_acceleration": 0.2301,
+      "ma200_slope": 0.1013,
+      "ma200_acceleration": 0.0428,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 10.23
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 74531697.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "BRZE",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 33.25,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 33.25,
+    "current_price": 33.25,
+    "current_score": 63.6,
+    "current_state": "WATCH",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 63.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 0.0,
+      "breakout_proximity": 0.5,
+      "structure_compression": 0.853,
+      "volume_behavior": 0.6,
+      "higher_low_structure": 1.0,
+      "ma50_transition": 1.0,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 35.02,
+    "distance_to_resistance_pct": 5.05,
+    "rs": 915.6,
+    "rs_trend": -742.1,
+    "structure": {
+      "ms_structure": "Transitioning",
+      "ms_hh_hl": false,
+      "ms_last_swing_high": 26.85,
+      "ms_last_swing_low": 20.93,
+      "base_depth_pct": 40.23,
+      "base_duration_bars": 4,
+      "higher_lows_flat_resistance": true
+    },
+    "volatility": {
+      "atr_pct_5": 3.882,
+      "atr_pct_10": 4.557,
+      "atr_pct_20": 4.776,
+      "atr_ratio_5_20": 0.813,
+      "bb_width_pct": 30.493,
+      "range_ratio_5_20": 0.297,
+      "volatility_percentile": 22.3,
+      "volatility_contraction": true,
+      "volatility_contraction_acceleration": true
+    },
+    "volume": {
+      "avg_volume_5": 1940420.0,
+      "avg_volume_10": 2699610.0,
+      "avg_volume_20": 2509465.0,
+      "avg_volume_50": 2403294.0,
+      "relative_volume": 0.954,
+      "up_down_volume_ratio": 2.689,
+      "volume_trend": "RISING",
+      "volume_contraction": true
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 8.28,
+      "price_vs_50ma_pct": 23.74,
+      "price_vs_200ma_pct": 34.58,
+      "ma50_slope": 0.9279,
+      "ma50_acceleration": 0.5536,
+      "ma200_slope": 0.0958,
+      "ma200_acceleration": 0.0751,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 6.51
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 83439711.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "WEAV",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 7.329999923706055,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 7.329999923706055,
+    "current_price": 7.329999923706055,
+    "current_score": 65.7,
+    "current_state": "WATCH",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 65.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 0.0,
+      "breakout_proximity": 1.0,
+      "structure_compression": 1.0,
+      "volume_behavior": 0.6,
+      "higher_low_structure": 0.5,
+      "ma50_transition": 1.0,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 7.33,
+    "distance_to_resistance_pct": 0.0,
+    "rs": 584.7,
+    "rs_trend": -483.1,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 7.33,
+      "ms_last_swing_low": 7.29,
+      "base_depth_pct": 39.3,
+      "base_duration_bars": 36,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 0.3,
+      "atr_pct_10": 0.327,
+      "atr_pct_20": 4.035,
+      "atr_ratio_5_20": 0.074,
+      "bb_width_pct": 60.308,
+      "range_ratio_5_20": 0.015,
+      "volatility_percentile": 9.0,
+      "volatility_contraction": true,
+      "volatility_contraction_acceleration": true
+    },
+    "volume": {
+      "avg_volume_5": 3374460.0,
+      "avg_volume_10": 4097440.0,
+      "avg_volume_20": 5947655.0,
+      "avg_volume_50": 3027088.0,
+      "relative_volume": 1.202,
+      "up_down_volume_ratio": 3.306,
+      "volume_trend": "FALLING",
+      "volume_contraction": true
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 11.17,
+      "price_vs_50ma_pct": 10.44,
+      "price_vs_200ma_pct": 21.55,
+      "ma50_slope": 0.5855,
+      "ma50_acceleration": 0.593,
+      "ma200_slope": 0.0729,
+      "ma200_acceleration": 0.1566,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 8.27
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 43596311.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "RELY",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 26.920000076293945,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 26.920000076293945,
+    "current_price": 26.920000076293945,
+    "current_score": 60.0,
+    "current_state": "WATCH",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 60.0,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 0.0,
+      "breakout_proximity": 0.8,
+      "structure_compression": 0.598,
+      "volume_behavior": 0.3,
+      "higher_low_structure": 1.0,
+      "ma50_transition": 1.0,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 27.48,
+    "distance_to_resistance_pct": 2.03,
+    "rs": 880.9,
+    "rs_trend": -615.5,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 26.82,
+      "ms_last_swing_low": 22.75,
+      "base_depth_pct": 18.77,
+      "base_duration_bars": 0,
+      "higher_lows_flat_resistance": true
+    },
+    "volatility": {
+      "atr_pct_5": 4.708,
+      "atr_pct_10": 4.385,
+      "atr_pct_20": 4.477,
+      "atr_ratio_5_20": 1.052,
+      "bb_width_pct": 17.338,
+      "range_ratio_5_20": 0.402,
+      "volatility_percentile": 66.1,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 4120240.0,
+      "avg_volume_10": 3604530.0,
+      "avg_volume_20": 3447315.0,
+      "avg_volume_50": 3275346.0,
+      "relative_volume": 1.174,
+      "up_down_volume_ratio": 1.268,
+      "volume_trend": "FLAT",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 5.0,
+      "price_vs_50ma_pct": 10.38,
+      "price_vs_200ma_pct": 44.39,
+      "ma50_slope": 0.4942,
+      "ma50_acceleration": 0.0173,
+      "ma200_slope": 0.3549,
+      "ma200_acceleration": 0.1177,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 21.34
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 92801720.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "PRAX",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 355.1499938964844,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 355.1499938964844,
+    "current_price": 355.1499938964844,
+    "current_score": 56.7,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 56.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.25,
+      "structure_compression": 0.572,
+      "volume_behavior": 0.6,
+      "higher_low_structure": 0.0,
+      "ma50_transition": 0.7,
+      "ma200_transition": 0.7,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 392.7,
+    "distance_to_resistance_pct": 9.56,
+    "rs": 807.9,
+    "rs_trend": 551.3,
+    "structure": {
+      "ms_structure": "Transitioning",
+      "ms_hh_hl": false,
+      "ms_last_swing_high": 392.7,
+      "ms_last_swing_low": 287.93,
+      "base_depth_pct": 26.68,
+      "base_duration_bars": 10,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 4.49,
+      "atr_pct_10": 4.799,
+      "atr_pct_20": 5.252,
+      "atr_ratio_5_20": 0.855,
+      "bb_width_pct": 11.937,
+      "range_ratio_5_20": 0.578,
+      "volatility_percentile": 3.0,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": true
+    },
+    "volume": {
+      "avg_volume_5": 291840.0,
+      "avg_volume_10": 315520.0,
+      "avg_volume_20": 366400.0,
+      "avg_volume_50": 444332.0,
+      "relative_volume": 0.452,
+      "up_down_volume_ratio": 1.67,
+      "volume_trend": "FALLING",
+      "volume_contraction": true
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": -3.17,
+      "price_vs_50ma_pct": 4.88,
+      "price_vs_200ma_pct": 15.64,
+      "ma50_slope": 0.4843,
+      "ma50_acceleration": -0.0685,
+      "ma200_slope": 0.3009,
+      "ma200_acceleration": -0.0094,
+      "ma50_transition": "TURNING_UP",
+      "ma200_transition": "TURNING_UP",
+      "ma_compression_pct": 8.87
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 130126958.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "FSM",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 12.65999984741211,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 12.65999984741211,
+    "current_price": 12.65999984741211,
+    "current_score": 58.7,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 58.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 0.0,
+      "breakout_proximity": 0.8,
+      "structure_compression": 0.512,
+      "volume_behavior": 0.3,
+      "higher_low_structure": 1.0,
+      "ma50_transition": 1.0,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 12.94,
+    "distance_to_resistance_pct": 2.16,
+    "rs": 926.8,
+    "rs_trend": -446.1,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 8.83,
+      "ms_last_swing_low": 10.43,
+      "base_depth_pct": 38.18,
+      "base_duration_bars": 4,
+      "higher_lows_flat_resistance": true
+    },
+    "volatility": {
+      "atr_pct_5": 4.882,
+      "atr_pct_10": 4.384,
+      "atr_pct_20": 4.301,
+      "atr_ratio_5_20": 1.135,
+      "bb_width_pct": 28.834,
+      "range_ratio_5_20": 0.488,
+      "volatility_percentile": 18.0,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 5548040.0,
+      "avg_volume_10": 5733530.0,
+      "avg_volume_20": 5791470.0,
+      "avg_volume_50": 5380906.0,
+      "relative_volume": 0.815,
+      "up_down_volume_ratio": 2.214,
+      "volume_trend": "FLAT",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 9.31,
+      "price_vs_50ma_pct": 29.71,
+      "price_vs_200ma_pct": 25.95,
+      "ma50_slope": 0.6436,
+      "ma50_acceleration": 0.3339,
+      "ma200_slope": 0.201,
+      "ma200_acceleration": 0.063,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 2.3
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 73320009.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "EXK",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 11.470000267028809,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 11.470000267028809,
+    "current_price": 11.470000267028809,
+    "current_score": 71.0,
+    "current_state": "DEVELOPING",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 71.0,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.8,
+      "structure_compression": 0.369,
+      "volume_behavior": 0.3,
+      "higher_low_structure": 0.5,
+      "ma50_transition": 1.0,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 11.65,
+    "distance_to_resistance_pct": 1.55,
+    "rs": 879.9,
+    "rs_trend": 209.9,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 11.48,
+      "ms_last_swing_low": 9.65,
+      "base_depth_pct": 38.37,
+      "base_duration_bars": 0,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 5.946,
+      "atr_pct_10": 5.711,
+      "atr_pct_20": 5.915,
+      "atr_ratio_5_20": 1.005,
+      "bb_width_pct": 18.803,
+      "range_ratio_5_20": 0.631,
+      "volatility_percentile": 8.6,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 9927860.0,
+      "avg_volume_10": 9688330.0,
+      "avg_volume_20": 9354000.0,
+      "avg_volume_50": 7476778.0,
+      "relative_volume": 1.32,
+      "up_down_volume_ratio": 1.008,
+      "volume_trend": "FLAT",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 7.86,
+      "price_vs_50ma_pct": 26.33,
+      "price_vs_200ma_pct": 16.85,
+      "ma50_slope": 0.4892,
+      "ma50_acceleration": 0.1902,
+      "ma200_slope": 0.1653,
+      "ma200_acceleration": 0.0433,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 6.42
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 107290382.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "PRTA",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 9.600000381469727,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 9.600000381469727,
+    "current_price": 9.600000381469727,
+    "current_score": 61.9,
+    "current_state": "WATCH",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 61.9,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.8,
+      "structure_compression": 0.534,
+      "volume_behavior": 0.0,
+      "higher_low_structure": 0.5,
+      "ma50_transition": 1.0,
+      "ma200_transition": 0.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 9.82,
+    "distance_to_resistance_pct": 2.24,
+    "rs": 186.9,
+    "rs_trend": 724.6,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 9.82,
+      "ms_last_swing_low": 8.58,
+      "base_depth_pct": 18.53,
+      "base_duration_bars": 39,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 3.848,
+      "atr_pct_10": 3.785,
+      "atr_pct_20": 4.343,
+      "atr_ratio_5_20": 0.886,
+      "bb_width_pct": 12.07,
+      "range_ratio_5_20": 0.466,
+      "volatility_percentile": 18.0,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 343440.0,
+      "avg_volume_10": 333290.0,
+      "avg_volume_20": 364020.0,
+      "avg_volume_50": 498164.0,
+      "relative_volume": 0.552,
+      "up_down_volume_ratio": 1.831,
+      "volume_trend": "FALLING",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 4.13,
+      "price_vs_50ma_pct": 5.95,
+      "price_vs_200ma_pct": 1.13,
+      "ma50_slope": 0.155,
+      "ma50_acceleration": 0.1931,
+      "ma200_slope": -0.0537,
+      "ma200_acceleration": 0.0102,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "FALLING",
+      "ma_compression_pct": 4.5
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": false,
+      "dollar_volume": 3494592.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "VZLA",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 4.170000076293945,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 4.170000076293945,
+    "current_price": 4.170000076293945,
+    "current_score": 62.6,
+    "current_state": "WATCH",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 62.6,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.8,
+      "structure_compression": 0.429,
+      "volume_behavior": 0.0,
+      "higher_low_structure": 0.5,
+      "ma50_transition": 1.0,
+      "ma200_transition": 0.3,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 4.28,
+    "distance_to_resistance_pct": 2.57,
+    "rs": 489.1,
+    "rs_trend": 126.7,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 3.96,
+      "ms_last_swing_low": 3.51,
+      "base_depth_pct": 31.66,
+      "base_duration_bars": 0,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 5.779,
+      "atr_pct_10": 4.969,
+      "atr_pct_20": 4.737,
+      "atr_ratio_5_20": 1.22,
+      "bb_width_pct": 17.177,
+      "range_ratio_5_20": 0.571,
+      "volatility_percentile": 3.9,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 6077680.0,
+      "avg_volume_10": 6149770.0,
+      "avg_volume_20": 5791750.0,
+      "avg_volume_50": 5353676.0,
+      "relative_volume": 0.73,
+      "up_down_volume_ratio": 1.088,
+      "volume_trend": "RISING",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 6.83,
+      "price_vs_50ma_pct": 19.14,
+      "price_vs_200ma_pct": 2.54,
+      "ma50_slope": 0.2852,
+      "ma50_acceleration": 0.3034,
+      "ma200_slope": -0.0193,
+      "ma200_acceleration": 0.0225,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "FLATTENING",
+      "ma_compression_pct": 13.59
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 24151598.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "FATE",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 2.4200000762939453,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 2.4200000762939453,
+    "current_price": 2.4200000762939453,
+    "current_score": 63.7,
+    "current_state": "WATCH",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 63.7,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.0,
+      "structure_compression": 0.858,
+      "volume_behavior": 0.6,
+      "higher_low_structure": 0.0,
+      "ma50_transition": 1.0,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 2.88,
+    "distance_to_resistance_pct": 15.97,
+    "rs": 450.8,
+    "rs_trend": 981.3,
+    "structure": {
+      "ms_structure": "Bearish (LH/LL)",
+      "ms_hh_hl": false,
+      "ms_last_swing_high": 2.88,
+      "ms_last_swing_low": 2.23,
+      "base_depth_pct": 30.96,
+      "base_duration_bars": 38,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 4.793,
+      "atr_pct_10": 5.62,
+      "atr_pct_20": 6.653,
+      "atr_ratio_5_20": 0.72,
+      "bb_width_pct": 21.009,
+      "range_ratio_5_20": 0.292,
+      "volatility_percentile": 12.0,
+      "volatility_contraction": true,
+      "volatility_contraction_acceleration": true
+    },
+    "volume": {
+      "avg_volume_5": 846460.0,
+      "avg_volume_10": 1230250.0,
+      "avg_volume_20": 1602715.0,
+      "avg_volume_50": 2781564.0,
+      "relative_volume": 0.257,
+      "up_down_volume_ratio": 0.922,
+      "volume_trend": "FALLING",
+      "volume_contraction": true
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": -4.99,
+      "price_vs_50ma_pct": -7.63,
+      "price_vs_200ma_pct": 40.91,
+      "ma50_slope": 0.3326,
+      "ma50_acceleration": 0.1149,
+      "ma200_slope": 0.4088,
+      "ma200_acceleration": 0.0651,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 37.3
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": false,
+      "dollar_volume": 3878570.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "SVM",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 13.109999656677246,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 13.109999656677246,
+    "current_price": 13.109999656677246,
+    "current_score": 50.2,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 50.2,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 0.5,
+      "breakout_proximity": 0.5,
+      "structure_compression": 0.266,
+      "volume_behavior": 0.0,
+      "higher_low_structure": 0.5,
+      "ma50_transition": 1.0,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 13.66,
+    "distance_to_resistance_pct": 4.06,
+    "rs": 470.9,
+    "rs_trend": 152.1,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 13.0,
+      "ms_last_swing_low": 11.4,
+      "base_depth_pct": 37.8,
+      "base_duration_bars": 4,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 5.901,
+      "atr_pct_10": 5.15,
+      "atr_pct_20": 5.392,
+      "atr_ratio_5_20": 1.094,
+      "bb_width_pct": 17.386,
+      "range_ratio_5_20": 0.734,
+      "volatility_percentile": 28.3,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 2373260.0,
+      "avg_volume_10": 2372430.0,
+      "avg_volume_20": 2811240.0,
+      "avg_volume_50": 2688360.0,
+      "relative_volume": 0.642,
+      "up_down_volume_ratio": 1.408,
+      "volume_trend": "FALLING",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 5.55,
+      "price_vs_50ma_pct": 21.22,
+      "price_vs_200ma_pct": 21.35,
+      "ma50_slope": 0.2311,
+      "ma50_acceleration": 0.2251,
+      "ma200_slope": 0.2872,
+      "ma200_acceleration": 0.0138,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 0.09
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 36855355.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "EDIT",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 3.0799999237060547,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 3.0799999237060547,
+    "current_price": 3.0799999237060547,
+    "current_score": 68.8,
+    "current_state": "WATCH",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 68.8,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.25,
+      "structure_compression": 0.463,
+      "volume_behavior": 0.6,
+      "higher_low_structure": 0.5,
+      "ma50_transition": 1.0,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 3.52,
+    "distance_to_resistance_pct": 12.38,
+    "rs": 277.0,
+    "rs_trend": 509.2,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 3.52,
+      "ms_last_swing_low": 2.71,
+      "base_depth_pct": 28.31,
+      "base_duration_bars": 6,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 6.169,
+      "atr_pct_10": 7.695,
+      "atr_pct_20": 7.094,
+      "atr_ratio_5_20": 0.87,
+      "bb_width_pct": 21.662,
+      "range_ratio_5_20": 0.537,
+      "volatility_percentile": 28.8,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 1925520.0,
+      "avg_volume_10": 2361150.0,
+      "avg_volume_20": 2565510.0,
+      "avg_volume_50": 2334050.0,
+      "relative_volume": 0.59,
+      "up_down_volume_ratio": 1.542,
+      "volume_trend": "FALLING",
+      "volume_contraction": true
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 2.09,
+      "price_vs_50ma_pct": 2.48,
+      "price_vs_200ma_pct": 18.01,
+      "ma50_slope": 0.3736,
+      "ma50_acceleration": 0.4206,
+      "ma200_slope": 0.1005,
+      "ma200_acceleration": 0.1917,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 12.84
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 7901771.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "BEAM",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 29.459999084472656,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 29.459999084472656,
+    "current_price": 29.459999084472656,
+    "current_score": 59.6,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 59.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.5,
+      "structure_compression": 0.57,
+      "volume_behavior": 0.6,
+      "higher_low_structure": 0.5,
+      "ma50_transition": 0.0,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 31.48,
+    "distance_to_resistance_pct": 6.42,
+    "rs": 4.1,
+    "rs_trend": 377.8,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 31.48,
+      "ms_last_swing_low": 25.71,
+      "base_depth_pct": 30.78,
+      "base_duration_bars": 39,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 5.035,
+      "atr_pct_10": 5.627,
+      "atr_pct_20": 4.992,
+      "atr_ratio_5_20": 1.009,
+      "bb_width_pct": 20.297,
+      "range_ratio_5_20": 0.43,
+      "volatility_percentile": 2.1,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 1216960.0,
+      "avg_volume_10": 1462940.0,
+      "avg_volume_20": 1576455.0,
+      "avg_volume_50": 2026766.0,
+      "relative_volume": 0.625,
+      "up_down_volume_ratio": 1.067,
+      "volume_trend": "FALLING",
+      "volume_contraction": true
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 3.55,
+      "price_vs_50ma_pct": 0.08,
+      "price_vs_200ma_pct": 3.41,
+      "ma50_slope": -0.1815,
+      "ma50_acceleration": 0.0602,
+      "ma200_slope": 0.1302,
+      "ma200_acceleration": 0.1231,
+      "ma50_transition": "FALLING",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 3.22
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 46442363.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "ALLO",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 1.9800000190734863,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 1.9800000190734863,
+    "current_price": 1.9800000190734863,
+    "current_score": 71.3,
+    "current_state": "DEVELOPING",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 71.3,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.25,
+      "structure_compression": 0.588,
+      "volume_behavior": 0.3,
+      "higher_low_structure": 1.0,
+      "ma50_transition": 1.0,
+      "ma200_transition": 0.7,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 2.23,
+    "distance_to_resistance_pct": 11.21,
+    "rs": 107.9,
+    "rs_trend": 293.1,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 2.23,
+      "ms_last_swing_low": 1.92,
+      "base_depth_pct": 27.8,
+      "base_duration_bars": 11,
+      "higher_lows_flat_resistance": true
+    },
+    "volatility": {
+      "atr_pct_5": 4.444,
+      "atr_pct_10": 5.606,
+      "atr_pct_20": 6.086,
+      "atr_ratio_5_20": 0.73,
+      "bb_width_pct": 12.933,
+      "range_ratio_5_20": 0.562,
+      "volatility_percentile": 10.7,
+      "volatility_contraction": true,
+      "volatility_contraction_acceleration": true
+    },
+    "volume": {
+      "avg_volume_5": 4409160.0,
+      "avg_volume_10": 4732240.0,
+      "avg_volume_20": 4860475.0,
+      "avg_volume_50": 7183194.0,
+      "relative_volume": 0.615,
+      "up_down_volume_ratio": 0.726,
+      "volume_trend": "FLAT",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": -3.79,
+      "price_vs_50ma_pct": -0.33,
+      "price_vs_200ma_pct": 0.87,
+      "ma50_slope": 0.0577,
+      "ma50_acceleration": 0.0057,
+      "ma200_slope": 0.2197,
+      "ma200_acceleration": -0.0016,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "TURNING_UP",
+      "ma_compression_pct": 1.2
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 9623741.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "SQM",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 79.77999877929688,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 79.77999877929688,
+    "current_price": 79.77999877929688,
+    "current_score": 57.4,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 57.4,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.5,
+      "structure_compression": 0.717,
+      "volume_behavior": 0.0,
+      "higher_low_structure": 0.5,
+      "ma50_transition": 0.3,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 84.5,
+    "distance_to_resistance_pct": 5.59,
+    "rs": 117.0,
+    "rs_trend": 435.2,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 84.5,
+      "ms_last_swing_low": 70.56,
+      "base_depth_pct": 22.54,
+      "base_duration_bars": 9,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 3.51,
+      "atr_pct_10": 3.76,
+      "atr_pct_20": 3.436,
+      "atr_ratio_5_20": 1.022,
+      "bb_width_pct": 19.196,
+      "range_ratio_5_20": 0.283,
+      "volatility_percentile": 18.0,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 906900.0,
+      "avg_volume_10": 1011460.0,
+      "avg_volume_20": 895000.0,
+      "avg_volume_50": 947080.0,
+      "relative_volume": 1.069,
+      "up_down_volume_ratio": 1.926,
+      "volume_trend": "RISING",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 3.65,
+      "price_vs_50ma_pct": 9.09,
+      "price_vs_200ma_pct": 5.61,
+      "ma50_slope": -0.034,
+      "ma50_acceleration": 0.1161,
+      "ma200_slope": 0.198,
+      "ma200_acceleration": 0.0011,
+      "ma50_transition": "FLATTENING",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 3.02
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 71403099.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "AG",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 21.389999389648438,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 21.389999389648438,
+    "current_price": 21.389999389648438,
+    "current_score": 59.6,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 59.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.5,
+      "structure_compression": 0.374,
+      "volume_behavior": 0.3,
+      "higher_low_structure": 0.0,
+      "ma50_transition": 1.0,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 22.19,
+    "distance_to_resistance_pct": 3.61,
+    "rs": 527.4,
+    "rs_trend": 366.0,
+    "structure": {
+      "ms_structure": "Transitioning",
+      "ms_hh_hl": false,
+      "ms_last_swing_high": 17.74,
+      "ms_last_swing_low": 14.1,
+      "base_depth_pct": 36.46,
+      "base_duration_bars": 4,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 5.648,
+      "atr_pct_10": 4.965,
+      "atr_pct_20": 4.977,
+      "atr_ratio_5_20": 1.135,
+      "bb_width_pct": 22.198,
+      "range_ratio_5_20": 0.626,
+      "volatility_percentile": 6.4,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 10795860.0,
+      "avg_volume_10": 9924370.0,
+      "avg_volume_20": 10070005.0,
+      "avg_volume_50": 10335424.0,
+      "relative_volume": 0.973,
+      "up_down_volume_ratio": 1.399,
+      "volume_trend": "FLAT",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 6.12,
+      "price_vs_50ma_pct": 19.1,
+      "price_vs_200ma_pct": 8.94,
+      "ma50_slope": 0.324,
+      "ma50_acceleration": 0.3392,
+      "ma200_slope": 0.2356,
+      "ma200_acceleration": 0.0632,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 7.83
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 215397401.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "MUX",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 20.540000915527344,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 20.540000915527344,
+    "current_price": 20.540000915527344,
+    "current_score": 60.2,
+    "current_state": "WATCH",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 60.2,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.5,
+      "structure_compression": 0.211,
+      "volume_behavior": 0.0,
+      "higher_low_structure": 0.5,
+      "ma50_transition": 1.0,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 21.93,
+    "distance_to_resistance_pct": 6.34,
+    "rs": 250.8,
+    "rs_trend": 303.6,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 20.2,
+      "ms_last_swing_low": 18.28,
+      "base_depth_pct": 26.68,
+      "base_duration_bars": 4,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 5.146,
+      "atr_pct_10": 4.691,
+      "atr_pct_20": 4.703,
+      "atr_ratio_5_20": 1.094,
+      "bb_width_pct": 20.085,
+      "range_ratio_5_20": 0.789,
+      "volatility_percentile": 3.0,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 999940.0,
+      "avg_volume_10": 972160.0,
+      "avg_volume_20": 1140170.0,
+      "avg_volume_50": 1151258.0,
+      "relative_volume": 0.754,
+      "up_down_volume_ratio": 1.798,
+      "volume_trend": "FALLING",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 3.2,
+      "price_vs_50ma_pct": 10.38,
+      "price_vs_200ma_pct": -2.69,
+      "ma50_slope": 0.1445,
+      "ma50_acceleration": 0.3202,
+      "ma200_slope": 0.0878,
+      "ma200_acceleration": 0.0946,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 12.17
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 23419093.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "CRSP",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 56.4900016784668,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 56.4900016784668,
+    "current_price": 56.4900016784668,
+    "current_score": 58.3,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 58.3,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 0.5,
+      "breakout_proximity": 0.25,
+      "structure_compression": 0.633,
+      "volume_behavior": 0.3,
+      "higher_low_structure": 1.0,
+      "ma50_transition": 1.0,
+      "ma200_transition": 0.3,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 62.53,
+    "distance_to_resistance_pct": 9.67,
+    "rs": 182.0,
+    "rs_trend": -103.2,
+    "structure": {
+      "ms_structure": "Transitioning",
+      "ms_hh_hl": false,
+      "ms_last_swing_high": 62.53,
+      "ms_last_swing_low": 51.8,
+      "base_depth_pct": 26.62,
+      "base_duration_bars": 9,
+      "higher_lows_flat_resistance": true
+    },
+    "volatility": {
+      "atr_pct_5": 3.874,
+      "atr_pct_10": 4.893,
+      "atr_pct_20": 4.708,
+      "atr_ratio_5_20": 0.823,
+      "bb_width_pct": 17.981,
+      "range_ratio_5_20": 0.367,
+      "volatility_percentile": 21.9,
+      "volatility_contraction": true,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 1213200.0,
+      "avg_volume_10": 1385630.0,
+      "avg_volume_20": 1443925.0,
+      "avg_volume_50": 1618590.0,
+      "relative_volume": 0.919,
+      "up_down_volume_ratio": 0.881,
+      "volume_trend": "FLAT",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 0.09,
+      "price_vs_50ma_pct": 5.15,
+      "price_vs_200ma_pct": 6.11,
+      "ma50_slope": 0.1951,
+      "ma50_acceleration": 0.1557,
+      "ma200_slope": 0.0326,
+      "ma200_acceleration": 0.1347,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "FLATTENING",
+      "ma_compression_pct": 0.86
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 81567326.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "SHAK",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 69.30000305175781,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 69.30000305175781,
+    "current_price": 69.30000305175781,
+    "current_score": 56.0,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 56.0,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.25,
+      "structure_compression": 0.473,
+      "volume_behavior": 0.0,
+      "higher_low_structure": 1.0,
+      "ma50_transition": 0.7,
+      "ma200_transition": 0.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 76.41,
+    "distance_to_resistance_pct": 9.31,
+    "rs": 657.4,
+    "rs_trend": 170.1,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 76.41,
+      "ms_last_swing_low": 54.29,
+      "base_depth_pct": 28.95,
+      "base_duration_bars": 8,
+      "higher_lows_flat_resistance": true
+    },
+    "volatility": {
+      "atr_pct_5": 4.099,
+      "atr_pct_10": 3.558,
+      "atr_pct_20": 3.408,
+      "atr_ratio_5_20": 1.203,
+      "bb_width_pct": 13.638,
+      "range_ratio_5_20": 0.527,
+      "volatility_percentile": 1.3,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 949460.0,
+      "avg_volume_10": 865250.0,
+      "avg_volume_20": 1024875.0,
+      "avg_volume_50": 1679390.0,
+      "relative_volume": 0.518,
+      "up_down_volume_ratio": 1.37,
+      "volume_trend": "FALLING",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": -3.78,
+      "price_vs_50ma_pct": 7.41,
+      "price_vs_200ma_pct": -12.68,
+      "ma50_slope": 0.3889,
+      "ma50_acceleration": -0.1425,
+      "ma200_slope": -0.1401,
+      "ma200_acceleration": -0.0236,
+      "ma50_transition": "TURNING_UP",
+      "ma200_transition": "FALLING",
+      "ma_compression_pct": 21.42
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 71023841.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "DOMO",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 3.7899999618530273,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 3.7899999618530273,
+    "current_price": 3.7899999618530273,
+    "current_score": 60.3,
+    "current_state": "WATCH",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 60.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.5,
+      "structure_compression": 0.222,
+      "volume_behavior": 0.0,
+      "higher_low_structure": 1.0,
+      "ma50_transition": 1.0,
+      "ma200_transition": 0.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 4.06,
+    "distance_to_resistance_pct": 6.65,
+    "rs": 226.1,
+    "rs_trend": 539.2,
+    "structure": {
+      "ms_structure": "Transitioning",
+      "ms_hh_hl": false,
+      "ms_last_swing_high": 4.02,
+      "ms_last_swing_low": 3.01,
+      "base_depth_pct": 32.32,
+      "base_duration_bars": 30,
+      "higher_lows_flat_resistance": true
+    },
+    "volatility": {
+      "atr_pct_5": 3.33,
+      "atr_pct_10": 3.522,
+      "atr_pct_20": 3.472,
+      "atr_ratio_5_20": 0.959,
+      "bb_width_pct": 10.164,
+      "range_ratio_5_20": 0.778,
+      "volatility_percentile": 0.0,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 872980.0,
+      "avg_volume_10": 1116110.0,
+      "avg_volume_20": 934690.0,
+      "avg_volume_50": 1932130.0,
+      "relative_volume": 0.646,
+      "up_down_volume_ratio": 1.391,
+      "volume_trend": "RISING",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": -0.92,
+      "price_vs_50ma_pct": 4.85,
+      "price_vs_200ma_pct": -23.53,
+      "ma50_slope": 0.7197,
+      "ma50_acceleration": 0.729,
+      "ma200_slope": -0.9165,
+      "ma200_acceleration": -0.0121,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "FALLING",
+      "ma_compression_pct": 35.4
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": false,
+      "dollar_volume": 3542475.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "USAS",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-04 07:17:08",
+    "entry_price": 5.539999961853027,
+    "market": "US",
+    "first_radar_date": "2026-09-04",
+    "first_radar_price": 5.539999961853027,
+    "current_price": 5.539999961853027,
+    "current_score": 54.7,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-04",
+        "score": 54.7,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.5,
+      "structure_compression": 0.229,
+      "volume_behavior": 0.3,
+      "higher_low_structure": 0.5,
+      "ma50_transition": 0.3,
+      "ma200_transition": 1.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 5.88,
+    "distance_to_resistance_pct": 5.78,
+    "rs": 255.6,
+    "rs_trend": 598.0,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 5.88,
+      "ms_last_swing_low": 4.9,
+      "base_depth_pct": 39.97,
+      "base_duration_bars": 5,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 6.209,
+      "atr_pct_10": 5.975,
+      "atr_pct_20": 5.56,
+      "atr_ratio_5_20": 1.117,
+      "bb_width_pct": 16.563,
+      "range_ratio_5_20": 0.771,
+      "volatility_percentile": 7.3,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 4574420.0,
+      "avg_volume_10": 4967090.0,
+      "avg_volume_20": 5007805.0,
+      "avg_volume_50": 4399822.0,
+      "relative_volume": 1.051,
+      "up_down_volume_ratio": 1.331,
+      "volume_trend": "FLAT",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 4.48,
+      "price_vs_50ma_pct": 18.31,
+      "price_vs_200ma_pct": -5.3,
+      "ma50_slope": 0.0138,
+      "ma50_acceleration": 0.2741,
+      "ma200_slope": 0.1224,
+      "ma200_acceleration": 0.0272,
+      "ma50_transition": "FLATTENING",
+      "ma200_transition": "ACCELERATING_UP",
+      "ma_compression_pct": 21.07
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 27743240.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
   }
 ]
