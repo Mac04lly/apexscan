@@ -207,17 +207,26 @@ def test_combination_alpha_table_returns_all_presets():
 
 # ── Phase 7: Overview & Findings ────────────────────────────────────────
 
-def test_overview_counts_resolved_vs_unresolved():
+def test_overview_counts_resolved_only_at_the_specific_requested_horizon():
+    """Fixed regression test: this used to assert 'resolved' meant 'has
+    ANY outcome at all' (a real bug — it made 'Resolved @ 10D' show a
+    nonzero count for observations that only had a 5D outcome and
+    nothing at 10D). Correct behavior: an observation only counts as
+    resolved for the horizon actually being asked about."""
     obs = [
         _obs("A", "S1-BASE", forward_return_20d=5, excess_return_20d=3),
         _obs("B", "S1-BASE", forward_return_20d=None),
     ]
-    # Give B some outcomes dict presence but not this horizon, to test "resolved" == "has ANY outcome"
+    # B has a 5D outcome but genuinely nothing at 20D yet.
     obs[1]["outcomes"] = {"5D": {"forward_return_%": 1.0}}
     ov = compute_alpha_lab_overview(obs, "20D")
     assert ov["total_observations"] == 2
-    assert ov["resolved_observations"] == 2  # both have an outcomes dict with something in it
-    assert ov["unresolved_observations"] == 0
+    assert ov["resolved_observations"] == 1  # only A has a real 20D outcome
+    assert ov["unresolved_observations"] == 1
+
+    # The same B DOES correctly count as resolved when asking about 5D specifically.
+    ov_5d = compute_alpha_lab_overview(obs, "5D")
+    assert ov_5d["resolved_observations"] == 1
 
 
 def test_overview_empty_input_does_not_raise():
