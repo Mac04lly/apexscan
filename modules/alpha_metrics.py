@@ -544,7 +544,15 @@ def get_combination_alpha_table(observations: list, horizon: str = "20D") -> lis
 # ══════════════════════════════════════════════════════════════════════════
 
 def compute_alpha_lab_overview(observations: list, horizon: str = "20D") -> dict:
-    resolved = [o for o in observations or [] if o.get("outcomes")]
+    # Fixed: previously counted an observation as "resolved" if it had
+    # ANY outcome at all (e.g. 5D already computed), regardless of
+    # whether the SPECIFIC selected horizon had resolved. That made
+    # "Resolved @ 10D" show a nonzero count for observations that only
+    # had a 5D outcome and genuinely nothing at 10D yet — contradicting
+    # every other stat on the same screen, which correctly did check
+    # the horizon. Now checks the specific horizon, same as everything
+    # else here already did.
+    resolved = [o for o in observations or [] if (o.get("outcomes") or {}).get(horizon)]
     overall = compute_alpha_metrics(observations, horizon)
 
     setups = [s for s in compute_alpha_metrics_by_setup(observations, horizon) if s["n"] >= 10]
