@@ -2,12 +2,21 @@
 modules/outcome_engine.py — Outcome Engine (V9 Phase 2)
 
 For every AlphaObservation old enough to have reached a given horizon
-(5/10/20/40/60 trading days), computes and PERMANENTLY FREEZES:
+(1/2/3/4/5/10/20/40/60 trading days), computes and PERMANENTLY FREEZES:
   - forward_return_% at that horizon
   - MFE (Maximum Favorable Excursion — best price reached during the hold)
   - MAE (Maximum Adverse Excursion — worst price reached during the hold)
   - benchmark_return_% (S&P 500 over the identical date range)
   - excess_return_% (forward_return minus benchmark_return)
+
+The 1D-4D horizons exist as an early temperature check while the
+longer, more meaningful horizons are still resolving — they are
+genuinely noisier (a stock can move 2% for no real reason on day one
+and still be a perfectly good multi-week setup) and every caller that
+surfaces them should say so, not treat them as equally conclusive.
+They are still frozen with exactly the same rigor as every other
+horizon — "noisier" is a fact about short-horizon price action, not a
+license to compute them any less carefully.
 
 Golden rule, enforced directly in code: once a horizon's outcome is
 written for an observation, it is NEVER recomputed or overwritten, even
@@ -15,6 +24,14 @@ if this runs again later. An outcome is a fact about what happened in a
 fixed historical window — it doesn't change with time, and recomputing
 it "fresher" would be a subtle form of the same hindsight contamination
 the whole Alpha Observation System exists to prevent.
+
+This list is intentionally still FIXED, not free-form. A person typing
+in an arbitrary day count and scrolling through results until one looks
+good is the same failure mode the Combinations tab explicitly warns
+against ("testing many combinations and reporting only the best-looking
+one is a classic way to manufacture a fake edge") — a pre-registered
+set of horizons, decided before looking at any results, is what keeps
+these numbers meaning something.
 
 Type-agnostic by design: every function here keys ONLY on `entry_price`,
 `timestamp`, and `outcomes` — there is no branch anywhere on
@@ -44,14 +61,29 @@ except Exception:
 
 from modules.alpha_validation import load_observations, save_observations
 
-HORIZONS = [5, 10, 20, 40, 60]
+# Every horizon this app measures, in trading days. Fixed and
+# pre-registered — see module docstring for why this is deliberately
+# NOT a free-form field. Every downstream list (UI selectors, baseline
+# snapshots) derives from THIS list rather than maintaining its own
+# copy, so there is exactly one place to add a horizon, not several
+# that can silently drift out of sync with each other.
+HORIZONS = [1, 2, 3, 4, 5, 10, 20, 40, 60]
+
+# Horizons short enough that day-to-day noise dominates — used by UI
+# callers to decide whether to show the "read as an early check, not a
+# verdict" caption. Not used by any computation here; purely a display
+# concern surfaced from the one place that knows the full horizon list.
+SHORT_NOISY_HORIZONS = [1, 2, 3, 4]
+
 _BENCH_TICKER = "^GSPC"
 
 # Calendar-day buffer per horizon, generous enough to guarantee that many
 # trading days have elapsed even across holidays — used only to decide
 # whether an observation is "old enough to attempt," not for the outcome
-# math itself (that uses real fetched rows).
-_HORIZON_CALENDAR_BUFFER = {5: 10, 10: 18, 20: 32, 40: 62, 60: 92}
+# math itself (that uses real fetched rows). Short horizons get a
+# proportionally larger buffer since a weekend or single holiday is a
+# much bigger fraction of a 1-4 trading-day window than of a 60-day one.
+_HORIZON_CALENDAR_BUFFER = {1: 4, 2: 6, 3: 7, 4: 8, 5: 10, 10: 18, 20: 32, 40: 62, 60: 92}
 
 
 def _parse_discovery_date(observation: dict):
