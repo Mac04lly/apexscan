@@ -1415,6 +1415,106 @@ def analyze_stock(ticker: str, cfg: dict,
 # FULL SCAN (two-pass: fast price scan then targeted AV enrichment)
 # ══════════════════════════════════════════════════════════════════════════════
 
+# ══════════════════════════════════════════════════════════════════════════════
+# DIVERSIFICATION / CORRELATION CHECK
+# Discoveries are currently displayed as if each were an independent signal.
+# In practice a single sector-wide move can surface as several "different"
+# picks that are really one correlated bet — e.g. 8 airline/cruise names
+# discovered the same day, all scoring 90+, all moving (and losing) together.
+# This is purely additive: it never changes apex_score, never re-ranks or
+# drops a row, and any failure is logged and swallowed exactly like the
+# AI/Apex10 enrichment blocks in run_scan() — existing behavior is untouched.
+# ══════════════════════════════════════════════════════════════════════════════
+
+def diversification_check(results: List[dict],
+                           batch_hist: Dict[str, pd.DataFrame],
+                           cfg: dict,
+                           lookback: int = 20,
+                           corr_threshold: float = 0.75,
+                           same_theme_only: bool = True) -> pd.DataFrame:
+    """
+    Flags clusters of discoveries whose daily returns are highly correlated
+    over the trailing `lookback` sessions. Returns a DataFrame indexed by
+    ticker with columns: cluster_id, cluster_size, cluster_peers,
+    theme_cluster_flag — merge this onto scan results; it only adds columns.
+
+    same_theme_only=True (default) only clusters tickers that also share the
+    same `theme`, since two unrelated stocks moving together briefly is
+    usually coincidence rather than a genuine concentrated bet.
+
+    Config overrides (all optional, under cfg["diversification"]):
+        lookback_days   (default 20)
+        corr_threshold  (default 0.75)
+        same_theme_only (default True)
+        flag_min_size   (default 3) — cluster size at/above which
+                         theme_cluster_flag is set True
+    """
+    div_cfg        = cfg.get("diversification", {})
+    lookback       = div_cfg.get("lookback_days", lookback)
+    corr_threshold = div_cfg.get("corr_threshold", corr_threshold)
+    same_theme_only = div_cfg.get("same_theme_only", same_theme_only)
+    flag_min_size  = div_cfg.get("flag_min_size", 3)
+
+    themes = {r["ticker"]: r.get("theme", "") for r in results if r.get("ticker")}
+
+    returns = {}
+    for t in themes:
+        hist = batch_hist.get(t)
+        if hist is None or "Close" not in hist.columns or len(hist) < lookback + 1:
+            continue
+        rets = hist["Close"].pct_change().dropna().tail(lookback)
+        if len(rets) == lookback:
+            returns[t] = rets.reset_index(drop=True)
+
+    empty_cols = ["cluster_id", "cluster_size", "cluster_peers", "theme_cluster_flag"]
+    if len(returns) < 2:
+        return pd.DataFrame(columns=empty_cols)
+
+    corr = pd.DataFrame(returns).corr()
+
+    # Union-find clustering on the correlation graph: two tickers land in the
+    # same cluster if their trailing daily-return correlation clears the
+    # threshold (and, by default, they also share a theme).
+    parent = {t: t for t in corr.columns}
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[ra] = rb
+
+    cols = list(corr.columns)
+    for i, a in enumerate(cols):
+        for b in cols[i + 1:]:
+            if same_theme_only and themes.get(a) != themes.get(b):
+                continue
+            if corr.loc[a, b] >= corr_threshold:
+                union(a, b)
+
+    clusters: Dict[str, List[str]] = {}
+    for t in cols:
+        clusters.setdefault(find(t), []).append(t)
+
+    rows = []
+    for members in clusters.values():
+        for t in members:
+            peers = [m for m in members if m != t]
+            rows.append({
+                "ticker": t,
+                "cluster_id": find(t),
+                "cluster_size": len(members),
+                "cluster_peers": ", ".join(peers) if peers else "–",
+                "theme_cluster_flag": len(members) >= flag_min_size,
+            })
+
+    return pd.DataFrame(rows).set_index("ticker")
+
+
 def run_scan(cfg: dict, markets: List[str] = None,
              universe_override: list = None,
              market: str = "us", strategy: str = "swing") -> pd.DataFrame:
@@ -1646,6 +1746,22 @@ def run_scan(cfg: dict, markets: List[str] = None,
                 log.info(f"Apex the Great X radar update: {apex10_summary}")
         except Exception as apex10_error:
             log.warning("Apex the Great X radar update skipped; scanner results are preserved: %s", apex10_error)
+
+    # ── Diversification / correlation check (purely additive) ──────────────
+    # Adds cluster_id / cluster_size / cluster_peers / theme_cluster_flag
+    # columns so correlated same-theme picks (e.g. a whole airline basket
+    # discovered the same day) are visible instead of looking like N
+    # independent signals. Never changes apex_score, never drops or
+    # reorders a row.
+    try:
+        div_df = diversification_check(results, _batch_hist, cfg)
+        if not div_df.empty:
+            df = df.merge(div_df, how="left", left_on="ticker", right_index=True)
+            n_flagged = int(df["theme_cluster_flag"].fillna(False).sum())
+            if n_flagged:
+                log.info(f"Diversification check: {n_flagged} ticker(s) in flagged correlated same-theme clusters.")
+    except Exception as div_error:
+        log.warning("Diversification check skipped; scanner results are preserved: %s", div_error)
 
     return df
 
