@@ -2,7 +2,8 @@
 modules/outcome_engine.py — Outcome Engine (V9 Phase 2)
 
 For every AlphaObservation old enough to have reached a given horizon
-(1/2/3/4/5/10/20/40/60 trading days), computes and PERMANENTLY FREEZES:
+(a fixed, pre-registered set of trading-day horizons — see HORIZONS
+below), computes and PERMANENTLY FREEZES:
   - forward_return_% at that horizon
   - MFE (Maximum Favorable Excursion — best price reached during the hold)
   - MAE (Maximum Adverse Excursion — worst price reached during the hold)
@@ -67,13 +68,13 @@ from modules.alpha_validation import load_observations, save_observations
 # snapshots) derives from THIS list rather than maintaining its own
 # copy, so there is exactly one place to add a horizon, not several
 # that can silently drift out of sync with each other.
-HORIZONS = [1, 2, 3, 4, 5, 10, 20, 40, 60]
+HORIZONS = [1, 3, 5, 7, 10, 13, 15, 17, 20, 23, 27, 30, 35, 40, 45, 50, 53, 57, 60]
 
-# Horizons short enough that day-to-day noise dominates — used by UI
-# callers to decide whether to show the "read as an early check, not a
-# verdict" caption. Not used by any computation here; purely a display
-# concern surfaced from the one place that knows the full horizon list.
-SHORT_NOISY_HORIZONS = [1, 2, 3, 4]
+# Horizons short enough that day-to-day noise dominates — anything below
+# the "first real week" mark (5 trading days). Derived from HORIZONS by
+# a threshold rather than a separately hand-maintained list, so this
+# never needs a manual update if the horizon set changes again.
+SHORT_NOISY_HORIZONS = [h for h in HORIZONS if h < 5]
 
 _BENCH_TICKER = "^GSPC"
 
@@ -83,7 +84,10 @@ _BENCH_TICKER = "^GSPC"
 # math itself (that uses real fetched rows). Short horizons get a
 # proportionally larger buffer since a weekend or single holiday is a
 # much bigger fraction of a 1-4 trading-day window than of a 60-day one.
-_HORIZON_CALENDAR_BUFFER = {1: 4, 2: 6, 3: 7, 4: 8, 5: 10, 10: 18, 20: 32, 40: 62, 60: 92}
+_HORIZON_CALENDAR_BUFFER = {
+    1: 4, 3: 7, 5: 10, 7: 12, 10: 18, 13: 22, 15: 25, 17: 27, 20: 32,
+    23: 36, 27: 41, 30: 45, 35: 52, 40: 62, 45: 68, 50: 75, 53: 79, 57: 84, 60: 92,
+}
 
 
 def _parse_discovery_date(observation: dict):
