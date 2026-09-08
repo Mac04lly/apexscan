@@ -26,9 +26,32 @@ from typing import Optional
 import pandas as pd
 import streamlit as st
 
+from modules.outcome_engine import HORIZONS as _RAW_HORIZONS, SHORT_NOISY_HORIZONS as _RAW_SHORT_NOISY
+
 log = logging.getLogger("apexscan.ui.alpha_lab")
 
-HORIZONS = ["5D", "10D", "20D", "40D", "60D"]
+# Derived from the single source of truth in modules/outcome_engine.py
+# rather than a separate hardcoded copy — see that module's docstring
+# for why the horizon set is fixed/pre-registered rather than free-form.
+HORIZONS = [f"{h}D" for h in _RAW_HORIZONS]
+_SHORT_NOISY_HORIZONS = {f"{h}D" for h in _RAW_SHORT_NOISY}
+_DEFAULT_HORIZON = "20D"
+_DEFAULT_HORIZON_INDEX = HORIZONS.index(_DEFAULT_HORIZON)
+
+
+def _horizon_selector(key: str) -> str:
+    """Single shared horizon selector — used everywhere a horizon picker
+    is needed, so the default index and the short-horizon caption can
+    never drift out of sync between call sites the way two separately
+    hardcoded `index=2`s eventually did."""
+    horizon = st.selectbox("Horizon", HORIZONS, index=_DEFAULT_HORIZON_INDEX, key=key)
+    if horizon in _SHORT_NOISY_HORIZONS:
+        st.caption(
+            "⚠️ Short horizons are noisy — a stock can move for reasons that have nothing to "
+            "do with the setup. Read this as an early temperature check, not a verdict."
+        )
+    return horizon
+
 
 
 def _fmt_pct(v, sign=True):
@@ -616,7 +639,7 @@ def _render_why_winners_won(observations: list):
             max_cand = st.slider("Max candidates", 5, MAX_CANDIDATES_HARD_CAP, 20,
                                  key="apex10_pw_max_cand")
         with c3:
-            study_horizon = st.selectbox("Horizon", HORIZONS, index=2, key="apex10_pw_horizon")
+            study_horizon = _horizon_selector(key="apex10_pw_horizon")
         if st.button("Run Precursor Study Now", key="apex10_pw_run"):
             with st.spinner("Fetching history and reconstructing trajectories — this makes real "
                            "network calls, one batched request for the whole study…"):
@@ -672,6 +695,90 @@ def _render_why_winners_won(observations: list):
     )
 
 
+def _render_short_radar(observations: list, short_radar_obs: list, horizon: str):
+    """Short-side mirror of _render_pre_breakout_radar — support level
+    and % distance to support, instead of resistance. Same structure,
+    same discipline: a separate population, never pooled with the long
+    radar or the original discovery observations in any statistic."""
+    from modules.apex10_short_tracker import get_short_radar_table
+    from modules.alpha_metrics import compute_alpha_metrics
+
+    st.caption(
+        "Live short-side (breakdown) radar — the bearish mirror of Pre-Breakout Radar. A row "
+        "here means a stock scored above the configured minimum on the short-side score: "
+        "deteriorating relative strength, proximity to a support level, lower-high structure. "
+        "This is evidence being gathered, NOT a short/sell signal — shorting also carries risk "
+        "this system does not model (unlimited loss potential, borrow cost, short-squeeze risk)."
+    )
+
+    radar_rows = get_short_radar_table(short_radar_obs)
+    if not radar_rows:
+        st.info(
+            "No short radar entries yet. These accumulate automatically once apex10.enabled is "
+            "true in config.yaml and a short scan runs — nothing else needed."
+        )
+        return
+
+    c1, c2 = st.columns(2)
+    with c1:
+        states = sorted({r.get("current_state") for r in radar_rows if r.get("current_state")})
+        state_filter = st.multiselect("State", states, default=states, key="apex10_short_radar_state_filter")
+    with c2:
+        statuses = sorted({r.get("breakdown_status") for r in radar_rows if r.get("breakdown_status")})
+        status_filter = st.multiselect("Breakdown status", statuses, default=statuses,
+                                       key="apex10_short_radar_status_filter")
+
+    filtered = [r for r in radar_rows
+               if r.get("current_state") in state_filter and r.get("breakdown_status") in status_filter]
+
+    disp_rows = []
+    for r in filtered:
+        first_price, cur_price = r.get("first_radar_price"), r.get("current_price")
+        change_pct = (round((cur_price / first_price - 1) * 100, 1)
+                     if first_price and cur_price else None)
+        disp_rows.append({
+            "Ticker": r["ticker"], "Score": r.get("current_score"), "State": r.get("current_state"),
+            "Evidence": r.get("evidence_quality"), "Days on Radar": r.get("days_on_radar"),
+            "First Seen": r.get("first_radar_date"), "Entry Price": first_price,
+            "Current Price": cur_price, "Change %": change_pct,
+            "Support": r.get("support_price"),
+            "Dist to Support %": r.get("distance_to_support_pct"),
+            "Status": r.get("breakdown_status"),
+        })
+    st.dataframe(pd.DataFrame(disp_rows), use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+    st.markdown("#### Radar Detail — Score Trajectory")
+    tickers = [r["ticker"] for r in filtered]
+    if tickers:
+        sel = st.selectbox("Ticker", tickers, key="apex10_short_radar_detail_ticker")
+        entry = next(r for r in filtered if r["ticker"] == sel)
+        history_disp = pd.DataFrame(entry.get("score_history", []))
+        if not history_disp.empty:
+            st.dataframe(history_disp, use_container_width=True, hide_index=True)
+        struct = entry.get("structure", {}) or {}
+        ma = entry.get("moving_averages", {}) or {}
+        st.caption(
+            f"RS: {entry.get('rs')} (5D change {entry.get('rs_trend')}) · "
+            f"Structure: {struct.get('ms_structure', 'n/a')} · "
+            f"MA50 transition: {ma.get('ma50_transition', 'n/a')} · "
+            f"Liquidity gate: {(entry.get('liquidity_gate') or {}).get('passes', 'n/a')}"
+        )
+
+    st.markdown("---")
+    st.markdown("#### Apex the Great X Short Alpha")
+    st.caption(
+        "The short radar's OWN track record — measured only from apex10_short_radar "
+        "observations. Will read n=0 until entries have had time to reach this horizon."
+    )
+    radar_metrics = compute_alpha_metrics(short_radar_obs, horizon)
+    rc1, rc2, rc3 = st.columns(3)
+    rc1.metric("N", radar_metrics["n"])
+    rc2.metric("Win Rate", f"{radar_metrics['win_rate_%']:.1f}%" if radar_metrics["win_rate_%"] is not None else "–")
+    rc3.metric("Expectancy", _fmt_pct(radar_metrics["expectancy_%"]))
+    st.caption(f"Sample: {radar_metrics['sample_classification']}")
+
+
 def render_alpha_lab(cfg: Optional[dict] = None):
     """Single entry point dashboard.py calls. Loads observations itself
     — the caller doesn't need to fetch anything first. `cfg` (the app's
@@ -692,13 +799,20 @@ def render_alpha_lab(cfg: Optional[dict] = None):
 
         c1, c2 = st.columns([1, 3])
         with c1:
-            horizon = st.selectbox("Horizon", HORIZONS, index=2, key="alpha_lab_horizon")
+            horizon = st.selectbox("Horizon", HORIZONS, index=_DEFAULT_HORIZON_INDEX,
+                                   key="alpha_lab_horizon")
         with c2:
             if st.button("🔄 Compute Pending Outcomes Now", key="alpha_lab_compute_btn"):
                 with st.spinner("Computing any outcomes that have reached their horizon…"):
                     n_computed = compute_all_pending_outcomes()
                 st.success(f"Updated {n_computed} observation(s)." if n_computed
                           else "Nothing new to compute yet.")
+
+        if horizon in _SHORT_NOISY_HORIZONS:
+            st.caption(
+                "⚠️ Short horizons are noisy — a stock can move for reasons that have nothing "
+                "to do with the setup. Read this as an early temperature check, not a verdict."
+            )
 
         observations = load_observations()
         if not observations:
@@ -709,15 +823,16 @@ def render_alpha_lab(cfg: Optional[dict] = None):
             return
 
         # Split ONCE here, per the spec's explicit "do not silently mix APEX
-        # V1 with Apex the Great X" — every existing tab below (Overview
-        # through Explain a Decision) gets discovery_obs only, exactly as
-        # it always has; only the two new tabs at the end see radar_obs.
+        # V1 with Apex the Great X" — three fully separate populations.
+        # Every existing tab below (Overview through Explain a Decision)
+        # gets discovery_obs only, exactly as it always has.
         discovery_obs = [o for o in observations if get_observation_type(o) == "discovery"]
         radar_obs = [o for o in observations if get_observation_type(o) == "apex10_radar"]
+        short_radar_obs = [o for o in observations if get_observation_type(o) == "apex10_short_radar"]
 
         tabs = st.tabs(["Overview", "Score Validation", "Setup Alpha", "Feature Alpha",
                         "Conditional Alpha", "Combinations & Findings", "Model Governance",
-                        "Explain a Decision", "Pre-Breakout Radar", "Why Winners Won"])
+                        "Explain a Decision", "Pre-Breakout Radar", "Short Radar", "Why Winners Won"])
 
         with tabs[0]:
             try:
@@ -765,6 +880,11 @@ def render_alpha_lab(cfg: Optional[dict] = None):
             except Exception as e:
                 st.caption(f"Pre-Breakout Radar unavailable this session: {e}")
         with tabs[9]:
+            try:
+                _render_short_radar(observations, short_radar_obs, horizon)
+            except Exception as e:
+                st.caption(f"Short Radar unavailable this session: {e}")
+        with tabs[10]:
             try:
                 _render_why_winners_won(discovery_obs)
             except Exception as e:
