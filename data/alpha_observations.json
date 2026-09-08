@@ -104345,7 +104345,7 @@
     "current_score": 50.4,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 8,
+    "days_on_radar": 9,
     "score_history": [
       {
         "date": "2026-08-30",
@@ -104379,6 +104379,12 @@
       },
       {
         "date": "2026-09-07",
+        "score": 50.4,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-09-08",
         "score": 50.4,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
