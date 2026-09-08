@@ -32,8 +32,13 @@ from typing import Optional
 from modules.alpha_metrics import compute_alpha_metrics
 from modules.alpha_validation import load_observations
 from modules.gh_storage import load_json_from_github, save_json_to_github
+from modules.outcome_engine import HORIZONS as _OUTCOME_HORIZONS
 
-BASELINE_HORIZONS = ["5D", "10D", "20D", "40D", "60D"]
+# Derived from the single source of truth in modules/outcome_engine.py
+# rather than maintaining a separate copy — this used to be a hardcoded
+# duplicate list that could silently drift out of sync with the real
+# horizon set (exactly what happened when 1D-4D were added there).
+BASELINE_HORIZONS = [f"{h}D" for h in _OUTCOME_HORIZONS]
 BASELINE_MODEL_VERSION = "APEX_V1_BASELINE"
 BASELINE_PATH = "data/apex10_baseline.json"
 
