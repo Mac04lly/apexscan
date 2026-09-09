@@ -128,6 +128,37 @@ def _compute_rs_percentile(ticker: str, scan_df: Optional[pd.DataFrame]) -> Opti
         return None
 
 
+def _compute_stop_price(row: dict) -> Optional[float]:
+    """
+    Populates the stop_price field build_observation() previously always
+    left as None ("for a future phase's caller to populate" — this is
+    that phase). Deliberately duplicates dashboard.py's
+    compute_invalidation_price() rather than importing it: dashboard.py
+    imports ui.alpha_lab, which imports this module, so importing the
+    other direction would be circular. Keep this in sync with
+    dashboard.py's compute_invalidation_price() if that formula changes.
+
+    Primary level is the 200-day moving average, recovered from
+    price + vs_200ma_% (already computed by the scanner — no new data
+    needed): price / (1 + vs_200ma_%/100) is algebraically just the
+    200MA. Falls back to a 15%-drawdown-from-entry line when
+    vs_200ma_% isn't available, same as the dashboard version.
+    """
+    price = row.get("price")
+    vs200 = row.get("vs_200ma_%")
+    try:
+        if price and vs200 is not None and pd.notna(vs200):
+            return round(float(price) / (1 + float(vs200) / 100), 2)
+    except Exception:
+        pass
+    try:
+        if price:
+            return round(float(price) * 0.85, 2)
+    except Exception:
+        pass
+    return None
+
+
 def build_observation(row: dict, scan_df: Optional[pd.DataFrame] = None,
                       strategy: str = "swing", market_regime: Optional[str] = None,
                       fund_history: Optional[dict] = None) -> dict:
@@ -216,7 +247,7 @@ def build_observation(row: dict, scan_df: Optional[pd.DataFrame] = None,
         "risk_features": risk_features,
         "market_features": market_features,
         "entry_price": _g("price"),
-        "stop_price": None,      # left for a future phase's caller to populate
+        "stop_price": _compute_stop_price(row),
         "target_price": None,
         "risk_reward": None,
         "benchmark_price": None,
