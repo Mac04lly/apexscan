@@ -72,7 +72,7 @@
       "market": "US"
     },
     "entry_price": 7.29,
-    "stop_price": null,
+    "stop_price": 5.99,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -200,7 +200,7 @@
       "market": "US"
     },
     "entry_price": 2.21,
-    "stop_price": null,
+    "stop_price": 1.57,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -328,7 +328,7 @@
       "market": "US"
     },
     "entry_price": 95.84,
-    "stop_price": null,
+    "stop_price": 71.31,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -456,7 +456,7 @@
       "market": "US"
     },
     "entry_price": 38.77,
-    "stop_price": null,
+    "stop_price": 28.63,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -584,7 +584,7 @@
       "market": "US"
     },
     "entry_price": 354.72,
-    "stop_price": null,
+    "stop_price": 253.01,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -712,7 +712,7 @@
       "market": "US"
     },
     "entry_price": 85.94,
-    "stop_price": null,
+    "stop_price": 63.9,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -840,7 +840,7 @@
       "market": "US"
     },
     "entry_price": 36.64,
-    "stop_price": null,
+    "stop_price": 30.21,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -968,7 +968,7 @@
       "market": "US"
     },
     "entry_price": 119.8,
-    "stop_price": null,
+    "stop_price": 86.19,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -1096,7 +1096,7 @@
       "market": "US"
     },
     "entry_price": 12.98,
-    "stop_price": null,
+    "stop_price": 10.09,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -1224,7 +1224,7 @@
       "market": "US"
     },
     "entry_price": 29.5,
-    "stop_price": null,
+    "stop_price": 24.16,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -1352,7 +1352,7 @@
       "market": "US"
     },
     "entry_price": 39.42,
-    "stop_price": null,
+    "stop_price": 28.16,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -1480,7 +1480,7 @@
       "market": "US"
     },
     "entry_price": 24.92,
-    "stop_price": null,
+    "stop_price": 20.46,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -1608,7 +1608,7 @@
       "market": "US"
     },
     "entry_price": 134.75,
-    "stop_price": null,
+    "stop_price": 88.89,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -1696,7 +1696,7 @@
       "market": "US"
     },
     "entry_price": 31.06,
-    "stop_price": null,
+    "stop_price": 24.5,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -1824,7 +1824,7 @@
       "market": "US"
     },
     "entry_price": 30.34,
-    "stop_price": null,
+    "stop_price": 24.1,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -1952,7 +1952,7 @@
       "market": "US"
     },
     "entry_price": 108.17,
-    "stop_price": null,
+    "stop_price": 72.26,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -2080,7 +2080,7 @@
       "market": "US"
     },
     "entry_price": 41.67,
-    "stop_price": null,
+    "stop_price": 31.57,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -2208,7 +2208,7 @@
       "market": "US"
     },
     "entry_price": 38.94,
-    "stop_price": null,
+    "stop_price": 30.09,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -2336,7 +2336,7 @@
       "market": "US"
     },
     "entry_price": 1.39,
-    "stop_price": null,
+    "stop_price": 0.91,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -2464,7 +2464,7 @@
       "market": "US"
     },
     "entry_price": 108.13,
-    "stop_price": null,
+    "stop_price": 96.12,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -2592,7 +2592,7 @@
       "market": "US"
     },
     "entry_price": 78.0,
-    "stop_price": null,
+    "stop_price": 60.14,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -2720,7 +2720,7 @@
       "market": "US"
     },
     "entry_price": 16.39,
-    "stop_price": null,
+    "stop_price": 12.73,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -2848,7 +2848,7 @@
       "market": "US"
     },
     "entry_price": 11.89,
-    "stop_price": null,
+    "stop_price": 9.68,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -2976,7 +2976,7 @@
       "market": "US"
     },
     "entry_price": 42.68,
-    "stop_price": null,
+    "stop_price": 38.04,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -3104,7 +3104,7 @@
       "market": "US"
     },
     "entry_price": 48.33,
-    "stop_price": null,
+    "stop_price": 36.89,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -3232,7 +3232,7 @@
       "market": "US"
     },
     "entry_price": 82.07,
-    "stop_price": null,
+    "stop_price": 77.64,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -3360,7 +3360,7 @@
       "market": "US"
     },
     "entry_price": 44.37,
-    "stop_price": null,
+    "stop_price": 29.66,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -3488,7 +3488,7 @@
       "market": "US"
     },
     "entry_price": 79.81,
-    "stop_price": null,
+    "stop_price": 74.38,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -3616,7 +3616,7 @@
       "market": "US"
     },
     "entry_price": 33.78,
-    "stop_price": null,
+    "stop_price": 30.91,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -3744,7 +3744,7 @@
       "market": "US"
     },
     "entry_price": 48.37,
-    "stop_price": null,
+    "stop_price": 27.41,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -3872,7 +3872,7 @@
       "market": "US"
     },
     "entry_price": 5.9,
-    "stop_price": null,
+    "stop_price": 4.77,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -4000,7 +4000,7 @@
       "market": "US"
     },
     "entry_price": 77.03,
-    "stop_price": null,
+    "stop_price": 66.41,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -4128,7 +4128,7 @@
       "market": "US"
     },
     "entry_price": 72.7,
-    "stop_price": null,
+    "stop_price": 68.52,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -4256,7 +4256,7 @@
       "market": "US"
     },
     "entry_price": 95.25,
-    "stop_price": null,
+    "stop_price": 71.46,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -4384,7 +4384,7 @@
       "market": "US"
     },
     "entry_price": 81.09,
-    "stop_price": null,
+    "stop_price": 68.72,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -4512,7 +4512,7 @@
       "market": "US"
     },
     "entry_price": 75.0,
-    "stop_price": null,
+    "stop_price": 67.63,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -4640,7 +4640,7 @@
       "market": "US"
     },
     "entry_price": 37.77,
-    "stop_price": null,
+    "stop_price": 27.23,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -4768,7 +4768,7 @@
       "market": "US"
     },
     "entry_price": 38.3,
-    "stop_price": null,
+    "stop_price": 28.35,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -4896,7 +4896,7 @@
       "market": "US"
     },
     "entry_price": 19.54,
-    "stop_price": null,
+    "stop_price": 14.48,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -5024,7 +5024,7 @@
       "market": "US"
     },
     "entry_price": 217.58,
-    "stop_price": null,
+    "stop_price": 195.67,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -5152,7 +5152,7 @@
       "market": "US"
     },
     "entry_price": 134.82,
-    "stop_price": null,
+    "stop_price": 111.7,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -5280,7 +5280,7 @@
       "market": "US"
     },
     "entry_price": 101.94,
-    "stop_price": null,
+    "stop_price": 74.9,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -5408,7 +5408,7 @@
       "market": "US"
     },
     "entry_price": 26.67,
-    "stop_price": null,
+    "stop_price": 18.06,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -5536,7 +5536,7 @@
       "market": "US"
     },
     "entry_price": 12.07,
-    "stop_price": null,
+    "stop_price": 9.87,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -5664,7 +5664,7 @@
       "market": "US"
     },
     "entry_price": 21.14,
-    "stop_price": null,
+    "stop_price": 20.04,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -5792,7 +5792,7 @@
       "market": "US"
     },
     "entry_price": 33.78,
-    "stop_price": null,
+    "stop_price": 28.9,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -5920,7 +5920,7 @@
       "market": "US"
     },
     "entry_price": 33.09,
-    "stop_price": null,
+    "stop_price": 30.93,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -6048,7 +6048,7 @@
       "market": "US"
     },
     "entry_price": 63.49,
-    "stop_price": null,
+    "stop_price": 57.72,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -6176,7 +6176,7 @@
       "market": "US"
     },
     "entry_price": 16.65,
-    "stop_price": null,
+    "stop_price": 15.42,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -6304,7 +6304,7 @@
       "market": "US"
     },
     "entry_price": 3.11,
-    "stop_price": null,
+    "stop_price": 2.59,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -6432,7 +6432,7 @@
       "market": "US"
     },
     "entry_price": 4.01,
-    "stop_price": null,
+    "stop_price": 3.49,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -6560,7 +6560,7 @@
       "market": "US"
     },
     "entry_price": 8.0,
-    "stop_price": null,
+    "stop_price": 6.73,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -6688,7 +6688,7 @@
       "market": "US"
     },
     "entry_price": 204.48,
-    "stop_price": null,
+    "stop_price": 177.19,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -6816,7 +6816,7 @@
       "market": "US"
     },
     "entry_price": 9.58,
-    "stop_price": null,
+    "stop_price": 8.97,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -6944,7 +6944,7 @@
       "market": "US"
     },
     "entry_price": 140.34,
-    "stop_price": null,
+    "stop_price": 110.07,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -7072,7 +7072,7 @@
       "market": "US"
     },
     "entry_price": 117.53,
-    "stop_price": null,
+    "stop_price": 107.43,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -7200,7 +7200,7 @@
       "market": "US"
     },
     "entry_price": 10.62,
-    "stop_price": null,
+    "stop_price": 9.67,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -7328,7 +7328,7 @@
       "market": "US"
     },
     "entry_price": 254.28,
-    "stop_price": null,
+    "stop_price": 200.06,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -7456,7 +7456,7 @@
       "market": "US"
     },
     "entry_price": 375.94,
-    "stop_price": null,
+    "stop_price": 298.84,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -7584,7 +7584,7 @@
       "market": "US"
     },
     "entry_price": 17.75,
-    "stop_price": null,
+    "stop_price": 16.56,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -7712,7 +7712,7 @@
       "market": "US"
     },
     "entry_price": 59.5,
-    "stop_price": null,
+    "stop_price": 53.08,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -7840,7 +7840,7 @@
       "market": "US"
     },
     "entry_price": 20.97,
-    "stop_price": null,
+    "stop_price": 18.61,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -7968,7 +7968,7 @@
       "market": "US"
     },
     "entry_price": 20.72,
-    "stop_price": null,
+    "stop_price": 18.65,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -8096,7 +8096,7 @@
       "market": "US"
     },
     "entry_price": 12.84,
-    "stop_price": null,
+    "stop_price": 12.42,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -8224,7 +8224,7 @@
       "market": "US"
     },
     "entry_price": 29.76,
-    "stop_price": null,
+    "stop_price": 28.16,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -8352,7 +8352,7 @@
       "market": "US"
     },
     "entry_price": 74.02,
-    "stop_price": null,
+    "stop_price": 64.09,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -8480,7 +8480,7 @@
       "market": "US"
     },
     "entry_price": 2.09,
-    "stop_price": null,
+    "stop_price": 1.92,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -8608,7 +8608,7 @@
       "market": "US"
     },
     "entry_price": 79.41,
-    "stop_price": null,
+    "stop_price": 61.13,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -8736,7 +8736,7 @@
       "market": "US"
     },
     "entry_price": 81.96,
-    "stop_price": null,
+    "stop_price": 74.17,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -8864,7 +8864,7 @@
       "market": "US"
     },
     "entry_price": 12.53,
-    "stop_price": null,
+    "stop_price": 10.52,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -8992,7 +8992,7 @@
       "market": "US"
     },
     "entry_price": 21.09,
-    "stop_price": null,
+    "stop_price": 19.23,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -9120,7 +9120,7 @@
       "market": "US"
     },
     "entry_price": 1922.73,
-    "stop_price": null,
+    "stop_price": 1868.54,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -9248,7 +9248,7 @@
       "market": "US"
     },
     "entry_price": 25.65,
-    "stop_price": null,
+    "stop_price": 23.95,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -9376,7 +9376,7 @@
       "market": "US"
     },
     "entry_price": 94.77,
-    "stop_price": null,
+    "stop_price": 106.36,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -9504,7 +9504,7 @@
       "market": "US"
     },
     "entry_price": 2.33,
-    "stop_price": null,
+    "stop_price": 1.65,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -9632,7 +9632,7 @@
       "market": "US"
     },
     "entry_price": 3.59,
-    "stop_price": null,
+    "stop_price": 3.6,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -9760,7 +9760,7 @@
       "market": "US"
     },
     "entry_price": 75.82,
-    "stop_price": null,
+    "stop_price": 80.32,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -9888,7 +9888,7 @@
       "market": "US"
     },
     "entry_price": 23.76,
-    "stop_price": null,
+    "stop_price": 24.49,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -10016,7 +10016,7 @@
       "market": "US"
     },
     "entry_price": 3.5,
-    "stop_price": null,
+    "stop_price": 3.7,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -10144,7 +10144,7 @@
       "market": "US"
     },
     "entry_price": 34.12,
-    "stop_price": null,
+    "stop_price": 35.54,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -10272,7 +10272,7 @@
       "market": "US"
     },
     "entry_price": 3.24,
-    "stop_price": null,
+    "stop_price": 3.65,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -10400,7 +10400,7 @@
       "market": "US"
     },
     "entry_price": 3.96,
-    "stop_price": null,
+    "stop_price": 4.07,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -10528,7 +10528,7 @@
       "market": "US"
     },
     "entry_price": 54.2,
-    "stop_price": null,
+    "stop_price": 76.23,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -10656,7 +10656,7 @@
       "market": "US"
     },
     "entry_price": 87.91,
-    "stop_price": null,
+    "stop_price": 69.6,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -10784,7 +10784,7 @@
       "market": "US"
     },
     "entry_price": 165.44,
-    "stop_price": null,
+    "stop_price": 116.92,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -10912,7 +10912,7 @@
       "market": "US"
     },
     "entry_price": 15.78,
-    "stop_price": null,
+    "stop_price": 11.69,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -11040,7 +11040,7 @@
       "market": "US"
     },
     "entry_price": 108.8,
-    "stop_price": null,
+    "stop_price": 70.83,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -11168,7 +11168,7 @@
       "market": "US"
     },
     "entry_price": 629.27,
-    "stop_price": null,
+    "stop_price": 533.28,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -11296,7 +11296,7 @@
       "market": "US"
     },
     "entry_price": 181.13,
-    "stop_price": null,
+    "stop_price": 140.63,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -11424,7 +11424,7 @@
       "market": "US"
     },
     "entry_price": 58.16,
-    "stop_price": null,
+    "stop_price": 50.01,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -11552,7 +11552,7 @@
       "market": "US"
     },
     "entry_price": 360.72,
-    "stop_price": null,
+    "stop_price": 231.23,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -11680,7 +11680,7 @@
       "market": "US"
     },
     "entry_price": 219.4,
-    "stop_price": null,
+    "stop_price": 146.95,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -11808,7 +11808,7 @@
       "market": "US"
     },
     "entry_price": 159.0,
-    "stop_price": null,
+    "stop_price": 130.86,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -11936,7 +11936,7 @@
       "market": "US"
     },
     "entry_price": 53.68,
-    "stop_price": null,
+    "stop_price": 37.96,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -12064,7 +12064,7 @@
       "market": "US"
     },
     "entry_price": 85.89,
-    "stop_price": null,
+    "stop_price": 69.77,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -12192,7 +12192,7 @@
       "market": "US"
     },
     "entry_price": 73.53,
-    "stop_price": null,
+    "stop_price": 42.16,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -12320,7 +12320,7 @@
       "market": "US"
     },
     "entry_price": 295.19,
-    "stop_price": null,
+    "stop_price": 194.08,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -12448,7 +12448,7 @@
       "market": "US"
     },
     "entry_price": 67.64,
-    "stop_price": null,
+    "stop_price": 48.87,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -12576,7 +12576,7 @@
       "market": "US"
     },
     "entry_price": 259.82,
-    "stop_price": null,
+    "stop_price": 199.55,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -12704,7 +12704,7 @@
       "market": "US"
     },
     "entry_price": 348.86,
-    "stop_price": null,
+    "stop_price": 228.76,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -12832,7 +12832,7 @@
       "market": "US"
     },
     "entry_price": 214.56,
-    "stop_price": null,
+    "stop_price": 156.04,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -12960,7 +12960,7 @@
       "market": "US"
     },
     "entry_price": 627.75,
-    "stop_price": null,
+    "stop_price": 506.66,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -13088,7 +13088,7 @@
       "market": "US"
     },
     "entry_price": 192.0,
-    "stop_price": null,
+    "stop_price": 156.35,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -13216,7 +13216,7 @@
       "market": "US"
     },
     "entry_price": 321.63,
-    "stop_price": null,
+    "stop_price": 254.66,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -13344,7 +13344,7 @@
       "market": "US"
     },
     "entry_price": 14.46,
-    "stop_price": null,
+    "stop_price": 10.21,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -13472,7 +13472,7 @@
       "market": "US"
     },
     "entry_price": 97.32,
-    "stop_price": null,
+    "stop_price": 62.5,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -13600,7 +13600,7 @@
       "market": "US"
     },
     "entry_price": 124.75,
-    "stop_price": null,
+    "stop_price": 100.44,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -13728,7 +13728,7 @@
       "market": "US"
     },
     "entry_price": 61.55,
-    "stop_price": null,
+    "stop_price": 51.25,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -13856,7 +13856,7 @@
       "market": "US"
     },
     "entry_price": 72.32,
-    "stop_price": null,
+    "stop_price": 60.27,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -13984,7 +13984,7 @@
       "market": "US"
     },
     "entry_price": 242.87,
-    "stop_price": null,
+    "stop_price": 164.88,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -14112,7 +14112,7 @@
       "market": "US"
     },
     "entry_price": 187.3,
-    "stop_price": null,
+    "stop_price": 136.22,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -14240,7 +14240,7 @@
       "market": "US"
     },
     "entry_price": 131.48,
-    "stop_price": null,
+    "stop_price": 115.74,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -14368,7 +14368,7 @@
       "market": "US"
     },
     "entry_price": 439.33,
-    "stop_price": null,
+    "stop_price": 348.12,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -14496,7 +14496,7 @@
       "market": "US"
     },
     "entry_price": 145.13,
-    "stop_price": null,
+    "stop_price": 48.73,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -14624,7 +14624,7 @@
       "market": "US"
     },
     "entry_price": 171.81,
-    "stop_price": null,
+    "stop_price": 107.92,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -14752,7 +14752,7 @@
       "market": "US"
     },
     "entry_price": 336.34,
-    "stop_price": null,
+    "stop_price": 271.02,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -14880,7 +14880,7 @@
       "market": "US"
     },
     "entry_price": 124.48,
-    "stop_price": null,
+    "stop_price": 101.29,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -15008,7 +15008,7 @@
       "market": "US"
     },
     "entry_price": 247.9,
-    "stop_price": null,
+    "stop_price": 199.76,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -15136,7 +15136,7 @@
       "market": "US"
     },
     "entry_price": 78.74,
-    "stop_price": null,
+    "stop_price": 68.41,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -15264,7 +15264,7 @@
       "market": "US"
     },
     "entry_price": 216.87,
-    "stop_price": null,
+    "stop_price": 168.38,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -15392,7 +15392,7 @@
       "market": "US"
     },
     "entry_price": 133.96,
-    "stop_price": null,
+    "stop_price": 117.82,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -15520,7 +15520,7 @@
       "market": "US"
     },
     "entry_price": 192.27,
-    "stop_price": null,
+    "stop_price": 126.16,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -15648,7 +15648,7 @@
       "market": "US"
     },
     "entry_price": 38.43,
-    "stop_price": null,
+    "stop_price": 33.5,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -15776,7 +15776,7 @@
       "market": "US"
     },
     "entry_price": 53.45,
-    "stop_price": null,
+    "stop_price": 31.63,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -15904,7 +15904,7 @@
       "market": "US"
     },
     "entry_price": 37.27,
-    "stop_price": null,
+    "stop_price": 31.85,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -16032,7 +16032,7 @@
       "market": "US"
     },
     "entry_price": 620.75,
-    "stop_price": null,
+    "stop_price": 520.33,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -16160,7 +16160,7 @@
       "market": "US"
     },
     "entry_price": 153.34,
-    "stop_price": null,
+    "stop_price": 124.77,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -16288,7 +16288,7 @@
       "market": "US"
     },
     "entry_price": 109.62,
-    "stop_price": null,
+    "stop_price": 88.69,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -16416,7 +16416,7 @@
       "market": "US"
     },
     "entry_price": 92.34,
-    "stop_price": null,
+    "stop_price": 69.32,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -16544,7 +16544,7 @@
       "market": "US"
     },
     "entry_price": 368.51,
-    "stop_price": null,
+    "stop_price": 252.06,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -16672,7 +16672,7 @@
       "market": "US"
     },
     "entry_price": 332.78,
-    "stop_price": null,
+    "stop_price": 215.81,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -16800,7 +16800,7 @@
       "market": "US"
     },
     "entry_price": 109.01,
-    "stop_price": null,
+    "stop_price": 93.73,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -16928,7 +16928,7 @@
       "market": "US"
     },
     "entry_price": 280.77,
-    "stop_price": null,
+    "stop_price": 204.79,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -17056,7 +17056,7 @@
       "market": "US"
     },
     "entry_price": 109.53,
-    "stop_price": null,
+    "stop_price": 86.79,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -17184,7 +17184,7 @@
       "market": "US"
     },
     "entry_price": 152.55,
-    "stop_price": null,
+    "stop_price": 114.27,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -17312,7 +17312,7 @@
       "market": "US"
     },
     "entry_price": 59.56,
-    "stop_price": null,
+    "stop_price": 47.12,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -17440,7 +17440,7 @@
       "market": "US"
     },
     "entry_price": 128.04,
-    "stop_price": null,
+    "stop_price": 101.62,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -17568,7 +17568,7 @@
       "market": "US"
     },
     "entry_price": 150.08,
-    "stop_price": null,
+    "stop_price": 132.23,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -17696,7 +17696,7 @@
       "market": "US"
     },
     "entry_price": 29.68,
-    "stop_price": null,
+    "stop_price": 25.83,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -17824,7 +17824,7 @@
       "market": "US"
     },
     "entry_price": 548.05,
-    "stop_price": null,
+    "stop_price": 460.16,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -17952,7 +17952,7 @@
       "market": "US"
     },
     "entry_price": 380.03,
-    "stop_price": null,
+    "stop_price": 298.3,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -18080,7 +18080,7 @@
       "market": "US"
     },
     "entry_price": 65.38,
-    "stop_price": null,
+    "stop_price": 57.15,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -18208,7 +18208,7 @@
       "market": "US"
     },
     "entry_price": 199.93,
-    "stop_price": null,
+    "stop_price": 155.59,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -18336,7 +18336,7 @@
       "market": "US"
     },
     "entry_price": 280.81,
-    "stop_price": null,
+    "stop_price": 233.23,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -18464,7 +18464,7 @@
       "market": "US"
     },
     "entry_price": 124.32,
-    "stop_price": null,
+    "stop_price": 103.6,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -18592,7 +18592,7 @@
       "market": "US"
     },
     "entry_price": 309.13,
-    "stop_price": null,
+    "stop_price": 234.01,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -18720,7 +18720,7 @@
       "market": "US"
     },
     "entry_price": 135.14,
-    "stop_price": null,
+    "stop_price": 98.21,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -18848,7 +18848,7 @@
       "market": "US"
     },
     "entry_price": 387.37,
-    "stop_price": null,
+    "stop_price": 323.35,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -18976,7 +18976,7 @@
       "market": "US"
     },
     "entry_price": 263.81,
-    "stop_price": null,
+    "stop_price": 232.43,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -19104,7 +19104,7 @@
       "market": "US"
     },
     "entry_price": 93.49,
-    "stop_price": null,
+    "stop_price": 74.49,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -19232,7 +19232,7 @@
       "market": "US"
     },
     "entry_price": 181.98,
-    "stop_price": null,
+    "stop_price": 122.96,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -19360,7 +19360,7 @@
       "market": "US"
     },
     "entry_price": 180.76,
-    "stop_price": null,
+    "stop_price": 123.47,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -19488,7 +19488,7 @@
       "market": "US"
     },
     "entry_price": 112.3,
-    "stop_price": null,
+    "stop_price": 96.07,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -19616,7 +19616,7 @@
       "market": "US"
     },
     "entry_price": 244.39,
-    "stop_price": null,
+    "stop_price": 196.93,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -19744,7 +19744,7 @@
       "market": "US"
     },
     "entry_price": 157.49,
-    "stop_price": null,
+    "stop_price": 115.29,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -19872,7 +19872,7 @@
       "market": "US"
     },
     "entry_price": 357.87,
-    "stop_price": null,
+    "stop_price": 226.07,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -20000,7 +20000,7 @@
       "market": "US"
     },
     "entry_price": 442.08,
-    "stop_price": null,
+    "stop_price": 236.41,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -20128,7 +20128,7 @@
       "market": "US"
     },
     "entry_price": 50.2,
-    "stop_price": null,
+    "stop_price": 48.27,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -20256,7 +20256,7 @@
       "market": "US"
     },
     "entry_price": 53.52,
-    "stop_price": null,
+    "stop_price": 45.13,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -20384,7 +20384,7 @@
       "market": "US"
     },
     "entry_price": 223.49,
-    "stop_price": null,
+    "stop_price": 187.49,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -20512,7 +20512,7 @@
       "market": "US"
     },
     "entry_price": 582.55,
-    "stop_price": null,
+    "stop_price": 560.68,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -20640,7 +20640,7 @@
       "market": "US"
     },
     "entry_price": 555.59,
-    "stop_price": null,
+    "stop_price": 479.78,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -20768,7 +20768,7 @@
       "market": "US"
     },
     "entry_price": 48.59,
-    "stop_price": null,
+    "stop_price": 41.82,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -20896,7 +20896,7 @@
       "market": "US"
     },
     "entry_price": 26.34,
-    "stop_price": null,
+    "stop_price": 19.94,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -21024,7 +21024,7 @@
       "market": "US"
     },
     "entry_price": 417.13,
-    "stop_price": null,
+    "stop_price": 330.27,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -21152,7 +21152,7 @@
       "market": "US"
     },
     "entry_price": 264.96,
-    "stop_price": null,
+    "stop_price": 223.78,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -21280,7 +21280,7 @@
       "market": "US"
     },
     "entry_price": 937.34,
-    "stop_price": null,
+    "stop_price": 722.14,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -21408,7 +21408,7 @@
       "market": "US"
     },
     "entry_price": 19.57,
-    "stop_price": null,
+    "stop_price": 16.66,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -21536,7 +21536,7 @@
       "market": "US"
     },
     "entry_price": 119.47,
-    "stop_price": null,
+    "stop_price": 104.61,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -21664,7 +21664,7 @@
       "market": "US"
     },
     "entry_price": 164.19,
-    "stop_price": null,
+    "stop_price": 140.33,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -21792,7 +21792,7 @@
       "market": "US"
     },
     "entry_price": 127.81,
-    "stop_price": null,
+    "stop_price": 103.66,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -21920,7 +21920,7 @@
       "market": "US"
     },
     "entry_price": 116.64,
-    "stop_price": null,
+    "stop_price": 105.84,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -22048,7 +22048,7 @@
       "market": "US"
     },
     "entry_price": 23.75,
-    "stop_price": null,
+    "stop_price": 17.91,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -22176,7 +22176,7 @@
       "market": "US"
     },
     "entry_price": 346.58,
-    "stop_price": null,
+    "stop_price": 282.46,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -22304,7 +22304,7 @@
       "market": "US"
     },
     "entry_price": 293.14,
-    "stop_price": null,
+    "stop_price": 219.25,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -22432,7 +22432,7 @@
       "market": "US"
     },
     "entry_price": 63.7,
-    "stop_price": null,
+    "stop_price": 54.96,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -22560,7 +22560,7 @@
       "market": "US"
     },
     "entry_price": 59.48,
-    "stop_price": null,
+    "stop_price": 49.57,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -22688,7 +22688,7 @@
       "market": "US"
     },
     "entry_price": 91.1,
-    "stop_price": null,
+    "stop_price": 76.88,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -22816,7 +22816,7 @@
       "market": "US"
     },
     "entry_price": 108.55,
-    "stop_price": null,
+    "stop_price": 74.97,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -22944,7 +22944,7 @@
       "market": "US"
     },
     "entry_price": 32.02,
-    "stop_price": null,
+    "stop_price": 26.4,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -23072,7 +23072,7 @@
       "market": "US"
     },
     "entry_price": 100.02,
-    "stop_price": null,
+    "stop_price": 79.44,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -23200,7 +23200,7 @@
       "market": "US"
     },
     "entry_price": 49.39,
-    "stop_price": null,
+    "stop_price": 41.02,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -23328,7 +23328,7 @@
       "market": "US"
     },
     "entry_price": 30.9,
-    "stop_price": null,
+    "stop_price": 27.35,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -23456,7 +23456,7 @@
       "market": "US"
     },
     "entry_price": 30.38,
-    "stop_price": null,
+    "stop_price": 25.92,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -23584,7 +23584,7 @@
       "market": "US"
     },
     "entry_price": 370.73,
-    "stop_price": null,
+    "stop_price": 306.39,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -23712,7 +23712,7 @@
       "market": "US"
     },
     "entry_price": 187.13,
-    "stop_price": null,
+    "stop_price": 144.17,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -23840,7 +23840,7 @@
       "market": "US"
     },
     "entry_price": 41.49,
-    "stop_price": null,
+    "stop_price": 37.34,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -23968,7 +23968,7 @@
       "market": "US"
     },
     "entry_price": 72.66,
-    "stop_price": null,
+    "stop_price": 59.56,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -24096,7 +24096,7 @@
       "market": "US"
     },
     "entry_price": 270.24,
-    "stop_price": null,
+    "stop_price": 230.38,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -24224,7 +24224,7 @@
       "market": "US"
     },
     "entry_price": 966.78,
-    "stop_price": null,
+    "stop_price": 571.05,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -24352,7 +24352,7 @@
       "market": "US"
     },
     "entry_price": 34.13,
-    "stop_price": null,
+    "stop_price": 32.02,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -24480,7 +24480,7 @@
       "market": "US"
     },
     "entry_price": 28.2,
-    "stop_price": null,
+    "stop_price": 22.65,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -24608,7 +24608,7 @@
       "market": "US"
     },
     "entry_price": 105.41,
-    "stop_price": null,
+    "stop_price": 89.33,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -24736,7 +24736,7 @@
       "market": "US"
     },
     "entry_price": 217.91,
-    "stop_price": null,
+    "stop_price": 205.96,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -24864,7 +24864,7 @@
       "market": "US"
     },
     "entry_price": 34.55,
-    "stop_price": null,
+    "stop_price": 29.56,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -24992,7 +24992,7 @@
       "market": "US"
     },
     "entry_price": 341.99,
-    "stop_price": null,
+    "stop_price": 297.64,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -25120,7 +25120,7 @@
       "market": "US"
     },
     "entry_price": 187.81,
-    "stop_price": null,
+    "stop_price": 155.6,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -25248,7 +25248,7 @@
       "market": "US"
     },
     "entry_price": 66.82,
-    "stop_price": null,
+    "stop_price": 51.01,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -25376,7 +25376,7 @@
       "market": "US"
     },
     "entry_price": 66.7,
-    "stop_price": null,
+    "stop_price": 57.25,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -25504,7 +25504,7 @@
       "market": "US"
     },
     "entry_price": 44.66,
-    "stop_price": null,
+    "stop_price": 35.56,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null,
@@ -25632,7 +25632,7 @@
       "market": "US"
     },
     "entry_price": 76.66,
-    "stop_price": null,
+    "stop_price": 58.92,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -25710,7 +25710,7 @@
       "market": "US"
     },
     "entry_price": 34.47,
-    "stop_price": null,
+    "stop_price": 27.4,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -25788,7 +25788,7 @@
       "market": "US"
     },
     "entry_price": 93.87,
-    "stop_price": null,
+    "stop_price": 77.58,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -25866,7 +25866,7 @@
       "market": "US"
     },
     "entry_price": 100.98,
-    "stop_price": null,
+    "stop_price": 90.57,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -25944,7 +25944,7 @@
       "market": "US"
     },
     "entry_price": 67.01,
-    "stop_price": null,
+    "stop_price": 56.22,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -26022,7 +26022,7 @@
       "market": "US"
     },
     "entry_price": 61.69,
-    "stop_price": null,
+    "stop_price": 54.07,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -26100,7 +26100,7 @@
       "market": "US"
     },
     "entry_price": 82.16,
-    "stop_price": null,
+    "stop_price": 67.96,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -26178,7 +26178,7 @@
       "market": "US"
     },
     "entry_price": 580.63,
-    "stop_price": null,
+    "stop_price": 526.89,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -26256,7 +26256,7 @@
       "market": "US"
     },
     "entry_price": 89.57,
-    "stop_price": null,
+    "stop_price": 76.42,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -26334,7 +26334,7 @@
       "market": "US"
     },
     "entry_price": 30.27,
-    "stop_price": null,
+    "stop_price": 27.8,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -26412,7 +26412,7 @@
       "market": "US"
     },
     "entry_price": 152.81,
-    "stop_price": null,
+    "stop_price": 134.99,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -26490,7 +26490,7 @@
       "market": "US"
     },
     "entry_price": 308.05,
-    "stop_price": null,
+    "stop_price": 254.8,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -26568,7 +26568,7 @@
       "market": "US"
     },
     "entry_price": 41.23,
-    "stop_price": null,
+    "stop_price": 32.14,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -26646,7 +26646,7 @@
       "market": "US"
     },
     "entry_price": 375.57,
-    "stop_price": null,
+    "stop_price": 310.9,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -26724,7 +26724,7 @@
       "market": "US"
     },
     "entry_price": 84.1,
-    "stop_price": null,
+    "stop_price": 78.16,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -26802,7 +26802,7 @@
       "market": "US"
     },
     "entry_price": 42.39,
-    "stop_price": null,
+    "stop_price": 41.48,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -26880,7 +26880,7 @@
       "market": "US"
     },
     "entry_price": 32.04,
-    "stop_price": null,
+    "stop_price": 28.53,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -26958,7 +26958,7 @@
       "market": "US"
     },
     "entry_price": 237.58,
-    "stop_price": null,
+    "stop_price": 201.17,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -27036,7 +27036,7 @@
       "market": "US"
     },
     "entry_price": 647.47,
-    "stop_price": null,
+    "stop_price": 556.72,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -27114,7 +27114,7 @@
       "market": "US"
     },
     "entry_price": 27.2,
-    "stop_price": null,
+    "stop_price": 24.93,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -27192,7 +27192,7 @@
       "market": "US"
     },
     "entry_price": 343.1,
-    "stop_price": null,
+    "stop_price": 320.06,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -27270,7 +27270,7 @@
       "market": "US"
     },
     "entry_price": 11.87,
-    "stop_price": null,
+    "stop_price": 10.56,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -27348,7 +27348,7 @@
       "market": "US"
     },
     "entry_price": 503.32,
-    "stop_price": null,
+    "stop_price": 469.95,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -27426,7 +27426,7 @@
       "market": "US"
     },
     "entry_price": 23.97,
-    "stop_price": null,
+    "stop_price": 23.62,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -27504,7 +27504,7 @@
       "market": "US"
     },
     "entry_price": 1098.51,
-    "stop_price": null,
+    "stop_price": 914.66,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -27582,7 +27582,7 @@
       "market": "US"
     },
     "entry_price": 31.95,
-    "stop_price": null,
+    "stop_price": 28.48,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -27660,7 +27660,7 @@
       "market": "US"
     },
     "entry_price": 62.05,
-    "stop_price": null,
+    "stop_price": 55.2,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -27738,7 +27738,7 @@
       "market": "US"
     },
     "entry_price": 350.72,
-    "stop_price": null,
+    "stop_price": 303.65,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -27816,7 +27816,7 @@
       "market": "US"
     },
     "entry_price": 26.46,
-    "stop_price": null,
+    "stop_price": 24.39,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -27894,7 +27894,7 @@
       "market": "US"
     },
     "entry_price": 69.86,
-    "stop_price": null,
+    "stop_price": 62.32,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -27972,7 +27972,7 @@
       "market": "US"
     },
     "entry_price": 39.97,
-    "stop_price": null,
+    "stop_price": 39.11,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -28050,7 +28050,7 @@
       "market": "US"
     },
     "entry_price": 323.45,
-    "stop_price": null,
+    "stop_price": 294.31,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -28128,7 +28128,7 @@
       "market": "US"
     },
     "entry_price": 540.57,
-    "stop_price": null,
+    "stop_price": 442.0,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -28206,7 +28206,7 @@
       "market": "US"
     },
     "entry_price": 97.76,
-    "stop_price": null,
+    "stop_price": 79.54,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -28284,7 +28284,7 @@
       "market": "US"
     },
     "entry_price": 200.01,
-    "stop_price": null,
+    "stop_price": 161.69,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -28362,7 +28362,7 @@
       "market": "US"
     },
     "entry_price": 121.15,
-    "stop_price": null,
+    "stop_price": 105.72,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -28440,7 +28440,7 @@
       "market": "US"
     },
     "entry_price": 52.42,
-    "stop_price": null,
+    "stop_price": 47.4,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -28518,7 +28518,7 @@
       "market": "US"
     },
     "entry_price": 51.59,
-    "stop_price": null,
+    "stop_price": 42.25,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -28596,7 +28596,7 @@
       "market": "US"
     },
     "entry_price": 192.01,
-    "stop_price": null,
+    "stop_price": 175.83,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -28674,7 +28674,7 @@
       "market": "US"
     },
     "entry_price": 207.01,
-    "stop_price": null,
+    "stop_price": 153.0,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -28752,7 +28752,7 @@
       "market": "US"
     },
     "entry_price": 378.88,
-    "stop_price": null,
+    "stop_price": 271.21,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -28830,7 +28830,7 @@
       "market": "US"
     },
     "entry_price": 87.54,
-    "stop_price": null,
+    "stop_price": 76.32,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -28908,7 +28908,7 @@
       "market": "US"
     },
     "entry_price": 315.98,
-    "stop_price": null,
+    "stop_price": 277.42,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -28986,7 +28986,7 @@
       "market": "US"
     },
     "entry_price": 1255.4,
-    "stop_price": null,
+    "stop_price": 1049.67,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -29064,7 +29064,7 @@
       "market": "US"
     },
     "entry_price": 410.7,
-    "stop_price": null,
+    "stop_price": 359.0,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -29142,7 +29142,7 @@
       "market": "US"
     },
     "entry_price": 145.14,
-    "stop_price": null,
+    "stop_price": 125.55,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -29220,7 +29220,7 @@
       "market": "US"
     },
     "entry_price": 299.91,
-    "stop_price": null,
+    "stop_price": 246.43,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -29298,7 +29298,7 @@
       "market": "US"
     },
     "entry_price": 234.39,
-    "stop_price": null,
+    "stop_price": 201.71,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -29376,7 +29376,7 @@
       "market": "US"
     },
     "entry_price": 23.16,
-    "stop_price": null,
+    "stop_price": 21.42,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -29454,7 +29454,7 @@
       "market": "US"
     },
     "entry_price": 47.81,
-    "stop_price": null,
+    "stop_price": 42.16,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -29532,7 +29532,7 @@
       "market": "US"
     },
     "entry_price": 351.58,
-    "stop_price": null,
+    "stop_price": 313.91,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -29610,7 +29610,7 @@
       "market": "US"
     },
     "entry_price": 480.47,
-    "stop_price": null,
+    "stop_price": 416.35,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -29688,7 +29688,7 @@
       "market": "US"
     },
     "entry_price": 93.06,
-    "stop_price": null,
+    "stop_price": 83.61,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -29766,7 +29766,7 @@
       "market": "US"
     },
     "entry_price": 157.09,
-    "stop_price": null,
+    "stop_price": 142.94,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -29844,7 +29844,7 @@
       "market": "US"
     },
     "entry_price": 36.3,
-    "stop_price": null,
+    "stop_price": 27.75,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -29922,7 +29922,7 @@
       "market": "US"
     },
     "entry_price": 30.84,
-    "stop_price": null,
+    "stop_price": 27.49,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -30000,7 +30000,7 @@
       "market": "US"
     },
     "entry_price": 17.6,
-    "stop_price": null,
+    "stop_price": 16.73,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -30078,7 +30078,7 @@
       "market": "US"
     },
     "entry_price": 219.28,
-    "stop_price": null,
+    "stop_price": 207.65,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -30156,7 +30156,7 @@
       "market": "US"
     },
     "entry_price": 49.83,
-    "stop_price": null,
+    "stop_price": 41.7,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -30234,7 +30234,7 @@
       "market": "US"
     },
     "entry_price": 223.16,
-    "stop_price": null,
+    "stop_price": 187.85,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -30312,7 +30312,7 @@
       "market": "US"
     },
     "entry_price": 253.83,
-    "stop_price": null,
+    "stop_price": 217.69,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -30390,7 +30390,7 @@
       "market": "US"
     },
     "entry_price": 137.25,
-    "stop_price": null,
+    "stop_price": 130.71,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -30468,7 +30468,7 @@
       "market": "US"
     },
     "entry_price": 34.31,
-    "stop_price": null,
+    "stop_price": 27.49,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -30546,7 +30546,7 @@
       "market": "US"
     },
     "entry_price": 68.07,
-    "stop_price": null,
+    "stop_price": 61.88,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -30624,7 +30624,7 @@
       "market": "US"
     },
     "entry_price": 229.51,
-    "stop_price": null,
+    "stop_price": 213.1,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -30702,7 +30702,7 @@
       "market": "US"
     },
     "entry_price": 49.3,
-    "stop_price": null,
+    "stop_price": 41.26,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -30780,7 +30780,7 @@
       "market": "US"
     },
     "entry_price": 209.62,
-    "stop_price": null,
+    "stop_price": 185.18,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -30858,7 +30858,7 @@
       "market": "US"
     },
     "entry_price": 47.82,
-    "stop_price": null,
+    "stop_price": 43.75,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -30936,7 +30936,7 @@
       "market": "US"
     },
     "entry_price": 71.69,
-    "stop_price": null,
+    "stop_price": 70.35,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -31014,7 +31014,7 @@
       "market": "US"
     },
     "entry_price": 68.14,
-    "stop_price": null,
+    "stop_price": 60.73,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -31092,7 +31092,7 @@
       "market": "US"
     },
     "entry_price": 88.5,
-    "stop_price": null,
+    "stop_price": 78.18,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -31170,7 +31170,7 @@
       "market": "US"
     },
     "entry_price": 98.22,
-    "stop_price": null,
+    "stop_price": 89.45,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -31248,7 +31248,7 @@
       "market": "US"
     },
     "entry_price": 153.05,
-    "stop_price": null,
+    "stop_price": 125.25,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -31326,7 +31326,7 @@
       "market": "US"
     },
     "entry_price": 91.29,
-    "stop_price": null,
+    "stop_price": 84.84,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -31404,7 +31404,7 @@
       "market": "US"
     },
     "entry_price": 239.22,
-    "stop_price": null,
+    "stop_price": 206.94,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -31482,7 +31482,7 @@
       "market": "US"
     },
     "entry_price": 224.4,
-    "stop_price": null,
+    "stop_price": 188.89,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -31560,7 +31560,7 @@
       "market": "US"
     },
     "entry_price": 371.04,
-    "stop_price": null,
+    "stop_price": 330.7,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -31638,7 +31638,7 @@
       "market": "US"
     },
     "entry_price": 135.39,
-    "stop_price": null,
+    "stop_price": 129.44,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -31716,7 +31716,7 @@
       "market": "US"
     },
     "entry_price": 220.67,
-    "stop_price": null,
+    "stop_price": 213.21,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -31794,7 +31794,7 @@
       "market": "US"
     },
     "entry_price": 225.3,
-    "stop_price": null,
+    "stop_price": 157.99,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -31872,7 +31872,7 @@
       "market": "US"
     },
     "entry_price": 59.77,
-    "stop_price": null,
+    "stop_price": 45.38,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -31950,7 +31950,7 @@
       "market": "US"
     },
     "entry_price": 54.08,
-    "stop_price": null,
+    "stop_price": 46.9,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -32028,7 +32028,7 @@
       "market": "US"
     },
     "entry_price": 133.23,
-    "stop_price": null,
+    "stop_price": 111.86,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -32106,7 +32106,7 @@
       "market": "US"
     },
     "entry_price": 158.49,
-    "stop_price": null,
+    "stop_price": 129.38,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -32184,7 +32184,7 @@
       "market": "US"
     },
     "entry_price": 67.67,
-    "stop_price": null,
+    "stop_price": 62.54,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -32262,7 +32262,7 @@
       "market": "US"
     },
     "entry_price": 48.9,
-    "stop_price": null,
+    "stop_price": 43.78,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -32340,7 +32340,7 @@
       "market": "US"
     },
     "entry_price": 297.57,
-    "stop_price": null,
+    "stop_price": 249.43,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -32418,7 +32418,7 @@
       "market": "US"
     },
     "entry_price": 183.9,
-    "stop_price": null,
+    "stop_price": 154.67,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -32496,7 +32496,7 @@
       "market": "US"
     },
     "entry_price": 389.14,
-    "stop_price": null,
+    "stop_price": 319.49,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -32574,7 +32574,7 @@
       "market": "US"
     },
     "entry_price": 243.13,
-    "stop_price": null,
+    "stop_price": 208.87,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -32652,7 +32652,7 @@
       "market": "US"
     },
     "entry_price": 216.78,
-    "stop_price": null,
+    "stop_price": 188.01,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -32730,7 +32730,7 @@
       "market": "US"
     },
     "entry_price": 19.06,
-    "stop_price": null,
+    "stop_price": 17.44,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -32808,7 +32808,7 @@
       "market": "US"
     },
     "entry_price": 332.24,
-    "stop_price": null,
+    "stop_price": 273.45,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -32886,7 +32886,7 @@
       "market": "US"
     },
     "entry_price": 109.31,
-    "stop_price": null,
+    "stop_price": 101.31,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -32964,7 +32964,7 @@
       "market": "US"
     },
     "entry_price": 82.8,
-    "stop_price": null,
+    "stop_price": 81.5,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -33042,7 +33042,7 @@
       "market": "US"
     },
     "entry_price": 134.87,
-    "stop_price": null,
+    "stop_price": 109.03,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -33120,7 +33120,7 @@
       "market": "US"
     },
     "entry_price": 106.86,
-    "stop_price": null,
+    "stop_price": 96.44,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -33198,7 +33198,7 @@
       "market": "US"
     },
     "entry_price": 54.82,
-    "stop_price": null,
+    "stop_price": 49.75,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -33276,7 +33276,7 @@
       "market": "US"
     },
     "entry_price": 240.34,
-    "stop_price": null,
+    "stop_price": 216.33,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -33354,7 +33354,7 @@
       "market": "US"
     },
     "entry_price": 134.8,
-    "stop_price": null,
+    "stop_price": 124.93,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -33432,7 +33432,7 @@
       "market": "US"
     },
     "entry_price": 205.27,
-    "stop_price": null,
+    "stop_price": 175.44,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -33510,7 +33510,7 @@
       "market": "US"
     },
     "entry_price": 65.74,
-    "stop_price": null,
+    "stop_price": 51.97,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -33588,7 +33588,7 @@
       "market": "US"
     },
     "entry_price": 28.93,
-    "stop_price": null,
+    "stop_price": 24.17,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -33666,7 +33666,7 @@
       "market": "US"
     },
     "entry_price": 29.71,
-    "stop_price": null,
+    "stop_price": 22.22,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -33744,7 +33744,7 @@
       "market": "US"
     },
     "entry_price": 58.38,
-    "stop_price": null,
+    "stop_price": 53.07,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -33822,7 +33822,7 @@
       "market": "US"
     },
     "entry_price": 37.0,
-    "stop_price": null,
+    "stop_price": 32.69,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -33900,7 +33900,7 @@
       "market": "US"
     },
     "entry_price": 237.04,
-    "stop_price": null,
+    "stop_price": 144.98,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -33978,7 +33978,7 @@
       "market": "US"
     },
     "entry_price": 243.13,
-    "stop_price": null,
+    "stop_price": 219.04,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -34056,7 +34056,7 @@
       "market": "US"
     },
     "entry_price": 66.48,
-    "stop_price": null,
+    "stop_price": 59.95,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -34134,7 +34134,7 @@
       "market": "US"
     },
     "entry_price": 43.39,
-    "stop_price": null,
+    "stop_price": 32.24,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -34212,7 +34212,7 @@
       "market": "US"
     },
     "entry_price": 384.29,
-    "stop_price": null,
+    "stop_price": 350.63,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -34290,7 +34290,7 @@
       "market": "US"
     },
     "entry_price": 188.65,
-    "stop_price": null,
+    "stop_price": 149.01,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -34368,7 +34368,7 @@
       "market": "US"
     },
     "entry_price": 51.26,
-    "stop_price": null,
+    "stop_price": 44.5,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -34446,7 +34446,7 @@
       "market": "US"
     },
     "entry_price": 30.41,
-    "stop_price": null,
+    "stop_price": 27.87,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -34524,7 +34524,7 @@
       "market": "US"
     },
     "entry_price": 119.81,
-    "stop_price": null,
+    "stop_price": 99.02,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -34602,7 +34602,7 @@
       "market": "US"
     },
     "entry_price": 203.79,
-    "stop_price": null,
+    "stop_price": 185.1,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -34680,7 +34680,7 @@
       "market": "US"
     },
     "entry_price": 348.37,
-    "stop_price": null,
+    "stop_price": 319.02,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -34758,7 +34758,7 @@
       "market": "US"
     },
     "entry_price": 21.4,
-    "stop_price": null,
+    "stop_price": 17.97,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -34836,7 +34836,7 @@
       "market": "US"
     },
     "entry_price": 218.29,
-    "stop_price": null,
+    "stop_price": 197.55,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -34914,7 +34914,7 @@
       "market": "US"
     },
     "entry_price": 101.94,
-    "stop_price": null,
+    "stop_price": 91.18,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -34992,7 +34992,7 @@
       "market": "US"
     },
     "entry_price": 252.79,
-    "stop_price": null,
+    "stop_price": 219.44,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -35070,7 +35070,7 @@
       "market": "US"
     },
     "entry_price": 36.2,
-    "stop_price": null,
+    "stop_price": 31.45,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -35148,7 +35148,7 @@
       "market": "US"
     },
     "entry_price": 221.6,
-    "stop_price": null,
+    "stop_price": 196.8,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -35226,7 +35226,7 @@
       "market": "US"
     },
     "entry_price": 181.82,
-    "stop_price": null,
+    "stop_price": 158.38,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -35304,7 +35304,7 @@
       "market": "US"
     },
     "entry_price": 143.7,
-    "stop_price": null,
+    "stop_price": 132.56,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -35382,7 +35382,7 @@
       "market": "US"
     },
     "entry_price": 148.06,
-    "stop_price": null,
+    "stop_price": 121.96,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -35460,7 +35460,7 @@
       "market": "US"
     },
     "entry_price": 834.04,
-    "stop_price": null,
+    "stop_price": 722.74,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -35538,7 +35538,7 @@
       "market": "US"
     },
     "entry_price": 60.35,
-    "stop_price": null,
+    "stop_price": 54.62,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -35616,7 +35616,7 @@
       "market": "US"
     },
     "entry_price": 25.58,
-    "stop_price": null,
+    "stop_price": 23.47,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -35694,7 +35694,7 @@
       "market": "US"
     },
     "entry_price": 165.11,
-    "stop_price": null,
+    "stop_price": 140.76,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -35772,7 +35772,7 @@
       "market": "US"
     },
     "entry_price": 77.45,
-    "stop_price": null,
+    "stop_price": 62.56,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -35850,7 +35850,7 @@
       "market": "US"
     },
     "entry_price": 99.44,
-    "stop_price": null,
+    "stop_price": 89.34,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -35928,7 +35928,7 @@
       "market": "US"
     },
     "entry_price": 94.34,
-    "stop_price": null,
+    "stop_price": 80.02,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -36006,7 +36006,7 @@
       "market": "US"
     },
     "entry_price": 14.77,
-    "stop_price": null,
+    "stop_price": 14.24,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -36084,7 +36084,7 @@
       "market": "US"
     },
     "entry_price": 93.35,
-    "stop_price": null,
+    "stop_price": 88.65,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -36162,7 +36162,7 @@
       "market": "US"
     },
     "entry_price": 38.58,
-    "stop_price": null,
+    "stop_price": 38.27,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -36240,7 +36240,7 @@
       "market": "US"
     },
     "entry_price": 75.38,
-    "stop_price": null,
+    "stop_price": 67.67,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -36318,7 +36318,7 @@
       "market": "US"
     },
     "entry_price": 37.88,
-    "stop_price": null,
+    "stop_price": 33.17,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -36396,7 +36396,7 @@
       "market": "US"
     },
     "entry_price": 64.45,
-    "stop_price": null,
+    "stop_price": 58.06,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -36474,7 +36474,7 @@
       "market": "US"
     },
     "entry_price": 131.03,
-    "stop_price": null,
+    "stop_price": 117.62,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -36552,7 +36552,7 @@
       "market": "US"
     },
     "entry_price": 175.2,
-    "stop_price": null,
+    "stop_price": 158.7,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -36630,7 +36630,7 @@
       "market": "US"
     },
     "entry_price": 647.39,
-    "stop_price": null,
+    "stop_price": 558.09,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -36708,7 +36708,7 @@
       "market": "US"
     },
     "entry_price": 294.85,
-    "stop_price": null,
+    "stop_price": 232.9,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -36786,7 +36786,7 @@
       "market": "US"
     },
     "entry_price": 55.93,
-    "stop_price": null,
+    "stop_price": 49.94,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -36864,7 +36864,7 @@
       "market": "US"
     },
     "entry_price": 356.21,
-    "stop_price": null,
+    "stop_price": 309.21,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -36942,7 +36942,7 @@
       "market": "US"
     },
     "entry_price": 63.59,
-    "stop_price": null,
+    "stop_price": 58.07,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -37020,7 +37020,7 @@
       "market": "US"
     },
     "entry_price": 65.02,
-    "stop_price": null,
+    "stop_price": 48.85,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -37098,7 +37098,7 @@
       "market": "US"
     },
     "entry_price": 353.08,
-    "stop_price": null,
+    "stop_price": 289.89,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -37176,7 +37176,7 @@
       "market": "US"
     },
     "entry_price": 147.09,
-    "stop_price": null,
+    "stop_price": 143.5,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -37254,7 +37254,7 @@
       "market": "US"
     },
     "entry_price": 355.11,
-    "stop_price": null,
+    "stop_price": 336.28,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -37332,7 +37332,7 @@
       "market": "US"
     },
     "entry_price": 282.29,
-    "stop_price": null,
+    "stop_price": 262.84,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -37410,7 +37410,7 @@
       "market": "US"
     },
     "entry_price": 275.45,
-    "stop_price": null,
+    "stop_price": 231.86,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -37488,7 +37488,7 @@
       "market": "US"
     },
     "entry_price": 299.1,
-    "stop_price": null,
+    "stop_price": 229.9,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -37566,7 +37566,7 @@
       "market": "US"
     },
     "entry_price": 110.75,
-    "stop_price": null,
+    "stop_price": 96.47,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -37644,7 +37644,7 @@
       "market": "US"
     },
     "entry_price": 178.96,
-    "stop_price": null,
+    "stop_price": 159.64,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -37722,7 +37722,7 @@
       "market": "US"
     },
     "entry_price": 93.25,
-    "stop_price": null,
+    "stop_price": 90.45,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -37800,7 +37800,7 @@
       "market": "US"
     },
     "entry_price": 87.11,
-    "stop_price": null,
+    "stop_price": 68.86,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -37878,7 +37878,7 @@
       "market": "US"
     },
     "entry_price": 72.77,
-    "stop_price": null,
+    "stop_price": 69.57,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -37956,7 +37956,7 @@
       "market": "US"
     },
     "entry_price": 363.58,
-    "stop_price": null,
+    "stop_price": 306.56,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -38034,7 +38034,7 @@
       "market": "US"
     },
     "entry_price": 84.61,
-    "stop_price": null,
+    "stop_price": 76.16,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -38112,7 +38112,7 @@
       "market": "US"
     },
     "entry_price": 189.19,
-    "stop_price": null,
+    "stop_price": 158.32,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -38190,7 +38190,7 @@
       "market": "US"
     },
     "entry_price": 218.85,
-    "stop_price": null,
+    "stop_price": 202.26,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -38268,7 +38268,7 @@
       "market": "US"
     },
     "entry_price": 84.28,
-    "stop_price": null,
+    "stop_price": 72.97,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -38346,7 +38346,7 @@
       "market": "US"
     },
     "entry_price": 34.35,
-    "stop_price": null,
+    "stop_price": 31.2,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -38424,7 +38424,7 @@
       "market": "US"
     },
     "entry_price": 25.81,
-    "stop_price": null,
+    "stop_price": 23.68,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -38502,7 +38502,7 @@
       "market": "US"
     },
     "entry_price": 1156.55,
-    "stop_price": null,
+    "stop_price": 1047.6,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -38580,7 +38580,7 @@
       "market": "US"
     },
     "entry_price": 129.97,
-    "stop_price": null,
+    "stop_price": 117.3,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -38658,7 +38658,7 @@
       "market": "US"
     },
     "entry_price": 214.2,
-    "stop_price": null,
+    "stop_price": 186.59,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -38736,7 +38736,7 @@
       "market": "US"
     },
     "entry_price": 23.88,
-    "stop_price": null,
+    "stop_price": 22.96,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -38814,7 +38814,7 @@
       "market": "US"
     },
     "entry_price": 120.31,
-    "stop_price": null,
+    "stop_price": 106.66,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -38892,7 +38892,7 @@
       "market": "US"
     },
     "entry_price": 23.21,
-    "stop_price": null,
+    "stop_price": 19.92,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -38970,7 +38970,7 @@
       "market": "US"
     },
     "entry_price": 36.58,
-    "stop_price": null,
+    "stop_price": 34.94,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -39048,7 +39048,7 @@
       "market": "US"
     },
     "entry_price": 153.51,
-    "stop_price": null,
+    "stop_price": 106.16,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -39126,7 +39126,7 @@
       "market": "US"
     },
     "entry_price": 281.63,
-    "stop_price": null,
+    "stop_price": 270.54,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -39204,7 +39204,7 @@
       "market": "US"
     },
     "entry_price": 18.53,
-    "stop_price": null,
+    "stop_price": 17.5,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -39282,7 +39282,7 @@
       "market": "US"
     },
     "entry_price": 305.1,
-    "stop_price": null,
+    "stop_price": 277.36,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -39360,7 +39360,7 @@
       "market": "US"
     },
     "entry_price": 387.89,
-    "stop_price": null,
+    "stop_price": 338.47,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -39438,7 +39438,7 @@
       "market": "US"
     },
     "entry_price": 46.83,
-    "stop_price": null,
+    "stop_price": 40.55,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -39516,7 +39516,7 @@
       "market": "US"
     },
     "entry_price": 284.04,
-    "stop_price": null,
+    "stop_price": 241.74,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -39594,7 +39594,7 @@
       "market": "US"
     },
     "entry_price": 87.93,
-    "stop_price": null,
+    "stop_price": 78.86,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -39672,7 +39672,7 @@
       "market": "US"
     },
     "entry_price": 289.0,
-    "stop_price": null,
+    "stop_price": 262.01,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -39750,7 +39750,7 @@
       "market": "US"
     },
     "entry_price": 341.62,
-    "stop_price": null,
+    "stop_price": 291.98,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -39828,7 +39828,7 @@
       "market": "US"
     },
     "entry_price": 40.18,
-    "stop_price": null,
+    "stop_price": 38.23,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -39906,7 +39906,7 @@
       "market": "US"
     },
     "entry_price": 37.53,
-    "stop_price": null,
+    "stop_price": 33.6,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -39984,7 +39984,7 @@
       "market": "US"
     },
     "entry_price": 70.21,
-    "stop_price": null,
+    "stop_price": 66.61,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -40062,7 +40062,7 @@
       "market": "US"
     },
     "entry_price": 295.82,
-    "stop_price": null,
+    "stop_price": 269.91,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -40140,7 +40140,7 @@
       "market": "US"
     },
     "entry_price": 129.6,
-    "stop_price": null,
+    "stop_price": 104.77,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -40218,7 +40218,7 @@
       "market": "US"
     },
     "entry_price": 17.03,
-    "stop_price": null,
+    "stop_price": 16.71,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -40296,7 +40296,7 @@
       "market": "US"
     },
     "entry_price": 191.95,
-    "stop_price": null,
+    "stop_price": 138.79,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -40374,7 +40374,7 @@
       "market": "US"
     },
     "entry_price": 411.79,
-    "stop_price": null,
+    "stop_price": 376.06,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -40452,7 +40452,7 @@
       "market": "US"
     },
     "entry_price": 157.01,
-    "stop_price": null,
+    "stop_price": 144.31,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -40530,7 +40530,7 @@
       "market": "US"
     },
     "entry_price": 79.47,
-    "stop_price": null,
+    "stop_price": 74.27,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -40608,7 +40608,7 @@
       "market": "US"
     },
     "entry_price": 208.41,
-    "stop_price": null,
+    "stop_price": 194.23,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -40686,7 +40686,7 @@
       "market": "US"
     },
     "entry_price": 146.13,
-    "stop_price": null,
+    "stop_price": 134.06,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -40764,7 +40764,7 @@
       "market": "US"
     },
     "entry_price": 393.39,
-    "stop_price": null,
+    "stop_price": 369.03,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -40842,7 +40842,7 @@
       "market": "US"
     },
     "entry_price": 383.55,
-    "stop_price": null,
+    "stop_price": 358.12,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -40920,7 +40920,7 @@
       "market": "US"
     },
     "entry_price": 102.26,
-    "stop_price": null,
+    "stop_price": 95.04,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -40998,7 +40998,7 @@
       "market": "US"
     },
     "entry_price": 157.26,
-    "stop_price": null,
+    "stop_price": 140.54,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -41076,7 +41076,7 @@
       "market": "US"
     },
     "entry_price": 292.0,
-    "stop_price": null,
+    "stop_price": 284.88,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -41154,7 +41154,7 @@
       "market": "US"
     },
     "entry_price": 49.42,
-    "stop_price": null,
+    "stop_price": 47.38,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -41232,7 +41232,7 @@
       "market": "US"
     },
     "entry_price": 342.42,
-    "stop_price": null,
+    "stop_price": 319.12,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -41310,7 +41310,7 @@
       "market": "US"
     },
     "entry_price": 77.57,
-    "stop_price": null,
+    "stop_price": 68.16,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -41388,7 +41388,7 @@
       "market": "US"
     },
     "entry_price": 50.42,
-    "stop_price": null,
+    "stop_price": 48.39,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -41466,7 +41466,7 @@
       "market": "US"
     },
     "entry_price": 113.63,
-    "stop_price": null,
+    "stop_price": 109.26,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -41544,7 +41544,7 @@
       "market": "US"
     },
     "entry_price": 111.51,
-    "stop_price": null,
+    "stop_price": 101.46,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -41622,7 +41622,7 @@
       "market": "US"
     },
     "entry_price": 104.98,
-    "stop_price": null,
+    "stop_price": 96.85,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -41700,7 +41700,7 @@
       "market": "US"
     },
     "entry_price": 81.79,
-    "stop_price": null,
+    "stop_price": 76.15,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -41778,7 +41778,7 @@
       "market": "US"
     },
     "entry_price": 129.0,
-    "stop_price": null,
+    "stop_price": 124.52,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -41856,7 +41856,7 @@
       "market": "US"
     },
     "entry_price": 98.77,
-    "stop_price": null,
+    "stop_price": 93.27,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -41934,7 +41934,7 @@
       "market": "US"
     },
     "entry_price": 271.68,
-    "stop_price": null,
+    "stop_price": 242.57,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -42012,7 +42012,7 @@
       "market": "US"
     },
     "entry_price": 43.74,
-    "stop_price": null,
+    "stop_price": 39.09,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -42090,7 +42090,7 @@
       "market": "US"
     },
     "entry_price": 58.38,
-    "stop_price": null,
+    "stop_price": 50.15,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -42168,7 +42168,7 @@
       "market": "US"
     },
     "entry_price": 61.3,
-    "stop_price": null,
+    "stop_price": 51.17,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -42246,7 +42246,7 @@
       "market": "US"
     },
     "entry_price": 131.58,
-    "stop_price": null,
+    "stop_price": 106.11,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -42324,7 +42324,7 @@
       "market": "US"
     },
     "entry_price": 1001.74,
-    "stop_price": null,
+    "stop_price": 925.82,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -42402,7 +42402,7 @@
       "market": "US"
     },
     "entry_price": 346.59,
-    "stop_price": null,
+    "stop_price": 332.3,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -42480,7 +42480,7 @@
       "market": "US"
     },
     "entry_price": 1312.24,
-    "stop_price": null,
+    "stop_price": 1155.14,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -42558,7 +42558,7 @@
       "market": "US"
     },
     "entry_price": 61.01,
-    "stop_price": null,
+    "stop_price": 61.01,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -42636,7 +42636,7 @@
       "market": "US"
     },
     "entry_price": 14.16,
-    "stop_price": null,
+    "stop_price": 12.86,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -42714,7 +42714,7 @@
       "market": "US"
     },
     "entry_price": 99.39,
-    "stop_price": null,
+    "stop_price": 95.66,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -42792,7 +42792,7 @@
       "market": "US"
     },
     "entry_price": 166.2,
-    "stop_price": null,
+    "stop_price": 158.74,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -42870,7 +42870,7 @@
       "market": "US"
     },
     "entry_price": 250.24,
-    "stop_price": null,
+    "stop_price": 203.45,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -42948,7 +42948,7 @@
       "market": "US"
     },
     "entry_price": 569.72,
-    "stop_price": null,
+    "stop_price": 484.04,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -43026,7 +43026,7 @@
       "market": "US"
     },
     "entry_price": 239.55,
-    "stop_price": null,
+    "stop_price": 223.46,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -43104,7 +43104,7 @@
       "market": "US"
     },
     "entry_price": 76.22,
-    "stop_price": null,
+    "stop_price": 73.36,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -43182,7 +43182,7 @@
       "market": "US"
     },
     "entry_price": 400.54,
-    "stop_price": null,
+    "stop_price": 353.21,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -43260,7 +43260,7 @@
       "market": "US"
     },
     "entry_price": 1395.25,
-    "stop_price": null,
+    "stop_price": 1321.26,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -43338,7 +43338,7 @@
       "market": "US"
     },
     "entry_price": 22.82,
-    "stop_price": null,
+    "stop_price": 21.19,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -43416,7 +43416,7 @@
       "market": "US"
     },
     "entry_price": 80.3,
-    "stop_price": null,
+    "stop_price": 70.01,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -43494,7 +43494,7 @@
       "market": "US"
     },
     "entry_price": 133.81,
-    "stop_price": null,
+    "stop_price": 113.11,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -43572,7 +43572,7 @@
       "market": "US"
     },
     "entry_price": 171.08,
-    "stop_price": null,
+    "stop_price": 151.53,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -43650,7 +43650,7 @@
       "market": "US"
     },
     "entry_price": 322.49,
-    "stop_price": null,
+    "stop_price": 292.38,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -43728,7 +43728,7 @@
       "market": "US"
     },
     "entry_price": 147.85,
-    "stop_price": null,
+    "stop_price": 115.96,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -43806,7 +43806,7 @@
       "market": "US"
     },
     "entry_price": 215.97,
-    "stop_price": null,
+    "stop_price": 186.99,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -43884,7 +43884,7 @@
       "market": "US"
     },
     "entry_price": 431.29,
-    "stop_price": null,
+    "stop_price": 430.43,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -43962,7 +43962,7 @@
       "market": "US"
     },
     "entry_price": 67.78,
-    "stop_price": null,
+    "stop_price": 56.44,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -44040,7 +44040,7 @@
       "market": "US"
     },
     "entry_price": 71.76,
-    "stop_price": null,
+    "stop_price": 65.65,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -44118,7 +44118,7 @@
       "market": "US"
     },
     "entry_price": 189.43,
-    "stop_price": null,
+    "stop_price": 172.05,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -44196,7 +44196,7 @@
       "market": "US"
     },
     "entry_price": 65.27,
-    "stop_price": null,
+    "stop_price": 59.77,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -44274,7 +44274,7 @@
       "market": "US"
     },
     "entry_price": 1596.08,
-    "stop_price": null,
+    "stop_price": 939.42,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -44352,7 +44352,7 @@
       "market": "US"
     },
     "entry_price": 30.81,
-    "stop_price": null,
+    "stop_price": 29.07,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -44430,7 +44430,7 @@
       "market": "US"
     },
     "entry_price": 200.29,
-    "stop_price": null,
+    "stop_price": 174.47,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -44508,7 +44508,7 @@
       "market": "US"
     },
     "entry_price": 43.28,
-    "stop_price": null,
+    "stop_price": 42.1,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -44586,7 +44586,7 @@
       "market": "US"
     },
     "entry_price": 370.06,
-    "stop_price": null,
+    "stop_price": 337.65,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -44664,7 +44664,7 @@
       "market": "US"
     },
     "entry_price": 179.94,
-    "stop_price": null,
+    "stop_price": 151.46,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -44742,7 +44742,7 @@
       "market": "US"
     },
     "entry_price": 72.92,
-    "stop_price": null,
+    "stop_price": 69.45,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -44820,7 +44820,7 @@
       "market": "US"
     },
     "entry_price": 113.17,
-    "stop_price": null,
+    "stop_price": 107.47,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -44898,7 +44898,7 @@
       "market": "US"
     },
     "entry_price": 49.45,
-    "stop_price": null,
+    "stop_price": 44.07,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -44976,7 +44976,7 @@
       "market": "US"
     },
     "entry_price": 30.11,
-    "stop_price": null,
+    "stop_price": 27.4,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -45054,7 +45054,7 @@
       "market": "US"
     },
     "entry_price": 66.79,
-    "stop_price": null,
+    "stop_price": 62.54,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -45132,7 +45132,7 @@
       "market": "US"
     },
     "entry_price": 49.1,
-    "stop_price": null,
+    "stop_price": 42.47,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -45210,7 +45210,7 @@
       "market": "US"
     },
     "entry_price": 210.72,
-    "stop_price": null,
+    "stop_price": 176.04,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -45288,7 +45288,7 @@
       "market": "US"
     },
     "entry_price": 87.77,
-    "stop_price": null,
+    "stop_price": 79.43,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -45366,7 +45366,7 @@
       "market": "US"
     },
     "entry_price": 36.9,
-    "stop_price": null,
+    "stop_price": 34.52,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -45444,7 +45444,7 @@
       "market": "US"
     },
     "entry_price": 125.37,
-    "stop_price": null,
+    "stop_price": 118.05,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -45522,7 +45522,7 @@
       "market": "US"
     },
     "entry_price": 93.86,
-    "stop_price": null,
+    "stop_price": 87.07,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -45600,7 +45600,7 @@
       "market": "US"
     },
     "entry_price": 209.91,
-    "stop_price": null,
+    "stop_price": 190.14,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -45678,7 +45678,7 @@
       "market": "US"
     },
     "entry_price": 189.1,
-    "stop_price": null,
+    "stop_price": 176.73,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -45756,7 +45756,7 @@
       "market": "US"
     },
     "entry_price": 89.79,
-    "stop_price": null,
+    "stop_price": 84.63,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -45834,7 +45834,7 @@
       "market": "US"
     },
     "entry_price": 74.82,
-    "stop_price": null,
+    "stop_price": 72.78,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -45912,7 +45912,7 @@
       "market": "US"
     },
     "entry_price": 28.44,
-    "stop_price": null,
+    "stop_price": 26.93,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -45990,7 +45990,7 @@
       "market": "US"
     },
     "entry_price": 23.4,
-    "stop_price": null,
+    "stop_price": 22.18,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -46068,7 +46068,7 @@
       "market": "US"
     },
     "entry_price": 143.38,
-    "stop_price": null,
+    "stop_price": 128.48,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -46146,7 +46146,7 @@
       "market": "US"
     },
     "entry_price": 53.49,
-    "stop_price": null,
+    "stop_price": 49.12,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -46224,7 +46224,7 @@
       "market": "US"
     },
     "entry_price": 98.8,
-    "stop_price": null,
+    "stop_price": 93.56,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -46302,7 +46302,7 @@
       "market": "US"
     },
     "entry_price": 65.46,
-    "stop_price": null,
+    "stop_price": 62.94,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -46380,7 +46380,7 @@
       "market": "US"
     },
     "entry_price": 1039.28,
-    "stop_price": null,
+    "stop_price": 931.25,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -46458,7 +46458,7 @@
       "market": "US"
     },
     "entry_price": 146.81,
-    "stop_price": null,
+    "stop_price": 138.76,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -46536,7 +46536,7 @@
       "market": "US"
     },
     "entry_price": 250.14,
-    "stop_price": null,
+    "stop_price": 198.84,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -46614,7 +46614,7 @@
       "market": "US"
     },
     "entry_price": 37.59,
-    "stop_price": null,
+    "stop_price": 36.01,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -46692,7 +46692,7 @@
       "market": "US"
     },
     "entry_price": 239.62,
-    "stop_price": null,
+    "stop_price": 228.65,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -46770,7 +46770,7 @@
       "market": "US"
     },
     "entry_price": 96.42,
-    "stop_price": null,
+    "stop_price": 93.34,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -46848,7 +46848,7 @@
       "market": "US"
     },
     "entry_price": 42.93,
-    "stop_price": null,
+    "stop_price": 42.13,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -46926,7 +46926,7 @@
       "market": "US"
     },
     "entry_price": 73.29,
-    "stop_price": null,
+    "stop_price": 68.75,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -47004,7 +47004,7 @@
       "market": "US"
     },
     "entry_price": 326.63,
-    "stop_price": null,
+    "stop_price": 309.9,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -47082,7 +47082,7 @@
       "market": "US"
     },
     "entry_price": 180.67,
-    "stop_price": null,
+    "stop_price": 168.07,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -47160,7 +47160,7 @@
       "market": "US"
     },
     "entry_price": 41.58,
-    "stop_price": null,
+    "stop_price": 40.65,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -47238,7 +47238,7 @@
       "market": "US"
     },
     "entry_price": 419.2,
-    "stop_price": null,
+    "stop_price": 377.32,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -47316,7 +47316,7 @@
       "market": "US"
     },
     "entry_price": 340.99,
-    "stop_price": null,
+    "stop_price": 322.6,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -47394,7 +47394,7 @@
       "market": "US"
     },
     "entry_price": 188.77,
-    "stop_price": null,
+    "stop_price": 182.74,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -47472,7 +47472,7 @@
       "market": "US"
     },
     "entry_price": 162.31,
-    "stop_price": null,
+    "stop_price": 150.71,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -47550,7 +47550,7 @@
       "market": "US"
     },
     "entry_price": 131.65,
-    "stop_price": null,
+    "stop_price": 120.45,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -47628,7 +47628,7 @@
       "market": "US"
     },
     "entry_price": 106.69,
-    "stop_price": null,
+    "stop_price": 101.22,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -47706,7 +47706,7 @@
       "market": "US"
     },
     "entry_price": 82.41,
-    "stop_price": null,
+    "stop_price": 72.74,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -47784,7 +47784,7 @@
       "market": "US"
     },
     "entry_price": 107.08,
-    "stop_price": null,
+    "stop_price": 95.44,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -47862,7 +47862,7 @@
       "market": "US"
     },
     "entry_price": 62.6,
-    "stop_price": null,
+    "stop_price": 60.42,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -47940,7 +47940,7 @@
       "market": "US"
     },
     "entry_price": 259.01,
-    "stop_price": null,
+    "stop_price": 231.67,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -48018,7 +48018,7 @@
       "market": "US"
     },
     "entry_price": 161.25,
-    "stop_price": null,
+    "stop_price": 153.86,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -48096,7 +48096,7 @@
       "market": "US"
     },
     "entry_price": 122.11,
-    "stop_price": null,
+    "stop_price": 101.08,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -48174,7 +48174,7 @@
       "market": "US"
     },
     "entry_price": 146.12,
-    "stop_price": null,
+    "stop_price": 132.0,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -48252,7 +48252,7 @@
       "market": "US"
     },
     "entry_price": 93.33,
-    "stop_price": null,
+    "stop_price": 81.8,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -48330,7 +48330,7 @@
       "market": "US"
     },
     "entry_price": 83.29,
-    "stop_price": null,
+    "stop_price": 79.17,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -48408,7 +48408,7 @@
       "market": "US"
     },
     "entry_price": 235.62,
-    "stop_price": null,
+    "stop_price": 174.28,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -48486,7 +48486,7 @@
       "market": "US"
     },
     "entry_price": 182.18,
-    "stop_price": null,
+    "stop_price": 177.56,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -48564,7 +48564,7 @@
       "market": "US"
     },
     "entry_price": 835.74,
-    "stop_price": null,
+    "stop_price": 713.7,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -48642,7 +48642,7 @@
       "market": "US"
     },
     "entry_price": 21.87,
-    "stop_price": null,
+    "stop_price": 20.97,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -48720,7 +48720,7 @@
       "market": "US"
     },
     "entry_price": 281.82,
-    "stop_price": null,
+    "stop_price": 257.84,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -48798,7 +48798,7 @@
       "market": "US"
     },
     "entry_price": 45.83,
-    "stop_price": null,
+    "stop_price": 42.79,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -48876,7 +48876,7 @@
       "market": "US"
     },
     "entry_price": 108.63,
-    "stop_price": null,
+    "stop_price": 105.77,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -48954,7 +48954,7 @@
       "market": "US"
     },
     "entry_price": 24.43,
-    "stop_price": null,
+    "stop_price": 23.95,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -49032,7 +49032,7 @@
       "market": "US"
     },
     "entry_price": 495.82,
-    "stop_price": null,
+    "stop_price": 491.88,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -49110,7 +49110,7 @@
       "market": "US"
     },
     "entry_price": 183.71,
-    "stop_price": null,
+    "stop_price": 171.69,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -49188,7 +49188,7 @@
       "market": "US"
     },
     "entry_price": 128.48,
-    "stop_price": null,
+    "stop_price": 120.3,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -49266,7 +49266,7 @@
       "market": "US"
     },
     "entry_price": 60.08,
-    "stop_price": null,
+    "stop_price": 57.6,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -49344,7 +49344,7 @@
       "market": "US"
     },
     "entry_price": 188.23,
-    "stop_price": null,
+    "stop_price": 170.5,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -49422,7 +49422,7 @@
       "market": "US"
     },
     "entry_price": 152.67,
-    "stop_price": null,
+    "stop_price": 146.66,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -49500,7 +49500,7 @@
       "market": "US"
     },
     "entry_price": 91.08,
-    "stop_price": null,
+    "stop_price": 86.25,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -49578,7 +49578,7 @@
       "market": "US"
     },
     "entry_price": 483.24,
-    "stop_price": null,
+    "stop_price": 429.55,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -49656,7 +49656,7 @@
       "market": "US"
     },
     "entry_price": 88.64,
-    "stop_price": null,
+    "stop_price": 69.3,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -49734,7 +49734,7 @@
       "market": "US"
     },
     "entry_price": 367.68,
-    "stop_price": null,
+    "stop_price": 347.2,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -49812,7 +49812,7 @@
       "market": "US"
     },
     "entry_price": 28.07,
-    "stop_price": null,
+    "stop_price": 25.22,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -49890,7 +49890,7 @@
       "market": "US"
     },
     "entry_price": 24.63,
-    "stop_price": null,
+    "stop_price": 23.91,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -49968,7 +49968,7 @@
       "market": "US"
     },
     "entry_price": 249.73,
-    "stop_price": null,
+    "stop_price": 221.39,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -50046,7 +50046,7 @@
       "market": "US"
     },
     "entry_price": 37.94,
-    "stop_price": null,
+    "stop_price": 36.03,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -50124,7 +50124,7 @@
       "market": "US"
     },
     "entry_price": 80.96,
-    "stop_price": null,
+    "stop_price": 78.22,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -50202,7 +50202,7 @@
       "market": "US"
     },
     "entry_price": 208.1,
-    "stop_price": null,
+    "stop_price": 193.4,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -50280,7 +50280,7 @@
       "market": "US"
     },
     "entry_price": 375.74,
-    "stop_price": null,
+    "stop_price": 307.23,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -50358,7 +50358,7 @@
       "market": "US"
     },
     "entry_price": 325.08,
-    "stop_price": null,
+    "stop_price": 284.41,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -50436,7 +50436,7 @@
       "market": "US"
     },
     "entry_price": 40.89,
-    "stop_price": null,
+    "stop_price": 38.18,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -50514,7 +50514,7 @@
       "market": "US"
     },
     "entry_price": 243.63,
-    "stop_price": null,
+    "stop_price": 199.86,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -50592,7 +50592,7 @@
       "market": "US"
     },
     "entry_price": 239.04,
-    "stop_price": null,
+    "stop_price": 208.59,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -50670,7 +50670,7 @@
       "market": "US"
     },
     "entry_price": 22.14,
-    "stop_price": null,
+    "stop_price": 20.35,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -50748,7 +50748,7 @@
       "market": "US"
     },
     "entry_price": 71.59,
-    "stop_price": null,
+    "stop_price": 66.91,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -50826,7 +50826,7 @@
       "market": "US"
     },
     "entry_price": 143.05,
-    "stop_price": null,
+    "stop_price": 133.19,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -50904,7 +50904,7 @@
       "market": "US"
     },
     "entry_price": 125.1,
-    "stop_price": null,
+    "stop_price": 108.31,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -50982,7 +50982,7 @@
       "market": "US"
     },
     "entry_price": 25.29,
-    "stop_price": null,
+    "stop_price": 24.63,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -51060,7 +51060,7 @@
       "market": "US"
     },
     "entry_price": 192.62,
-    "stop_price": null,
+    "stop_price": 187.92,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -51138,7 +51138,7 @@
       "market": "US"
     },
     "entry_price": 152.1,
-    "stop_price": null,
+    "stop_price": 147.38,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -51216,7 +51216,7 @@
       "market": "US"
     },
     "entry_price": 26.85,
-    "stop_price": null,
+    "stop_price": 26.32,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -51294,7 +51294,7 @@
       "market": "US"
     },
     "entry_price": 264.85,
-    "stop_price": null,
+    "stop_price": 253.2,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -51372,7 +51372,7 @@
       "market": "US"
     },
     "entry_price": 231.52,
-    "stop_price": null,
+    "stop_price": 227.87,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -51450,7 +51450,7 @@
       "market": "US"
     },
     "entry_price": 636.15,
-    "stop_price": null,
+    "stop_price": 608.17,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -51528,7 +51528,7 @@
       "market": "US"
     },
     "entry_price": 492.38,
-    "stop_price": null,
+    "stop_price": 424.47,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -51606,7 +51606,7 @@
       "market": "US"
     },
     "entry_price": 79.39,
-    "stop_price": null,
+    "stop_price": 75.18,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -51684,7 +51684,7 @@
       "market": "US"
     },
     "entry_price": 309.35,
-    "stop_price": null,
+    "stop_price": 280.97,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -51762,7 +51762,7 @@
       "market": "US"
     },
     "entry_price": 237.93,
-    "stop_price": null,
+    "stop_price": 233.49,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -51840,7 +51840,7 @@
       "market": "US"
     },
     "entry_price": 62.0,
-    "stop_price": null,
+    "stop_price": 53.87,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -51918,7 +51918,7 @@
       "market": "US"
     },
     "entry_price": 61.05,
-    "stop_price": null,
+    "stop_price": 56.74,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -51996,7 +51996,7 @@
       "market": "US"
     },
     "entry_price": 78.8,
-    "stop_price": null,
+    "stop_price": 77.1,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -52074,7 +52074,7 @@
       "market": "US"
     },
     "entry_price": 176.94,
-    "stop_price": null,
+    "stop_price": 176.24,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -52152,7 +52152,7 @@
       "market": "US"
     },
     "entry_price": 563.57,
-    "stop_price": null,
+    "stop_price": 548.75,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -52230,7 +52230,7 @@
       "market": "US"
     },
     "entry_price": 80.83,
-    "stop_price": null,
+    "stop_price": 77.28,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -52308,7 +52308,7 @@
       "market": "US"
     },
     "entry_price": 143.66,
-    "stop_price": null,
+    "stop_price": 123.31,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -52386,7 +52386,7 @@
       "market": "US"
     },
     "entry_price": 37.77,
-    "stop_price": null,
+    "stop_price": 36.39,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -52464,7 +52464,7 @@
       "market": "US"
     },
     "entry_price": 492.32,
-    "stop_price": null,
+    "stop_price": 394.8,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -52542,7 +52542,7 @@
       "market": "US"
     },
     "entry_price": 141.25,
-    "stop_price": null,
+    "stop_price": 131.64,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -52620,7 +52620,7 @@
       "market": "US"
     },
     "entry_price": 85.19,
-    "stop_price": null,
+    "stop_price": 75.99,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -52698,7 +52698,7 @@
       "market": "US"
     },
     "entry_price": 136.1,
-    "stop_price": null,
+    "stop_price": 135.15,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -52776,7 +52776,7 @@
       "market": "US"
     },
     "entry_price": 131.31,
-    "stop_price": null,
+    "stop_price": 129.62,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -52854,7 +52854,7 @@
       "market": "US"
     },
     "entry_price": 62.93,
-    "stop_price": null,
+    "stop_price": 59.99,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -52932,7 +52932,7 @@
       "market": "US"
     },
     "entry_price": 28.69,
-    "stop_price": null,
+    "stop_price": 24.25,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -53010,7 +53010,7 @@
       "market": "US"
     },
     "entry_price": 218.0,
-    "stop_price": null,
+    "stop_price": 189.4,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -53088,7 +53088,7 @@
       "market": "US"
     },
     "entry_price": 293.33,
-    "stop_price": null,
+    "stop_price": 234.1,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -53166,7 +53166,7 @@
       "market": "US"
     },
     "entry_price": 209.17,
-    "stop_price": null,
+    "stop_price": 199.97,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -53244,7 +53244,7 @@
       "market": "US"
     },
     "entry_price": 122.46,
-    "stop_price": null,
+    "stop_price": 119.47,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -53322,7 +53322,7 @@
       "market": "US"
     },
     "entry_price": 195.9,
-    "stop_price": null,
+    "stop_price": 179.4,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -53400,7 +53400,7 @@
       "market": "US"
     },
     "entry_price": 107.78,
-    "stop_price": null,
+    "stop_price": 103.34,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -53478,7 +53478,7 @@
       "market": "US"
     },
     "entry_price": 71.6,
-    "stop_price": null,
+    "stop_price": 61.94,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -53556,7 +53556,7 @@
       "market": "US"
     },
     "entry_price": 68.54,
-    "stop_price": null,
+    "stop_price": 63.17,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -53634,7 +53634,7 @@
       "market": "US"
     },
     "entry_price": 28.55,
-    "stop_price": null,
+    "stop_price": 26.98,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -53712,7 +53712,7 @@
       "market": "US"
     },
     "entry_price": 41.06,
-    "stop_price": null,
+    "stop_price": 38.92,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -53790,7 +53790,7 @@
       "market": "US"
     },
     "entry_price": 93.54,
-    "stop_price": null,
+    "stop_price": 87.34,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -53868,7 +53868,7 @@
       "market": "US"
     },
     "entry_price": 473.25,
-    "stop_price": null,
+    "stop_price": 329.79,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -53946,7 +53946,7 @@
       "market": "US"
     },
     "entry_price": 850.0,
-    "stop_price": null,
+    "stop_price": 565.16,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -54024,7 +54024,7 @@
       "market": "US"
     },
     "entry_price": 86.91,
-    "stop_price": null,
+    "stop_price": 85.71,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -54102,7 +54102,7 @@
       "market": "US"
     },
     "entry_price": 70.21,
-    "stop_price": null,
+    "stop_price": 69.31,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -54180,7 +54180,7 @@
       "market": "US"
     },
     "entry_price": 224.06,
-    "stop_price": null,
+    "stop_price": 223.17,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -54258,7 +54258,7 @@
       "market": "US"
     },
     "entry_price": 858.9,
-    "stop_price": null,
+    "stop_price": 839.59,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -54336,7 +54336,7 @@
       "market": "US"
     },
     "entry_price": 37.08,
-    "stop_price": null,
+    "stop_price": 35.83,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -54414,7 +54414,7 @@
       "market": "US"
     },
     "entry_price": 242.24,
-    "stop_price": null,
+    "stop_price": 238.66,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -54492,7 +54492,7 @@
       "market": "US"
     },
     "entry_price": 111.43,
-    "stop_price": null,
+    "stop_price": 112.33,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -54570,7 +54570,7 @@
       "market": "US"
     },
     "entry_price": 326.5,
-    "stop_price": null,
+    "stop_price": 312.14,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -54648,7 +54648,7 @@
       "market": "US"
     },
     "entry_price": 93.02,
-    "stop_price": null,
+    "stop_price": 84.72,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -54726,7 +54726,7 @@
       "market": "US"
     },
     "entry_price": 91.47,
-    "stop_price": null,
+    "stop_price": 84.62,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -54804,7 +54804,7 @@
       "market": "US"
     },
     "entry_price": 109.83,
-    "stop_price": null,
+    "stop_price": 108.31,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -54882,7 +54882,7 @@
       "market": "US"
     },
     "entry_price": 168.29,
-    "stop_price": null,
+    "stop_price": 165.64,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -54960,7 +54960,7 @@
       "market": "US"
     },
     "entry_price": 24.02,
-    "stop_price": null,
+    "stop_price": 22.58,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -55038,7 +55038,7 @@
       "market": "US"
     },
     "entry_price": 275.3,
-    "stop_price": null,
+    "stop_price": 270.43,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -55116,7 +55116,7 @@
       "market": "US"
     },
     "entry_price": 390.11,
-    "stop_price": null,
+    "stop_price": 345.23,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -55194,7 +55194,7 @@
       "market": "US"
     },
     "entry_price": 314.0,
-    "stop_price": null,
+    "stop_price": 253.43,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -55272,7 +55272,7 @@
       "market": "US"
     },
     "entry_price": 107.59,
-    "stop_price": null,
+    "stop_price": 105.58,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -55350,7 +55350,7 @@
       "market": "US"
     },
     "entry_price": 102.01,
-    "stop_price": null,
+    "stop_price": 101.2,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -55428,7 +55428,7 @@
       "market": "US"
     },
     "entry_price": 58.87,
-    "stop_price": null,
+    "stop_price": 48.77,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -55506,7 +55506,7 @@
       "market": "US"
     },
     "entry_price": 37.23,
-    "stop_price": null,
+    "stop_price": 36.46,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -55584,7 +55584,7 @@
       "market": "US"
     },
     "entry_price": 453.43,
-    "stop_price": null,
+    "stop_price": 441.94,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -55662,7 +55662,7 @@
       "market": "US"
     },
     "entry_price": 37.24,
-    "stop_price": null,
+    "stop_price": 31.45,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -55740,7 +55740,7 @@
       "market": "US"
     },
     "entry_price": 108.48,
-    "stop_price": null,
+    "stop_price": 105.83,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -55818,7 +55818,7 @@
       "market": "US"
     },
     "entry_price": 105.35,
-    "stop_price": null,
+    "stop_price": 106.63,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -55896,7 +55896,7 @@
       "market": "US"
     },
     "entry_price": 24.41,
-    "stop_price": null,
+    "stop_price": 24.29,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -55974,7 +55974,7 @@
       "market": "US"
     },
     "entry_price": 154.68,
-    "stop_price": null,
+    "stop_price": 150.03,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -56052,7 +56052,7 @@
       "market": "US"
     },
     "entry_price": 253.83,
-    "stop_price": null,
+    "stop_price": 249.34,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -56130,7 +56130,7 @@
       "market": "US"
     },
     "entry_price": 132.69,
-    "stop_price": null,
+    "stop_price": 126.49,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -56208,7 +56208,7 @@
       "market": "US"
     },
     "entry_price": 47.93,
-    "stop_price": null,
+    "stop_price": 52.9,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -56286,7 +56286,7 @@
       "market": "US"
     },
     "entry_price": 11.96,
-    "stop_price": null,
+    "stop_price": 12.02,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -56364,7 +56364,7 @@
       "market": "US"
     },
     "entry_price": 88.8,
-    "stop_price": null,
+    "stop_price": 92.02,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -56442,7 +56442,7 @@
       "market": "US"
     },
     "entry_price": 25.33,
-    "stop_price": null,
+    "stop_price": 30.3,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -56520,7 +56520,7 @@
       "market": "US"
     },
     "entry_price": 23.7,
-    "stop_price": null,
+    "stop_price": 27.4,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -56598,7 +56598,7 @@
       "market": "US"
     },
     "entry_price": 155.74,
-    "stop_price": null,
+    "stop_price": 165.33,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -56676,7 +56676,7 @@
       "market": "US"
     },
     "entry_price": 32.98,
-    "stop_price": null,
+    "stop_price": 34.75,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -105282,7 +105282,7 @@
       "market": "US"
     },
     "entry_price": 20.99,
-    "stop_price": null,
+    "stop_price": 18.66,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -105360,7 +105360,7 @@
       "market": "US"
     },
     "entry_price": 31.56,
-    "stop_price": null,
+    "stop_price": 30.46,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -105438,7 +105438,7 @@
       "market": "US"
     },
     "entry_price": 76.93,
-    "stop_price": null,
+    "stop_price": 76.78,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -105516,7 +105516,7 @@
       "market": "US"
     },
     "entry_price": 72.8,
-    "stop_price": null,
+    "stop_price": 71.3,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -105594,7 +105594,7 @@
       "market": "US"
     },
     "entry_price": 278.88,
-    "stop_price": null,
+    "stop_price": 277.49,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -105672,7 +105672,7 @@
       "market": "US"
     },
     "entry_price": 219.21,
-    "stop_price": null,
+    "stop_price": 194.34,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -105750,7 +105750,7 @@
       "market": "US"
     },
     "entry_price": 116.52,
-    "stop_price": null,
+    "stop_price": 113.35,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -105828,7 +105828,7 @@
       "market": "US"
     },
     "entry_price": 80.65,
-    "stop_price": null,
+    "stop_price": 79.22,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -105906,7 +105906,7 @@
       "market": "US"
     },
     "entry_price": 70.93,
-    "stop_price": null,
+    "stop_price": 70.3,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -105984,7 +105984,7 @@
       "market": "US"
     },
     "entry_price": 97.64,
-    "stop_price": null,
+    "stop_price": 96.77,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -106062,7 +106062,7 @@
       "market": "US"
     },
     "entry_price": 97.7,
-    "stop_price": null,
+    "stop_price": 96.92,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -110904,7 +110904,7 @@
       "market": "US"
     },
     "entry_price": 125.09,
-    "stop_price": null,
+    "stop_price": 124.59,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -111312,7 +111312,7 @@
       "market": "US"
     },
     "entry_price": 118.31,
-    "stop_price": null,
+    "stop_price": 114.09,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -111390,7 +111390,7 @@
       "market": "US"
     },
     "entry_price": 70.91,
-    "stop_price": null,
+    "stop_price": 69.66,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -113598,7 +113598,7 @@
       "market": "US"
     },
     "entry_price": 45.99,
-    "stop_price": null,
+    "stop_price": 45.9,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -116250,7 +116250,7 @@
       "market": "US"
     },
     "entry_price": 69.18,
-    "stop_price": null,
+    "stop_price": 68.7,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -116328,7 +116328,7 @@
       "market": "US"
     },
     "entry_price": 141.88,
-    "stop_price": null,
+    "stop_price": 132.1,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -116406,7 +116406,7 @@
       "market": "US"
     },
     "entry_price": 13.36,
-    "stop_price": null,
+    "stop_price": 16.21,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -119226,7 +119226,7 @@
       "market": "US"
     },
     "entry_price": 4.25,
-    "stop_price": null,
+    "stop_price": 3.01,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -119304,7 +119304,7 @@
       "market": "US"
     },
     "entry_price": 9.08,
-    "stop_price": null,
+    "stop_price": 6.47,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -119382,7 +119382,7 @@
       "market": "US"
     },
     "entry_price": 15.68,
-    "stop_price": null,
+    "stop_price": 14.98,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -119460,7 +119460,7 @@
       "market": "US"
     },
     "entry_price": 15.95,
-    "stop_price": null,
+    "stop_price": 14.98,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -119538,7 +119538,7 @@
       "market": "US"
     },
     "entry_price": 50.91,
-    "stop_price": null,
+    "stop_price": 52.16,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -119718,7 +119718,7 @@
       "market": "US"
     },
     "entry_price": 47.04,
-    "stop_price": null,
+    "stop_price": 46.71,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -119796,7 +119796,7 @@
       "market": "US"
     },
     "entry_price": 557.11,
-    "stop_price": null,
+    "stop_price": 556.0,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -119874,7 +119874,7 @@
       "market": "US"
     },
     "entry_price": 81.0,
-    "stop_price": null,
+    "stop_price": 80.68,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -119952,7 +119952,7 @@
       "market": "US"
     },
     "entry_price": 60.79,
-    "stop_price": null,
+    "stop_price": 53.28,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -120030,7 +120030,7 @@
       "market": "US"
     },
     "entry_price": 941.84,
-    "stop_price": null,
+    "stop_price": 883.53,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -120108,7 +120108,7 @@
       "market": "US"
     },
     "entry_price": 11.04,
-    "stop_price": null,
+    "stop_price": 10.96,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
@@ -121050,9 +121050,869 @@
       "market": "US"
     },
     "entry_price": 58.0,
-    "stop_price": null,
+    "stop_price": 57.71,
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
+  },
+  {
+    "observation_id": "1c96ce8a-7b41-45ad-bb07-0632161ccc65",
+    "ticker": "VCEL",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 39.08,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "517c0747-2e35-48b7-bd1f-acecf56a2c3d",
+    "stage": "? Unknown",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 2.73,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "74ef6aee-1d93-464a-b2dc-8dbe0d796d4e",
+    "ticker": "WIX",
+    "market": "US",
+    "timestamp": "2026-09-04 00:00:00",
+    "entry_price": 76.21,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "4c0d6c6c-83cf-454d-8fe0-761c02811f67",
+    "stage": "1 \u23f3 Base",
+    "setup_id": "S2-MA-RECLAIM",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -1.84,
+    "days_since_discovery": 12
+  },
+  {
+    "observation_id": "14217787-a755-4045-8bce-ac47c4e4e460",
+    "ticker": "IRON",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 76.84,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "dd776086-360a-43b7-9227-75d591ac5497",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-HIGH-RS",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 3.31,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "f3a2e872-b977-475d-af53-81f5ab639acf",
+    "ticker": "GIII",
+    "market": "US",
+    "timestamp": "2026-09-02 00:00:00",
+    "entry_price": 28.47,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "b34d529f-6c57-4f81-964f-feb2a6eb2a79",
+    "stage": "? Unknown",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Small Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -7.89,
+    "days_since_discovery": 10
+  },
+  {
+    "observation_id": "e8e1dabe-e5e2-4340-aa31-7b2d43a6a809",
+    "ticker": "TARS",
+    "market": "US",
+    "timestamp": "2026-08-26 00:00:00",
+    "entry_price": 70.65,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "7bb5bb1d-5c96-4aa6-930d-a6d40ff665ff",
+    "stage": "1 \u23f3 Base",
+    "setup_id": "S2-MA-RECLAIM",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Healthcare",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 3.11,
+    "days_since_discovery": 3
+  },
+  {
+    "observation_id": "de00007f-e22b-4247-a869-fcba8fe737a1",
+    "ticker": "LOAR",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 67.7,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "6fdeedab-f183-4a75-9389-79249c73abd5",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 0.1,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "24444fb0-7f48-4148-b2e6-448e53223644",
+    "ticker": "VSEC",
+    "market": "US",
+    "timestamp": "2026-09-02 00:00:00",
+    "entry_price": 196.57,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "8302f2a7-dcb2-4ef6-a548-02fc2b1d4b36",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 0.46,
+    "days_since_discovery": 10
+  },
+  {
+    "observation_id": "fdf153e8-bbd7-4c16-9c0e-2eba1dbc7457",
+    "ticker": "ARQQ",
+    "market": "US",
+    "timestamp": "2026-08-31 00:00:00",
+    "entry_price": 19.88,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "83a8776c-1d18-47b8-acd9-b8e59a4408ae",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Small Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -0.8,
+    "days_since_discovery": 8
+  },
+  {
+    "observation_id": "ebbf46b1-1a3d-409e-a65d-7e86597f820e",
+    "ticker": "HIMS",
+    "market": "US",
+    "timestamp": "2026-08-28 00:00:00",
+    "entry_price": 28.84,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "0b51f1c0-13c6-4b29-a1c0-bb2e73a81e6a",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "biotech_health",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -0.21,
+    "days_since_discovery": 5
+  },
+  {
+    "observation_id": "4d2e92e6-3617-440e-9669-206ac174b75f",
+    "ticker": "PCOR",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 56.18,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "9b637333-a150-4657-a242-b0beb39d9d79",
+    "stage": "1 \u23f3 Base",
+    "setup_id": "S2-MA-RECLAIM",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -2.67,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "8323ecd6-3f65-430c-a0e4-3891090ffdfa",
+    "ticker": "AUPH",
+    "market": "US",
+    "timestamp": "2026-09-01 00:00:00",
+    "entry_price": 16.05,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "9fe10fda-55a2-425b-87a6-4c9feb546a28",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Healthcare",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 4.09,
+    "days_since_discovery": 9
+  },
+  {
+    "observation_id": "7c227c6f-1ab1-4446-9f90-6cccad86f2cc",
+    "ticker": "RPAY",
+    "market": "US",
+    "timestamp": "2026-09-01 00:00:00",
+    "entry_price": 3.51,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "12d8ca59-872a-4d29-9af6-a64e533058be",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Small Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 0.57,
+    "days_since_discovery": 9
+  },
+  {
+    "observation_id": "c5c060b3-9174-4416-bc87-7001a3ec7896",
+    "ticker": "TXRH",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 182.84,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "dc7d30f7-de52-490e-8a87-9c8f8f67ad38",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-HIGH-RS",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Consumer Discretionary",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 3.19,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "05ccd1c3-1b61-4648-9f85-34631d2cb1f5",
+    "ticker": "ASAN",
+    "market": "US",
+    "timestamp": "2026-09-04 00:00:00",
+    "entry_price": 8.81,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "7e40daf5-dd80-412f-bc9a-567386f11971",
+    "stage": "1 \u23f3 Base",
+    "setup_id": "S1-BASE",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -1.78,
+    "days_since_discovery": 12
+  },
+  {
+    "observation_id": "9b3eef61-0277-4e06-8259-b67498e6961b",
+    "ticker": "SE",
+    "market": "US",
+    "timestamp": "2026-09-04 00:00:00",
+    "entry_price": 112.09,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "4fbc39d8-9a6b-4306-8ccd-4307c7a55dd2",
+    "stage": "1 \u23f3 Base",
+    "setup_id": "S1-BASE",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 4.34,
+    "days_since_discovery": 12
+  },
+  {
+    "observation_id": "a22d4305-c7c9-42bd-b9df-199906946dd6",
+    "ticker": "BEKE",
+    "market": "US",
+    "timestamp": "2026-08-31 00:00:00",
+    "entry_price": 17.19,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "7c34b214-c052-4d3a-93d7-aba62305616b",
+    "stage": "1 \u23f3 Base",
+    "setup_id": "S1-EARLY-ALPHA",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 3.8,
+    "days_since_discovery": 8
+  },
+  {
+    "observation_id": "adb34941-e549-46ec-bf01-038de9f7d16c",
+    "ticker": "CRSP",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 54.78,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "01308ae5-a3f4-47c9-9012-d28d45f4e308",
+    "stage": "1 \u23f3 Base",
+    "setup_id": "S2-MA-RECLAIM",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Healthcare",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 3.2,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "397d624c-18d7-4889-978b-97c44bb48818",
+    "ticker": "HL",
+    "market": "US",
+    "timestamp": "2026-09-01 00:00:00",
+    "entry_price": 19.11,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "03efe040-f7b8-46dc-9e4a-9824d6b475d8",
+    "stage": "1 \u23f3 Base",
+    "setup_id": "S2-MA-RECLAIM",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Materials",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 2.47,
+    "days_since_discovery": 9
+  },
+  {
+    "observation_id": "1c7fd022-a20a-468c-ba9e-3e486336a4cd",
+    "ticker": "NTLA",
+    "market": "US",
+    "timestamp": "2026-08-24 00:00:00",
+    "entry_price": 12.56,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "dfcfe265-1186-40f3-a6e2-df49d38feec1",
+    "stage": "? Unknown",
+    "setup_id": "S2-MA-RECLAIM",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Healthcare",
+      "mcap_category": "Small Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 1.13,
+    "days_since_discovery": 1
+  },
+  {
+    "observation_id": "f38ac1be-32f1-4c3f-b4f5-e9a82d2c25eb",
+    "ticker": "BEAM",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 26.83,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "258f35e2-769b-4f10-a24d-41abbe1d24f5",
+    "stage": "? Unknown",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Healthcare",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -4.72,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "e556ec0c-49fb-4b4b-a66b-9ecb6028c115",
+    "ticker": "ALLO",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 1.86,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "ae54d8fe-ba88-49d4-bb91-33e5286fc945",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-HIGH-RS",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Small Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -3.12,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "634ca2cb-e44f-4138-9b65-9e97f6ad0582",
+    "ticker": "SQM",
+    "market": "US",
+    "timestamp": "2026-09-04 00:00:00",
+    "entry_price": 75.0,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "6704e0bb-a2ef-492a-bfd4-c14ded6d1de7",
+    "stage": "1 \u23f3 Base",
+    "setup_id": "S2-MA-RECLAIM",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Materials",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 1.11,
+    "days_since_discovery": 12
+  },
+  {
+    "observation_id": "21b07c31-36d7-4a6a-bd6c-ae94049f5433",
+    "ticker": "AG",
+    "market": "US",
+    "timestamp": "2026-09-01 00:00:00",
+    "entry_price": 19.86,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "def9f4c8-5143-4967-907f-e8eca09cbf48",
+    "stage": "1 \u23f3 Base",
+    "setup_id": "S2-MA-RECLAIM",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Materials",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 3.28,
+    "days_since_discovery": 9
+  },
+  {
+    "observation_id": "72b93eb2-38cf-4054-8416-aec365cd99c5",
+    "ticker": "MELI",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 1926.25,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "b69781ff-ab0b-439b-ae9f-b14bc430188c",
+    "stage": "1 \u23f3 Base",
+    "setup_id": "S1-BASE",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 3.09,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "62602b79-8bcf-4014-b271-1fd5af804d28",
+    "ticker": "TMDX",
+    "market": "US",
+    "timestamp": "2026-08-24 00:00:00",
+    "entry_price": 93.6,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "3625cfd9-f12b-45ad-9127-935ae51a8602",
+    "stage": "3 \u26a0\ufe0f Top/Decline",
+    "setup_id": "S3-TOP",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "emerging_gems",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -12.0,
+    "days_since_discovery": 1
+  },
+  {
+    "observation_id": "301bcd21-ae1f-403e-96c0-758961e4d00d",
+    "ticker": "DNUT",
+    "market": "US",
+    "timestamp": "2026-08-25 00:00:00",
+    "entry_price": 3.56,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "1b8eb9a3-a8d2-4858-8361-8f8d3e791585",
+    "stage": "3 \u26a0\ufe0f Top/Decline",
+    "setup_id": "S3-TOP",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Small Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -1.11,
+    "days_since_discovery": 2
+  },
+  {
+    "observation_id": "94a52091-5789-408c-84e0-76d7dfbf8683",
+    "ticker": "SHAK",
+    "market": "US",
+    "timestamp": "2026-08-24 00:00:00",
+    "entry_price": 75.44,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "6b5f93e1-40be-47bc-b740-2017b2890e4e",
+    "stage": "3 \u26a0\ufe0f Top/Decline",
+    "setup_id": "S3-TOP",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Consumer Discretionary",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -6.08,
+    "days_since_discovery": 1
+  },
+  {
+    "observation_id": "53f7e0b3-9e01-4008-8599-fd620d9aa8ff",
+    "ticker": "RVLV",
+    "market": "US",
+    "timestamp": "2026-08-24 00:00:00",
+    "entry_price": 23.96,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "0d09a099-a8e4-414b-afa6-02f2a6573aa5",
+    "stage": "3 \u26a0\ufe0f Top/Decline",
+    "setup_id": "S3-TOP",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Small Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -2.16,
+    "days_since_discovery": 1
+  },
+  {
+    "observation_id": "5fd24aa1-c297-4694-a969-049ba1903b6a",
+    "ticker": "RXRX",
+    "market": "US",
+    "timestamp": "2026-08-24 00:00:00",
+    "entry_price": 3.25,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "3cc155e1-a11d-4f0e-b4d5-268242f9c43b",
+    "stage": "3 \u26a0\ufe0f Top/Decline",
+    "setup_id": "S3-TOP",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "emerging_gems",
+      "mcap_category": "Small Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -12.16,
+    "days_since_discovery": 1
+  },
+  {
+    "observation_id": "3579dc4b-5e44-4374-82c5-5d080b950e7e",
+    "ticker": "CDRE",
+    "market": "US",
+    "timestamp": "2026-08-24 00:00:00",
+    "entry_price": 33.08,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "e5ec0071-365e-4ee4-8fd3-8e8254df5435",
+    "stage": "3 \u26a0\ufe0f Top/Decline",
+    "setup_id": "S3-TOP",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Small Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -6.92,
+    "days_since_discovery": 1
+  },
+  {
+    "observation_id": "90ee3bea-a756-4cb1-9859-bd5238bf9b5f",
+    "ticker": "AVXL",
+    "market": "US",
+    "timestamp": "2026-08-24 00:00:00",
+    "entry_price": 3.11,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "e4d3c91b-752f-485a-b735-f7fcb65be4ee",
+    "stage": "3 \u26a0\ufe0f Top/Decline",
+    "setup_id": "S3-TOP",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Healthcare",
+      "mcap_category": "Small Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -14.79,
+    "days_since_discovery": 1
+  },
+  {
+    "observation_id": "66fe3260-8072-480b-a762-ef589b76813a",
+    "ticker": "VZLA",
+    "market": "US",
+    "timestamp": "2026-08-24 00:00:00",
+    "entry_price": 3.93,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "ecc9ab00-8878-485e-bdb8-114ae83f9f96",
+    "stage": "3 \u26a0\ufe0f Top/Decline",
+    "setup_id": "S3-TOP",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Materials",
+      "mcap_category": "Small Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -3.44,
+    "days_since_discovery": 1
+  },
+  {
+    "observation_id": "30818482-b38d-4388-970a-e873ff5f1c96",
+    "ticker": "PLNT",
+    "market": "US",
+    "timestamp": "2026-08-24 00:00:00",
+    "entry_price": 53.86,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "2a83da36-caea-41cc-878b-51bb5d5f7170",
+    "stage": "3 \u26a0\ufe0f Top/Decline",
+    "setup_id": "S3-TOP",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Consumer Discretionary",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -29.35,
+    "days_since_discovery": 1
+  },
+  {
+    "observation_id": "bac5e2d6-f5ea-4734-acee-f1eef88cf82e",
+    "ticker": "AXON",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 505.43,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "5bb08e96-c2bf-4c85-86a6-626a2bcffa48",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-HIGH-RS",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Industrials",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -0.24,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "5227cd3d-dbf9-42a5-8e4c-b381b9923163",
+    "ticker": "PYPL",
+    "market": "US",
+    "timestamp": "2026-09-01 00:00:00",
+    "entry_price": 52.27,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "d5461121-05eb-4bec-97df-4753ddee70d1",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-HIGH-RS",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Financials",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 1.99,
+    "days_since_discovery": 9
+  },
+  {
+    "observation_id": "6810bd76-be61-438a-9dca-fc3a7681259a",
+    "ticker": "CXT",
+    "market": "US",
+    "timestamp": "2026-08-31 00:00:00",
+    "entry_price": 48.9,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "0be2c871-ab02-4636-8320-e7a511ea5cb9",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-MA-RECLAIM",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Industrials",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 1.31,
+    "days_since_discovery": 8
+  },
+  {
+    "observation_id": "0275406a-e98b-4d46-832c-dba73a2e0d38",
+    "ticker": "CVCO",
+    "market": "US",
+    "timestamp": "2026-08-31 00:00:00",
+    "entry_price": 559.13,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "77401317-01cd-4fa6-ba9b-7ba122b61a48",
+    "stage": "? Unknown",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Consumer Discretionary",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -0.28,
+    "days_since_discovery": 8
+  },
+  {
+    "observation_id": "419e593b-daea-44e3-bef4-b88b6c15ff16",
+    "ticker": "ABT",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 105.52,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "51eca66b-2fff-4569-a4a8-4a51290856e0",
+    "stage": "1 \u23f3 Base",
+    "setup_id": "S1-EARLY-ALPHA",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Healthcare",
+      "mcap_category": "Mega Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -0.3,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "cb13bb69-307f-4015-b9b2-f3974c4ee8dc",
+    "ticker": "SON",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 49.87,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "400dedea-b62c-4653-9316-b731b209bc02",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-HIGH-RS",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Consumer Discretionary",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 0.61,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "3cc3041d-3ddc-4b96-8de3-29740a54003a",
+    "ticker": "IP",
+    "market": "US",
+    "timestamp": "2026-09-01 00:00:00",
+    "entry_price": 36.46,
+    "observation_type": "invalidation_breach",
+    "source_observation_id": "fd6183af-9fa0-42c0-9567-c3feef2971e6",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-HIGH-RS",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Consumer Discretionary",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": -2.36,
+    "days_since_discovery": 9
+  },
+  {
+    "observation_id": "055ae1da-7567-4fe9-94c7-75a4cf2c07b1",
+    "ticker": "FFIN",
+    "market": "US",
+    "timestamp": "2026-09-01 00:00:00",
+    "entry_price": 32.6,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "afb8337b-df37-4f6e-8723-7209293e09a0",
+    "stage": "? Unknown",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Financials",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 1.81,
+    "days_since_discovery": 9
+  },
+  {
+    "observation_id": "6afde527-133d-4f22-96d9-abdf41e66a13",
+    "ticker": "HQY",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 93.36,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "00775ada-561f-4635-861b-fc083d1ea20a",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-HIGH-RS",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Healthcare",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 4.51,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "e13aab17-f1df-46b7-82b0-cb1888ab14b3",
+    "ticker": "COF",
+    "market": "US",
+    "timestamp": "2026-09-01 00:00:00",
+    "entry_price": 211.34,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "324c5c0e-ad37-42b0-842c-c58b26c8da97",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-HIGH-RS",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 2.61,
+    "days_since_discovery": 9
   }
 ]
