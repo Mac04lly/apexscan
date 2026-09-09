@@ -1076,6 +1076,91 @@ def _refresh_discovery_prices(disc_list: list) -> list:
     return disc_list
 
 
+def backfill_invalidation_prices(disc_list: list, period: str = "2y") -> dict:
+    """
+    One-time (but safe to re-run) repair for discoveries logged before
+    compute_invalidation_price() existed. Those rows have
+    invalidation_price = None forever, since it's only ever set at the
+    moment of discovery in log_new_discoveries() — nothing revisits old
+    rows on refresh.
+
+    invalidation_price is mathematically just the 200-day moving average
+    on the discovery date (compute_invalidation_price backs it out via
+    price / (1 + vs_200ma_%/100), which is algebraically the same value).
+    So for each item missing it, this pulls historical daily closes via
+    fetch_hist(), finds the trading day on or immediately before
+    discovered_at, and reads MA200 there — same fallback to a 15%
+    drawdown-from-discovery line if 200 days of trailing history aren't
+    available yet at that date, matching compute_invalidation_price()
+    exactly.
+
+    Mutates disc_list in place (matching _refresh_discovery_prices'
+    pattern) and returns a small summary dict: {"filled": int,
+    "fallback": int, "skipped": int, "reinvalidated": int}. Does not
+    call save_discoveries() itself — caller decides when to persist,
+    same as the existing refresh functions.
+
+    Only touches items where invalidation_price is currently missing;
+    running this more than once is harmless.
+    """
+    summary = {"filled": 0, "fallback": 0, "skipped": 0, "reinvalidated": 0}
+
+    for item in disc_list:
+        if item.get("invalidation_price") is not None:
+            continue
+
+        ticker = item.get("ticker")
+        disc_price = item.get("discovery_price")
+        disc_at = item.get("discovered_at")
+        if not ticker or not disc_price or not disc_at:
+            summary["skipped"] += 1
+            continue
+
+        try:
+            disc_date = pd.to_datetime(disc_at)
+            hist = fetch_hist(ticker, period=period)
+            if hist is None or hist.empty or "MA200" not in hist.columns:
+                raise ValueError("no history available")
+
+            # yfinance history index may be tz-aware; normalize both sides
+            # before comparing so the asof lookup doesn't silently fail.
+            idx = hist.index.tz_localize(None) if hist.index.tz is not None else hist.index
+            hist = hist.set_axis(idx)
+            asof = hist.loc[hist.index <= disc_date]
+
+            ma200_val = asof["MA200"].iloc[-1] if not asof.empty else None
+
+            if ma200_val is not None and pd.notna(ma200_val):
+                item["invalidation_price"] = round(float(ma200_val), 2)
+                item["invalidation_basis"] = "200-day moving average (backfilled)"
+                summary["filled"] += 1
+            else:
+                # Same fallback as compute_invalidation_price() when
+                # 200 days of trailing history weren't available.
+                item["invalidation_price"] = round(float(disc_price) * 0.85, 2)
+                item["invalidation_basis"] = "15% drawdown from discovery (200MA unavailable, backfilled)"
+                summary["fallback"] += 1
+
+            item["invalidation_backfilled"] = True
+
+            # Re-run the same invalidated check _refresh_discovery_prices
+            # already does for real-time rows — this never ran for these
+            # items before since invalidation_price didn't exist yet.
+            current_price = item.get("current_price")
+            if current_price is not None:
+                was_invalidated = bool(item.get("invalidated"))
+                item["invalidated"] = bool(current_price < item["invalidation_price"])
+                if item["invalidated"] and not was_invalidated:
+                    item["thesis_status"] = "🔴 Invalidated"
+                    summary["reinvalidated"] += 1
+
+        except Exception as e:
+            log.warning(f"Invalidation backfill skipped for {ticker}: {e}")
+            summary["skipped"] += 1
+
+    return summary
+
+
 def _discoveries_due_for_refresh(disc_list: list) -> bool:
     """True if there's at least one tracked ticker that hasn't been
     price-checked yet today. Empty/never-checked items count as due."""
@@ -10371,6 +10456,104 @@ Same process — paste your key at `finnhub_key:` in config.yaml.
 - **Solution:** Add `cache_hours: 168` (1 week) in config.yaml under `alpha_vantage:` to cache aggressively and stay within quota
     """)
 
+def analyze_invalidation_alpha(disc_list: list, period: str = "1y",
+                                forward_horizons=(5, 10, 20),
+                                near_miss_pct: float = 5.0) -> dict:
+    """
+    Tests whether invalidation_price actually predicts direction, using
+    each ticker's real historical daily closes since discovery — data
+    that already exists via fetch_hist(), so unlike the score-vs-return
+    test this needs no waiting for outcomes to resolve.
+
+    For every discovery with an invalidation_price set:
+      - BREACH:    first daily close < invalidation_price since discovery.
+                   Forward return is measured from that close, at each of
+                   forward_horizons trading days later. Tests "once it
+                   closes below the line, do you want to already be out?"
+      - NEAR MISS: never breaches, but comes within near_miss_pct of the
+                   line at some point. Forward return measured from that
+                   closest-approach day. Tests "does holding above a
+                   tested level predict a bounce?" — i.e. whether a
+                   successful retest is itself a usable entry signal.
+
+    Returns {"breach": [...], "near_miss": [...], "skipped": int} where
+    each list holds one dict per observation:
+      {ticker, event_date, price_at_event, distance_pct,
+       fwd_{h}d: return% or None if not enough days have elapsed yet}
+
+    Does not mutate disc_list or save anything — this is read-only
+    analysis. Aggregation/display is left to the caller so this can be
+    reused (e.g. bucketed by discovery-stage or by tight-vs-wide buffer
+    at discovery) without recomputing the underlying price walks.
+    """
+    breach_obs, near_miss_obs = [], []
+    skipped = 0
+
+    for item in disc_list:
+        ticker   = item.get("ticker")
+        inval    = item.get("invalidation_price")
+        disc_at  = item.get("discovered_at")
+        if not ticker or inval is None or not disc_at:
+            skipped += 1
+            continue
+
+        try:
+            disc_date = pd.to_datetime(disc_at)
+            hist = fetch_hist(ticker, period=period)
+            if hist is None or hist.empty or "Close" not in hist.columns:
+                raise ValueError("no history available")
+
+            idx = hist.index.tz_localize(None) if hist.index.tz is not None else hist.index
+            hist = hist.set_axis(idx)
+            path = hist.loc[hist.index >= disc_date, "Close"].dropna()
+            if path.empty:
+                raise ValueError("no post-discovery price path")
+
+            breach_mask = path < inval
+            if breach_mask.any():
+                b_pos = path.index.get_loc(breach_mask.idxmax())
+                price_at_event = float(path.iloc[b_pos])
+                obs = {
+                    "ticker": ticker,
+                    "event_date": str(path.index[b_pos].date()),
+                    "price_at_event": round(price_at_event, 2),
+                    "distance_pct": round((price_at_event / inval - 1) * 100, 2),
+                }
+                for h in forward_horizons:
+                    fwd_pos = b_pos + h
+                    if fwd_pos < len(path):
+                        obs[f"fwd_{h}d"] = round((path.iloc[fwd_pos] / price_at_event - 1) * 100, 2)
+                    else:
+                        obs[f"fwd_{h}d"] = None
+                breach_obs.append(obs)
+            else:
+                # never breached — find closest approach to the line
+                dist_pct = (path / inval - 1) * 100
+                closest_pos = int(dist_pct.values.argmin())
+                closest_dist = float(dist_pct.iloc[closest_pos])
+                if closest_dist <= near_miss_pct:
+                    price_at_event = float(path.iloc[closest_pos])
+                    obs = {
+                        "ticker": ticker,
+                        "event_date": str(path.index[closest_pos].date()),
+                        "price_at_event": round(price_at_event, 2),
+                        "distance_pct": round(closest_dist, 2),
+                    }
+                    for h in forward_horizons:
+                        fwd_pos = closest_pos + h
+                        if fwd_pos < len(path):
+                            obs[f"fwd_{h}d"] = round((path.iloc[fwd_pos] / price_at_event - 1) * 100, 2)
+                        else:
+                            obs[f"fwd_{h}d"] = None
+                    near_miss_obs.append(obs)
+
+        except Exception as e:
+            log.warning(f"Invalidation-alpha analysis skipped for {ticker}: {e}")
+            skipped += 1
+
+    return {"breach": breach_obs, "near_miss": near_miss_obs, "skipped": skipped}
+
+
 with tabs[21]:
     st.markdown("### 📡 Discovery Tracker")
     st.caption(
@@ -10384,16 +10567,36 @@ with tabs[21]:
     if not _disc:
         st.info("No discoveries logged yet. Run scans normally — every new ticker gets tracked automatically from here on.")
     else:
-        c1, c2 = st.columns([1, 3])
+        _missing_inval = sum(1 for d in _disc if d.get("invalidation_price") is None)
+
+        c1, c2, c3 = st.columns([1, 1, 2])
         with c1:
             refresh_btn = st.button("🔄 Refresh All Prices", use_container_width=True,
                                      help="Pulls current price for every tracked ticker and recomputes % change since discovery.")
+        with c2:
+            backfill_btn = st.button(
+                f"🧯 Backfill Invalidation Prices ({_missing_inval})",
+                use_container_width=True, disabled=_missing_inval == 0,
+                help="One-time repair for discoveries logged before invalidation_price existed. "
+                     "Reconstructs the 200-day MA as of each discovery date. Safe to re-run.")
 
         if refresh_btn:
             with st.spinner(f"Refreshing {len(_disc)} tracked tickers…"):
                 _disc = _refresh_discovery_prices(_disc)
             save_discoveries(_disc)
             st.success("✅ Refreshed.")
+            st.rerun()
+
+        if backfill_btn:
+            with st.spinner(f"Backfilling invalidation price for {_missing_inval} tracked tickers…"):
+                _summary = backfill_invalidation_prices(_disc)
+            save_discoveries(_disc)
+            st.success(
+                f"✅ Backfilled {_summary['filled']} from 200-day MA, "
+                f"{_summary['fallback']} via 15%-drawdown fallback "
+                f"({_summary['skipped']} skipped — no history available). "
+                f"{_summary['reinvalidated']} ticker(s) newly flagged as invalidated."
+            )
             st.rerun()
 
         dd = pd.DataFrame(_disc)
@@ -10503,6 +10706,59 @@ with tabs[21]:
                     "than lower buckets, the score isn't adding predictive value yet — worth "
                     "revisiting the weighting in scanner.py."
                 )
+
+        st.markdown("---")
+        st.markdown("#### 🧯 Does Invalidation Actually Predict Direction?")
+        st.caption(
+            "Unlike the score test above, this doesn't need to wait for outcomes — it walks "
+            "each ticker's real daily price history since discovery. **Breach** = first close "
+            "below the invalidation line, then forward return from there (tests whether closing "
+            "below the line should mean getting out immediately, or is usually a shakeout). "
+            "**Near miss** = came within 5% of the line but never closed below it, then forward "
+            "return from that low point (tests whether a held/tested level is itself a buy signal)."
+        )
+        _run_inval_alpha = st.button("🔎 Run Invalidation Analysis", key="run_inval_alpha")
+        if _run_inval_alpha:
+            with st.spinner("Walking price history for every tracked ticker…"):
+                _ia = analyze_invalidation_alpha(_disc)
+            st.session_state["_inval_alpha_result"] = _ia
+
+        _ia = st.session_state.get("_inval_alpha_result")
+        if _ia:
+            _horizons = [5, 10, 20]
+            for _label, _obs_list, _hint in (
+                ("Breach → what happens next", _ia["breach"],
+                 "Negative forward returns here mean the invalidation line is doing its job — "
+                 "cut losses when it closes below. Positive/near-zero means it's triggering "
+                 "stop-outs right before bounces."),
+                ("Near miss (tested, held) → what happens next", _ia["near_miss"],
+                 "Positive forward returns here are the entry signal you're describing — "
+                 "buying a successful retest of the invalidation level rather than the "
+                 "original discovery price."),
+            ):
+                st.markdown(f"**{_label}**")
+                if not _obs_list:
+                    st.caption("No observations yet.")
+                    continue
+                _odf = pd.DataFrame(_obs_list)
+                _rows = []
+                for h in _horizons:
+                    col = f"fwd_{h}d"
+                    resolved = _odf[col].dropna()
+                    if len(resolved) > 0:
+                        _rows.append({
+                            "Horizon": f"{h}D",
+                            "Resolved N": len(resolved),
+                            "Pending": int(_odf[col].isna().sum()),
+                            "Win Rate": f"{(resolved > 0).mean()*100:.1f}%",
+                            "Avg Return": f"{resolved.mean():+.2f}%",
+                            "Median Return": f"{resolved.median():+.2f}%",
+                        })
+                if _rows:
+                    st.dataframe(pd.DataFrame(_rows), use_container_width=True, hide_index=True)
+                st.caption(f"ℹ️ {_hint}")
+
+            st.caption(f"({_ia['skipped']} ticker(s) skipped — no invalidation price or history available)")
 
         # ── 🔬 Apex Alpha Lab — V9 Phases 4-7 ─────────────────────────
         # Extracted into ui/alpha_lab.py per the V9 spec (§37): setup
