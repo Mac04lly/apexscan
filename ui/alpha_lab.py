@@ -779,6 +779,63 @@ def _render_short_radar(observations: list, short_radar_obs: list, horizon: str)
     st.caption(f"Sample: {radar_metrics['sample_classification']}")
 
 
+def _render_invalidation_alpha(observations: list, horizon: str):
+    from modules.invalidation_alpha import (
+        backfill_stop_prices, log_invalidation_events, compute_invalidation_alpha_overview,
+    )
+    from modules.alpha_validation import save_observations
+
+    st.caption(
+        "Every other tab here measures outcomes a fixed number of days after DISCOVERY. This "
+        "one measures outcomes from a different, later moment: whenever the original thesis's "
+        "invalidation level (stop_price) actually gets tested — using the same frozen-outcome "
+        "engine, just anchored at that event instead. **Breach** = first close below stop_price "
+        "— tests whether that should mean getting out immediately. **Near miss** = came within "
+        "5% of stop_price but never closed below it — tests whether a held/tested level is "
+        "itself a usable entry signal, rather than buying at discovery."
+    )
+
+    if st.button("🔎 Scan for Invalidation Events", key="inval_alpha_scan_btn"):
+        with st.spinner("Backfilling stop prices and walking price history since discovery…"):
+            n_backfilled = backfill_stop_prices(observations)
+            result = log_invalidation_events(observations)
+            if n_backfilled or result.get("new_events"):
+                save_observations(observations)
+        if result.get("error"):
+            st.warning(result["error"])
+        else:
+            st.success(
+                f"Backfilled {n_backfilled} stop price(s) from existing data. "
+                f"Logged {result['new_events']} new event(s) "
+                f"({result['breaches']} breach, {result['near_misses']} near-miss). "
+                f"{result['skipped']} ticker(s) skipped (no history available)."
+            )
+        st.rerun()
+
+    ov = compute_invalidation_alpha_overview(observations, horizon)
+    rows = []
+    if ov["breach"]["n"] > 0:
+        rows.append(_metrics_row_to_disp("Event Type", {**ov["breach"], "label": "🔴 Breach → forward return"}))
+    if ov["near_miss"]["n"] > 0:
+        rows.append(_metrics_row_to_disp("Event Type", {**ov["near_miss"], "label": "🟡 Near miss (held) → forward return"}))
+
+    if rows:
+        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+        st.caption(
+            "Negative breach returns validate cutting losses right at the line. Positive "
+            "near-miss returns are the entry signal you're looking for — buying a successful "
+            "retest rather than the original discovery price."
+        )
+    else:
+        st.info("No invalidation events logged yet — click the button above to scan.")
+
+    st.caption(
+        f"{ov['with_stop_price']} / {ov['total_discovery_observations']} discovery observations "
+        f"have a stop_price on record. {ov['not_yet_scanned']} of those haven't been through an "
+        "event scan yet (or genuinely haven't tested their level either way so far)."
+    )
+
+
 def render_alpha_lab(cfg: Optional[dict] = None):
     """Single entry point dashboard.py calls. Loads observations itself
     — the caller doesn't need to fetch anything first. `cfg` (the app's
@@ -832,7 +889,8 @@ def render_alpha_lab(cfg: Optional[dict] = None):
 
         tabs = st.tabs(["Overview", "Score Validation", "Setup Alpha", "Feature Alpha",
                         "Conditional Alpha", "Combinations & Findings", "Model Governance",
-                        "Explain a Decision", "Pre-Breakout Radar", "Short Radar", "Why Winners Won"])
+                        "Explain a Decision", "Pre-Breakout Radar", "Short Radar", "Why Winners Won",
+                        "Invalidation Alpha"])
 
         with tabs[0]:
             try:
@@ -889,6 +947,11 @@ def render_alpha_lab(cfg: Optional[dict] = None):
                 _render_why_winners_won(discovery_obs)
             except Exception as e:
                 st.caption(f"Why Winners Won unavailable this session: {e}")
+        with tabs[11]:
+            try:
+                _render_invalidation_alpha(observations, horizon)
+            except Exception as e:
+                st.caption(f"Invalidation Alpha unavailable this session: {e}")
 
     except Exception as e:
         log.warning(f"Alpha Lab failed to render: {e}")
