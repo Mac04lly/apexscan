@@ -1161,6 +1161,82 @@ def backfill_invalidation_prices(disc_list: list, period: str = "2y") -> dict:
     return summary
 
 
+def compute_weekly_checkpoints(disc_list: list, weeks=(1, 2, 3), period: str = "6mo") -> dict:
+    """
+    Adds fixed, frozen performance checkpoints (perf_1w_pct, perf_2w_pct,
+    perf_3w_pct by default) to each discovery, using real historical
+    closes — not "current price as of last refresh," which moves every
+    time you click Refresh and conflates "how long has this been
+    tracked" with "how did it do," making discoveries of different ages
+    impossible to compare apples-to-apples. A checkpoint is frozen the
+    first time it's computed and never recalculated after — same
+    "outcomes frozen once measured" philosophy as Alpha Lab.
+
+    For each week N in `weeks`, finds the first trading day on or after
+    discovered_at + 7*N calendar days and records % change from
+    discovery_price. Leaves a field unset (pending) if that many
+    calendar days haven't elapsed yet, or if history isn't available —
+    never guesses or fills with a stale price.
+
+    Mutates disc_list in place; caller persists via save_discoveries().
+    Safe to re-run — already-frozen fields are skipped. Returns
+    {"computed": int, "pending": int, "skipped": int}; "computed" counts
+    individual checkpoint fields filled in this run (one ticker can
+    fill 1–3 fields at once).
+    """
+    computed, pending, skipped = 0, 0, 0
+    today = datetime.now().date()
+
+    for item in disc_list:
+        ticker = item.get("ticker")
+        disc_price = item.get("discovery_price")
+        disc_at = item.get("discovered_at")
+        if not ticker or not disc_price or not disc_at:
+            skipped += 1
+            continue
+
+        try:
+            disc_date = pd.to_datetime(disc_at).date()
+        except Exception:
+            skipped += 1
+            continue
+
+        needed = []
+        for w in weeks:
+            field = f"perf_{w}w_pct"
+            if item.get(field) is not None:
+                continue  # already frozen
+            target_date = disc_date + timedelta(days=7 * w)
+            if today < target_date:
+                pending += 1
+                continue
+            needed.append((field, target_date))
+
+        if not needed:
+            continue
+
+        try:
+            hist = fetch_hist(ticker, period=period)
+            if hist is None or hist.empty or "Close" not in hist.columns:
+                raise ValueError("no history available")
+            idx = hist.index.tz_localize(None) if hist.index.tz is not None else hist.index
+            hist = hist.set_axis(idx)
+
+            for field, target_date in needed:
+                on_or_after = hist.loc[hist.index.date >= target_date, "Close"]
+                if on_or_after.empty:
+                    continue  # market data hasn't caught up yet — leave pending
+                price_at_checkpoint = float(on_or_after.iloc[0])
+                item[field] = round((price_at_checkpoint / float(disc_price) - 1) * 100, 2)
+                computed += 1
+
+        except Exception as e:
+            log.warning(f"Weekly checkpoint computation skipped for {ticker}: {e}")
+            skipped += 1
+
+    return {"computed": computed, "pending": pending, "skipped": skipped}
+
+
 def _discoveries_due_for_refresh(disc_list: list) -> bool:
     """True if there's at least one tracked ticker that hasn't been
     price-checked yet today. Empty/never-checked items count as due."""
@@ -3494,7 +3570,32 @@ with tabs[0]:
                     "analyst_target","pe_ratio","peg_ratio","apex_score"]
 
         show_cols = [c for c in want if c in df_filtered.columns]
-        disp = df_filtered[show_cols].head(30).copy()
+        disp_pool = df_filtered[show_cols].copy()
+
+        # Stage 1 (Base) stocks structurally score lower on the current
+        # momentum-heavy apex_score formula (perf_3m/RS/near-52wk-high all
+        # reward moves that already happened) even though Discovery
+        # Tracker history shows they outperform Stage 2 (Uptrend) picks.
+        # A pure top-30-by-score sort therefore crowds Stage 1 out of the
+        # default view entirely. This reserves a small floor of slots for
+        # the best-scoring Stage 1 candidates so they stay visible by
+        # default — apex_score itself is untouched, and every other
+        # Quick Filter (Breakouts, Gems, Early Entry, Growth Leaders)
+        # keeps its exact original behavior, since this only applies to
+        # the unfiltered "All" view.
+        STAGE1_FLOOR_SLOTS = 8
+        if theme_filter == "🌐 All" and "stage" in disp_pool.columns and "apex_score" in disp_pool.columns:
+            disp_pool["apex_score"] = pd.to_numeric(disp_pool["apex_score"], errors="coerce")
+            is_stage1 = disp_pool["stage"].astype(str).str.strip().str.startswith("1")
+            stage1_reserved = disp_pool[is_stage1].sort_values("apex_score", ascending=False).head(STAGE1_FLOOR_SLOTS)
+            remainder_pool = disp_pool.drop(stage1_reserved.index)
+            remainder = remainder_pool.sort_values("apex_score", ascending=False).head(30 - len(stage1_reserved))
+            disp = pd.concat([stage1_reserved, remainder]).sort_values("apex_score", ascending=False).copy()
+            if len(stage1_reserved) > 0:
+                st.caption(f"📋 Includes {len(stage1_reserved)} Stage 1 (Base) candidate(s) reserved by floor — "
+                           f"not purely top-30-by-score today.")
+        else:
+            disp = disp_pool.head(30).copy()
         for col in ["apex_score","perf_1m_%","perf_3m_%","perf_6m_%","rs_3m","rs_6m"]:
             if col in disp.columns:
                 disp[col] = pd.to_numeric(disp[col], errors="coerce")
@@ -10509,43 +10610,39 @@ def analyze_invalidation_alpha(disc_list: list, period: str = "1y",
             if path.empty:
                 raise ValueError("no post-discovery price path")
 
-            breach_mask = path < inval
-            if breach_mask.any():
-                b_pos = path.index.get_loc(breach_mask.idxmax())
-                price_at_event = float(path.iloc[b_pos])
+            # Walk forward chronologically and take whichever happens
+            # FIRST, using only information available on that day — never
+            # the whole series in hindsight. Picking the single lowest
+            # price across the entire history-to-date (the previous
+            # version of this function) is a look-ahead bug: the lowest
+            # point of any series is mechanically followed by higher
+            # prices most of the time, which produces a meaningless
+            # ~100% win rate rather than a real signal.
+            event_type, event_pos, price_at_event = None, None, None
+            for pos in range(len(path)):
+                price_i = float(path.iloc[pos])
+                if price_i < inval:
+                    event_type, event_pos, price_at_event = "breach", pos, price_i
+                    break
+                dist_i = (price_i / inval - 1) * 100
+                if dist_i <= near_miss_pct:
+                    event_type, event_pos, price_at_event = "near_miss", pos, price_i
+                    break
+
+            if event_type is not None:
                 obs = {
                     "ticker": ticker,
-                    "event_date": str(path.index[b_pos].date()),
+                    "event_date": str(path.index[event_pos].date()),
                     "price_at_event": round(price_at_event, 2),
                     "distance_pct": round((price_at_event / inval - 1) * 100, 2),
                 }
                 for h in forward_horizons:
-                    fwd_pos = b_pos + h
+                    fwd_pos = event_pos + h
                     if fwd_pos < len(path):
                         obs[f"fwd_{h}d"] = round((path.iloc[fwd_pos] / price_at_event - 1) * 100, 2)
                     else:
                         obs[f"fwd_{h}d"] = None
-                breach_obs.append(obs)
-            else:
-                # never breached — find closest approach to the line
-                dist_pct = (path / inval - 1) * 100
-                closest_pos = int(dist_pct.values.argmin())
-                closest_dist = float(dist_pct.iloc[closest_pos])
-                if closest_dist <= near_miss_pct:
-                    price_at_event = float(path.iloc[closest_pos])
-                    obs = {
-                        "ticker": ticker,
-                        "event_date": str(path.index[closest_pos].date()),
-                        "price_at_event": round(price_at_event, 2),
-                        "distance_pct": round(closest_dist, 2),
-                    }
-                    for h in forward_horizons:
-                        fwd_pos = closest_pos + h
-                        if fwd_pos < len(path):
-                            obs[f"fwd_{h}d"] = round((path.iloc[fwd_pos] / price_at_event - 1) * 100, 2)
-                        else:
-                            obs[f"fwd_{h}d"] = None
-                    near_miss_obs.append(obs)
+                (breach_obs if event_type == "breach" else near_miss_obs).append(obs)
 
         except Exception as e:
             log.warning(f"Invalidation-alpha analysis skipped for {ticker}: {e}")
@@ -10569,7 +10666,17 @@ with tabs[21]:
     else:
         _missing_inval = sum(1 for d in _disc if d.get("invalidation_price") is None)
 
-        c1, c2, c3 = st.columns([1, 1, 2])
+        def _due_for_checkpoint(d):
+            try:
+                dd_date = pd.to_datetime(d.get("discovered_at")).date()
+            except Exception:
+                return False
+            _now = datetime.now().date()
+            return any(d.get(f"perf_{w}w_pct") is None and _now >= dd_date + timedelta(days=7 * w)
+                       for w in (1, 2, 3))
+        _checkpoints_due = sum(1 for d in _disc if _due_for_checkpoint(d))
+
+        c1, c2, c3, c4 = st.columns([1, 1, 1, 1])
         with c1:
             refresh_btn = st.button("🔄 Refresh All Prices", use_container_width=True,
                                      help="Pulls current price for every tracked ticker and recomputes % change since discovery.")
@@ -10579,6 +10686,13 @@ with tabs[21]:
                 use_container_width=True, disabled=_missing_inval == 0,
                 help="One-time repair for discoveries logged before invalidation_price existed. "
                      "Reconstructs the 200-day MA as of each discovery date. Safe to re-run.")
+        with c3:
+            checkpoint_btn = st.button(
+                f"📅 Compute Weekly Checkpoints ({_checkpoints_due})",
+                use_container_width=True, disabled=_checkpoints_due == 0,
+                help="Freezes 1/2/3-week % performance from discovery_price using real historical "
+                     "closes — fixed checkpoints that don't move on refresh, so discoveries of "
+                     "different ages are directly comparable. Safe to re-run.")
 
         if refresh_btn:
             with st.spinner(f"Refreshing {len(_disc)} tracked tickers…"):
@@ -10599,9 +10713,22 @@ with tabs[21]:
             )
             st.rerun()
 
+        if checkpoint_btn:
+            with st.spinner("Computing weekly performance checkpoints…"):
+                _cp_summary = compute_weekly_checkpoints(_disc)
+            save_discoveries(_disc)
+            st.success(
+                f"✅ Computed {_cp_summary['computed']} checkpoint value(s). "
+                f"{_cp_summary['pending']} still pending (not enough time elapsed yet). "
+                f"{_cp_summary['skipped']} ticker(s) skipped."
+            )
+            st.rerun()
+
         dd = pd.DataFrame(_disc)
         dd["pct_change"]  = pd.to_numeric(dd.get("pct_change"), errors="coerce")
         dd["apex_score"]  = pd.to_numeric(dd.get("apex_score"), errors="coerce")
+        for _w in (1, 2, 3):
+            dd[f"perf_{_w}w_pct"] = pd.to_numeric(dd.get(f"perf_{_w}w_pct"), errors="coerce")
         dd["days_tracked"] = pd.to_numeric(dd.get("days_tracked"), errors="coerce")
 
         tracked = dd.dropna(subset=["pct_change"])
@@ -10798,7 +10925,8 @@ with tabs[21]:
 
         st.markdown("#### 📋 Full Discovery Log")
         _log_cols = ["ticker","discovered_at","discovery_price","apex_score","apex_score_raw","stage",
-                     "current_price","pct_change","thesis_status","invalidation_price",
+                     "current_price","pct_change","perf_1w_pct","perf_2w_pct","perf_3w_pct",
+                     "thesis_status","invalidation_price",
                      "next_earnings","days_tracked","theme"]
         _log_cols = [c for c in _log_cols if c in dd.columns]
         show = dd[_log_cols].copy()
@@ -10809,10 +10937,13 @@ with tabs[21]:
             except: return ""
 
         st.dataframe(
-            show.style.map(_c, subset=["pct_change"]).format({
+            show.style.map(_c, subset=[c for c in ["pct_change","perf_1w_pct","perf_2w_pct","perf_3w_pct"] if c in show.columns]).format({
                 "discovery_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
                 "current_price":   lambda v: f"${v:.2f}" if pd.notna(v) else "–",
                 "pct_change":      lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
+                "perf_1w_pct":     lambda v: f"{v:+.1f}%" if pd.notna(v) else "pending",
+                "perf_2w_pct":     lambda v: f"{v:+.1f}%" if pd.notna(v) else "pending",
+                "perf_3w_pct":     lambda v: f"{v:+.1f}%" if pd.notna(v) else "pending",
                 "invalidation_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
                 "next_earnings":   lambda v: v if v else "–",
                 "apex_score":      "{:.0f}",
