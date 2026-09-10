@@ -2146,6 +2146,9 @@ COLUMN_META = {
     "theme":           ("Sector / Theme",     "GICS sector or config theme this stock belongs to. GICS sectors: Energy, Materials, Industrials, Utilities, Healthcare, Financials, Consumer Discretionary, Consumer Staples, Information Technology, Communication Services, Real Estate. Config themes (ai_semis, cybersecurity etc.) take priority for stocks in your watchlist themes. Sector rotation: when a full GICS sector starts outperforming, it lifts all stocks within it."),
     "price":           ("Price ($)",          "Last closing price in USD."),
     "stage":           ("Stage",              "Weinstein Stage. Stage 2 ✅ = only buyable stage (price above both MAs, 50MA > 200MA). Stage 1 = basing. Stage 3 = topping. Stage 4 🔴 = downtrend — avoid."),
+    "perf_1w_%":       ("1W Return %",        "Price performance over the last 5 trading days (≈1 week). Short-term momentum snapshot."),
+    "perf_2w_%":       ("2W Return %",        "Price performance over the last 10 trading days (≈2 weeks)."),
+    "perf_3w_%":       ("3W Return %",        "Price performance over the last 15 trading days (≈3 weeks)."),
     "perf_1m_%":       ("1M Return %",        "Price performance over the last 21 trading days (≈1 month). Captures recent momentum. >5% is positive."),
     "perf_3m_%":       ("3M Return %",        "Price performance over the last 63 trading days (≈3 months). Core momentum filter. >15% is strong; >30% is exceptional."),
     "perf_6m_%":       ("6M Return %",        "Price performance over 126 trading days (≈6 months). Confirms the trend has durability, not just a one-month spike."),
@@ -2319,6 +2322,7 @@ def build_excel_download(ticker_row: pd.Series, ticker_name: str) -> bytes:
     # Define column order (full list from your spec)
     ORDERED_COLS = [
         "rank","ticker","market","theme","price","stage",
+        "perf_1w_%","perf_2w_%","perf_3w_%",
         "perf_1m_%","perf_3m_%","perf_6m_%","rs_3m","rs_6m",
         "rs_r2500_3m","rs_r2500_6m","rs_r3000g_3m","rs_r3000g_6m","rs_multi_leader",
         "adr_%","vs_50ma_%","vs_200ma_%","volume","vol_filter","vol_surge_x",
@@ -2348,7 +2352,8 @@ def build_excel_download(ticker_row: pd.Series, ticker_name: str) -> bytes:
         if col in ("price","vwap","vwap_upper","vwap_lower","ms_swing_high","ms_swing_low","analyst_target"):
             try: return f"${float(raw):.2f}"
             except: return str(raw)
-        if col in ("perf_1m_%","perf_3m_%","perf_6m_%","vs_50ma_%","vs_200ma_%",
+        if col in ("perf_1w_%","perf_2w_%","perf_3w_%",
+                   "perf_1m_%","perf_3m_%","perf_6m_%","vs_50ma_%","vs_200ma_%",
                    "vs_vwap_%","eps_growth_%","eps_surprise_%","rev_growth_%","pct_off_high_%"):
             try:
                 v = float(raw)
@@ -3547,6 +3552,7 @@ with tabs[0]:
 
         if col_view == "Standard":
             want = ["ticker","theme","price","mcap_category","stage",
+                    "perf_1w_%","perf_2w_%","perf_3w_%",
                     "perf_1m_%","perf_3m_%","perf_6m_%",
                     "rs_3m","rs_r2500_3m","rs_r3000g_3m","rs_multi_leader",
                     "vol_surge_x","near_52wh","breaking_out","pattern",
