@@ -480,7 +480,49 @@ _BENCH_FALLBACKS = {
     "^RLG":  "IWF",
 }
 
-def get_benchmark(symbol: str = "^GSPC", period: str = "1y") -> pd.Series:
+# Massive.com (formerly Polygon.io) index ticker mapping — deliberately
+# small. Massive sources index data from CME/CBOE/Nasdaq only, so this
+# only maps benchmarks realistically available on their free tier
+# (S&P 500). Russell 2500/3000 Growth are gated to paid tiers per their
+# own docs, and the NGX All-Share Index isn't sourced by Massive at
+# all — those symbols simply have no entry here, so get_benchmark()
+# skips the Massive attempt for them and behaves exactly as before.
+_MASSIVE_INDEX_MAP = {
+    "^GSPC": "I:SPX",
+}
+
+
+def _fetch_index_from_massive(massive_ticker: str, period: str, api_key: str) -> pd.Series:
+    """
+    Pulls daily-close history for one index from Massive's free-tier
+    Aggregates (bars) endpoint — End-of-Day data, which is what the
+    free "Indices Basic" plan actually provides (no real-time/websocket
+    access on that tier). Returns an empty Series on any failure so the
+    caller's existing yfinance-based fallback chain in get_benchmark()
+    is never put at risk by this being wrong, missing, or rate-limited.
+    """
+    try:
+        days = {"1y": 380, "6mo": 200, "2y": 750}.get(period, 380)
+        end = datetime.now().date()
+        start = end - timedelta(days=days)
+        url = (f"https://api.massive.com/v2/aggs/ticker/{massive_ticker}/range/1/day/"
+               f"{start.isoformat()}/{end.isoformat()}")
+        resp = requests.get(url, params={"adjusted": "true", "sort": "asc",
+                                          "limit": 50000, "apiKey": api_key}, timeout=15)
+        resp.raise_for_status()
+        payload = resp.json()
+        results = payload.get("results") or []
+        if not results:
+            return pd.Series(dtype=float)
+        idx   = [pd.Timestamp(r["t"], unit="ms").normalize() for r in results]
+        close = [r["c"] for r in results]
+        return pd.Series(close, index=pd.DatetimeIndex(idx))
+    except Exception as e:
+        log.warning(f"Massive index fetch failed for {massive_ticker}: {e}")
+        return pd.Series(dtype=float)
+
+
+def get_benchmark(symbol: str = "^GSPC", period: str = "1y", massive_key: str = None) -> pd.Series:
     if symbol not in _bench_cache:
         _symbols_to_try = [symbol]
         if symbol in _BENCH_FALLBACKS:
@@ -501,6 +543,18 @@ def get_benchmark(symbol: str = "^GSPC", period: str = "1y") -> pd.Series:
                     break
             except Exception as e:
                 log.warning(f"Benchmark {_sym} failed: {e} — trying fallback…")
+
+        # Last resort before giving up: Massive.com, only for the small
+        # set of indices mapped above. yfinance is tried first everywhere
+        # else in this chain since it's free and already proven reliable
+        # for the indices Massive doesn't cover on a free plan.
+        if not _loaded and symbol in _MASSIVE_INDEX_MAP and massive_key:
+            data = _fetch_index_from_massive(_MASSIVE_INDEX_MAP[symbol], period, massive_key)
+            if len(data) > 50:
+                _bench_cache[symbol] = data
+                log.info(f"Benchmark loaded: {_MASSIVE_INDEX_MAP[symbol]} via Massive "
+                         f"(fallback for {symbol}) — {len(data)} bars")
+                _loaded = True
 
         if not _loaded:
             log.warning(f"All benchmark attempts failed for {symbol} — RS vs this benchmark will be None")
@@ -974,6 +1028,9 @@ def analyze_stock(ticker: str, cfg: dict,
         close         = hist["Close"]
         current_price = close.iloc[-1]
 
+        perf_1w = performance_pct(close, 5)
+        perf_2w = performance_pct(close, 10)
+        perf_3w = performance_pct(close, 15)
         perf_1m = performance_pct(close, 21)
         perf_3m = performance_pct(close, 63)
         perf_6m = performance_pct(close, 126)
@@ -1308,6 +1365,9 @@ def analyze_stock(ticker: str, cfg: dict,
             "theme":           theme,
             "price":           round(current_price, 2),
             "stage":           stage,
+            "perf_1w_%":       perf_1w,
+            "perf_2w_%":       perf_2w,
+            "perf_3w_%":       perf_3w,
             "perf_1m_%":       perf_1m,
             "perf_3m_%":       perf_3m,
             "perf_6m_%":       perf_6m,
@@ -1547,7 +1607,11 @@ def run_scan(cfg: dict, markets: List[str] = None,
         _r2500_sym = cfg.get("benchmarks", {}).get("russell_2500", "^R25I")
         _r3000g_sym = cfg.get("benchmarks", {}).get("russell_3000_growth", "^RAG")
         _period = cfg["scan"]["history_period"]
-        get_benchmark(_primary_bench, _period)
+        # massive_key only ever affects _primary_bench (^GSPC → I:SPX) —
+        # Russell 2500/3000 Growth aren't in _MASSIVE_INDEX_MAP, so
+        # passing it here has zero effect on those two; harmless either
+        # way since get_benchmark() no-ops when the symbol isn't mapped.
+        get_benchmark(_primary_bench, _period, massive_key=cfg.get("massive_key", ""))
         get_benchmark(_r2500_sym, _period)
         get_benchmark(_r3000g_sym, _period)
         log.info("US benchmarks loaded: %s | %s | %s", _primary_bench, _r2500_sym, _r3000g_sym)
