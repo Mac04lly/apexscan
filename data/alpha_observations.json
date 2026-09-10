@@ -118975,7 +118975,7 @@
     "current_score": 77.9,
     "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 4,
+    "days_on_radar": 6,
     "score_history": [
       {
         "date": "2026-09-04",
@@ -118991,6 +118991,12 @@
       },
       {
         "date": "2026-09-08",
+        "score": 77.9,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-09-10",
         "score": 77.9,
         "state": "DEVELOPING",
         "evidence_quality": "MEDIUM"
@@ -119403,11 +119409,11 @@
     "market": "US",
     "first_radar_date": "2026-09-04",
     "first_radar_price": 7.329999923706055,
-    "current_price": 7.329999923706055,
-    "current_score": 68.9,
-    "current_state": "WATCH",
+    "current_price": 7.300000190734863,
+    "current_score": 58.2,
+    "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 4,
+    "days_on_radar": 6,
     "score_history": [
       {
         "date": "2026-09-04",
@@ -119426,12 +119432,18 @@
         "score": 68.9,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-09-10",
+        "score": 58.2,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
       }
     ],
     "score_components": {
-      "rs_improvement": 0.5,
+      "rs_improvement": 0.0,
       "breakout_proximity": 1.0,
-      "structure_compression": 0.972,
+      "structure_compression": 0.976,
       "volume_behavior": 0.6,
       "higher_low_structure": 0.0,
       "ma50_transition": 1.0,
@@ -119442,50 +119454,50 @@
       "market_regime": null
     },
     "resistance_price": 7.36,
-    "distance_to_resistance_pct": 0.41,
-    "rs": 693.0,
-    "rs_trend": -156.7,
+    "distance_to_resistance_pct": 0.82,
+    "rs": 606.4,
+    "rs_trend": -2163.1,
     "structure": {
       "ms_structure": "Transitioning",
       "ms_hh_hl": false,
       "ms_last_swing_high": 7.33,
       "ms_last_swing_low": 7.29,
       "base_depth_pct": 39.3,
-      "base_duration_bars": 37,
+      "base_duration_bars": 39,
       "higher_lows_flat_resistance": false
     },
     "volatility": {
-      "atr_pct_5": 0.382,
-      "atr_pct_10": 0.368,
-      "atr_pct_20": 2.698,
-      "atr_ratio_5_20": 0.142,
-      "bb_width_pct": 57.19,
-      "range_ratio_5_20": 0.028,
+      "atr_pct_5": 0.384,
+      "atr_pct_10": 0.329,
+      "atr_pct_20": 2.243,
+      "atr_ratio_5_20": 0.171,
+      "bb_width_pct": 47.178,
+      "range_ratio_5_20": 0.024,
       "volatility_percentile": 0.0,
       "volatility_contraction": true,
       "volatility_contraction_acceleration": false
     },
     "volume": {
-      "avg_volume_5": 3403600.0,
-      "avg_volume_10": 3874360.0,
-      "avg_volume_20": 5871775.0,
-      "avg_volume_50": 3052838.0,
-      "relative_volume": 0.719,
-      "up_down_volume_ratio": 3.215,
+      "avg_volume_5": 2798060.0,
+      "avg_volume_10": 3403280.0,
+      "avg_volume_20": 5826450.0,
+      "avg_volume_50": 3044436.0,
+      "relative_volume": 0.584,
+      "up_down_volume_ratio": 3.292,
       "volume_trend": "FALLING",
       "volume_contraction": true
     },
     "moving_averages": {
-      "price_vs_20ma_pct": 9.48,
-      "price_vs_50ma_pct": 9.82,
-      "price_vs_200ma_pct": 21.42,
-      "ma50_slope": 0.5866,
-      "ma50_acceleration": 0.4773,
-      "ma200_slope": 0.0791,
-      "ma200_acceleration": 0.1386,
+      "price_vs_20ma_pct": 5.67,
+      "price_vs_50ma_pct": 8.54,
+      "price_vs_200ma_pct": 20.61,
+      "ma50_slope": 0.5564,
+      "ma50_acceleration": 0.2013,
+      "ma200_slope": 0.0951,
+      "ma200_acceleration": 0.1015,
       "ma50_transition": "ACCELERATING_UP",
       "ma200_transition": "ACCELERATING_UP",
-      "ma_compression_pct": 8.7
+      "ma_compression_pct": 9.22
     },
     "sector_confirmation": {
       "stock_vs_sector": "UNKNOWN",
@@ -119498,7 +119510,7 @@
     },
     "liquidity_gate": {
       "passes": true,
-      "dollar_volume": 43040110.0,
+      "dollar_volume": 42533086.0,
       "min_required": 5000000.0,
       "market": "US"
     },
@@ -119733,25 +119745,31 @@
     "market": "US",
     "first_radar_date": "2026-09-04",
     "first_radar_price": 12.65999984741211,
-    "current_price": 12.65999984741211,
-    "current_score": 58.7,
+    "current_price": 12.329999923706055,
+    "current_score": 54.0,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 0,
+    "days_on_radar": 6,
     "score_history": [
       {
         "date": "2026-09-04",
         "score": 58.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-09-10",
+        "score": 54.0,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
       }
     ],
     "score_components": {
       "rs_improvement": 0.0,
-      "breakout_proximity": 0.8,
-      "structure_compression": 0.512,
-      "volume_behavior": 0.3,
-      "higher_low_structure": 1.0,
+      "breakout_proximity": 0.5,
+      "structure_compression": 0.677,
+      "volume_behavior": 0.6,
+      "higher_low_structure": 0.5,
       "ma50_transition": 1.0,
       "ma200_transition": 1.0,
       "sector_confirmation": null,
@@ -119760,50 +119778,50 @@
       "market_regime": null
     },
     "resistance_price": 12.94,
-    "distance_to_resistance_pct": 2.16,
-    "rs": 926.8,
-    "rs_trend": -446.1,
+    "distance_to_resistance_pct": 4.71,
+    "rs": 1031.1,
+    "rs_trend": -1370.7,
     "structure": {
       "ms_structure": "Bullish (HH/HL)",
       "ms_hh_hl": true,
-      "ms_last_swing_high": 8.83,
-      "ms_last_swing_low": 10.43,
+      "ms_last_swing_high": 12.94,
+      "ms_last_swing_low": 11.56,
       "base_depth_pct": 38.18,
-      "base_duration_bars": 4,
-      "higher_lows_flat_resistance": true
+      "base_duration_bars": 7,
+      "higher_lows_flat_resistance": false
     },
     "volatility": {
-      "atr_pct_5": 4.882,
-      "atr_pct_10": 4.384,
-      "atr_pct_20": 4.301,
-      "atr_ratio_5_20": 1.135,
-      "bb_width_pct": 28.834,
-      "range_ratio_5_20": 0.488,
-      "volatility_percentile": 18.0,
+      "atr_pct_5": 3.958,
+      "atr_pct_10": 4.234,
+      "atr_pct_20": 4.185,
+      "atr_ratio_5_20": 0.946,
+      "bb_width_pct": 25.479,
+      "range_ratio_5_20": 0.323,
+      "volatility_percentile": 12.1,
       "volatility_contraction": false,
       "volatility_contraction_acceleration": false
     },
     "volume": {
-      "avg_volume_5": 5548040.0,
-      "avg_volume_10": 5733530.0,
-      "avg_volume_20": 5791470.0,
-      "avg_volume_50": 5380906.0,
-      "relative_volume": 0.815,
-      "up_down_volume_ratio": 2.214,
-      "volume_trend": "FLAT",
-      "volume_contraction": false
+      "avg_volume_5": 3996760.0,
+      "avg_volume_10": 4992580.0,
+      "avg_volume_20": 5423500.0,
+      "avg_volume_50": 5356404.0,
+      "relative_volume": 0.567,
+      "up_down_volume_ratio": 1.508,
+      "volume_trend": "FALLING",
+      "volume_contraction": true
     },
     "moving_averages": {
-      "price_vs_20ma_pct": 9.31,
-      "price_vs_50ma_pct": 29.71,
-      "price_vs_200ma_pct": 25.95,
-      "ma50_slope": 0.6436,
-      "ma50_acceleration": 0.3339,
-      "ma200_slope": 0.201,
-      "ma200_acceleration": 0.063,
+      "price_vs_20ma_pct": 4.28,
+      "price_vs_50ma_pct": 23.41,
+      "price_vs_200ma_pct": 21.96,
+      "ma50_slope": 0.69,
+      "ma50_acceleration": 0.144,
+      "ma200_slope": 0.1908,
+      "ma200_acceleration": 0.0253,
       "ma50_transition": "ACCELERATING_UP",
       "ma200_transition": "ACCELERATING_UP",
-      "ma_compression_pct": 2.3
+      "ma_compression_pct": 0.97
     },
     "sector_confirmation": {
       "stock_vs_sector": "UNKNOWN",
@@ -119816,7 +119834,7 @@
     },
     "liquidity_gate": {
       "passes": true,
-      "dollar_volume": 73320009.0,
+      "dollar_volume": 66871755.0,
       "min_required": 5000000.0,
       "market": "US"
     },
@@ -120063,11 +120081,11 @@
     "market": "US",
     "first_radar_date": "2026-09-04",
     "first_radar_price": 4.170000076293945,
-    "current_price": 4.0,
-    "current_score": 62.6,
+    "current_price": 4.090000152587891,
+    "current_score": 62.4,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 4,
+    "days_on_radar": 6,
     "score_history": [
       {
         "date": "2026-09-04",
@@ -120086,66 +120104,72 @@
         "score": 62.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-09-10",
+        "score": 62.4,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
       }
     ],
     "score_components": {
       "rs_improvement": 1.0,
       "breakout_proximity": 0.5,
-      "structure_compression": 0.429,
+      "structure_compression": 0.565,
       "volume_behavior": 0.3,
       "higher_low_structure": 0.5,
       "ma50_transition": 1.0,
-      "ma200_transition": 0.3,
+      "ma200_transition": 0.0,
       "sector_confirmation": null,
       "institutional_trend": null,
       "fundamental_acceleration": null,
       "market_regime": null
     },
     "resistance_price": 4.28,
-    "distance_to_resistance_pct": 6.54,
-    "rs": 385.3,
-    "rs_trend": 469.2,
+    "distance_to_resistance_pct": 4.44,
+    "rs": 547.2,
+    "rs_trend": 547.2,
     "structure": {
       "ms_structure": "Bullish (HH/HL)",
       "ms_hh_hl": true,
       "ms_last_swing_high": 3.96,
-      "ms_last_swing_low": 3.51,
+      "ms_last_swing_low": 3.84,
       "base_depth_pct": 31.66,
-      "base_duration_bars": 1,
+      "base_duration_bars": 3,
       "higher_lows_flat_resistance": false
     },
     "volatility": {
-      "atr_pct_5": 5.575,
-      "atr_pct_10": 5.355,
-      "atr_pct_20": 4.876,
-      "atr_ratio_5_20": 1.143,
-      "bb_width_pct": 16.783,
-      "range_ratio_5_20": 0.571,
-      "volatility_percentile": 7.7,
+      "atr_pct_5": 5.477,
+      "atr_pct_10": 5.103,
+      "atr_pct_20": 4.824,
+      "atr_ratio_5_20": 1.135,
+      "bb_width_pct": 17.283,
+      "range_ratio_5_20": 0.435,
+      "volatility_percentile": 5.6,
       "volatility_contraction": false,
       "volatility_contraction_acceleration": false
     },
     "volume": {
-      "avg_volume_5": 5618840.0,
-      "avg_volume_10": 5529950.0,
-      "avg_volume_20": 5563960.0,
-      "avg_volume_50": 5383784.0,
-      "relative_volume": 1.032,
-      "up_down_volume_ratio": 0.871,
+      "avg_volume_5": 4975540.0,
+      "avg_volume_10": 5464620.0,
+      "avg_volume_20": 5417025.0,
+      "avg_volume_50": 5427636.0,
+      "relative_volume": 1.01,
+      "up_down_volume_ratio": 1.232,
       "volume_trend": "FLAT",
       "volume_contraction": false
     },
     "moving_averages": {
-      "price_vs_20ma_pct": 2.13,
-      "price_vs_50ma_pct": 13.71,
-      "price_vs_200ma_pct": -1.58,
-      "ma50_slope": 0.3176,
-      "ma50_acceleration": 0.2813,
-      "ma200_slope": -0.0322,
-      "ma200_acceleration": 0.0097,
+      "price_vs_20ma_pct": 3.82,
+      "price_vs_50ma_pct": 15.21,
+      "price_vs_200ma_pct": 0.76,
+      "ma50_slope": 0.3875,
+      "ma50_acceleration": 0.2191,
+      "ma200_slope": -0.0546,
+      "ma200_acceleration": -0.023,
       "ma50_transition": "ACCELERATING_UP",
-      "ma200_transition": "FLATTENING",
-      "ma_compression_pct": 13.67
+      "ma200_transition": "FALLING",
+      "ma_compression_pct": 12.44
     },
     "sector_confirmation": {
       "stock_vs_sector": "UNKNOWN",
@@ -120158,7 +120182,7 @@
     },
     "liquidity_gate": {
       "passes": true,
-      "dollar_volume": 22255840.0,
+      "dollar_volume": 22155633.0,
       "min_required": 5000000.0,
       "market": "US"
     },
@@ -120291,11 +120315,11 @@
     "market": "US",
     "first_radar_date": "2026-09-04",
     "first_radar_price": 13.109999656677246,
-    "current_price": 12.479999542236328,
-    "current_score": 69.3,
+    "current_price": 12.550000190734863,
+    "current_score": 67.3,
     "current_state": "WATCH",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 4,
+    "days_on_radar": 6,
     "score_history": [
       {
         "date": "2026-09-04",
@@ -120314,66 +120338,72 @@
         "score": 69.3,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-09-10",
+        "score": 67.3,
+        "state": "WATCH",
+        "evidence_quality": "MEDIUM"
       }
     ],
     "score_components": {
       "rs_improvement": 1.0,
       "breakout_proximity": 0.25,
-      "structure_compression": 0.502,
+      "structure_compression": 0.512,
       "volume_behavior": 0.6,
       "higher_low_structure": 0.5,
       "ma50_transition": 1.0,
-      "ma200_transition": 1.0,
+      "ma200_transition": 0.7,
       "sector_confirmation": null,
       "institutional_trend": null,
       "fundamental_acceleration": null,
       "market_regime": null
     },
     "resistance_price": 13.66,
-    "distance_to_resistance_pct": 8.67,
-    "rs": 404.1,
-    "rs_trend": 449.8,
+    "distance_to_resistance_pct": 8.16,
+    "rs": 612.6,
+    "rs_trend": 887.8,
     "structure": {
       "ms_structure": "Bullish (HH/HL)",
       "ms_hh_hl": true,
       "ms_last_swing_high": 13.66,
-      "ms_last_swing_low": 11.4,
+      "ms_last_swing_low": 11.82,
       "base_depth_pct": 37.8,
-      "base_duration_bars": 5,
+      "base_duration_bars": 7,
       "higher_lows_flat_resistance": false
     },
     "volatility": {
-      "atr_pct_5": 5.441,
-      "atr_pct_10": 5.522,
-      "atr_pct_20": 5.537,
-      "atr_ratio_5_20": 0.983,
-      "bb_width_pct": 15.687,
-      "range_ratio_5_20": 0.648,
-      "volatility_percentile": 35.2,
+      "atr_pct_5": 4.637,
+      "atr_pct_10": 5.186,
+      "atr_pct_20": 5.108,
+      "atr_ratio_5_20": 0.908,
+      "bb_width_pct": 15.536,
+      "range_ratio_5_20": 0.488,
+      "volatility_percentile": 15.5,
       "volatility_contraction": false,
-      "volatility_contraction_acceleration": true
+      "volatility_contraction_acceleration": false
     },
     "volume": {
-      "avg_volume_5": 2120080.0,
-      "avg_volume_10": 2281450.0,
-      "avg_volume_20": 2728975.0,
-      "avg_volume_50": 2658058.0,
-      "relative_volume": 0.738,
-      "up_down_volume_ratio": 1.119,
+      "avg_volume_5": 1720880.0,
+      "avg_volume_10": 2155370.0,
+      "avg_volume_20": 2416575.0,
+      "avg_volume_50": 2620548.0,
+      "relative_volume": 0.633,
+      "up_down_volume_ratio": 1.093,
       "volume_trend": "FALLING",
       "volume_contraction": true
     },
     "moving_averages": {
-      "price_vs_20ma_pct": 0.06,
-      "price_vs_50ma_pct": 14.99,
-      "price_vs_200ma_pct": 15.2,
-      "ma50_slope": 0.244,
-      "ma50_acceleration": 0.1611,
-      "ma200_slope": 0.2806,
-      "ma200_acceleration": 0.0074,
+      "price_vs_20ma_pct": 0.56,
+      "price_vs_50ma_pct": 14.96,
+      "price_vs_200ma_pct": 15.22,
+      "ma50_slope": 0.2905,
+      "ma50_acceleration": 0.0429,
+      "ma200_slope": 0.2695,
+      "ma200_acceleration": -0.0106,
       "ma50_transition": "ACCELERATING_UP",
-      "ma200_transition": "ACCELERATING_UP",
-      "ma_compression_pct": 0.16
+      "ma200_transition": "TURNING_UP",
+      "ma_compression_pct": 0.19
     },
     "sector_confirmation": {
       "stock_vs_sector": "UNKNOWN",
@@ -120386,7 +120416,7 @@
     },
     "liquidity_gate": {
       "passes": true,
-      "dollar_volume": 34057607.0,
+      "dollar_volume": 30328017.0,
       "min_required": 5000000.0,
       "market": "US"
     },
@@ -120837,11 +120867,11 @@
     "market": "US",
     "first_radar_date": "2026-09-04",
     "first_radar_price": 21.389999389648438,
-    "current_price": 20.969999313354492,
-    "current_score": 59.5,
-    "current_state": "EARLY",
+    "current_price": 21.18000030517578,
+    "current_score": 71.7,
+    "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 4,
+    "days_on_radar": 6,
     "score_history": [
       {
         "date": "2026-09-04",
@@ -120860,14 +120890,20 @@
         "score": 59.5,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-09-10",
+        "score": 71.7,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
       }
     ],
     "score_components": {
       "rs_improvement": 1.0,
       "breakout_proximity": 0.5,
-      "structure_compression": 0.368,
+      "structure_compression": 0.717,
       "volume_behavior": 0.3,
-      "higher_low_structure": 0.0,
+      "higher_low_structure": 0.5,
       "ma50_transition": 1.0,
       "ma200_transition": 1.0,
       "sector_confirmation": null,
@@ -120876,50 +120912,50 @@
       "market_regime": null
     },
     "resistance_price": 22.19,
-    "distance_to_resistance_pct": 5.5,
-    "rs": 526.2,
-    "rs_trend": 543.6,
+    "distance_to_resistance_pct": 4.55,
+    "rs": 687.1,
+    "rs_trend": 635.1,
     "structure": {
-      "ms_structure": "Transitioning",
-      "ms_hh_hl": false,
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
       "ms_last_swing_high": 22.19,
-      "ms_last_swing_low": 14.1,
+      "ms_last_swing_low": 19.55,
       "base_depth_pct": 36.46,
-      "base_duration_bars": 5,
+      "base_duration_bars": 7,
       "higher_lows_flat_resistance": false
     },
     "volatility": {
-      "atr_pct_5": 4.893,
-      "atr_pct_10": 5.036,
-      "atr_pct_20": 4.939,
-      "atr_ratio_5_20": 0.991,
-      "bb_width_pct": 20.714,
-      "range_ratio_5_20": 0.632,
-      "volatility_percentile": 4.7,
+      "atr_pct_5": 4.325,
+      "atr_pct_10": 4.632,
+      "atr_pct_20": 4.904,
+      "atr_ratio_5_20": 0.882,
+      "bb_width_pct": 18.584,
+      "range_ratio_5_20": 0.433,
+      "volatility_percentile": 3.9,
       "volatility_contraction": false,
-      "volatility_contraction_acceleration": false
+      "volatility_contraction_acceleration": true
     },
     "volume": {
-      "avg_volume_5": 9312780.0,
-      "avg_volume_10": 9393220.0,
-      "avg_volume_20": 9881965.0,
-      "avg_volume_50": 10261702.0,
-      "relative_volume": 0.736,
-      "up_down_volume_ratio": 1.154,
+      "avg_volume_5": 8650260.0,
+      "avg_volume_10": 9292420.0,
+      "avg_volume_20": 9721955.0,
+      "avg_volume_50": 10210574.0,
+      "relative_volume": 0.918,
+      "up_down_volume_ratio": 0.971,
       "volume_trend": "FLAT",
       "volume_contraction": false
     },
     "moving_averages": {
-      "price_vs_20ma_pct": 3.38,
-      "price_vs_50ma_pct": 16.18,
-      "price_vs_200ma_pct": 6.54,
-      "ma50_slope": 0.3426,
-      "ma50_acceleration": 0.2532,
-      "ma200_slope": 0.2317,
-      "ma200_acceleration": 0.0526,
+      "price_vs_20ma_pct": 3.35,
+      "price_vs_50ma_pct": 16.28,
+      "price_vs_200ma_pct": 7.11,
+      "ma50_slope": 0.4024,
+      "ma50_acceleration": 0.114,
+      "ma200_slope": 0.2255,
+      "ma200_acceleration": 0.0261,
       "ma50_transition": "ACCELERATING_UP",
       "ma200_transition": "ACCELERATING_UP",
-      "ma_compression_pct": 7.79
+      "ma_compression_pct": 7.37
     },
     "sector_confirmation": {
       "stock_vs_sector": "UNKNOWN",
@@ -120932,7 +120968,7 @@
     },
     "liquidity_gate": {
       "passes": true,
-      "dollar_volume": 207224799.0,
+      "dollar_volume": 205911010.0,
       "min_required": 5000000.0,
       "market": "US"
     },
@@ -120951,11 +120987,11 @@
     "market": "US",
     "first_radar_date": "2026-09-04",
     "first_radar_price": 20.540000915527344,
-    "current_price": 20.06999969482422,
-    "current_score": 60.6,
-    "current_state": "WATCH",
+    "current_price": 20.260000228881836,
+    "current_score": 73.2,
+    "current_state": "DEVELOPING",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 4,
+    "days_on_radar": 6,
     "score_history": [
       {
         "date": "2026-09-04",
@@ -120974,13 +121010,19 @@
         "score": 60.6,
         "state": "WATCH",
         "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-09-10",
+        "score": 73.2,
+        "state": "DEVELOPING",
+        "evidence_quality": "MEDIUM"
       }
     ],
     "score_components": {
       "rs_improvement": 1.0,
       "breakout_proximity": 0.25,
-      "structure_compression": 0.493,
-      "volume_behavior": 0.0,
+      "structure_compression": 0.772,
+      "volume_behavior": 0.6,
       "higher_low_structure": 0.5,
       "ma50_transition": 1.0,
       "ma200_transition": 1.0,
@@ -120990,50 +121032,50 @@
       "market_regime": null
     },
     "resistance_price": 21.93,
-    "distance_to_resistance_pct": 8.48,
-    "rs": 216.2,
-    "rs_trend": 634.8,
+    "distance_to_resistance_pct": 7.62,
+    "rs": 338.0,
+    "rs_trend": 1129.7,
     "structure": {
       "ms_structure": "Bullish (HH/HL)",
       "ms_hh_hl": true,
       "ms_last_swing_high": 21.93,
-      "ms_last_swing_low": 18.28,
+      "ms_last_swing_low": 19.05,
       "base_depth_pct": 26.68,
-      "base_duration_bars": 5,
+      "base_duration_bars": 7,
       "higher_lows_flat_resistance": false
     },
     "volatility": {
-      "atr_pct_5": 4.34,
-      "atr_pct_10": 4.763,
-      "atr_pct_20": 4.554,
-      "atr_ratio_5_20": 0.953,
-      "bb_width_pct": 19.764,
-      "range_ratio_5_20": 0.507,
-      "volatility_percentile": 0.0,
+      "atr_pct_5": 4.141,
+      "atr_pct_10": 4.435,
+      "atr_pct_20": 4.525,
+      "atr_ratio_5_20": 0.915,
+      "bb_width_pct": 18.968,
+      "range_ratio_5_20": 0.378,
+      "volatility_percentile": 0.4,
       "volatility_contraction": false,
-      "volatility_contraction_acceleration": false
+      "volatility_contraction_acceleration": true
     },
     "volume": {
-      "avg_volume_5": 942340.0,
-      "avg_volume_10": 876780.0,
-      "avg_volume_20": 1114570.0,
-      "avg_volume_50": 1138964.0,
-      "relative_volume": 0.584,
-      "up_down_volume_ratio": 1.651,
+      "avg_volume_5": 849180.0,
+      "avg_volume_10": 872460.0,
+      "avg_volume_20": 1112740.0,
+      "avg_volume_50": 965186.0,
+      "relative_volume": 0.883,
+      "up_down_volume_ratio": 1.621,
       "volume_trend": "FALLING",
-      "volume_contraction": false
+      "volume_contraction": true
     },
     "moving_averages": {
-      "price_vs_20ma_pct": 0.61,
-      "price_vs_50ma_pct": 7.54,
-      "price_vs_200ma_pct": -4.98,
-      "ma50_slope": 0.1505,
-      "ma50_acceleration": 0.2434,
-      "ma200_slope": 0.0826,
-      "ma200_acceleration": 0.0805,
+      "price_vs_20ma_pct": 1.01,
+      "price_vs_50ma_pct": 8.03,
+      "price_vs_200ma_pct": -4.21,
+      "ma50_slope": 0.1897,
+      "ma50_acceleration": 0.1047,
+      "ma200_slope": 0.0704,
+      "ma200_acceleration": 0.0409,
       "ma50_transition": "ACCELERATING_UP",
       "ma200_transition": "ACCELERATING_UP",
-      "ma_compression_pct": 12.26
+      "ma_compression_pct": 11.82
     },
     "sector_confirmation": {
       "stock_vs_sector": "UNKNOWN",
@@ -121046,7 +121088,7 @@
     },
     "liquidity_gate": {
       "passes": true,
-      "dollar_volume": 22369420.0,
+      "dollar_volume": 22544113.0,
       "min_required": 5000000.0,
       "market": "US"
     },
@@ -121281,11 +121323,11 @@
     "market": "US",
     "first_radar_date": "2026-09-04",
     "first_radar_price": 3.7899999618530273,
-    "current_price": 3.880000114440918,
-    "current_score": 58.7,
+    "current_price": 3.7799999713897705,
+    "current_score": 57.5,
     "current_state": "EARLY",
     "evidence_quality": "MEDIUM",
-    "days_on_radar": 4,
+    "days_on_radar": 6,
     "score_history": [
       {
         "date": "2026-09-04",
@@ -121304,12 +121346,18 @@
         "score": 58.7,
         "state": "EARLY",
         "evidence_quality": "MEDIUM"
+      },
+      {
+        "date": "2026-09-10",
+        "score": 57.5,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
       }
     ],
     "score_components": {
       "rs_improvement": 1.0,
       "breakout_proximity": 0.5,
-      "structure_compression": 0.112,
+      "structure_compression": 0.025,
       "volume_behavior": 0.0,
       "higher_low_structure": 1.0,
       "ma50_transition": 1.0,
@@ -121319,51 +121367,51 @@
       "fundamental_acceleration": null,
       "market_regime": null
     },
-    "resistance_price": 4.06,
-    "distance_to_resistance_pct": 4.43,
-    "rs": 378.6,
-    "rs_trend": 1384.0,
+    "resistance_price": 4.02,
+    "distance_to_resistance_pct": 5.97,
+    "rs": 499.2,
+    "rs_trend": 680.5,
     "structure": {
       "ms_structure": "Transitioning",
       "ms_hh_hl": false,
       "ms_last_swing_high": 4.02,
       "ms_last_swing_low": 3.01,
       "base_depth_pct": 32.32,
-      "base_duration_bars": 31,
+      "base_duration_bars": 33,
       "higher_lows_flat_resistance": true
     },
     "volatility": {
-      "atr_pct_5": 4.67,
-      "atr_pct_10": 4.265,
-      "atr_pct_20": 3.733,
-      "atr_ratio_5_20": 1.251,
-      "bb_width_pct": 10.047,
-      "range_ratio_5_20": 0.888,
-      "volatility_percentile": 3.0,
+      "atr_pct_5": 5.323,
+      "atr_pct_10": 4.772,
+      "atr_pct_20": 3.858,
+      "atr_ratio_5_20": 1.38,
+      "bb_width_pct": 8.482,
+      "range_ratio_5_20": 0.975,
+      "volatility_percentile": 4.3,
       "volatility_contraction": false,
       "volatility_contraction_acceleration": false
     },
     "volume": {
-      "avg_volume_5": 1267920.0,
-      "avg_volume_10": 1325270.0,
-      "avg_volume_20": 1019370.0,
-      "avg_volume_50": 1927044.0,
-      "relative_volume": 1.325,
-      "up_down_volume_ratio": 1.549,
+      "avg_volume_5": 1676180.0,
+      "avg_volume_10": 1545310.0,
+      "avg_volume_20": 1110970.0,
+      "avg_volume_50": 1849446.0,
+      "relative_volume": 0.814,
+      "up_down_volume_ratio": 1.069,
       "volume_trend": "RISING",
       "volume_contraction": false
     },
     "moving_averages": {
-      "price_vs_20ma_pct": 1.48,
-      "price_vs_50ma_pct": 6.49,
-      "price_vs_200ma_pct": -21.11,
-      "ma50_slope": 0.7501,
-      "ma50_acceleration": 0.6957,
-      "ma200_slope": -0.9141,
-      "ma200_acceleration": 0.0097,
+      "price_vs_20ma_pct": -0.71,
+      "price_vs_50ma_pct": 2.72,
+      "price_vs_200ma_pct": -21.94,
+      "ma50_slope": 0.732,
+      "ma50_acceleration": 0.5064,
+      "ma200_slope": -0.895,
+      "ma200_acceleration": 0.0459,
       "ma50_transition": "ACCELERATING_UP",
       "ma200_transition": "FALLING",
-      "ma_compression_pct": 32.84
+      "ma_compression_pct": 30.74
     },
     "sector_confirmation": {
       "stock_vs_sector": "UNKNOWN",
@@ -121376,7 +121424,7 @@
     },
     "liquidity_gate": {
       "passes": false,
-      "dollar_volume": 3955156.0,
+      "dollar_volume": 4199467.0,
       "min_required": 5000000.0,
       "market": "US"
     },
@@ -126244,5 +126292,209 @@
     "target_price": null,
     "risk_reward": null,
     "benchmark_price": null
+  },
+  {
+    "ticker": "CHPT",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-10 08:50:18",
+    "entry_price": 8.949999809265137,
+    "market": "US",
+    "first_radar_date": "2026-09-10",
+    "first_radar_price": 8.949999809265137,
+    "current_price": 8.949999809265137,
+    "current_score": 53.6,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-10",
+        "score": 53.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 1.0,
+      "breakout_proximity": 0.25,
+      "structure_compression": 0.0,
+      "volume_behavior": 0.0,
+      "higher_low_structure": 1.0,
+      "ma50_transition": 1.0,
+      "ma200_transition": 0.0,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 10.43,
+    "distance_to_resistance_pct": 14.19,
+    "rs": 783.9,
+    "rs_trend": 3731.5,
+    "structure": {
+      "ms_structure": "Transitioning",
+      "ms_hh_hl": false,
+      "ms_last_swing_high": 6.55,
+      "ms_last_swing_low": 5.51,
+      "base_depth_pct": 51.34,
+      "base_duration_bars": 1,
+      "higher_lows_flat_resistance": true
+    },
+    "volatility": {
+      "atr_pct_5": 16.849,
+      "atr_pct_10": 9.784,
+      "atr_pct_20": 6.741,
+      "atr_ratio_5_20": 2.499,
+      "bb_width_pct": 90.476,
+      "range_ratio_5_20": 1.0,
+      "volatility_percentile": 69.8,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 13368680.0,
+      "avg_volume_10": 6884520.0,
+      "avg_volume_20": 3615765.0,
+      "avg_volume_50": 1726378.0,
+      "relative_volume": 1.311,
+      "up_down_volume_ratio": 4.397,
+      "volume_trend": "RISING",
+      "volume_contraction": false
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 37.18,
+      "price_vs_50ma_pct": 47.37,
+      "price_vs_200ma_pct": 37.89,
+      "ma50_slope": 0.1171,
+      "ma50_acceleration": 0.5578,
+      "ma200_slope": -0.1512,
+      "ma200_acceleration": 0.2029,
+      "ma50_transition": "ACCELERATING_UP",
+      "ma200_transition": "FALLING",
+      "ma_compression_pct": 4.66
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 32361096.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
+  },
+  {
+    "ticker": "ERO",
+    "observation_type": "apex10_radar",
+    "timestamp": "2026-09-10 08:50:18",
+    "entry_price": 38.25,
+    "market": "US",
+    "first_radar_date": "2026-09-10",
+    "first_radar_price": 38.25,
+    "current_price": 38.25,
+    "current_score": 53.6,
+    "current_state": "EARLY",
+    "evidence_quality": "MEDIUM",
+    "days_on_radar": 0,
+    "score_history": [
+      {
+        "date": "2026-09-10",
+        "score": 53.6,
+        "state": "EARLY",
+        "evidence_quality": "MEDIUM"
+      }
+    ],
+    "score_components": {
+      "rs_improvement": 0.5,
+      "breakout_proximity": 0.5,
+      "structure_compression": 0.353,
+      "volume_behavior": 0.6,
+      "higher_low_structure": 0.5,
+      "ma50_transition": 0.7,
+      "ma200_transition": 0.7,
+      "sector_confirmation": null,
+      "institutional_trend": null,
+      "fundamental_acceleration": null,
+      "market_regime": null
+    },
+    "resistance_price": 40.83,
+    "distance_to_resistance_pct": 6.32,
+    "rs": 951.6,
+    "rs_trend": -255.5,
+    "structure": {
+      "ms_structure": "Bullish (HH/HL)",
+      "ms_hh_hl": true,
+      "ms_last_swing_high": 40.83,
+      "ms_last_swing_low": 32.84,
+      "base_depth_pct": 42.7,
+      "base_duration_bars": 9,
+      "higher_lows_flat_resistance": false
+    },
+    "volatility": {
+      "atr_pct_5": 5.605,
+      "atr_pct_10": 5.184,
+      "atr_pct_20": 5.239,
+      "atr_ratio_5_20": 1.07,
+      "bb_width_pct": 25.102,
+      "range_ratio_5_20": 0.647,
+      "volatility_percentile": 47.0,
+      "volatility_contraction": false,
+      "volatility_contraction_acceleration": false
+    },
+    "volume": {
+      "avg_volume_5": 1250180.0,
+      "avg_volume_10": 1473410.0,
+      "avg_volume_20": 1605620.0,
+      "avg_volume_50": 1311696.0,
+      "relative_volume": 0.942,
+      "up_down_volume_ratio": 0.991,
+      "volume_trend": "FALLING",
+      "volume_contraction": true
+    },
+    "moving_averages": {
+      "price_vs_20ma_pct": 4.57,
+      "price_vs_50ma_pct": 23.54,
+      "price_vs_200ma_pct": 31.4,
+      "ma50_slope": 0.5251,
+      "ma50_acceleration": -0.0129,
+      "ma200_slope": 0.2473,
+      "ma200_acceleration": -0.0141,
+      "ma50_transition": "TURNING_UP",
+      "ma200_transition": "TURNING_UP",
+      "ma_compression_pct": 4.84
+    },
+    "sector_confirmation": {
+      "stock_vs_sector": "UNKNOWN",
+      "sector_vs_market": "UNKNOWN",
+      "data_available": false
+    },
+    "market_regime": {
+      "regime": "UNKNOWN",
+      "data_available": false
+    },
+    "liquidity_gate": {
+      "passes": true,
+      "dollar_volume": 61414965.0,
+      "min_required": 5000000.0,
+      "market": "US"
+    },
+    "breakout_status": "PRE_BREAKOUT",
+    "breakout_date": null,
+    "breakout_price": null,
+    "feature_version": "APEX10-FEATURES-C1",
+    "model_version": "APEX10-SCORE-D1",
+    "outcomes": {}
   }
 ]
