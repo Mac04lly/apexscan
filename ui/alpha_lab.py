@@ -782,6 +782,7 @@ def _render_short_radar(observations: list, short_radar_obs: list, horizon: str)
 def _render_invalidation_alpha(observations: list, horizon: str):
     from modules.invalidation_alpha import (
         backfill_stop_prices, log_invalidation_events, compute_invalidation_alpha_overview,
+        cleanup_buggy_near_miss_events,
     )
     from modules.alpha_validation import save_observations
 
@@ -794,6 +795,24 @@ def _render_invalidation_alpha(observations: list, horizon: str):
         "5% of stop_price but never closed below it — tests whether a held/tested level is "
         "itself a usable entry signal, rather than buying at discovery."
     )
+
+    _n_bad_near_miss = sum(1 for o in observations if o.get("observation_type") == "invalidation_near_miss")
+    if _n_bad_near_miss > 0:
+        st.warning(
+            f"⚠️ {_n_bad_near_miss} near-miss observation(s) on record were logged before a "
+            f"look-ahead bug was fixed (they picked each stock's single lowest price in "
+            f"hindsight rather than the first genuine approach to the line, which is why "
+            f"near-miss win rate showed an impossible 100%). These need to be cleared before "
+            f"the numbers below can be trusted — clearing them will let the corrected scan "
+            f"re-detect real near-miss events from scratch next time you run it."
+        )
+        if st.button("🧹 Clean Up Old Near-Miss Data (one-time bug fix)", key="inval_alpha_cleanup_btn"):
+            with st.spinner("Removing bugged near-miss observations…"):
+                n_removed = cleanup_buggy_near_miss_events(observations)
+                save_observations(observations)
+            st.success(f"✅ Removed {n_removed} bugged near-miss observation(s). "
+                       f"Click 'Scan for Invalidation Events' below to re-detect them correctly.")
+            st.rerun()
 
     if st.button("🔎 Scan for Invalidation Events", key="inval_alpha_scan_btn"):
         with st.spinner("Backfilling stop prices and walking price history since discovery…"):
