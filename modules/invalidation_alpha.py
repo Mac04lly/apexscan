@@ -7,15 +7,19 @@ what happens to the ORIGINAL THESIS after discovery — testing or
 breaking its invalidation level — itself predict direction?"
 
 Two event types, discovered by walking each ticker's real daily price
-history since discovery:
+history since discovery CHRONOLOGICALLY — whichever happens first wins,
+using only information available on that day (never information from
+later days, which is what caused an earlier version of this file to
+mislabel results — see note in log_invalidation_events):
   - invalidation_breach:    first close below stop_price. Tests whether
                              that should mean getting out immediately
                              (negative forward returns) or is usually a
                              shakeout right before a bounce (positive).
-  - invalidation_near_miss: never breaches, but comes within
-                             near_miss_pct of stop_price at some point.
-                             Tests whether a held/tested level is itself
-                             a usable entry signal.
+  - invalidation_near_miss: first close that comes within near_miss_pct
+                             of stop_price WITHOUT having breached it
+                             first. Tests whether a genuinely first-time
+                             approach to the level is itself a usable
+                             entry signal.
 
 This deliberately does NOT invent a new statistics engine. Per
 modules/outcome_engine.py's own docstring, that engine is type-agnostic
@@ -49,6 +53,39 @@ except Exception:
 log = logging.getLogger("apexscan.modules.invalidation_alpha")
 
 _EVENT_TYPES = ("invalidation_breach", "invalidation_near_miss")
+
+
+def cleanup_buggy_near_miss_events(observations: list) -> int:
+    """
+    One-time repair for invalidation_near_miss observations logged by
+    the pre-fix version of log_invalidation_events(), which picked the
+    single lowest price across a ticker's ENTIRE history-to-date (via
+    argmin) as "the event," rather than the first genuine approach to
+    the line. That's a look-ahead bug — the lowest point of any series
+    is almost always followed by higher prices, which is why it
+    produced a meaningless ~100% win rate instead of a real signal (see
+    the module docstring above for the full explanation).
+
+    invalidation_breach observations were NOT affected — breach
+    detection always used "first close below the line," which was
+    already causal — so this only ever removes invalidation_near_miss
+    entries, never breach entries.
+
+    Removing them also frees their source discoveries to be rescanned:
+    log_invalidation_events() skips any source whose observation_id
+    already appears in an existing event's source_observation_id, and
+    under the old code each source could only ever produce one event
+    (breach OR near-miss, never both), so deleting the bad near-miss
+    entries makes those sources eligible again next time the scan runs.
+
+    Mutates `observations` in place via slice assignment, so the
+    caller's existing list reference stays valid — caller persists via
+    save_observations(). Returns the count removed. Safe to run more
+    than once; a second run simply finds nothing left to remove.
+    """
+    before = len(observations)
+    observations[:] = [o for o in observations if o.get("observation_type") != "invalidation_near_miss"]
+    return before - len(observations)
 
 
 def backfill_stop_prices(observations: list) -> int:
@@ -150,21 +187,23 @@ def log_invalidation_events(observations: list, near_miss_pct: float = 5.0,
                 skipped += 1
                 continue
 
-            breach_mask = close < stop_price
+            # Walk forward chronologically and take whichever happens
+            # FIRST, using only information available on that day — never
+            # the whole series in hindsight. The earlier version picked
+            # the single lowest price across the entire history-to-date
+            # for near misses, which is a look-ahead bug: the lowest
+            # point of any series is mechanically followed by higher
+            # prices most of the time, which is why that produced a
+            # meaningless 100% win rate rather than a real signal.
             event_type, event_date, event_price = None, None, None
-
-            if breach_mask.any():
-                event_date = breach_mask.idxmax()
-                event_price = float(close.loc[event_date])
-                event_type = "invalidation_breach"
-            else:
-                dist_pct = (close / float(stop_price) - 1) * 100
-                closest_idx = dist_pct.idxmin()
-                closest_val = float(dist_pct.loc[closest_idx])
-                if closest_val <= near_miss_pct:
-                    event_date = closest_idx
-                    event_price = float(close.loc[closest_idx])
-                    event_type = "invalidation_near_miss"
+            for dt, price in close.items():
+                if price < stop_price:
+                    event_type, event_date, event_price = "invalidation_breach", dt, float(price)
+                    break
+                dist_pct = (float(price) / float(stop_price) - 1) * 100
+                if dist_pct <= near_miss_pct:
+                    event_type, event_date, event_price = "invalidation_near_miss", dt, float(price)
+                    break
 
             if event_type is None:
                 continue  # hasn't tested the level yet either way — nothing to log
