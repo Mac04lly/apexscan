@@ -19699,7 +19699,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": 2.24,
-    "perf_2w_pct": 2.38
+    "perf_2w_pct": 2.38,
+    "perf_3w_pct": -4.98
   },
   {
     "ticker": "BR",
@@ -19723,7 +19724,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": 1.8,
-    "perf_2w_pct": -3.58
+    "perf_2w_pct": -3.58,
+    "perf_3w_pct": -6.49
   },
   {
     "ticker": "THO",
@@ -19747,7 +19749,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -4.14,
-    "perf_2w_pct": -4.24
+    "perf_2w_pct": -4.24,
+    "perf_3w_pct": -9.55
   },
   {
     "ticker": "EDIT",
@@ -20130,7 +20133,8 @@
     "current_stage_rank": null,
     "thesis_status": "\u2013 Not enough data",
     "invalidated": false,
-    "perf_1w_pct": -0.05
+    "perf_1w_pct": -0.05,
+    "perf_2w_pct": -1.25
   },
   {
     "ticker": "SLB",
@@ -20153,7 +20157,8 @@
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false,
-    "perf_1w_pct": 4.54
+    "perf_1w_pct": 4.54,
+    "perf_2w_pct": 1.93
   },
   {
     "ticker": "FCFS",
@@ -20176,7 +20181,8 @@
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false,
-    "perf_1w_pct": 0.69
+    "perf_1w_pct": 0.69,
+    "perf_2w_pct": 1.7
   },
   {
     "ticker": "TYL",
@@ -20199,7 +20205,8 @@
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": -1.58
+    "perf_1w_pct": -1.58,
+    "perf_2w_pct": -8.79
   },
   {
     "ticker": "CME",
@@ -20222,7 +20229,8 @@
     "current_stage_rank": 1,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": -0.34
+    "perf_1w_pct": -0.34,
+    "perf_2w_pct": -1.99
   },
   {
     "ticker": "SR",
@@ -20245,7 +20253,8 @@
     "current_stage_rank": -1,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": 0.17
+    "perf_1w_pct": 0.17,
+    "perf_2w_pct": -1.95
   },
   {
     "ticker": "GAP",
@@ -20268,7 +20277,8 @@
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": -5.8
+    "perf_1w_pct": -5.8,
+    "perf_2w_pct": -10.6
   },
   {
     "ticker": "CBOE",
@@ -20291,7 +20301,8 @@
     "current_stage_rank": 2,
     "thesis_status": "\ud83d\udcc8 Strengthened",
     "invalidated": false,
-    "perf_1w_pct": -4.34
+    "perf_1w_pct": -4.34,
+    "perf_2w_pct": -8.83
   },
   {
     "ticker": "G",
@@ -20314,7 +20325,8 @@
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": -1.79
+    "perf_1w_pct": -1.79,
+    "perf_2w_pct": -8.97
   },
   {
     "ticker": "VNOM",
@@ -20543,7 +20555,8 @@
     "days_tracked": 7,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "perf_1w_pct": 1.32
   },
   {
     "ticker": "PRTA",
@@ -20565,7 +20578,8 @@
     "days_tracked": 7,
     "current_stage_rank": -1,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "perf_1w_pct": -7.5
   },
   {
     "ticker": "MUX",
@@ -20587,7 +20601,8 @@
     "days_tracked": 7,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "perf_1w_pct": -5.7
   },
   {
     "ticker": "USAS",
@@ -20609,7 +20624,8 @@
     "days_tracked": 7,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "perf_1w_pct": -7.22
   },
   {
     "ticker": "STAG",
@@ -20631,7 +20647,8 @@
     "days_tracked": 7,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "perf_1w_pct": -2.2
   },
   {
     "ticker": "PSKY",
@@ -20653,7 +20670,8 @@
     "days_tracked": 7,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "perf_1w_pct": -5.21
   },
   {
     "ticker": "CEG",
