@@ -28,6 +28,16 @@ a later change in how the score itself is computed.
 # governance docstring below.
 MODEL_VERSION = "APEX-9.1"
 
+# Optional pre-filled draft for the next proposal, set alongside a
+# scoring change in scanner.py so the Model Governance "Propose a
+# Research Model" form can pre-fill itself instead of someone retyping
+# the same description/source-finding that was already decided when the
+# code was written. Purely a form-filling convenience — it does NOT
+# submit anything by itself; a person still reviews the pre-filled
+# fields and clicks "Propose" (or edits them first) in the UI, same as
+# before. Set to None when there's no pending draft.
+PENDING_PROPOSAL = None
+
 STRATEGY_VERSIONS = {
     "swing":     "SWING-2.0",
     "position":  "POSITION-1.0",
