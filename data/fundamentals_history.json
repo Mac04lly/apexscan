@@ -176,5 +176,19 @@
       "rs_3m": 1317.4
     },
     "as_of": "2026-09-08"
+  },
+  "DVN": {
+    "fields": {
+      "roe": 0.11522,
+      "revenue_growth": 0.642,
+      "earnings_growth": 0.44,
+      "debt_to_equity": 28.488,
+      "gross_margin": 0.50349,
+      "free_cash_flow": 782625024.0,
+      "peg_ratio": 2.925,
+      "institutional_ownership": 0.94757,
+      "rs_3m": 0.0
+    },
+    "as_of": "2026-09-11"
   }
 }
