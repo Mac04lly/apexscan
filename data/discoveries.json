@@ -19524,7 +19524,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -5.77,
-    "perf_2w_pct": -4.19
+    "perf_2w_pct": -4.19,
+    "perf_3w_pct": -6.47
   },
   {
     "ticker": "ROAD",
@@ -19548,7 +19549,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -0.74,
-    "perf_2w_pct": -11.18
+    "perf_2w_pct": -11.18,
+    "perf_3w_pct": -16.86
   },
   {
     "ticker": "ADBE",
@@ -19572,7 +19574,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": 6.12,
-    "perf_2w_pct": 4.87
+    "perf_2w_pct": 4.87,
+    "perf_3w_pct": -8.68
   },
   {
     "ticker": "MUR",
@@ -19596,7 +19599,8 @@
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false,
     "perf_1w_pct": -5.99,
-    "perf_2w_pct": -2.41
+    "perf_2w_pct": -2.41,
+    "perf_3w_pct": 1.54
   },
   {
     "ticker": "MTDR",
@@ -19620,7 +19624,8 @@
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false,
     "perf_1w_pct": -4.35,
-    "perf_2w_pct": 0.67
+    "perf_2w_pct": 0.67,
+    "perf_3w_pct": 3.88
   },
   {
     "ticker": "VMRK",
@@ -19644,7 +19649,8 @@
     "thesis_status": "\u2013 Not enough data",
     "invalidated": false,
     "perf_1w_pct": -0.47,
-    "perf_2w_pct": -1.29
+    "perf_2w_pct": -1.29,
+    "perf_3w_pct": -1.2
   },
   {
     "ticker": "HSY",
@@ -19668,7 +19674,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -4.14,
-    "perf_2w_pct": -7.45
+    "perf_2w_pct": -7.45,
+    "perf_3w_pct": -7.83
   },
   {
     "ticker": "SPGI",
@@ -20099,7 +20106,8 @@
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": 0.39
+    "perf_1w_pct": 0.39,
+    "perf_2w_pct": -2.7
   },
   {
     "ticker": "WMB",
@@ -20397,7 +20405,8 @@
     "days_tracked": 8,
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "perf_1w_pct": -3.41
   },
   {
     "ticker": "VAL",
@@ -20419,7 +20428,8 @@
     "days_tracked": 8,
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "perf_1w_pct": -7.26
   },
   {
     "ticker": "KEX",
@@ -20441,7 +20451,8 @@
     "days_tracked": 8,
     "current_stage_rank": null,
     "thesis_status": "\u2013 Not enough data",
-    "invalidated": false
+    "invalidated": false,
+    "perf_1w_pct": -2.32
   },
   {
     "ticker": "EQT",
@@ -20463,7 +20474,8 @@
     "days_tracked": 8,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "perf_1w_pct": -1.75
   },
   {
     "ticker": "WFRD",
@@ -20485,7 +20497,8 @@
     "days_tracked": 8,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "perf_1w_pct": -7.49
   },
   {
     "ticker": "MSTR",
@@ -20507,7 +20520,8 @@
     "days_tracked": 8,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "perf_1w_pct": -5.41
   },
   {
     "ticker": "CHPT",
