@@ -306,7 +306,7 @@ def _render_model_governance(observations: list, horizon: str):
     result is exactly what gates a Phase 8 promotion approval, so they
     share one screen rather than being split across two."""
     from modules.model_registry import (
-        MODEL_VERSION, get_registry_table, propose_research_model,
+        MODEL_VERSION, PENDING_PROPOSAL, get_registry_table, propose_research_model,
         record_walk_forward_result, approve_promotion, reject_proposal,
         compare_models, STATUS_RESEARCH,
     )
@@ -370,15 +370,25 @@ def _render_model_governance(observations: list, horizon: str):
         "Research Finding from the Combinations & Findings tab). This does not modify any "
         "scoring code."
     )
+    _pending_id   = (PENDING_PROPOSAL or {}).get("version_id", "")
+    _already_registered = _pending_id and any(r["version_id"] == _pending_id for r in table)
+    _prefill = PENDING_PROPOSAL if (PENDING_PROPOSAL and not _already_registered) else {}
+    if _prefill:
+        st.caption(f"📋 Pre-filled below from a pending draft in code ({_prefill.get('version_id')}) — "
+                   f"review before proposing, edit anything that needs it.")
     with st.form("propose_research_model_form"):
         pc1, pc2 = st.columns(2)
         with pc1:
-            new_version_id = st.text_input("Proposed version ID", placeholder="e.g. APEX-9.1")
+            new_version_id = st.text_input("Proposed version ID", value=_prefill.get("version_id", ""),
+                                           placeholder="e.g. APEX-9.1")
         with pc2:
-            proposed_by = st.text_input("Proposed by")
+            proposed_by = st.text_input("Proposed by", value=_prefill.get("proposed_by", ""))
         description = st.text_area("Description — what would change, and why",
+                                   value=_prefill.get("description", ""),
                                    placeholder="e.g. Increase RS weighting based on Finding #3")
-        source_finding = st.text_input("Source finding (optional)", placeholder="e.g. S2-HIGH-RS setup")
+        source_finding = st.text_input("Source finding (optional)",
+                                       value=_prefill.get("source_finding", ""),
+                                       placeholder="e.g. S2-HIGH-RS setup")
         submitted = st.form_submit_button("Propose")
     if submitted:
         try:
@@ -393,6 +403,10 @@ def _render_model_governance(observations: list, horizon: str):
         st.markdown("---")
         st.markdown("#### Record a Walk-Forward Result / Approve")
         sel_version = st.selectbox("Research version", research_versions, key="gov_sel_version")
+        _sel_record = next((r for r in table if r["version_id"] == sel_version), {})
+        if wf and wf.get("ready") and not _sel_record.get("walk_forward_result"):
+            st.success(f"✅ {sel_version} has enough resolved observations for a walk-forward "
+                       f"check now — click 'Attach current walk-forward result' below when ready.")
         gc1, gc2 = st.columns(2)
         with gc1:
             if st.button("Attach current walk-forward result", key="gov_attach_wf"):
