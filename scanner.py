@@ -253,17 +253,17 @@ def detect_early_entry(close: pd.Series, ma50: float, ma200: float,
     if score > 0:
         result["early_entry"]       = True
         result["early_entry_type"]  = " | ".join(signals) if signals else ""
-        # Cap raised 10 → 20 (Sep 2026 rebalance). Setup Alpha showed
-        # "Stage 2 — Fresh 200MA Reclaim" — exactly what fresh_200ma_cross
-        # detects above — as the best-evidenced setup in the discovery
-        # log (n=14, -0.43% expectancy, 0.87 profit factor), while the
-        # momentum-block-driven "Stage 2 — High Relative Strength" setup
-        # (n=132, the most common one) was the worst (-2.95% expectancy,
-        # 0.30 profit factor). This function was already detecting the
-        # right thing; it just wasn't weighted enough to matter next to
-        # a momentum block worth up to 100 points. See the matching
-        # comment at the main score computation for the full rebalance.
-        result["early_entry_score"] = min(20, score)
+        # Reverted to original cap (Sep 2026): the Sep 2026 rebalance's
+        # raise to 20 was deployed to production (MODEL_VERSION bumped
+        # directly to APEX-9.1) without ever going through walk-forward
+        # validation or approve_promotion() — the registry itself still
+        # showed status=research, walk_forward_result=null,
+        # approved_by=null the whole time it was live. Rolled back with
+        # zero observations lost (none existed yet under APEX-9.1).
+        # APEX-9.1 remains a registered research proposal in
+        # modules/model_registry.py — this cap goes back to 20 only if
+        # that version is properly walk-forward-tested and approved.
+        result["early_entry_score"] = min(10, score)
 
     return result
 
@@ -664,13 +664,13 @@ def order_flow_persistence(hist: pd.DataFrame, lookback: int = 10) -> Dict:
     if max_run >= 4:          score += 1
 
     return {
-        # Cap raised 8 → 12 (Sep 2026 rebalance). This was the single
-        # cleanest predictive feature found in early Alpha Lab testing —
-        # a real, non-confounded spread (+1.13% top bucket vs -3.42%
-        # bottom bucket) — yet it was capped lower than near-cosmetic
-        # factors like "near 52-week high." See the main score
-        # computation comment for the full rebalance rationale.
-        "of_persistence_score": min(12, score),
+        # Reverted to original cap (Sep 2026) — see the matching note in
+        # detect_early_entry() above. The Sep 2026 rebalance's raise to
+        # 12 was deployed without walk-forward validation or approval
+        # and has been rolled back. Goes back to 12 only once APEX-9.1
+        # (registered as a research proposal in modules/model_registry.py)
+        # actually passes that process.
+        "of_persistence_score": min(8, score),
         "of_directional_bias":  bias,
         "of_up_vol_ratio":      up_vol_ratio,
         "of_bullish_days_%":    bullish_pct,
@@ -1286,57 +1286,48 @@ def analyze_stock(ticker: str, cfg: dict,
         score = 0
 
         # ══════════════════════════════════════════════════════════════
-        # SEP 2026 REBALANCE — evidence and reasoning
+        # SEP 2026 REBALANCE — proposed, deployed, and ROLLED BACK
         #
-        # Weeks of Discovery Tracker / Alpha Lab data converged on one
-        # diagnosis: this score correlated ~0.53 with simply already
-        # being in Stage 2 (Uptrend), and score buckets showed NO clean
-        # win-rate/expectancy gradient (several 95% CIs on the losing
-        # side, none reliably on the winning side). Setup Alpha then
-        # showed exactly why: "Stage 2 — High Relative Strength" (n=132,
-        # driven by the momentum block below) was the WORST-performing
-        # setup at -2.95% expectancy / 0.30 profit factor, while "Stage
-        # 2 — Fresh 200MA Reclaim" (n=14, driven by detect_early_entry's
-        # fresh_200ma_cross) was the BEST at -0.43% expectancy / 0.87
-        # profit factor. The old weighting let "already moved a lot"
-        # factors contribute up to 100 points, while the mechanism that
-        # already detected the better-performing setup was capped at 10.
+        # A rebalance was designed here with real supporting evidence
+        # (Setup Alpha: "Stage 2 — Fresh 200MA Reclaim", n=14, -0.43%
+        # expectancy vs "Stage 2 — High Relative Strength", n=132,
+        # -2.95% expectancy) and proposed as APEX-9.1 through Model
+        # Governance's form, exactly as intended. But MODEL_VERSION was
+        # then edited directly to "APEX-9.1" in the same change — without
+        # ever running walk-forward validation or approve_promotion().
+        # The registry itself caught this: it kept showing
+        # status="research", walk_forward_result=null, approved_by=null
+        # the entire time the new weights were actually live in
+        # production. That's precisely the scenario Model Governance
+        # exists to prevent — a real, well-reasoned finding is not the
+        # same thing as a validated one, and n=14 vs n=132 is exactly
+        # the kind of small comparison that could be explained by
+        # something other than the setup itself.
         #
-        # This rebalance: (1) roughly halves the pure "already happened"
-        # momentum block (perf_3m, rs_3m, above-MA, near-52wk-high),
-        # (2) raises breaking_out's weight, since a real volume-confirmed
-        # breakout is a current, hard-to-fake signal — not stale history
-        # — and this is also the correct Darvas-style distinction: buying
-        # a confirmed breakout is fine, buying "near a high with no
-        # volume" is the chasing behavior the data was punishing, and
-        # (3) raises early_entry_score and of_persistence_score, the two
-        # mechanisms with direct evidence behind them (see their own
-        # function-level comments). Net effect: momentum-block max drops
-        # from 100 to 60; freshness/confirmation-block max rises from 30
-        # to 59 — roughly parity, instead of a 3:1 tilt toward momentum.
-        #
-        # This is a genuine, evidence-driven rebalance, not a guess — but
-        # it's still a hypothesis until Discovery Tracker / Alpha Lab
-        # accumulate enough NEW observations under these weights to test
-        # it the same rigorous way the old weights were tested. Don't
-        # treat the ratios above as final; revisit them once this
-        # rebalance has its own sample to judge.
+        # Rolled back to the original APEX-9.0 weights below at zero
+        # cost — no observations existed yet under APEX-9.1 when this
+        # was caught. APEX-9.1 remains on record as a registered
+        # research proposal in modules/model_registry.py. If it earns
+        # walk-forward validation and a named approval in the future,
+        # re-apply: perf_3m cap 40->20, rs_3m 25/12->15/8, above-MA
+        # 15/7->10/5, near_52wh 10->5, breaking_out 10->15,
+        # early_entry_score cap 10->20, of_persistence_score cap 8->12.
         # ══════════════════════════════════════════════════════════════
 
-        if perf_3m > thresholds["min_3m_perf"]:    score += min(20, perf_3m)  # was min(40, perf_3m)
+        if perf_3m > thresholds["min_3m_perf"]:    score += min(40, perf_3m)
 
-        if rs_3m > thresholds["rs_rating_min"]:     score += 15  # was 25
-        elif rs_3m > 50:                            score += 8   # was 12
+        if rs_3m > thresholds["rs_rating_min"]:     score += 25
+        elif rs_3m > 50:                            score += 12
 
         if rs_r2500 is not None and rs_r2500 > 100: score += 3
         if rs_r3000g is not None and rs_r3000g > 100: score += 3
         if rs_multi_leader:                         score += 4
 
-        if above_200ma and ma50_gt_200:             score += 10  # was 15
-        elif above_200ma:                           score += 5   # was 7
+        if above_200ma and ma50_gt_200:             score += 15
+        elif above_200ma:                           score += 7
 
-        if near_52wh:                               score += 5   # was 10
-        if breaking_out:                            score += 15  # was 10 — real, current, volume-confirmed signal
+        if near_52wh:                               score += 10
+        if breaking_out:                            score += 10
 
         score += of_data["of_persistence_score"]
         score += pa_data["pa_score"]
