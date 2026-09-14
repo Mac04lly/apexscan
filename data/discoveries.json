@@ -19774,7 +19774,8 @@
     "thesis_status": "\u2013 Not enough data",
     "invalidated": false,
     "perf_1w_pct": -1.61,
-    "perf_2w_pct": -2.57
+    "perf_2w_pct": -2.57,
+    "perf_3w_pct": -13.67
   },
   {
     "ticker": "BEKE",
@@ -19798,7 +19799,8 @@
     "thesis_status": "\ud83d\udcc8 Strengthened",
     "invalidated": false,
     "perf_1w_pct": -3.15,
-    "perf_2w_pct": -2.7
+    "perf_2w_pct": -2.7,
+    "perf_3w_pct": -5.72
   },
   {
     "ticker": "NTLA",
@@ -19822,7 +19824,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -0.86,
-    "perf_2w_pct": -0.78
+    "perf_2w_pct": -0.78,
+    "perf_3w_pct": -7.94
   },
   {
     "ticker": "BEAM",
@@ -19846,7 +19849,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -1.11,
-    "perf_2w_pct": -9.85
+    "perf_2w_pct": -9.85,
+    "perf_3w_pct": -18.25
   },
   {
     "ticker": "SQM",
@@ -19870,7 +19874,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -5.41,
-    "perf_2w_pct": -7.69
+    "perf_2w_pct": -7.69,
+    "perf_3w_pct": -15.5
   },
   {
     "ticker": "SVM",
@@ -19894,7 +19899,8 @@
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false,
     "perf_1w_pct": -0.72,
-    "perf_2w_pct": -0.8
+    "perf_2w_pct": -0.8,
+    "perf_3w_pct": -9.78
   },
   {
     "ticker": "AG",
@@ -19918,7 +19924,8 @@
     "thesis_status": "\u26a0\ufe0f Weakened",
     "invalidated": false,
     "perf_1w_pct": -2.37,
-    "perf_2w_pct": -1.61
+    "perf_2w_pct": -1.61,
+    "perf_3w_pct": -10.95
   },
   {
     "ticker": "DNUT",
@@ -19942,7 +19949,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -4.74,
-    "perf_2w_pct": -7.8
+    "perf_2w_pct": -7.8,
+    "perf_3w_pct": -10.17
   },
   {
     "ticker": "RRC",
@@ -19966,7 +19974,8 @@
     "thesis_status": "\ud83d\udcc8 Strengthened",
     "invalidated": false,
     "perf_1w_pct": 0.63,
-    "perf_2w_pct": 2.02
+    "perf_2w_pct": 2.02,
+    "perf_3w_pct": 1.95
   },
   {
     "ticker": "MOS",
@@ -19990,7 +19999,8 @@
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false,
     "perf_1w_pct": -1.19,
-    "perf_2w_pct": 8.68
+    "perf_2w_pct": 8.68,
+    "perf_3w_pct": 1.54
   },
   {
     "ticker": "FCN",
@@ -20014,7 +20024,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -3.32,
-    "perf_2w_pct": -3.04
+    "perf_2w_pct": -3.04,
+    "perf_3w_pct": -2.44
   },
   {
     "ticker": "YUM",
@@ -20349,7 +20360,8 @@
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false,
-    "perf_1w_pct": -0.95
+    "perf_1w_pct": -0.95,
+    "perf_2w_pct": 0.68
   },
   {
     "ticker": "AGCO",
