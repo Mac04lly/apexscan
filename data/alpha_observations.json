@@ -125338,26 +125338,6 @@
     "benchmark_price": null
   },
   {
-    "observation_id": "1c96ce8a-7b41-45ad-bb07-0632161ccc65",
-    "ticker": "VCEL",
-    "market": "US",
-    "timestamp": "2026-09-08 00:00:00",
-    "entry_price": 39.08,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "517c0747-2e35-48b7-bd1f-acecf56a2c3d",
-    "stage": "? Unknown",
-    "setup_id": "S2-PULLBACK-50",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Information Technology",
-      "mcap_category": "Mid Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 2.73,
-    "days_since_discovery": 16
-  },
-  {
     "observation_id": "74ef6aee-1d93-464a-b2dc-8dbe0d796d4e",
     "ticker": "WIX",
     "market": "US",
@@ -125378,26 +125358,6 @@
     "days_since_discovery": 12
   },
   {
-    "observation_id": "14217787-a755-4045-8bce-ac47c4e4e460",
-    "ticker": "IRON",
-    "market": "US",
-    "timestamp": "2026-09-08 00:00:00",
-    "entry_price": 76.84,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "dd776086-360a-43b7-9227-75d591ac5497",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-HIGH-RS",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Information Technology",
-      "mcap_category": "Mid Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 3.31,
-    "days_since_discovery": 16
-  },
-  {
     "observation_id": "f3a2e872-b977-475d-af53-81f5ab639acf",
     "ticker": "GIII",
     "market": "US",
@@ -125415,66 +125375,6 @@
       "market": "US"
     },
     "distance_to_stop_pct": -7.89,
-    "days_since_discovery": 10
-  },
-  {
-    "observation_id": "e8e1dabe-e5e2-4340-aa31-7b2d43a6a809",
-    "ticker": "TARS",
-    "market": "US",
-    "timestamp": "2026-08-26 00:00:00",
-    "entry_price": 70.65,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "7bb5bb1d-5c96-4aa6-930d-a6d40ff665ff",
-    "stage": "1 \u23f3 Base",
-    "setup_id": "S2-MA-RECLAIM",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Healthcare",
-      "mcap_category": "Mid Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 3.11,
-    "days_since_discovery": 3
-  },
-  {
-    "observation_id": "de00007f-e22b-4247-a869-fcba8fe737a1",
-    "ticker": "LOAR",
-    "market": "US",
-    "timestamp": "2026-09-08 00:00:00",
-    "entry_price": 67.7,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "6fdeedab-f183-4a75-9389-79249c73abd5",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-PULLBACK-50",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Information Technology",
-      "mcap_category": "Mid Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 0.1,
-    "days_since_discovery": 16
-  },
-  {
-    "observation_id": "24444fb0-7f48-4148-b2e6-448e53223644",
-    "ticker": "VSEC",
-    "market": "US",
-    "timestamp": "2026-09-02 00:00:00",
-    "entry_price": 196.57,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "8302f2a7-dcb2-4ef6-a548-02fc2b1d4b36",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-PULLBACK-50",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Information Technology",
-      "mcap_category": "Mid Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 0.46,
     "days_since_discovery": 10
   },
   {
@@ -125538,66 +125438,6 @@
     "days_since_discovery": 16
   },
   {
-    "observation_id": "8323ecd6-3f65-430c-a0e4-3891090ffdfa",
-    "ticker": "AUPH",
-    "market": "US",
-    "timestamp": "2026-09-01 00:00:00",
-    "entry_price": 16.05,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "9fe10fda-55a2-425b-87a6-4c9feb546a28",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-PULLBACK-50",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Healthcare",
-      "mcap_category": "Mid Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 4.09,
-    "days_since_discovery": 9
-  },
-  {
-    "observation_id": "7c227c6f-1ab1-4446-9f90-6cccad86f2cc",
-    "ticker": "RPAY",
-    "market": "US",
-    "timestamp": "2026-09-01 00:00:00",
-    "entry_price": 3.51,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "12d8ca59-872a-4d29-9af6-a64e533058be",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-PULLBACK-50",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Information Technology",
-      "mcap_category": "Small Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 0.57,
-    "days_since_discovery": 9
-  },
-  {
-    "observation_id": "c5c060b3-9174-4416-bc87-7001a3ec7896",
-    "ticker": "TXRH",
-    "market": "US",
-    "timestamp": "2026-09-08 00:00:00",
-    "entry_price": 182.84,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "dc7d30f7-de52-490e-8a87-9c8f8f67ad38",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-HIGH-RS",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Consumer Discretionary",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 3.19,
-    "days_since_discovery": 16
-  },
-  {
     "observation_id": "05ccd1c3-1b61-4648-9f85-34631d2cb1f5",
     "ticker": "ASAN",
     "market": "US",
@@ -125616,106 +125456,6 @@
     },
     "distance_to_stop_pct": -1.78,
     "days_since_discovery": 12
-  },
-  {
-    "observation_id": "9b3eef61-0277-4e06-8259-b67498e6961b",
-    "ticker": "SE",
-    "market": "US",
-    "timestamp": "2026-09-04 00:00:00",
-    "entry_price": 112.09,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "4fbc39d8-9a6b-4306-8ccd-4307c7a55dd2",
-    "stage": "1 \u23f3 Base",
-    "setup_id": "S1-BASE",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Information Technology",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 4.34,
-    "days_since_discovery": 12
-  },
-  {
-    "observation_id": "a22d4305-c7c9-42bd-b9df-199906946dd6",
-    "ticker": "BEKE",
-    "market": "US",
-    "timestamp": "2026-08-31 00:00:00",
-    "entry_price": 17.19,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "7c34b214-c052-4d3a-93d7-aba62305616b",
-    "stage": "1 \u23f3 Base",
-    "setup_id": "S1-EARLY-ALPHA",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Information Technology",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 3.8,
-    "days_since_discovery": 8
-  },
-  {
-    "observation_id": "adb34941-e549-46ec-bf01-038de9f7d16c",
-    "ticker": "CRSP",
-    "market": "US",
-    "timestamp": "2026-09-08 00:00:00",
-    "entry_price": 54.78,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "01308ae5-a3f4-47c9-9012-d28d45f4e308",
-    "stage": "1 \u23f3 Base",
-    "setup_id": "S2-MA-RECLAIM",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Healthcare",
-      "mcap_category": "Mid Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 3.2,
-    "days_since_discovery": 16
-  },
-  {
-    "observation_id": "397d624c-18d7-4889-978b-97c44bb48818",
-    "ticker": "HL",
-    "market": "US",
-    "timestamp": "2026-09-01 00:00:00",
-    "entry_price": 19.11,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "03efe040-f7b8-46dc-9e4a-9824d6b475d8",
-    "stage": "1 \u23f3 Base",
-    "setup_id": "S2-MA-RECLAIM",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Materials",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 2.47,
-    "days_since_discovery": 9
-  },
-  {
-    "observation_id": "1c7fd022-a20a-468c-ba9e-3e486336a4cd",
-    "ticker": "NTLA",
-    "market": "US",
-    "timestamp": "2026-08-24 00:00:00",
-    "entry_price": 12.56,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "dfcfe265-1186-40f3-a6e2-df49d38feec1",
-    "stage": "? Unknown",
-    "setup_id": "S2-MA-RECLAIM",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Healthcare",
-      "mcap_category": "Small Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 1.13,
-    "days_since_discovery": 1
   },
   {
     "observation_id": "f38ac1be-32f1-4c3f-b4f5-e9a82d2c25eb",
@@ -125755,66 +125495,6 @@
       "market": "US"
     },
     "distance_to_stop_pct": -3.12,
-    "days_since_discovery": 16
-  },
-  {
-    "observation_id": "634ca2cb-e44f-4138-9b65-9e97f6ad0582",
-    "ticker": "SQM",
-    "market": "US",
-    "timestamp": "2026-09-04 00:00:00",
-    "entry_price": 75.0,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "6704e0bb-a2ef-492a-bfd4-c14ded6d1de7",
-    "stage": "1 \u23f3 Base",
-    "setup_id": "S2-MA-RECLAIM",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Materials",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 1.11,
-    "days_since_discovery": 12
-  },
-  {
-    "observation_id": "21b07c31-36d7-4a6a-bd6c-ae94049f5433",
-    "ticker": "AG",
-    "market": "US",
-    "timestamp": "2026-09-01 00:00:00",
-    "entry_price": 19.86,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "def9f4c8-5143-4967-907f-e8eca09cbf48",
-    "stage": "1 \u23f3 Base",
-    "setup_id": "S2-MA-RECLAIM",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Materials",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 3.28,
-    "days_since_discovery": 9
-  },
-  {
-    "observation_id": "72b93eb2-38cf-4054-8416-aec365cd99c5",
-    "ticker": "MELI",
-    "market": "US",
-    "timestamp": "2026-09-08 00:00:00",
-    "entry_price": 1926.25,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "b69781ff-ab0b-439b-ae9f-b14bc430188c",
-    "stage": "1 \u23f3 Base",
-    "setup_id": "S1-BASE",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Information Technology",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 3.09,
     "days_since_discovery": 16
   },
   {
@@ -126018,46 +125698,6 @@
     "days_since_discovery": 16
   },
   {
-    "observation_id": "5227cd3d-dbf9-42a5-8e4c-b381b9923163",
-    "ticker": "PYPL",
-    "market": "US",
-    "timestamp": "2026-09-01 00:00:00",
-    "entry_price": 52.27,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "d5461121-05eb-4bec-97df-4753ddee70d1",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-HIGH-RS",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Financials",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 1.99,
-    "days_since_discovery": 9
-  },
-  {
-    "observation_id": "6810bd76-be61-438a-9dca-fc3a7681259a",
-    "ticker": "CXT",
-    "market": "US",
-    "timestamp": "2026-08-31 00:00:00",
-    "entry_price": 48.9,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "0be2c871-ab02-4636-8320-e7a511ea5cb9",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-MA-RECLAIM",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Industrials",
-      "mcap_category": "Mid Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 1.31,
-    "days_since_discovery": 8
-  },
-  {
     "observation_id": "0275406a-e98b-4d46-832c-dba73a2e0d38",
     "ticker": "CVCO",
     "market": "US",
@@ -126098,26 +125738,6 @@
     "days_since_discovery": 16
   },
   {
-    "observation_id": "cb13bb69-307f-4015-b9b2-f3974c4ee8dc",
-    "ticker": "SON",
-    "market": "US",
-    "timestamp": "2026-09-08 00:00:00",
-    "entry_price": 49.87,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "400dedea-b62c-4653-9316-b731b209bc02",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-HIGH-RS",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Consumer Discretionary",
-      "mcap_category": "Mid Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 0.61,
-    "days_since_discovery": 16
-  },
-  {
     "observation_id": "3cc3041d-3ddc-4b96-8de3-29740a54003a",
     "ticker": "IP",
     "market": "US",
@@ -126135,106 +125755,6 @@
       "market": "US"
     },
     "distance_to_stop_pct": -2.36,
-    "days_since_discovery": 9
-  },
-  {
-    "observation_id": "055ae1da-7567-4fe9-94c7-75a4cf2c07b1",
-    "ticker": "FFIN",
-    "market": "US",
-    "timestamp": "2026-09-01 00:00:00",
-    "entry_price": 32.6,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "afb8337b-df37-4f6e-8723-7209293e09a0",
-    "stage": "? Unknown",
-    "setup_id": "S2-PULLBACK-50",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Financials",
-      "mcap_category": "Mid Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 1.81,
-    "days_since_discovery": 9
-  },
-  {
-    "observation_id": "6afde527-133d-4f22-96d9-abdf41e66a13",
-    "ticker": "HQY",
-    "market": "US",
-    "timestamp": "2026-09-08 00:00:00",
-    "entry_price": 93.36,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "00775ada-561f-4635-861b-fc083d1ea20a",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-HIGH-RS",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Healthcare",
-      "mcap_category": "Mid Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 4.51,
-    "days_since_discovery": 16
-  },
-  {
-    "observation_id": "e13aab17-f1df-46b7-82b0-cb1888ab14b3",
-    "ticker": "COF",
-    "market": "US",
-    "timestamp": "2026-09-01 00:00:00",
-    "entry_price": 211.34,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "324c5c0e-ad37-42b0-842c-c58b26c8da97",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-HIGH-RS",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Information Technology",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 2.61,
-    "days_since_discovery": 9
-  },
-  {
-    "observation_id": "520a7dd4-b0b9-4281-a132-d98363b35cb3",
-    "ticker": "ZBH",
-    "market": "US",
-    "timestamp": "2026-09-08 00:00:00",
-    "entry_price": 94.22,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "81136b4c-a266-4c7d-af9e-a8541f01ca01",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-HIGH-RS",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Healthcare",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 4.03,
-    "days_since_discovery": 16
-  },
-  {
-    "observation_id": "8861b0eb-e168-45ad-90e2-5208c635e659",
-    "ticker": "HOMB",
-    "market": "US",
-    "timestamp": "2026-09-01 00:00:00",
-    "entry_price": 29.1,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "47349d48-4a1b-44b2-aa8a-12df085dccd4",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-PULLBACK-50",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Financials",
-      "mcap_category": "Mid Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 4.68,
     "days_since_discovery": 9
   },
   {
@@ -126258,26 +125778,6 @@
     "days_since_discovery": 9
   },
   {
-    "observation_id": "beb54470-b7d1-43b6-a755-71b86c7b5c4f",
-    "ticker": "SYY",
-    "market": "US",
-    "timestamp": "2026-09-08 00:00:00",
-    "entry_price": 79.84,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "ba3d5d18-ed55-41d2-aa88-27cb3fa6c2bd",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-PULLBACK-50",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Consumer Staples",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 2.15,
-    "days_since_discovery": 16
-  },
-  {
     "observation_id": "e3f17d75-f998-405f-b64d-e7fc81051f73",
     "ticker": "SLGN",
     "market": "US",
@@ -126298,66 +125798,6 @@
     "days_since_discovery": 8
   },
   {
-    "observation_id": "ee0afe0f-debb-4751-b678-a99a18562d8a",
-    "ticker": "AYI",
-    "market": "US",
-    "timestamp": "2026-09-08 00:00:00",
-    "entry_price": 325.46,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "73296fb5-7fcd-4dff-ba28-6ebbfb9ff9b6",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-PULLBACK-50",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Industrials",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 1.69,
-    "days_since_discovery": 16
-  },
-  {
-    "observation_id": "ad0a6be9-0fde-468c-b5d2-c37a8e7c1f81",
-    "ticker": "MCO",
-    "market": "US",
-    "timestamp": "2026-09-08 00:00:00",
-    "entry_price": 481.25,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "76928d30-975b-446b-9921-9d98e14bba3a",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-HIGH-RS",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Financials",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 2.4,
-    "days_since_discovery": 16
-  },
-  {
-    "observation_id": "a2b46d29-1168-4337-ab85-feab41605771",
-    "ticker": "ELAN",
-    "market": "US",
-    "timestamp": "2026-09-01 00:00:00",
-    "entry_price": 23.91,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "438e3c6e-f45d-4d7c-8eda-adfe2705c9e0",
-    "stage": "? Unknown",
-    "setup_id": "S2-MA-RECLAIM",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Healthcare",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 1.23,
-    "days_since_discovery": 9
-  },
-  {
     "observation_id": "78c9c42d-8856-4a38-9877-d13bece929f3",
     "ticker": "GIS",
     "market": "US",
@@ -126376,26 +125816,6 @@
     },
     "distance_to_stop_pct": -2.1,
     "days_since_discovery": 12
-  },
-  {
-    "observation_id": "dc56a01a-942b-43ab-98c4-c2b831f76b4c",
-    "ticker": "MRSH",
-    "market": "US",
-    "timestamp": "2026-09-08 00:00:00",
-    "entry_price": 180.52,
-    "observation_type": "invalidation_near_miss",
-    "source_observation_id": "d229bfcd-164b-40ba-bbb6-1d3c7892f63d",
-    "stage": "2 \u2705 Uptrend",
-    "setup_id": "S2-HIGH-RS",
-    "market_regime": "Sideways",
-    "market_features": {
-      "market_regime": "Sideways",
-      "theme": "Financials",
-      "mcap_category": "Large Cap",
-      "market": "US"
-    },
-    "distance_to_stop_pct": 2.67,
-    "days_since_discovery": 16
   },
   {
     "ticker": "LITE",
