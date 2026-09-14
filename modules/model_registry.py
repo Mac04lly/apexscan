@@ -12,21 +12,20 @@ a later change in how the score itself is computed.
 # Never edit history to match a new version — old observations keep
 # whatever version was active when they were created.
 #
-# APEX-9.0 -> APEX-9.1 (Sep 2026): rebalanced scanner.py's score
-# weighting. Momentum-block max (perf_3m/RS/above-MA/near-52wk-high)
-# roughly halved (100 -> 60 pts); early_entry_score cap raised 10 -> 20
-# and of_persistence_score cap raised 8 -> 12 (both had direct
-# supporting evidence in Alpha Lab); breaking_out raised 10 -> 15
-# (real, current, volume-confirmed signal, not stale history). See
-# scanner.py's inline comment at the main score computation for full
-# reasoning. Propose this version via Model Governance's "Propose
-# Research Model" form BEFORE deploying this constant change, citing
-# Setup Alpha's finding (Stage 2 Fresh 200MA Reclaim: -0.43% expectancy
-# vs Stage 2 High Relative Strength: -2.95% expectancy) as the source
-# finding — that keeps the registry's proposal record in front of the
-# constant actually going live, matching the intended order in the
-# governance docstring below.
-MODEL_VERSION = "APEX-9.1"
+# APEX-9.1 was PROPOSED with real evidence (Setup Alpha: Stage 2 Fresh
+# 200MA Reclaim at -0.43% expectancy vs Stage 2 High Relative Strength
+# at -2.95% expectancy), then this constant was edited to activate it
+# in the same change — WITHOUT walk-forward validation or
+# approve_promotion() ever running. Caught by checking the registry
+# itself: it showed status="research", walk_forward_result=null,
+# approved_by=null the entire time APEX-9.1 was actually live. Rolled
+# back to APEX-9.0 (see scanner.py for the matching weight revert) at
+# zero cost — no observations existed yet under APEX-9.1. It remains
+# registered below as a pending research proposal; re-activate this
+# constant only after it passes walk-forward validation and gets a
+# named approval via approve_promotion() — the process this file was
+# built to require, which is exactly what got skipped last time.
+MODEL_VERSION = "APEX-9.0"
 
 # Optional pre-filled draft for the next proposal, set alongside a
 # scoring change in scanner.py so the Model Governance "Propose a
