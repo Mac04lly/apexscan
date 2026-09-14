@@ -1,0 +1,385 @@
+[
+  {
+    "status": "ok",
+    "computed_at": "2026-09-14T06:57:12.256472",
+    "min_excess_return_pct_filter": 20.0,
+    "horizon": "13D",
+    "offsets_trading_days": [
+      60,
+      40,
+      30,
+      20,
+      10,
+      5,
+      0
+    ],
+    "candidates_considered": 3,
+    "trajectories_computed": 3,
+    "skipped": [],
+    "trajectories": [
+      {
+        "ticker": "ANF",
+        "discovery_timestamp": "2026-08-23 12:10:29",
+        "status": "ok",
+        "trajectory": [
+          {
+            "offset_trading_days": 60,
+            "as_of_date": "2026-05-27",
+            "status": "ok",
+            "score": 28.6,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 145.2,
+              "distance_to_resistance_pct": 6.63,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "FALLING"
+            }
+          },
+          {
+            "offset_trading_days": 40,
+            "as_of_date": "2026-06-25",
+            "status": "ok",
+            "score": 51.2,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 33.5,
+              "distance_to_resistance_pct": 5.76,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "FALLING"
+            }
+          },
+          {
+            "offset_trading_days": 30,
+            "as_of_date": "2026-07-10",
+            "status": "ok",
+            "score": 44.2,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": -49.9,
+              "distance_to_resistance_pct": 1.84,
+              "volatility_contraction": false,
+              "volume_contraction": true,
+              "higher_lows_flat_resistance": true,
+              "ma50_transition": "FLATTENING"
+            }
+          },
+          {
+            "offset_trading_days": 20,
+            "as_of_date": "2026-07-24",
+            "status": "ok",
+            "score": 70.6,
+            "state": "DEVELOPING",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 203.6,
+              "distance_to_resistance_pct": 7.72,
+              "volatility_contraction": false,
+              "volume_contraction": true,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "ACCELERATING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 10,
+            "as_of_date": "2026-08-07",
+            "status": "ok",
+            "score": 75.8,
+            "state": "DEVELOPING",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 421.7,
+              "distance_to_resistance_pct": 0.64,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "ACCELERATING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 5,
+            "as_of_date": "2026-08-14",
+            "status": "ok",
+            "score": 50.6,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 129.3,
+              "distance_to_resistance_pct": 9.83,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "ACCELERATING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 0,
+            "as_of_date": "2026-08-21",
+            "status": "ok",
+            "score": 62.6,
+            "state": "WATCH",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 483.5,
+              "distance_to_resistance_pct": 9.1,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "TURNING_UP"
+            }
+          }
+        ],
+        "excess_return_%": 33.172,
+        "setup_id": "S2-HIGH-RS"
+      },
+      {
+        "ticker": "DELL",
+        "discovery_timestamp": "2026-08-23 12:10:29",
+        "status": "ok",
+        "trajectory": [
+          {
+            "offset_trading_days": 60,
+            "as_of_date": "2026-05-27",
+            "status": "ok",
+            "score": 66.1,
+            "state": "WATCH",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 348.8,
+              "distance_to_resistance_pct": 2.18,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "TURNING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 40,
+            "as_of_date": "2026-06-25",
+            "status": "ok",
+            "score": 43.8,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": -383.7,
+              "distance_to_resistance_pct": 12.78,
+              "volatility_contraction": false,
+              "volume_contraction": true,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "TURNING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 30,
+            "as_of_date": "2026-07-10",
+            "status": "ok",
+            "score": 51.9,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 379.5,
+              "distance_to_resistance_pct": 5.54,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "TURNING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 20,
+            "as_of_date": "2026-07-24",
+            "status": "ok",
+            "score": 44.6,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 785.6,
+              "distance_to_resistance_pct": 5.45,
+              "volatility_contraction": false,
+              "volume_contraction": true,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "TURNING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 10,
+            "as_of_date": "2026-08-07",
+            "status": "ok",
+            "score": 29.9,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": -1058.8,
+              "distance_to_resistance_pct": 6.57,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "TURNING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 5,
+            "as_of_date": "2026-08-14",
+            "status": "ok",
+            "score": 58.8,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 489.0,
+              "distance_to_resistance_pct": 4.51,
+              "volatility_contraction": true,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "TURNING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 0,
+            "as_of_date": "2026-08-21",
+            "status": "ok",
+            "score": 30.8,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": -165.5,
+              "distance_to_resistance_pct": 13.99,
+              "volatility_contraction": true,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "TURNING_UP"
+            }
+          }
+        ],
+        "excess_return_%": 28.269,
+        "setup_id": "S2-HIGH-RS"
+      },
+      {
+        "ticker": "OKTA",
+        "discovery_timestamp": "2026-08-23 12:10:29",
+        "status": "ok",
+        "trajectory": [
+          {
+            "offset_trading_days": 60,
+            "as_of_date": "2026-05-27",
+            "status": "ok",
+            "score": 51.3,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 147.5,
+              "distance_to_resistance_pct": 7.15,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": true,
+              "ma50_transition": "ACCELERATING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 40,
+            "as_of_date": "2026-06-25",
+            "status": "ok",
+            "score": 53.4,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 45.1,
+              "distance_to_resistance_pct": 16.22,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "TURNING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 30,
+            "as_of_date": "2026-07-10",
+            "status": "ok",
+            "score": 67.5,
+            "state": "WATCH",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 523.0,
+              "distance_to_resistance_pct": 9.51,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "ACCELERATING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 20,
+            "as_of_date": "2026-07-24",
+            "status": "ok",
+            "score": 43.3,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 94.9,
+              "distance_to_resistance_pct": 11.78,
+              "volatility_contraction": true,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "TURNING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 10,
+            "as_of_date": "2026-08-07",
+            "status": "ok",
+            "score": 30.5,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": -847.5,
+              "distance_to_resistance_pct": 5.53,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "TURNING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 5,
+            "as_of_date": "2026-08-14",
+            "status": "ok",
+            "score": 48.5,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": -49.6,
+              "distance_to_resistance_pct": 5.73,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "TURNING_UP"
+            }
+          },
+          {
+            "offset_trading_days": 0,
+            "as_of_date": "2026-08-21",
+            "status": "ok",
+            "score": 47.0,
+            "state": "EARLY",
+            "evidence_quality": "MEDIUM",
+            "key_features": {
+              "rs_5d_change": 196.0,
+              "distance_to_resistance_pct": 13.59,
+              "volatility_contraction": false,
+              "volume_contraction": false,
+              "higher_lows_flat_resistance": false,
+              "ma50_transition": "TURNING_UP"
+            }
+          }
+        ],
+        "excess_return_%": 23.152,
+        "setup_id": "S2-PULLBACK-50"
+      }
+    ]
+  }
+]
