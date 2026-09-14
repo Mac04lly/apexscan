@@ -3551,7 +3551,7 @@ with tabs[0]:
         col_view = st.radio("Column View", ["Standard", "Order Flow", "VWAP & Structure", "Price Action", "Fundamentals"], horizontal=True)
 
         if col_view == "Standard":
-            want = ["ticker","theme","price","mcap_category","stage",
+            want = ["ticker","theme","cluster_peers","price","mcap_category","stage",
                     "perf_1w_%","perf_2w_%","perf_3w_%",
                     "perf_1m_%","perf_3m_%","perf_6m_%",
                     "rs_3m","rs_r2500_3m","rs_r3000g_3m","rs_multi_leader",
@@ -3605,6 +3605,35 @@ with tabs[0]:
         for col in ["apex_score","perf_1m_%","perf_3m_%","perf_6m_%","rs_3m","rs_6m"]:
             if col in disp.columns:
                 disp[col] = pd.to_numeric(disp[col], errors="coerce")
+
+        # Surfaces diversification_check()'s output (scanner.py) — it was
+        # already being computed and merged onto every scan's results,
+        # but nothing in the UI ever read cluster_id/cluster_peers/
+        # theme_cluster_flag, so a correlated cluster (e.g. several
+        # Energy names all moving on the same oil-price driver) could
+        # dominate the leaderboard looking like independent picks with
+        # no visible warning. This only warns on today's TOP results —
+        # it doesn't change ranking, scoring, or which rows appear.
+        # theme_cluster_flag is read from df_filtered (all columns,
+        # unrestricted by the Column View radio) rather than disp
+        # itself, since disp only carries whichever columns that view
+        # selected — cluster_peers is shown there, but the boolean flag
+        # doesn't need its own visible column to be checked here.
+        if "theme_cluster_flag" in df_filtered.columns:
+            _flag_col = df_filtered.loc[disp.index, "theme_cluster_flag"]
+            _flagged = disp[_flag_col.fillna(False).values == True]
+            if len(_flagged) >= 3:
+                _themes = _flagged["theme"].value_counts() if "theme" in _flagged.columns else pd.Series(dtype=int)
+                _top_theme = _themes.index[0] if len(_themes) else "one theme"
+                _top_theme_n = int(_themes.iloc[0]) if len(_themes) else len(_flagged)
+                _example_tickers = ", ".join(_flagged["ticker"].head(6).tolist())
+                st.warning(
+                    f"⚠️ {len(_flagged)} of today's top {len(disp)} results are flagged as a correlated "
+                    f"same-theme cluster ({_top_theme_n} in {_top_theme}) — {_example_tickers}"
+                    f"{', …' if len(_flagged) > 6 else ''}. These are moving together on a shared driver, "
+                    f"not {len(_flagged)} independent signals — size and diversify accordingly rather than "
+                    f"treating each as a separate bet."
+                )
 
         def color_of_bias(v):
             if "Strong Bullish" in str(v): return "color:#3fb950;font-weight:700"
