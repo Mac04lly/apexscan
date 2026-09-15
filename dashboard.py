@@ -1008,6 +1008,17 @@ def log_new_discoveries(scan_df: pd.DataFrame):
             "theme":             str(row.get("theme", "")),
             "breaking_out":      bool(row.get("breaking_out", False)),
             "of_bias":           str(row.get("of_bias", "")),
+            # Added so "what did winners actually look like technically"
+            # can be answered from the discovery log itself, instead of
+            # only from a live Leaderboard snapshot that has no history
+            # attached to it. All five already existed in every scan's
+            # row dict (scanner.py) — this only captures them at the
+            # moment of discovery; it changes no scoring or ranking.
+            "of_score":          row.get("of_score"),
+            "pattern":           str(row.get("pattern", "")) or None,
+            "rs_3m":             row.get("rs_3m"),
+            "adr_%":             row.get("adr_%"),
+            "near_52wh":         bool(row.get("near_52wh", False)),
             "invalidation_price": _inval.get("primary"),
             "invalidation_basis": _inval.get("primary_basis"),
             "next_earnings":     _next_earn,
@@ -10764,6 +10775,9 @@ with tabs[21]:
         dd["apex_score"]  = pd.to_numeric(dd.get("apex_score"), errors="coerce")
         for _w in (1, 2, 3):
             dd[f"perf_{_w}w_pct"] = pd.to_numeric(dd.get(f"perf_{_w}w_pct"), errors="coerce")
+        dd["rs_3m"]   = pd.to_numeric(dd.get("rs_3m"), errors="coerce")
+        dd["of_score"] = pd.to_numeric(dd.get("of_score"), errors="coerce")
+        dd["adr_%"]   = pd.to_numeric(dd.get("adr_%"), errors="coerce")
         dd["days_tracked"] = pd.to_numeric(dd.get("days_tracked"), errors="coerce")
 
         tracked = dd.dropna(subset=["pct_change"])
@@ -10962,6 +10976,7 @@ with tabs[21]:
         _log_cols = ["ticker","discovered_at","discovery_price","apex_score","apex_score_raw","stage",
                      "current_price","pct_change","perf_1w_pct","perf_2w_pct","perf_3w_pct",
                      "thesis_status","invalidation_price",
+                     "pattern","of_score","of_bias","rs_3m","adr_%","near_52wh","breaking_out",
                      "next_earnings","days_tracked","theme"]
         _log_cols = [c for c in _log_cols if c in dd.columns]
         show = dd[_log_cols].copy()
@@ -10980,6 +10995,9 @@ with tabs[21]:
                 "perf_2w_pct":     lambda v: f"{v:+.1f}%" if pd.notna(v) else "pending",
                 "perf_3w_pct":     lambda v: f"{v:+.1f}%" if pd.notna(v) else "pending",
                 "invalidation_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+                "rs_3m":           lambda v: f"{v:.0f}" if pd.notna(v) else "–",
+                "of_score":        lambda v: f"{v:.1f}" if pd.notna(v) else "–",
+                "adr_%":           lambda v: f"{v:.1f}%" if pd.notna(v) else "–",
                 "next_earnings":   lambda v: v if v else "–",
                 "apex_score":      "{:.0f}",
                 "days_tracked":    lambda v: f"{int(v)}d" if pd.notna(v) else "–",
