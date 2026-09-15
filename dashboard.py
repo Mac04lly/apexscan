@@ -1596,6 +1596,17 @@ def find_correction_watchlist_candidates(scan_df: pd.DataFrame) -> pd.DataFrame:
 _AUTOSCAN_FILE   = Path(__file__).resolve().parent / "data" / "autoscan_state.json"
 _AUTOSCAN_FILE.parent.mkdir(parents=True, exist_ok=True)
 
+# Hard freeze — deliberately set at the request of the project owner while
+# ApexScan's signals remain unvalidated (see APEXSCAN_EVIDENCE_AUDIT.md).
+# This overrides the "Enable Auto-Scan" toggle and the saved state file
+# entirely: even if enabled=True is already saved from before, or someone
+# flips the toggle in the AI Briefing tab while this is True, no scan will
+# fire. This exists specifically so auto-scan can't restart itself by
+# accident (a stale saved state, a misclick, or a well-meant suggestion to
+# turn it back on) without a deliberate code change to lift it. Set back
+# to False only as an intentional decision, not a toggle click.
+_AUTOSCAN_FROZEN = True
+
 # US market open/close in UTC
 _MARKET_OPEN_UTC  = {"hour": 14, "minute": 30}   # 9:30 AM EST = 14:30 UTC
 _MARKET_CLOSE_UTC = {"hour": 20, "minute": 30}   # 3:30 PM EST = 20:30 UTC (30 min before close)
@@ -1635,6 +1646,8 @@ def check_autoscan_trigger(state: dict) -> str | None:
     Uses a ±4-minute window around each target time to tolerate Streamlit's
     rerun timing — the scan date is stamped so it never fires twice in one window.
     """
+    if _AUTOSCAN_FROZEN:
+        return None
     if not state.get("enabled") or not _is_market_day():
         return None
     now     = datetime.now(_timezone.utc).replace(tzinfo=None)
@@ -2962,7 +2975,13 @@ with st.sidebar:
 
     # ── AUTO-SCAN STATUS INDICATOR ────────────────────────────────────────────
     _as_state_sidebar = _autoscan_load()
-    if _as_state_sidebar.get("enabled"):
+    if _AUTOSCAN_FROZEN:
+        st.warning(
+            "🧊 Auto-scan **FROZEN**\n\n"
+            "Hard-disabled in code while ApexScan's signals remain unvalidated. "
+            "The schedule toggle below has no effect until this is lifted deliberately."
+        )
+    elif _as_state_sidebar.get("enabled"):
         _min_o = _minutes_until(_MARKET_OPEN_UTC["hour"],  _MARKET_OPEN_UTC["minute"])
         _min_c = _minutes_until(_MARKET_CLOSE_UTC["hour"], _MARKET_CLOSE_UTC["minute"])
         st.success(
@@ -3100,8 +3119,9 @@ if _autoscan_trigger and not run_btn:
     )
 
 # Auto-refresh polling: checks trigger every 5 minutes while auto-scan is on.
-# Only active when auto-scan is enabled — no unnecessary reruns otherwise.
-if _autoscan_state.get("enabled"):
+# Only active when auto-scan is enabled AND not frozen — no point polling
+# every 5 minutes just to always get None back while frozen.
+if _autoscan_state.get("enabled") and not _AUTOSCAN_FROZEN:
     _now_u  = datetime.now(_timezone.utc).replace(tzinfo=None)
     _min_5  = _now_u.minute % 5
     _sec    = _now_u.second
@@ -3211,7 +3231,7 @@ if _autoscan_trigger and not run_btn:
         icon="⏰"
     )
 
-if _autoscan_state.get("enabled"):
+if _autoscan_state.get("enabled") and not _AUTOSCAN_FROZEN:
     _now_u  = datetime.now(_timezone.utc).replace(tzinfo=None)
     _min_5  = _now_u.minute % 5
     _sec    = _now_u.second
@@ -6218,6 +6238,13 @@ with tabs[12]:
     # ── AUTO-SCAN SCHEDULE SETTINGS ───────────────────────────────────────────
     st.markdown("---")
     with st.expander("⏰ Auto-Scan Schedule", expanded=False):
+        if _AUTOSCAN_FROZEN:
+            st.warning(
+                "🧊 Auto-scan is hard-frozen in code right now — this panel is "
+                "read-only until that's lifted deliberately (see the note next to "
+                "_AUTOSCAN_FROZEN in dashboard.py). Nothing saved here will fire "
+                "while the freeze is active."
+            )
         st.markdown("""
         **How it works:** When enabled, ApexScan automatically runs a full scan
         at **9:30 AM EST** (market open) and **3:30 PM EST** (30 min before close)
@@ -6231,7 +6258,9 @@ with tabs[12]:
                 "Enable Auto-Scan",
                 value=_as.get("enabled", False),
                 key="as_toggle",
+                disabled=_AUTOSCAN_FROZEN,
                 help="Fires at 9:30 AM and 3:30 PM EST Mon–Fri while this tab is open"
+                     + (" — disabled while frozen." if _AUTOSCAN_FROZEN else "")
             )
         with a2:
             as_universe = st.radio(
@@ -6240,6 +6269,7 @@ with tabs[12]:
                 index=0 if _as.get("universe","theme")=="theme" else 1,
                 key="as_universe",
                 horizontal=True,
+                disabled=_AUTOSCAN_FROZEN,
             )
         with a3:
             st.markdown("**Next scans (EST):**")
@@ -6252,7 +6282,7 @@ with tabs[12]:
         last_close = _as.get("last_close_scan","Never")
         st.caption(f"Last open scan: **{last_open}** | Last close scan: **{last_close}**")
 
-        if st.button("💾 Save Schedule Settings", key="save_sched"):
+        if st.button("💾 Save Schedule Settings", key="save_sched", disabled=_AUTOSCAN_FROZEN):
             _as["enabled"]  = as_enabled
             _as["universe"] = "theme" if "Theme" in as_universe else "extended"
             _autoscan_save(_as)
