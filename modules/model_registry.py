@@ -35,7 +35,31 @@ MODEL_VERSION = "APEX-9.0"
 # submit anything by itself; a person still reviews the pre-filled
 # fields and clicks "Propose" (or edits them first) in the UI, same as
 # before. Set to None when there's no pending draft.
-PENDING_PROPOSAL = None
+PENDING_PROPOSAL = {
+    "version_id": "APEX10-GATE-1.1",
+    "description": (
+        "Fix compute_breakout_trigger_gates() in modules/apex10_radar.py: "
+        "the price_breaks_resistance check required "
+        "distance_to_resistance_pct == 0.0 in addition to "
+        "state == 'IMMINENT', but state already encodes "
+        "distance <= 1.0 (RESISTANCE_THRESHOLDS_PCT['imminent']). "
+        "Empirically, 0 of 543 live apex10 radar entries ever hit "
+        "exactly 0.0 (min observed was 0.02), even though 36 sat "
+        "inside the IMMINENT band — so breakout_status has never once "
+        "transitioned to CONFIRMED_BREAKOUT in production. Dropped the "
+        "redundant '== 0.0' clause. Of the 36 IMMINENT-band entries "
+        "checked retroactively, 7 also pass volume_confirmation + "
+        "liquidity + regime, so this unlocks a real (if small) "
+        "confirmed-breakout category instead of a permanently-empty one."
+    ),
+    "source_finding": (
+        "Feature Alpha 10D-excess-return breakdown showed "
+        "breakout_status as a constant column (197 False / 2 True in "
+        "the 199-observation resolved sample) — investigated why and "
+        "found the gate was structurally unreachable, not just rare."
+    ),
+    "proposed_by": None,
+}
 
 STRATEGY_VERSIONS = {
     "swing":     "SWING-2.0",
