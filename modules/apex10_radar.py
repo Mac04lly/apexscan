@@ -257,8 +257,15 @@ def compute_breakout_trigger_gates(features: dict, liquidity_gate: dict) -> dict
     mistake "not yet checkable" for "checked and fine."
     """
     bp = features.get("breakout_proximity", {})
-    price_breaks_resistance = (bp.get("state") == "IMMINENT"
-                              and bp.get("distance_to_resistance_pct") == 0.0)
+    # state == "IMMINENT" already means distance_to_resistance_pct <= 1.0
+    # (see RESISTANCE_THRESHOLDS_PCT in apex10_features.py). The old
+    # extra "== 0.0" clause required an exact float match on a rounded
+    # percentage, which only true fresh-highs-across-every-window prints
+    # can hit — empirically 0 of 543 live radar entries ever satisfied
+    # it (min observed distance was 0.02, not 0.0), even though 36 of
+    # them sat inside the IMMINENT band. Dropped the redundant clause so
+    # the gate actually reflects the threshold it's named after.
+    price_breaks_resistance = bp.get("state") == "IMMINENT"
     volume_confirmed = bool(features.get("breakout_volume_confirmation"))
     liquidity_ok = liquidity_gate.get("passes") is True
     regime = features.get("market_regime", {}).get("regime")
