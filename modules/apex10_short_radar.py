@@ -205,8 +205,15 @@ def compute_breakdown_trigger_gates(features: dict, liquidity_gate: dict) -> dic
     availability — see module docstring's honesty note on this.
     """
     bp = features.get("breakdown_proximity", {})
-    price_breaks_support = (bp.get("state") == "IMMINENT"
-                           and bp.get("distance_to_support_pct") == 0.0)
+    # Mirrors the long-side fix in apex10_radar.compute_breakout_trigger_gates:
+    # state == "IMMINENT" already means distance_to_support_pct <= 1.0
+    # (SUPPORT_THRESHOLDS_PCT in apex10_short_features.py). The old
+    # "== 0.0" clause required an exact float match on a rounded
+    # percentage that a real price essentially never lands on, so
+    # confirmed_breakdown was structurally unreachable the same way
+    # confirmed_breakout was on the long side. Dropped the redundant
+    # clause.
+    price_breaks_support = bp.get("state") == "IMMINENT"
     volume_confirmed = bool(features.get("breakdown_volume_confirmation"))
     liquidity_ok = liquidity_gate.get("passes") is True
     regime = features.get("market_regime", {}).get("regime")
