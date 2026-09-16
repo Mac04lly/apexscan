@@ -2058,7 +2058,7 @@ def run_short_scan(cfg: dict, universe_override: list = None) -> pd.DataFrame:
 
     _bench_cache.clear()
     _mcap_cache.clear()
-    get_benchmark(cfg["benchmarks"]["us"], cfg["scan"]["history_period"])
+    _bench_close = get_benchmark(cfg["benchmarks"]["us"], cfg["scan"]["history_period"])
 
     _batch_hist = batch_fetch_history(tickers, cfg["scan"]["history_period"])
 
@@ -2085,6 +2085,24 @@ def run_short_scan(cfg: dict, universe_override: list = None) -> pd.DataFrame:
     df.index += 1
     df.index.name = "rank"
     log.info(f"Short scan complete: {len(df)} candidates.")
+
+    # ── Apex the Great X — live SHORT radar update (connective wiring) ─────
+    # Exact mirror of run_scan()'s own apex10 wiring block above. Reuses
+    # THIS scan's already-fetched history (_batch_hist) and the already-
+    # loaded US benchmark (_bench_close) — zero additional network calls.
+    # Off by default (cfg["apex10"]["enabled"]) — same single flag as the
+    # long side, per ui/alpha_lab.py's own documented contract. Wrapped
+    # identically: any failure here is logged and swallowed, never
+    # allowed to affect the short-scan results this function returns.
+    try:
+        from modules.apex10_integration import process_short_scan_for_radar
+        apex10_short_summary = process_short_scan_for_radar(results, _batch_hist, _bench_close, cfg, market="US")
+        if apex10_short_summary is not None:
+            df.attrs["apex10_short_radar_summary"] = apex10_short_summary
+            log.info(f"Apex the Great X short radar update: {apex10_short_summary}")
+    except Exception as apex10_short_error:
+        log.warning(f"Apex the Great X short radar update skipped; scan results are preserved: {apex10_short_error}")
+
     return df
 
 
