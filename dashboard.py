@@ -8602,21 +8602,42 @@ with tabs[20]:
                            f"unlimited upside risk; an earnings surprise can gap the price up "
                            f"hard and fast, unlike the capped risk of a long position.")
 
+        # % of price above invalidation price — the short-side mirror of the
+        # long-side "buffer" concept. For a short, invalidation_price sits
+        # ABOVE current_price while the thesis holds, so this is normally
+        # negative (price is X% below the line — room before it breaks) and
+        # flips positive once price has actually closed above invalidation
+        # (thesis broken), which lines up with short_status turning
+        # "Invalidated" at the same moment.
+        if "invalidation_price" in _sdf.columns and "current_price" in _sdf.columns:
+            _sdf["pct_vs_invalidation"] = (
+                (_sdf["current_price"] - _sdf["invalidation_price"]) / _sdf["invalidation_price"] * 100
+            ).round(1)
+
         _short_log_cols = [c for c in [
             "ticker", "discovered_at", "discovery_price", "short_score", "stage",
             "current_price", "pct_change_1w", "pct_change_1m", "pct_change_since_discovery",
-            "short_status", "invalidation_price", "next_earnings", "theme",
+            "short_status", "invalidation_price", "pct_vs_invalidation", "next_earnings", "theme",
         ] if c in _sdf.columns]
         _short_show = _sdf[_short_log_cols].copy().sort_values("discovered_at", ascending=False)
 
+        def _c_short(v):
+            # Positive = price above invalidation = thesis broken -> red.
+            # Negative = safe distance below the line -> green.
+            try: return "color:#f85149;font-weight:700" if float(v) > 0 else "color:#3fb950;font-weight:700"
+            except: return ""
+
         st.dataframe(
-            _short_show.style.format({
+            _short_show.style.map(
+                _c_short, subset=[c for c in ["pct_vs_invalidation"] if c in _short_show.columns]
+            ).format({
                 "discovery_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
                 "current_price":   lambda v: f"${v:.2f}" if pd.notna(v) else "–",
                 "pct_change_1w":   lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
                 "pct_change_1m":   lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
                 "pct_change_since_discovery": lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
                 "invalidation_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
+                "pct_vs_invalidation": lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
                 "next_earnings":   lambda v: v if v else "–",
                 "short_score":     "{:.0f}",
             }, na_rep="–"),
