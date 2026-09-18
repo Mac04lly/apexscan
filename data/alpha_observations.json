@@ -140020,5 +140020,65 @@
     },
     "distance_to_stop_pct": 4.98,
     "days_since_discovery": 17
+  },
+  {
+    "observation_id": "9df73a48-1654-41a4-a60e-2a550c057fc1",
+    "ticker": "BRC",
+    "market": "US",
+    "timestamp": "2026-09-08 00:00:00",
+    "entry_price": 88.62,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "d09696ea-b78d-4b4a-a51c-c21c9152f3aa",
+    "stage": "? Unknown",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Information Technology",
+      "mcap_category": "Mid Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 4.46,
+    "days_since_discovery": 16
+  },
+  {
+    "observation_id": "af9b32bb-dab7-4c40-bf90-a075ed568ec5",
+    "ticker": "RSG",
+    "market": "US",
+    "timestamp": "2026-08-24 00:00:00",
+    "entry_price": 223.08,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "9d2bee3c-9288-49af-a18f-0dae17b81f50",
+    "stage": "2 \u2705 Uptrend",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Industrials",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 4.63,
+    "days_since_discovery": 1
+  },
+  {
+    "observation_id": "33c5a9a3-564b-4cb5-9250-a70e52d1589a",
+    "ticker": "BXP",
+    "market": "US",
+    "timestamp": "2026-09-09 00:00:00",
+    "entry_price": 64.29,
+    "observation_type": "invalidation_near_miss",
+    "source_observation_id": "3a601b56-bed4-454f-a15e-18a0f309539f",
+    "stage": "? Unknown",
+    "setup_id": "S2-PULLBACK-50",
+    "market_regime": "Sideways",
+    "market_features": {
+      "market_regime": "Sideways",
+      "theme": "Real Estate",
+      "mcap_category": "Large Cap",
+      "market": "US"
+    },
+    "distance_to_stop_pct": 2.8,
+    "days_since_discovery": 17
   }
 ]
