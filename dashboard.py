@@ -7841,6 +7841,389 @@ with tabs[15]:
 # TAB 19 — LONG-TERM INVESTING
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _extract_financials_via_claude(file_bytes: bytes, mime_type: str, api_key: str) -> dict:
+    """
+    Reads one US financial filing (10-K/10-Q, as PDF or a photo/scan) via
+    Claude's own document/image understanding — deliberately NOT a
+    local OCR pipeline (pytesseract etc.), since that would need new
+    system packages (tesseract-ocr via packages.txt) this app doesn't
+    currently ship, and would be far less reliable on the varied
+    layouts real filings actually use. Reuses the SAME anthropic_api_key
+    already loaded into cfg for the AI briefing engine — no new secret,
+    no new dependency beyond `requests`, which every other API
+    integration in this app already relies on.
+
+    Extraction ONLY — no ratio math happens here or in the model's
+    response. Every figure is requested as a literal, verbatim number
+    from the document plus a short source citation (page/line label),
+    exactly matching this project's "zero alteration of source figures;
+    flag discrepancies" standard: the UI shows these next to their
+    source before anything is computed, and the user can correct any
+    field before proceeding.
+
+    Returns {"ok": True, "fields": {...}, "citations": {...}} or
+    {"ok": False, "error": "..."} — never raises, so a bad filing or a
+    network hiccup can't crash the tab.
+    """
+    import base64, requests
+
+    field_list = [
+        "revenue_cur", "revenue_prior", "cogs_cur", "gross_profit_cur",
+        "operating_profit_cur", "depreciation_amortization_cur", "interest_expense_cur",
+        "net_income_cur", "net_income_prior", "eps_cur", "eps_prior",
+        "shares_outstanding_cur", "dividend_per_share_cur",
+        "total_assets_cur", "total_assets_prior", "total_equity_cur", "total_equity_prior",
+        "total_liabilities_cur", "total_liabilities_prior",
+        "current_assets_cur", "current_liabilities_cur",
+        "inventory_cur", "inventory_prior", "accounts_receivable_cur", "accounts_payable_cur",
+        "cash_cur", "total_debt_cur", "total_debt_prior",
+        "operating_cash_flow_cur", "capex_cur",
+    ]
+
+    prompt = f"""You are extracting raw figures from a US company financial filing (10-K or 10-Q).
+
+Return ONLY a JSON object, no other text, with exactly this shape:
+{{
+  "company": "<company name if found, else null>",
+  "period_cur": "<current period label as stated, e.g. 'FY2025' or 'Q3 2025', else null>",
+  "period_prior": "<prior comparative period label as stated, else null>",
+  "fields": {{
+    "<field_name>": {{"value": <number or null>, "source": "<short quote or line-item label + page/section as it appears in the document, e.g. 'Net Income, p.42 Consolidated Statements of Operations'>"}},
+    ...
+  }},
+  "notes": "<anything ambiguous, e.g. units in thousands vs millions, or a figure you could not locate — else null>"
+}}
+
+Required field names (use exactly these keys): {", ".join(field_list)}
+
+Rules:
+- Use the EXACT number as it appears in the document. Do not round, do not convert units yourself — instead, record the unit you found it in in "notes" if it's not already in whole dollars.
+- If a field genuinely cannot be found in this document, set "value": null and "source": null. NEVER guess or estimate a figure that isn't stated.
+- "_cur" fields are the most recent/current reporting period; "_prior" fields are the prior comparative period shown alongside it (10-Ks/10-Qs always show at least one prior period).
+- net_income_cur is Net Income / Profit After Tax (PAT) — whichever term the filing uses.
+- Output raw JSON only — no markdown code fences, no explanation before or after."""
+
+    content_block = (
+        {"type": "document", "source": {"type": "base64", "media_type": "application/pdf", "data": base64.b64encode(file_bytes).decode()}}
+        if mime_type == "application/pdf" else
+        {"type": "image", "source": {"type": "base64", "media_type": mime_type, "data": base64.b64encode(file_bytes).decode()}}
+    )
+
+    try:
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={"x-api-key": api_key, "anthropic-version": "2023-06-01", "content-type": "application/json"},
+            json={
+                "model": "claude-sonnet-4-6",
+                "max_tokens": 4000,
+                "messages": [{"role": "user", "content": [content_block, {"type": "text", "text": prompt}]}],
+            },
+            timeout=90,
+        )
+        resp.raise_for_status()
+        text = resp.json()["content"][0]["text"].strip()
+        if text.startswith("```"):
+            text = text.split("```")[1]
+            if text.startswith("json"):
+                text = text[4:]
+        parsed = json.loads(text.strip())
+        return {"ok": True, **parsed}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+def _safe_div(n, d):
+    try:
+        if n is None or d is None or float(d) == 0:
+            return None
+        return float(n) / float(d)
+    except (TypeError, ValueError):
+        return None
+
+
+def _avg(a, b):
+    try:
+        if a is None or b is None:
+            return None
+        return (float(a) + float(b)) / 2
+    except (TypeError, ValueError):
+        return None
+
+
+def _compute_financial_ratios(f: dict, price: Optional[float] = None,
+                               growth_assumption: Optional[float] = None,
+                               wacc_assumption: Optional[float] = None,
+                               projection_years: int = 5) -> list:
+    """
+    Pure, deterministic arithmetic — no LLM involved in any number here.
+    `f` is the (possibly user-corrected) extracted-fields dict. Every
+    ratio is computed defensively: if a required input is missing,
+    the ratio is skipped with an explicit reason rather than silently
+    producing a wrong number or a fabricated placeholder.
+
+    `price`, `growth_assumption`, `wacc_assumption` are the three inputs
+    that can NEVER come from a single filing (market price is external;
+    growth/discount-rate are forward-looking judgment calls) — the UI
+    labels these clearly as assumptions, not extracted facts.
+
+    Returns a list of {category, name, formula, values, result, note}
+    dicts, grouped for display by category. `result` is None when the
+    ratio couldn't be computed — the caller renders that as "N/A" with
+    the reason in `note`, never a guessed number.
+    """
+    rows = []
+
+    def add(category, name, formula, result, values_note, band_fn=None):
+        note = values_note
+        if result is not None and band_fn:
+            try:
+                note = f"{values_note} — {band_fn(result)}"
+            except Exception:
+                pass
+        rows.append({"category": category, "name": name, "formula": formula,
+                     "result": result, "note": note})
+
+    shares = f.get("shares_outstanding_cur")
+    eps_cur = f.get("eps_cur")
+    if eps_cur is None:
+        eps_cur = _safe_div(f.get("net_income_cur"), shares)
+
+    # ── Profitability Ratios ────────────────────────────────────────────
+    gross_margin = _safe_div(f.get("gross_profit_cur"), f.get("revenue_cur"))
+    add("Profitability", "Gross Margin %", "Gross Profit ÷ Revenue × 100", gross_margin,
+        f"{f.get('gross_profit_cur')} ÷ {f.get('revenue_cur')}",
+        lambda v: "Healthy (>20%)" if v > 0.20 else "Thin margin")
+
+    op_margin = _safe_div(f.get("operating_profit_cur"), f.get("revenue_cur"))
+    add("Profitability", "Operating Margin %", "Operating Profit ÷ Revenue × 100", op_margin,
+        f"{f.get('operating_profit_cur')} ÷ {f.get('revenue_cur')}",
+        lambda v: "Strong (>15%)" if v > 0.15 else "Below the 15% strong threshold")
+
+    net_margin = _safe_div(f.get("net_income_cur"), f.get("revenue_cur"))
+    add("Profitability", "Net Margin %", "Net Income ÷ Revenue × 100", net_margin,
+        f"{f.get('net_income_cur')} ÷ {f.get('revenue_cur')}",
+        lambda v: "Strong (>10%)" if v > 0.10 else "Below the 10% strong threshold")
+
+    avg_equity = _avg(f.get("total_equity_cur"), f.get("total_equity_prior"))
+    roe = _safe_div(f.get("net_income_cur"), avg_equity)
+    add("Profitability", "ROE %", "Net Income ÷ Avg Equity × 100", roe,
+        f"{f.get('net_income_cur')} ÷ avg({f.get('total_equity_cur')}, {f.get('total_equity_prior')})",
+        lambda v: "Excellent (>15%)" if v > 0.15 else "Below the 15% excellent threshold")
+
+    avg_assets = _avg(f.get("total_assets_cur"), f.get("total_assets_prior"))
+    roa = _safe_div(f.get("net_income_cur"), avg_assets)
+    add("Profitability", "ROA %", "Net Income ÷ Avg Assets × 100", roa,
+        f"{f.get('net_income_cur')} ÷ avg({f.get('total_assets_cur')}, {f.get('total_assets_prior')})",
+        lambda v: "Good (>10%)" if v > 0.10 else "Below the 10% good threshold")
+
+    ebitda = None
+    try:
+        if f.get("operating_profit_cur") is not None and f.get("depreciation_amortization_cur") is not None:
+            ebitda = float(f["operating_profit_cur"]) + float(f["depreciation_amortization_cur"])
+    except (TypeError, ValueError):
+        pass
+    add("Profitability", "EBITDA", "Operating Profit + Depreciation & Amortization", ebitda,
+        f"{f.get('operating_profit_cur')} + {f.get('depreciation_amortization_cur')}", None)
+
+    invested_capital = None
+    try:
+        if f.get("total_debt_cur") is not None and f.get("total_equity_cur") is not None:
+            invested_capital = float(f["total_debt_cur"]) + float(f["total_equity_cur"])
+    except (TypeError, ValueError):
+        pass
+    nopat = f.get("operating_profit_cur")  # pre-tax proxy; true NOPAT needs a tax rate the filing states elsewhere
+    roic = _safe_div(nopat, invested_capital)
+    add("Profitability", "ROIC % (pre-tax proxy)", "Operating Profit ÷ (Debt + Equity) × 100", roic,
+        f"{nopat} ÷ ({f.get('total_debt_cur')} + {f.get('total_equity_cur')})",
+        lambda v: "Efficient (>10%)" if v > 0.10 else "Below the 10% efficient threshold")
+
+    # ── Growth Ratios ───────────────────────────────────────────────────
+    def growth(cur, prior):
+        if cur is None or prior is None:
+            return None
+        try:
+            cur, prior = float(cur), float(prior)
+            if prior == 0:
+                return None
+            return (cur - prior) / prior
+        except (TypeError, ValueError):
+            return None
+
+    rev_g = growth(f.get("revenue_cur"), f.get("revenue_prior"))
+    add("Growth", "Revenue Growth %", "(Cur Revenue − Prior Revenue) ÷ Prior × 100", rev_g,
+        f"({f.get('revenue_cur')} − {f.get('revenue_prior')}) ÷ {f.get('revenue_prior')}",
+        lambda v: "Expansion" if v > 0 else "Contraction")
+
+    eps_g = growth(eps_cur, f.get("eps_prior"))
+    add("Growth", "EPS Growth %", "(Cur EPS − Prior EPS) ÷ Prior × 100", eps_g,
+        f"({eps_cur} − {f.get('eps_prior')}) ÷ {f.get('eps_prior')}",
+        lambda v: "Improving profitability" if v > 0 else "Declining profitability")
+
+    eq_g = growth(f.get("total_equity_cur"), f.get("total_equity_prior"))
+    add("Growth", "Equity Growth %", "(Cur Equity − Prior Equity) ÷ Prior × 100", eq_g,
+        f"({f.get('total_equity_cur')} − {f.get('total_equity_prior')}) ÷ {f.get('total_equity_prior')}",
+        lambda v: "Stronger balance sheet" if v > 0 else "Shrinking equity base")
+
+    asset_g = growth(f.get("total_assets_cur"), f.get("total_assets_prior"))
+    add("Growth", "Asset Growth %", "(Cur Assets − Prior Assets) ÷ Prior × 100", asset_g,
+        f"({f.get('total_assets_cur')} − {f.get('total_assets_prior')}) ÷ {f.get('total_assets_prior')}",
+        lambda v: "Expansion" if v > 0 else "Contraction")
+
+    liab_g = growth(f.get("total_liabilities_cur"), f.get("total_liabilities_prior"))
+    add("Growth", "Liabilities Growth %", "(Cur Liabilities − Prior Liabilities) ÷ Prior × 100", liab_g,
+        f"({f.get('total_liabilities_cur')} − {f.get('total_liabilities_prior')}) ÷ {f.get('total_liabilities_prior')}",
+        lambda v: "Higher risk — liabilities growing" if v > 0.30 else "Manageable liabilities growth")
+
+    # ── Liquidity Ratios ────────────────────────────────────────────────
+    current_ratio = _safe_div(f.get("current_assets_cur"), f.get("current_liabilities_cur"))
+    add("Liquidity", "Current Ratio", "Current Assets ÷ Current Liabilities", current_ratio,
+        f"{f.get('current_assets_cur')} ÷ {f.get('current_liabilities_cur')}",
+        lambda v: "Safe (>1.5)" if v > 1.5 else "Below the 1.5 safe threshold")
+
+    quick_num = None
+    try:
+        if f.get("current_assets_cur") is not None and f.get("inventory_cur") is not None:
+            quick_num = float(f["current_assets_cur"]) - float(f["inventory_cur"])
+    except (TypeError, ValueError):
+        pass
+    quick_ratio = _safe_div(quick_num, f.get("current_liabilities_cur"))
+    add("Liquidity", "Quick Ratio", "(Current Assets − Inventory) ÷ Current Liabilities", quick_ratio,
+        f"({f.get('current_assets_cur')} − {f.get('inventory_cur')}) ÷ {f.get('current_liabilities_cur')}",
+        lambda v: "Healthy (>1)" if v > 1 else "Below the 1.0 healthy threshold")
+
+    dio = _safe_div(_avg(f.get("inventory_cur"), f.get("inventory_prior")), f.get("cogs_cur"))
+    dio_days = dio * 365 if dio is not None else None
+    dso_days = None
+    try:
+        if f.get("accounts_receivable_cur") is not None and f.get("revenue_cur") not in (None, 0):
+            dso_days = float(f["accounts_receivable_cur"]) / float(f["revenue_cur"]) * 365
+    except (TypeError, ValueError, ZeroDivisionError):
+        pass
+    dpo_days = None
+    try:
+        if f.get("accounts_payable_cur") is not None and f.get("cogs_cur") not in (None, 0):
+            dpo_days = float(f["accounts_payable_cur"]) / float(f["cogs_cur"]) * 365
+    except (TypeError, ValueError, ZeroDivisionError):
+        pass
+    ccc = None
+    if dio_days is not None and dso_days is not None and dpo_days is not None:
+        ccc = dio_days + dso_days - dpo_days
+    add("Liquidity", "Cash Conversion Cycle (days)", "DIO + DSO − DPO", ccc,
+        f"DIO≈{round(dio_days,1) if dio_days else 'N/A'} + DSO≈{round(dso_days,1) if dso_days else 'N/A'} − DPO≈{round(dpo_days,1) if dpo_days else 'N/A'}",
+        None)
+
+    # ── Leverage Ratios ─────────────────────────────────────────────────
+    debt_to_equity = _safe_div(f.get("total_liabilities_cur"), f.get("total_equity_cur"))
+    add("Leverage", "Debt-to-Equity", "Total Liabilities ÷ Equity", debt_to_equity,
+        f"{f.get('total_liabilities_cur')} ÷ {f.get('total_equity_cur')}",
+        lambda v: "Safe (<1)" if v < 1 else ("Risky (>2)" if v > 2 else "Moderate leverage"))
+
+    net_debt = None
+    try:
+        if f.get("total_debt_cur") is not None and f.get("cash_cur") is not None:
+            net_debt = float(f["total_debt_cur"]) - float(f["cash_cur"])
+    except (TypeError, ValueError):
+        pass
+    add("Leverage", "Net Debt", "Borrowings − Cash", net_debt,
+        f"{f.get('total_debt_cur')} − {f.get('cash_cur')}",
+        lambda v: "Net borrower" if v > 0 else "Cash-rich (net cash position)")
+
+    interest_coverage = _safe_div(f.get("operating_profit_cur"), f.get("interest_expense_cur"))
+    add("Leverage", "Interest Coverage", "EBIT ÷ Interest Expense", interest_coverage,
+        f"{f.get('operating_profit_cur')} ÷ {f.get('interest_expense_cur')}",
+        lambda v: "Safe (>2)" if v > 2 else ("Risk zone (<1.5)" if v < 1.5 else "Watch zone"))
+
+    # ── Valuation Ratios (need market price) ─────────────────────────────
+    if eps_cur is not None:
+        add("Valuation", "EPS", "Net Income ÷ Shares Outstanding", eps_cur,
+            f"{f.get('net_income_cur')} ÷ {shares}", None)
+
+    market_cap = None
+    try:
+        if price is not None and shares is not None:
+            market_cap = float(price) * float(shares)
+    except (TypeError, ValueError):
+        pass
+    add("Valuation", "Market Cap", "Price × Shares", market_cap, f"{price} × {shares}", None)
+
+    pe_ratio = _safe_div(price, eps_cur)
+    add("Valuation", "P/E Ratio", "Price ÷ EPS", pe_ratio, f"{price} ÷ {eps_cur}",
+        lambda v: "Value territory (<10)" if v < 10 else ("Expensive (>20)" if v > 20 else "Mid-range"))
+
+    bvps = _safe_div(f.get("total_equity_cur"), shares)
+    pb_ratio = _safe_div(price, bvps)
+    add("Valuation", "P/B Ratio", "Price ÷ (Equity ÷ Shares)", pb_ratio,
+        f"{price} ÷ ({f.get('total_equity_cur')} ÷ {shares})",
+        lambda v: "Potentially undervalued (<1)" if v < 1 else "Above book value")
+
+    dividend_yield = _safe_div(f.get("dividend_per_share_cur"), price)
+    add("Valuation", "Dividend Yield %", "(Dividend ÷ Price) × 100", dividend_yield,
+        f"{f.get('dividend_per_share_cur')} ÷ {price}", None)
+
+    payout_ratio = _safe_div(f.get("dividend_per_share_cur"), eps_cur)
+    add("Valuation", "Dividend Payout Ratio %", "(DPS ÷ EPS) × 100", payout_ratio,
+        f"{f.get('dividend_per_share_cur')} ÷ {eps_cur}",
+        lambda v: "Sustainable (30–50%)" if 0.30 <= v <= 0.50 else "Outside the typical 30–50% sustainable band")
+
+    fcf = None
+    try:
+        if f.get("operating_cash_flow_cur") is not None and f.get("capex_cur") is not None:
+            fcf = float(f["operating_cash_flow_cur"]) - float(f["capex_cur"])
+    except (TypeError, ValueError):
+        pass
+    add("Valuation", "Free Cash Flow", "Operating Cash Flow − Capex", fcf,
+        f"{f.get('operating_cash_flow_cur')} − {f.get('capex_cur')}",
+        lambda v: "Positive — generating real cash" if v > 0 else "Negative FCF — burning cash")
+
+    pfcf_ratio = _safe_div(market_cap, fcf)
+    add("Valuation", "P/FCF Ratio", "Market Cap ÷ FCF", pfcf_ratio, f"{market_cap} ÷ {fcf}", None)
+
+    ps_ratio = _safe_div(price, _safe_div(f.get("revenue_cur"), shares))
+    add("Valuation", "P/S Ratio", "Price ÷ (Revenue ÷ Shares)", ps_ratio,
+        f"{price} ÷ ({f.get('revenue_cur')} ÷ {shares})", None)
+
+    # ── Intrinsic Value / DCF (needs explicit growth & discount-rate ASSUMPTIONS,
+    #    never extracted — these are forward-looking judgment calls, not facts) ──
+    if fcf is not None and growth_assumption is not None and wacc_assumption is not None and wacc_assumption > growth_assumption:
+        pv_sum = 0.0
+        for yr in range(1, projection_years + 1):
+            projected = fcf * ((1 + growth_assumption) ** yr)
+            pv = projected / ((1 + wacc_assumption) ** yr)
+            pv_sum += pv
+        terminal_value = (fcf * ((1 + growth_assumption) ** projection_years) * (1 + growth_assumption)) / (wacc_assumption - growth_assumption)
+        pv_terminal = terminal_value / ((1 + wacc_assumption) ** projection_years)
+        enterprise_value = pv_sum + pv_terminal
+        equity_value = enterprise_value - (net_debt if net_debt is not None else 0)
+        intrinsic_per_share = _safe_div(equity_value, shares)
+        margin_of_safety = _safe_div((intrinsic_per_share - price) if (intrinsic_per_share is not None and price is not None) else None, intrinsic_per_share)
+
+        add("Intrinsic Value (DCF)", "Enterprise Value",
+            f"Σ PV(FCF) over {projection_years}y + PV(Terminal Value), at g={growth_assumption:.1%}, WACC={wacc_assumption:.1%}",
+            enterprise_value, "Assumption-driven — see growth/WACC inputs above", None)
+        add("Intrinsic Value (DCF)", "Equity Value", "Enterprise Value − Net Debt", equity_value,
+            f"{enterprise_value:.0f} − {net_debt if net_debt is not None else 0}", None)
+        add("Intrinsic Value (DCF)", "Intrinsic Value / Share", "Equity Value ÷ Shares", intrinsic_per_share,
+            f"{equity_value:.0f} ÷ {shares}" if equity_value is not None else "N/A", None)
+        add("Intrinsic Value (DCF)", "Margin of Safety %", "(Intrinsic − Price) ÷ Intrinsic × 100", margin_of_safety,
+            f"({intrinsic_per_share:.2f} − {price}) ÷ {intrinsic_per_share:.2f}" if intrinsic_per_share else "N/A",
+            lambda v: "Safer (>20% margin)" if v > 0.20 else "Below the 20% safety margin")
+    else:
+        rows.append({"category": "Intrinsic Value (DCF)", "name": "(not computed)", "formula": "",
+                     "result": None, "note": "Needs Free Cash Flow plus a growth-rate and WACC assumption "
+                     "(enter both above) — these can never come from the filing itself."})
+
+    # ── Efficiency Ratios ───────────────────────────────────────────────
+    inv_turnover = _safe_div(f.get("cogs_cur"), _avg(f.get("inventory_cur"), f.get("inventory_prior")))
+    add("Efficiency", "Inventory Turnover", "COGS ÷ Avg Inventory", inv_turnover,
+        f"{f.get('cogs_cur')} ÷ avg({f.get('inventory_cur')}, {f.get('inventory_prior')})", None)
+
+    asset_turnover = _safe_div(f.get("revenue_cur"), avg_assets)
+    add("Efficiency", "Asset Turnover", "Revenue ÷ Avg Assets", asset_turnover,
+        f"{f.get('revenue_cur')} ÷ avg({f.get('total_assets_cur')}, {f.get('total_assets_prior')})", None)
+
+    return rows
+
+
 with tabs[20]:
     st.markdown("### 🏛 Long-Term Investing Review")
     st.caption(
@@ -8466,6 +8849,137 @@ with tabs[20]:
                     _cn[lt_chart_ticker] = lt_note
                     _save_chart_notes(_cn)
                     st.success("Saved.")
+
+    # ══════════════════════════════════════════════════════════════════
+    # FINANCIAL STATEMENT ANALYZER — US filings (10-K/10-Q), PDF or photo.
+    # Lives here rather than a new tab: thematically it belongs with
+    # long-term/fundamentals analysis, and this is one of the app's
+    # lower-traffic tabs.
+    # ══════════════════════════════════════════════════════════════════
+    st.markdown("---")
+    st.markdown("### 📑 Financial Statement Analyzer")
+    st.caption(
+        "Upload a US filing (10-K or 10-Q) as a PDF or a photo/scan. Every figure below is read "
+        "verbatim from the document with its source cited — review and correct anything before "
+        "computing ratios. Nothing here feeds into Apex Score or any ranking; it's a standalone "
+        "calculator with plain-English explanations."
+    )
+
+    _fsa_file = st.file_uploader(
+        "Upload filing (optional if entering manually)", type=["pdf", "png", "jpg", "jpeg"], key="fsa_upload",
+        help="US filings only for now. PDF works best; a clear photo of a printed statement also works. "
+             "Upload is only needed for the auto-read option below."
+    )
+
+    _fsa_field_list = [
+        "revenue_cur", "revenue_prior", "cogs_cur", "gross_profit_cur",
+        "operating_profit_cur", "depreciation_amortization_cur", "interest_expense_cur",
+        "net_income_cur", "net_income_prior", "eps_cur", "eps_prior",
+        "shares_outstanding_cur", "dividend_per_share_cur",
+        "total_assets_cur", "total_assets_prior", "total_equity_cur", "total_equity_prior",
+        "total_liabilities_cur", "total_liabilities_prior",
+        "current_assets_cur", "current_liabilities_cur",
+        "inventory_cur", "inventory_prior", "accounts_receivable_cur", "accounts_payable_cur",
+        "cash_cur", "total_debt_cur", "total_debt_prior",
+        "operating_cash_flow_cur", "capex_cur",
+    ]
+    _fsa_api_key = cfg.get("anthropic_api_key", "")
+    _fsa_has_key = bool(_fsa_api_key and not _fsa_api_key.startswith("YOUR_"))
+
+    bcol1, bcol2 = st.columns(2)
+    with bcol1:
+        if not _fsa_has_key:
+            st.caption("🔒 Auto-read needs an Anthropic API key — none is configured "
+                       "(this is a separate pay-per-use API key, not a claude.ai subscription).")
+        _read_disabled = (_fsa_file is None) or (not _fsa_has_key)
+        if st.button("🔎 Read Filing Automatically", key="fsa_extract_btn", disabled=_read_disabled):
+            _mime = "application/pdf" if _fsa_file.type == "application/pdf" else _fsa_file.type
+            with st.spinner("Reading filing… this can take up to a minute for a full 10-K."):
+                _fsa_result = _extract_financials_via_claude(_fsa_file.getvalue(), _mime, _fsa_api_key)
+            st.session_state["fsa_result"] = _fsa_result
+    with bcol2:
+        st.caption("No API key needed — just type the figures in yourself while looking at the filing.")
+        if st.button("🖊️ Enter Figures Manually", key="fsa_manual_btn"):
+            st.session_state["fsa_result"] = {
+                "ok": True, "company": None, "period_cur": None, "period_prior": None,
+                "notes": None,
+                "fields": {k: {"value": None, "source": "— manual entry —"} for k in _fsa_field_list},
+            }
+
+    _fsa_result = st.session_state.get("fsa_result")
+    if _fsa_result:
+        if not _fsa_result.get("ok"):
+            st.error(f"Could not read this filing: {_fsa_result.get('error')}")
+        else:
+            if _fsa_result.get("company") or _fsa_result.get("period_cur"):
+                st.success(f"Read {_fsa_result.get('company') or 'filing'} — "
+                           f"{_fsa_result.get('period_cur') or 'current period'} vs "
+                           f"{_fsa_result.get('period_prior') or 'prior period'}")
+            if _fsa_result.get("notes"):
+                st.info(f"ℹ️ {_fsa_result['notes']}")
+
+            st.markdown("#### Review figures — correct anything before computing"
+                        if any((v or {}).get('value') is not None for v in _fsa_result.get("fields", {}).values())
+                        else "#### Enter figures from the filing")
+            _fields = _fsa_result.get("fields", {})
+            _review_rows = [
+                {"Field": k, "Value": (v or {}).get("value"), "Source (as found)": (v or {}).get("source") or "— not found —"}
+                for k, v in _fields.items()
+            ]
+            _review_df = pd.DataFrame(_review_rows)
+            _edited_df = st.data_editor(
+                _review_df, key="fsa_review_editor", use_container_width=True, height=400,
+                disabled=["Field", "Source (as found)"],
+                column_config={"Value": st.column_config.NumberColumn("Value", format="%.2f")},
+            )
+
+            st.markdown("#### Inputs that can't come from the filing")
+            fc1, fc2, fc3 = st.columns(3)
+            with fc1:
+                _fsa_price = st.number_input("Current share price ($)", min_value=0.0, value=0.0,
+                                             step=0.01, key="fsa_price",
+                                             help="Market price — not in the filing, needed for P/E, P/B, Market Cap etc.")
+            with fc2:
+                _fsa_growth = st.number_input("DCF growth assumption (%/yr)", value=5.0, step=0.5,
+                                              key="fsa_growth",
+                                              help="Your own forward-looking assumption, not extracted from anything.")
+            with fc3:
+                _fsa_wacc = st.number_input("DCF discount rate / WACC (%)", value=10.0, step=0.5,
+                                            key="fsa_wacc",
+                                            help="Your own assumption — must be higher than the growth rate above.")
+
+            if st.button("🧮 Compute Ratios", key="fsa_compute_btn"):
+                _corrected = {row["Field"]: row["Value"] for _, row in _edited_df.iterrows()}
+                _price_val = _fsa_price if _fsa_price > 0 else None
+                _ratio_rows = _compute_financial_ratios(
+                    _corrected, price=_price_val,
+                    growth_assumption=_fsa_growth / 100 if _fsa_growth else None,
+                    wacc_assumption=_fsa_wacc / 100 if _fsa_wacc else None,
+                )
+                st.session_state["fsa_ratios"] = _ratio_rows
+
+            _ratio_rows = st.session_state.get("fsa_ratios")
+            if _ratio_rows:
+                st.markdown("#### Results")
+                _categories = ["Profitability", "Growth", "Liquidity", "Leverage",
+                               "Valuation", "Intrinsic Value (DCF)", "Efficiency"]
+                for _cat in _categories:
+                    _cat_rows = [r for r in _ratio_rows if r["category"] == _cat]
+                    if not _cat_rows:
+                        continue
+                    with st.expander(f"**{_cat}**", expanded=(_cat in ("Profitability", "Valuation"))):
+                        for r in _cat_rows:
+                            if r["result"] is None:
+                                st.markdown(f"**{r['name']}** — *N/A*  \n"
+                                           f"<span style='color:#8b949e;font-size:0.85rem;'>{r['formula']} · {r['note']}</span>",
+                                           unsafe_allow_html=True)
+                            else:
+                                _disp_val = (f"{r['result']:.2%}" if "%" in r["name"] and abs(r["result"]) < 5
+                                            else f"{r['result']:,.2f}")
+                                st.markdown(f"**{r['name']}: {_disp_val}**  \n"
+                                           f"<span style='color:#8b949e;font-size:0.85rem;'>{r['formula']} = {r['note']}</span>",
+                                           unsafe_allow_html=True)
+                        st.markdown("")
 
     st.markdown("---")
     st.markdown("### 🔻 Short Candidates")
