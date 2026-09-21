@@ -8884,7 +8884,7 @@ with tabs[20]:
         "cash_cur", "total_debt_cur", "total_debt_prior",
         "operating_cash_flow_cur", "capex_cur",
     ]
-    _fsa_api_key = cfg.get("anthropic_api_key", "")
+    _fsa_api_key = load_config("config.yaml").get("anthropic_api_key", "")
     _fsa_has_key = bool(_fsa_api_key and not _fsa_api_key.startswith("YOUR_"))
 
     bcol1, bcol2 = st.columns(2)
