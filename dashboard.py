@@ -20,6 +20,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import json
 import logging
+from typing import Optional
 
 log = logging.getLogger("apexscan.dashboard")
 if not log.handlers:
