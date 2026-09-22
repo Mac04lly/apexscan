@@ -20984,5 +20984,32 @@
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false
+  },
+  {
+    "ticker": "GOOG",
+    "discovered_at": "2026-09-22",
+    "discovery_price": 350.87,
+    "apex_score": 73.4,
+    "apex_score_raw": 73.4,
+    "stage": "2 \u2705 Uptrend",
+    "discovery_stage_rank": 2,
+    "theme": "Communication Services",
+    "breaking_out": false,
+    "of_bias": "Strong Bullish",
+    "of_score": 7,
+    "pattern": "Handle Forming (15% base)",
+    "rs_3m": 26.7,
+    "adr_%": 1.89,
+    "near_52wh": true,
+    "invalidation_price": 336.08,
+    "invalidation_basis": "200-day moving average",
+    "next_earnings": null,
+    "last_checked": null,
+    "current_price": null,
+    "pct_change": null,
+    "days_tracked": null,
+    "current_stage_rank": null,
+    "thesis_status": "\u2013 Not checked yet",
+    "invalidated": false
   }
 ]
