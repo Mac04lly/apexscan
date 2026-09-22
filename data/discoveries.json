@@ -241,7 +241,10 @@
     "invalidation_price": 78.45,
     "invalidation_basis": "200-day moving average (backfilled)",
     "invalidation_backfilled": true,
-    "invalidated": false
+    "invalidated": false,
+    "perf_1w_pct": 0.63,
+    "perf_2w_pct": 0.63,
+    "perf_3w_pct": 0.63
   },
   {
     "ticker": "LOAR",
@@ -20049,7 +20052,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -3.69,
-    "perf_2w_pct": -7.11
+    "perf_2w_pct": -7.11,
+    "perf_3w_pct": -11.72
   },
   {
     "ticker": "SUI",
@@ -20073,7 +20077,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -3.73,
-    "perf_2w_pct": -7.86
+    "perf_2w_pct": -7.86,
+    "perf_3w_pct": -8.77
   },
   {
     "ticker": "CTSH",
@@ -20097,7 +20102,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": 0.54,
-    "perf_2w_pct": -7.71
+    "perf_2w_pct": -7.71,
+    "perf_3w_pct": -1.92
   },
   {
     "ticker": "STEP",
@@ -20121,7 +20127,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": 0.39,
-    "perf_2w_pct": -2.7
+    "perf_2w_pct": -2.7,
+    "perf_3w_pct": -7.12
   },
   {
     "ticker": "WMB",
@@ -20145,7 +20152,8 @@
     "thesis_status": "\u2013 Not enough data",
     "invalidated": false,
     "perf_1w_pct": -0.05,
-    "perf_2w_pct": -1.25
+    "perf_2w_pct": -1.25,
+    "perf_3w_pct": -2.88
   },
   {
     "ticker": "SLB",
@@ -20169,7 +20177,8 @@
     "thesis_status": "\u2013 Not enough data",
     "invalidated": false,
     "perf_1w_pct": 4.54,
-    "perf_2w_pct": 1.93
+    "perf_2w_pct": 1.93,
+    "perf_3w_pct": -7.07
   },
   {
     "ticker": "FCFS",
@@ -20193,7 +20202,8 @@
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false,
     "perf_1w_pct": 0.69,
-    "perf_2w_pct": 1.7
+    "perf_2w_pct": 1.7,
+    "perf_3w_pct": -2.27
   },
   {
     "ticker": "TYL",
@@ -20217,7 +20227,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -1.58,
-    "perf_2w_pct": -8.79
+    "perf_2w_pct": -8.79,
+    "perf_3w_pct": -8.75
   },
   {
     "ticker": "CME",
@@ -20241,7 +20252,8 @@
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false,
     "perf_1w_pct": -0.34,
-    "perf_2w_pct": -1.99
+    "perf_2w_pct": -1.99,
+    "perf_3w_pct": -1.75
   },
   {
     "ticker": "SR",
@@ -20265,7 +20277,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": 0.17,
-    "perf_2w_pct": -1.95
+    "perf_2w_pct": -1.95,
+    "perf_3w_pct": -4.01
   },
   {
     "ticker": "GAP",
@@ -20289,7 +20302,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -5.8,
-    "perf_2w_pct": -10.6
+    "perf_2w_pct": -10.6,
+    "perf_3w_pct": -13.73
   },
   {
     "ticker": "CBOE",
@@ -20313,7 +20327,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -4.34,
-    "perf_2w_pct": -8.83
+    "perf_2w_pct": -8.83,
+    "perf_3w_pct": -12.53
   },
   {
     "ticker": "G",
@@ -20337,7 +20352,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -1.79,
-    "perf_2w_pct": -8.97
+    "perf_2w_pct": -8.97,
+    "perf_3w_pct": -10.16
   },
   {
     "ticker": "VNOM",
@@ -20361,7 +20377,8 @@
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
     "perf_1w_pct": -0.95,
-    "perf_2w_pct": 0.68
+    "perf_2w_pct": 0.68,
+    "perf_3w_pct": -7.94
   },
   {
     "ticker": "AGCO",
@@ -20384,7 +20401,8 @@
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false,
-    "perf_1w_pct": 7.61
+    "perf_1w_pct": 7.61,
+    "perf_2w_pct": 4.63
   },
   {
     "ticker": "CNX",
@@ -20407,7 +20425,8 @@
     "current_stage_rank": -1,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": -2.13
+    "perf_1w_pct": -2.13,
+    "perf_2w_pct": -10.25
   },
   {
     "ticker": "LYB",
@@ -20430,7 +20449,8 @@
     "current_stage_rank": 0,
     "thesis_status": "\u26a0\ufe0f Weakened",
     "invalidated": false,
-    "perf_1w_pct": -3.41
+    "perf_1w_pct": -3.41,
+    "perf_2w_pct": -3.49
   },
   {
     "ticker": "VAL",
@@ -20453,7 +20473,8 @@
     "current_stage_rank": null,
     "thesis_status": "\u2013 Not enough data",
     "invalidated": false,
-    "perf_1w_pct": -7.26
+    "perf_1w_pct": -7.26,
+    "perf_2w_pct": -9.06
   },
   {
     "ticker": "KEX",
@@ -20476,7 +20497,8 @@
     "current_stage_rank": null,
     "thesis_status": "\u2013 Not enough data",
     "invalidated": false,
-    "perf_1w_pct": -2.32
+    "perf_1w_pct": -2.32,
+    "perf_2w_pct": -2.46
   },
   {
     "ticker": "EQT",
@@ -20499,7 +20521,8 @@
     "current_stage_rank": -1,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": -1.75
+    "perf_1w_pct": -1.75,
+    "perf_2w_pct": -9.99
   },
   {
     "ticker": "WFRD",
@@ -20522,7 +20545,8 @@
     "current_stage_rank": -1,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": -7.49
+    "perf_1w_pct": -7.49,
+    "perf_2w_pct": -15.59
   },
   {
     "ticker": "MSTR",
@@ -20545,7 +20569,8 @@
     "current_stage_rank": 1,
     "thesis_status": "\ud83d\udcc8 Strengthened",
     "invalidated": false,
-    "perf_1w_pct": -5.41
+    "perf_1w_pct": -5.41,
+    "perf_2w_pct": -2.69
   },
   {
     "ticker": "CHPT",
@@ -20568,7 +20593,8 @@
     "current_stage_rank": 2,
     "thesis_status": "\ud83d\udcc8 Strengthened",
     "invalidated": false,
-    "perf_1w_pct": 1.32
+    "perf_1w_pct": 1.32,
+    "perf_2w_pct": 13.66
   },
   {
     "ticker": "PRTA",
@@ -20591,7 +20617,8 @@
     "current_stage_rank": -1,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": -7.5
+    "perf_1w_pct": -7.5,
+    "perf_2w_pct": -10.63
   },
   {
     "ticker": "MUX",
@@ -20614,7 +20641,8 @@
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": -5.7
+    "perf_1w_pct": -5.7,
+    "perf_2w_pct": -7.5
   },
   {
     "ticker": "USAS",
@@ -20637,7 +20665,8 @@
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": -7.22
+    "perf_1w_pct": -7.22,
+    "perf_2w_pct": -6.5
   },
   {
     "ticker": "STAG",
@@ -20660,7 +20689,8 @@
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": -2.2
+    "perf_1w_pct": -2.2,
+    "perf_2w_pct": -0.27
   },
   {
     "ticker": "PSKY",
@@ -20683,7 +20713,8 @@
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": -5.21
+    "perf_1w_pct": -5.21,
+    "perf_2w_pct": -7.52
   },
   {
     "ticker": "CEG",
@@ -20705,7 +20736,8 @@
     "days_tracked": 14,
     "current_stage_rank": -1,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "perf_1w_pct": -13.07
   },
   {
     "ticker": "TXNM",
@@ -20727,7 +20759,8 @@
     "days_tracked": 14,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "perf_1w_pct": 0.34
   },
   {
     "ticker": "VRT",
@@ -20749,7 +20782,8 @@
     "days_tracked": 13,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "perf_1w_pct": -17.68
   },
   {
     "ticker": "META",
@@ -20771,7 +20805,8 @@
     "days_tracked": 12,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "perf_1w_pct": 4.3
   },
   {
     "ticker": "GLW",
@@ -20793,7 +20828,8 @@
     "days_tracked": 12,
     "current_stage_rank": 2,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "perf_1w_pct": -12.26
   },
   {
     "ticker": "BG",
@@ -20815,7 +20851,8 @@
     "days_tracked": 11,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "perf_1w_pct": -7.23
   },
   {
     "ticker": "WMG",
@@ -20837,7 +20874,8 @@
     "days_tracked": 8,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "perf_1w_pct": -2.26
   },
   {
     "ticker": "COIN",
