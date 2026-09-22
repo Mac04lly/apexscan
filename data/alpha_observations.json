@@ -143424,9 +143424,9 @@
       "min_required": 5000000.0,
       "market": "US"
     },
-    "breakout_status": "PRE_BREAKOUT",
-    "breakout_date": null,
-    "breakout_price": null,
+    "breakout_status": "CONFIRMED_BREAKOUT",
+    "breakout_date": "2026-09-22",
+    "breakout_price": 615.52001953125,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
     "outcomes": {}
