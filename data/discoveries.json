@@ -20402,7 +20402,8 @@
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false,
     "perf_1w_pct": 7.61,
-    "perf_2w_pct": 4.63
+    "perf_2w_pct": 4.63,
+    "perf_3w_pct": 2.93
   },
   {
     "ticker": "CNX",
@@ -20737,7 +20738,8 @@
     "current_stage_rank": -1,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true,
-    "perf_1w_pct": -13.07
+    "perf_1w_pct": -13.07,
+    "perf_2w_pct": -11.57
   },
   {
     "ticker": "TXNM",
@@ -20760,7 +20762,8 @@
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
     "invalidated": false,
-    "perf_1w_pct": 0.34
+    "perf_1w_pct": 0.34,
+    "perf_2w_pct": 1.3
   },
   {
     "ticker": "VRT",
@@ -20902,7 +20905,8 @@
     "days_tracked": 7,
     "current_stage_rank": 1,
     "thesis_status": "\u27a1\ufe0f Unchanged",
-    "invalidated": false
+    "invalidated": false,
+    "perf_1w_pct": 4.31
   },
   {
     "ticker": "LOPE",
@@ -20929,7 +20933,8 @@
     "days_tracked": 7,
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
-    "invalidated": true
+    "invalidated": true,
+    "perf_1w_pct": -2.5
   },
   {
     "ticker": "GME",
