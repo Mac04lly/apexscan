@@ -21016,5 +21016,32 @@
     "current_stage_rank": 0,
     "thesis_status": "\ud83d\udd34 Invalidated",
     "invalidated": true
+  },
+  {
+    "ticker": "OLLI",
+    "discovered_at": "2026-09-24",
+    "discovery_price": 82.61,
+    "apex_score": 24.5,
+    "apex_score_raw": 24.5,
+    "stage": "3 \u26a0\ufe0f Top/Decline",
+    "discovery_stage_rank": 0,
+    "theme": "Consumer Discretionary",
+    "breaking_out": false,
+    "of_bias": "Neutral",
+    "of_score": 0,
+    "pattern": "Near High (No Vol)",
+    "rs_3m": 243.3,
+    "adr_%": 4.63,
+    "near_52wh": false,
+    "invalidation_price": 90.58,
+    "invalidation_basis": "200-day moving average",
+    "next_earnings": null,
+    "last_checked": null,
+    "current_price": null,
+    "pct_change": null,
+    "days_tracked": null,
+    "current_stage_rank": null,
+    "thesis_status": "\u2013 Not checked yet",
+    "invalidated": false
   }
 ]
