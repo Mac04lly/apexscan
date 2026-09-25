@@ -93,6 +93,12 @@
       "version_id": "APEX-9.1",
       "at": "2026-09-25T07:38:27.208029",
       "passed": false
+    },
+    {
+      "event": "walk_forward_recorded",
+      "version_id": "APEX-9.1",
+      "at": "2026-09-25T07:39:14.826952",
+      "passed": false
     }
   ]
 }
