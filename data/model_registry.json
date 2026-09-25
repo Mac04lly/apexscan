@@ -22,7 +22,57 @@
       "source_finding": "Fresh 200MA Reclaim at -0.43% expectancy vs. High Relative Strength at -2.95%",
       "proposed_by": "The dev",
       "approved_by": null,
-      "walk_forward_result": null
+      "walk_forward_result": {
+        "status": "ok",
+        "folds_run": 3,
+        "folds_usable": 1,
+        "fold_results": [
+          {
+            "fold": 0,
+            "status": "ok",
+            "train_range_n": 160,
+            "test_range_n": 160,
+            "best_train_setup": "S2-HIGH-RS",
+            "train_expectancy_%": -4.313,
+            "train_n": 98,
+            "test_n": 34,
+            "test_expectancy_%": -6.647,
+            "held_up": false
+          },
+          {
+            "fold": 1,
+            "status": "ok",
+            "train_range_n": 320,
+            "test_range_n": 160,
+            "best_train_setup": "S2-PULLBACK-50",
+            "train_expectancy_%": -4.705,
+            "train_n": 30,
+            "test_n": 0,
+            "test_expectancy_%": null,
+            "held_up": null
+          },
+          {
+            "fold": 2,
+            "status": "ok",
+            "train_range_n": 480,
+            "test_range_n": 160,
+            "best_train_setup": "S2-PULLBACK-50",
+            "train_expectancy_%": -4.705,
+            "train_n": 30,
+            "test_n": 0,
+            "test_expectancy_%": null,
+            "held_up": null
+          }
+        ],
+        "pass_rate": 0.0,
+        "ready": true,
+        "passed": false,
+        "resolved_observations": 199,
+        "date_range": [
+          "2026-08-23T11:49:29",
+          "2026-08-23T12:10:29"
+        ]
+      }
     }
   },
   "history": [
@@ -37,6 +87,12 @@
       "at": "2026-09-11T07:05:43.421141",
       "by": "The dev",
       "source_finding": "Fresh 200MA Reclaim at -0.43% expectancy vs. High Relative Strength at -2.95%"
+    },
+    {
+      "event": "walk_forward_recorded",
+      "version_id": "APEX-9.1",
+      "at": "2026-09-25T07:38:27.208029",
+      "passed": false
     }
   ]
 }
