@@ -11586,11 +11586,11 @@ with tabs[21]:
                            f"after discovery is one of the fastest ways a fresh long thesis breaks.")
 
 st.markdown("#### 📋 Full Discovery Log")
-        _log_cols = ["ticker","discovered_at","discovery_price","apex_score","apex_score_raw","stage",
-                     "current_price","pct_change","perf_1w_pct","perf_2w_pct","perf_3w_pct",
-                     "thesis_status","invalidation_price",
-                     "pattern","of_score","of_bias","rs_3m","adr_%","near_52wh","breaking_out",
-                     "next_earnings","days_tracked","theme"]
+ _log_cols = ["ticker","discovered_at","discovery_price","apex_score","apex_score_raw","stage",
+ "current_price","pct_change","perf_1w_pct","perf_2w_pct","perf_3w_pct",
+ "thesis_status","invalidation_price",
+ "pattern","of_score","of_bias","rs_3m","adr_%","near_52wh","breaking_out",
+ "next_earnings","days_tracked","theme"]
         _log_cols = [c for c in _log_cols if c in dd.columns]
         show = dd[_log_cols].copy()
         show = show.sort_values("discovered_at", ascending=False)
