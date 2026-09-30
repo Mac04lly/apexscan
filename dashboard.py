@@ -11606,7 +11606,7 @@ try:
             show = show[_base[:_at] + [c for c in _WK_COLS if c in show.columns] + _base[_at:]]
             if _last_day:
                 st.caption(f"📅 'Last day' = {_last_day} vs the prior close. Mon–Fri = this week's day-over-day moves. Refreshes hourly; nothing is saved.")
-        except Exception as _wk_err:
+except Exception as _wk_err:
             st.caption(f"Daily change columns unavailable this session: {_wk_err}")    
 
         # ── 🌡️ Market Pulse ──
