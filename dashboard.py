@@ -11632,9 +11632,9 @@ def _c(v):
             except Exception:
                 return ""
 
-        _color_cols = [c for c in ["pct_change", "perf_1w_pct", "perf_2w_pct", "perf_3w_pct"] + _WK_COLS
+ _color_cols = [c for c in ["pct_change", "perf_1w_pct", "perf_2w_pct", "perf_3w_pct"] + _WK_COLS
                        if c in show.columns]
-        _pct_fmt = lambda v: f"{v:+.1f}%" if pd.notna(v) else "–"
+ _pct_fmt = lambda v: f"{v:+.1f}%" if pd.notna(v) else "–"
 
         st.dataframe(
             show.style.map(_c, subset=_color_cols).format({
