@@ -11627,15 +11627,17 @@ for _pc, (_c_name, _lbl) in zip(_pulse_cols, _wk_present):
                         st.metric(_lbl, f"{_s.median():+.2f}%")
                         st.caption(f"{(_s > 0).mean() * 100:.0f}% up · n={len(_s)}")
 
-def _c(v):
-            try: return "color:#3fb950;font-weight:700" if float(v)>0 else "color:#f85149;font-weight:700"
-            except: return ""
+        def _c(v):
+            try:
+                return "color:#3fb950;font-weight:700" if float(v) > 0 else "color:#f85149;font-weight:700"
+            except Exception:
+                return ""
 
- _color_cols = [c for c in ["pct_change","perf_1w_pct","perf_2w_pct","perf_3w_pct", *_WK_COLS]
+        _color_cols = [c for c in ["pct_change", "perf_1w_pct", "perf_2w_pct", "perf_3w_pct"] + _WK_COLS
                        if c in show.columns]
- _pct_fmt = lambda v: f"{v:+.1f}%" if pd.notna(v) else "–"
+        _pct_fmt = lambda v: f"{v:+.1f}%" if pd.notna(v) else "–"
 
-st.dataframe(
+        st.dataframe(
             show.style.map(_c, subset=_color_cols).format({
                 "discovery_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
                 "current_price":   lambda v: f"${v:.2f}" if pd.notna(v) else "–",
@@ -11660,12 +11662,7 @@ st.dataframe(
             use_container_width=True, height=500
         )
 
- st.download_button(
-            "⬇ Export Discovery Log (CSV)",
-            show.to_csv(index=False).encode("utf-8"),
-            file_name=f"apexscan_discoveries_{datetime.now().strftime('%Y%m%d')}.csv",
-            mime="text/csv",
-        )
+        st.download_button(
             "⬇ Export Discovery Log (CSV)",
             show.to_csv(index=False).encode("utf-8"),
             file_name=f"apexscan_discoveries_{datetime.now().strftime('%Y%m%d')}.csv",
