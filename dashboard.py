@@ -11627,7 +11627,7 @@ for _pc, (_c_name, _lbl) in zip(_pulse_cols, _wk_present):
                         st.metric(_lbl, f"{_s.median():+.2f}%")
                         st.caption(f"{(_s > 0).mean() * 100:.0f}% up · n={len(_s)}")
 
-        def _c(v):
+def _c(v):
             try: return "color:#3fb950;font-weight:700" if float(v)>0 else "color:#f85149;font-weight:700"
             except: return ""
 
