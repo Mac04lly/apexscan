@@ -11596,7 +11596,7 @@ show = dd[_log_cols].copy()
 show = show.sort_values("discovered_at", ascending=False)
 
         # ── Daily change columns (display-only, nothing saved) ──
-        _WK_COLS = ["chg_1d_pct", "wk_mon_pct", "wk_tue_pct", "wk_wed_pct",
+ _WK_COLS = ["chg_1d_pct", "wk_mon_pct", "wk_tue_pct", "wk_wed_pct",
                     "wk_thu_pct", "wk_fri_pct", "wk_week_pct"]
         try:
             _wk_df, _last_day = _weekday_changes_cached(tuple(sorted(show["ticker"].dropna().unique())))
