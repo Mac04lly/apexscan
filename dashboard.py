@@ -11596,21 +11596,18 @@ show = dd[_log_cols].copy()
 show = show.sort_values("discovered_at", ascending=False)
 
         # ── Daily change columns (display-only, nothing saved) ──
-_WK_COLS = ["chg_1d_pct", "wk_mon_pct", "wk_tue_pct", "wk_wed_pct",
+        _WK_COLS = ["chg_1d_pct", "wk_mon_pct", "wk_tue_pct", "wk_wed_pct",
                     "wk_thu_pct", "wk_fri_pct", "wk_week_pct"]
-try:
-            _wk_df, _last_day = _weekday_changes_cached(
-                tuple(sorted(show["ticker"].dropna().unique())))
+        try:
+            _wk_df, _last_day = _weekday_changes_cached(tuple(sorted(show["ticker"].dropna().unique())))
             show = show.merge(_wk_df, left_on="ticker", right_index=True, how="left")
             _base = [c for c in show.columns if c not in _WK_COLS]
             _at = _base.index("perf_3w_pct") + 1 if "perf_3w_pct" in _base else len(_base)
             show = show[_base[:_at] + [c for c in _WK_COLS if c in show.columns] + _base[_at:]]
             if _last_day:
-                st.caption(f"📅 'Last day' = {_last_day} vs the prior close. Mon–Fri = this week's "
-                           f"day-over-day moves (blank = not closed yet / holiday / no data). "
-                           f"Refreshes hourly; does not affect your saved data.")
-            except Exception as _wk_err:
-            st.caption(f"Daily change columns unavailable this session: {_wk_err}")
+                st.caption(f"📅 'Last day' = {_last_day} vs the prior close. Mon–Fri = this week's day-over-day moves. Refreshes hourly; nothing is saved.")
+        except Exception as _wk_err:
+            st.caption(f"Daily change columns unavailable this session: {_wk_err}")    
 
         # ── 🌡️ Market Pulse ──
         _wk_labels = [("chg_1d_pct", "Last day"), ("wk_mon_pct", "Mon"), ("wk_tue_pct", "Tue"),
