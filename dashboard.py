@@ -11547,6 +11547,27 @@ with tabs[21]:
         _log_cols = [c for c in _log_cols if c in dd.columns]
         show = dd[_log_cols].copy()
         show = show.sort_values("discovered_at", ascending=False)
+                # ── 🌡️ Market Pulse — Mon-Fri breadth across every tracked ticker ──
+        _wk_labels = [("wk_mon_pct", "Mon"), ("wk_tue_pct", "Tue"), ("wk_wed_pct", "Wed"),
+                      ("wk_thu_pct", "Thu"), ("wk_fri_pct", "Fri"), ("wk_week_pct", "Week")]
+        _wk_present = [(c, l) for c, l in _wk_labels if c in show.columns]
+        if _wk_present:
+            st.markdown("##### 🌡️ Market Pulse — this week across all tracked tickers")
+            _pulse_cols = st.columns(len(_wk_present))
+            for _pc, (_c_name, _lbl) in zip(_pulse_cols, _wk_present):
+                _s = pd.to_numeric(show[_c_name], errors="coerce").dropna()
+                with _pc:
+                    if _s.empty:
+                        st.metric(_lbl, "–")
+                        st.caption("no data yet")
+                    else:
+                        st.metric(_lbl, f"{_s.median():+.2f}%")
+                        st.caption(f"{(_s > 0).mean() * 100:.0f}% up · n={len(_s)}")
+            st.caption(
+                "Headline = median move of all tracked tickers that day (the median resists "
+                "a few wild small-caps skewing it). Below it: the share of tickers that closed "
+                "green, and how many had data. Weekly = compounded Mon-Fri."
+            )
 
         def _c(v):
             try: return "color:#3fb950;font-weight:700" if float(v)>0 else "color:#f85149;font-weight:700"
