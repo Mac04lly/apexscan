@@ -11630,8 +11630,8 @@ for _pc, (_c_name, _lbl) in zip(_pulse_cols, _wk_present):
 def _c(v):
             try: return "color:#3fb950;font-weight:700" if float(v)>0 else "color:#f85149;font-weight:700"
             except: return ""
-
-        _color_cols = [c for c in ["pct_change","perf_1w_pct","perf_2w_pct","perf_3w_pct", *_WK_COLS]
+  
+              _color_cols = [c for c in ["pct_change","perf_1w_pct","perf_2w_pct","perf_3w_pct", *_WK_COLS]
                        if c in show.columns]
         _pct_fmt = lambda v: f"{v:+.1f}%" if pd.notna(v) else "–"
 
