@@ -11610,7 +11610,7 @@ except Exception as _wk_err:
             st.caption(f"Daily change columns unavailable this session: {_wk_err}")    
 
         # ── 🌡️ Market Pulse ──
-        _wk_labels = [("chg_1d_pct", "Last day"), ("wk_mon_pct", "Mon"), ("wk_tue_pct", "Tue"),
+_wk_labels = [("chg_1d_pct", "Last day"), ("wk_mon_pct", "Mon"), ("wk_tue_pct", "Tue"),
                       ("wk_wed_pct", "Wed"), ("wk_thu_pct", "Thu"), ("wk_fri_pct", "Fri"),
                       ("wk_week_pct", "Week")]
         _wk_present = [(c, l) for c, l in _wk_labels if c in show.columns]
