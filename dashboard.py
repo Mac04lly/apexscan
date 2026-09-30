@@ -11613,7 +11613,7 @@ except Exception as _wk_err:
             _wk_labels = [("chg_1d_pct", "Last day"), ("wk_mon_pct", "Mon"), ("wk_tue_pct", "Tue"),
                       ("wk_wed_pct", "Wed"), ("wk_thu_pct", "Thu"), ("wk_fri_pct", "Fri"),
                       ("wk_week_pct", "Week")]
-        _wk_present = [(c, l) for c, l in _wk_labels if c in show.columns]
+            _wk_present = [(c, l) for c, l in _wk_labels if c in show.columns]
         if _wk_present:
             st.markdown("##### 🌡️ Market Pulse — across all tracked tickers")
             _pulse_cols = st.columns(len(_wk_present))
