@@ -11593,7 +11593,7 @@ _log_cols = ["ticker","discovered_at","discovery_price","apex_score","apex_score
  "next_earnings","days_tracked","theme"]
 _log_cols = [c for c in _log_cols if c in dd.columns]
 show = dd[_log_cols].copy()
- show = show.sort_values("discovered_at", ascending=False)
+show = show.sort_values("discovered_at", ascending=False)
 
         # ── Daily change columns (display-only, nothing saved) ──
         _WK_COLS = ["chg_1d_pct", "wk_mon_pct", "wk_tue_pct", "wk_wed_pct",
