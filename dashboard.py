@@ -11609,7 +11609,7 @@ try:
                 st.caption(f"📅 'Last day' = {_last_day} vs the prior close. Mon–Fri = this week's "
                            f"day-over-day moves (blank = not closed yet / holiday / no data). "
                            f"Refreshes hourly; does not affect your saved data.")
-  except Exception as _wk_err:
+            except Exception as _wk_err:
             st.caption(f"Daily change columns unavailable this session: {_wk_err}")
 
         # ── 🌡️ Market Pulse ──
