@@ -211,11 +211,31 @@ def compute_all_pending_outcomes(max_observations: int = 200) -> int:
     remainder is picked up on the next run (nothing is lost, since
     'pending' status is just the absence of a key, checked fresh every
     time this runs).
+
+    FIXED (Sep 2026): previously charged an observation against the
+    budget just for being incomplete (fewer than all HORIZONS frozen),
+    even when nothing was actually due yet — e.g. one only waiting on
+    its 35D mark was counted the same as one needing real work today.
+    Since this function always scans from the start of the list with
+    no persisted cursor, the earliest cohort with any incomplete
+    horizons permanently absorbed the whole budget on every run, and
+    nothing past it in the list was EVER processed — confirmed: 443 of
+    643 discovery observations had literally zero outcomes computed
+    across 9 runs spanning nearly a month, including observations
+    discovered three weeks apart. Fix: only charge the budget when an
+    observation has a horizon that is both unfrozen AND already due
+    today — mirroring compute_outcomes_for_observation's own cheap,
+    no-fetch early return (see its `pending_horizons` check). A
+    partially-frozen observation with nothing newly due now skips for
+    free, same as a fully-frozen one, so budget naturally flows to
+    whatever genuinely needs work today regardless of its position in
+    the list.
     """
     observations = load_observations()
     if not observations:
         return 0
 
+    today = datetime.now().date()
     bench_cache: dict = {}
     updated_count = 0
     processed = 0
@@ -226,6 +246,18 @@ def compute_all_pending_outcomes(max_observations: int = 200) -> int:
         outcomes = obs.get("outcomes", {})
         if len(outcomes) >= len(HORIZONS):
             continue  # fully frozen already — nothing left to ever compute
+
+        discovery_date = _parse_discovery_date(obs)
+        if not discovery_date:
+            continue  # can't schedule anything without a valid date — skip free
+
+        has_due_work = any(
+            f"{h}D" not in outcomes and (today - discovery_date).days >= _HORIZON_CALENDAR_BUFFER[h]
+            for h in HORIZONS
+        )
+        if not has_due_work:
+            continue  # nothing newly computable yet — skip free, don't spend budget on a no-op
+
         processed += 1
         if compute_outcomes_for_observation(obs, bench_cache):
             updated_count += 1
