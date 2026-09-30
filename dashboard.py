@@ -11585,7 +11585,7 @@ with tabs[21]:
                 st.warning(f"⚠️ **Earnings within 7 days:** {_soon_txt} — a surprise miss right "
                            f"after discovery is one of the fastest ways a fresh long thesis breaks.")
 
-              st.markdown("#### 📋 Full Discovery Log")
+st.markdown("#### 📋 Full Discovery Log")
         _log_cols = ["ticker","discovered_at","discovery_price","apex_score","apex_score_raw","stage",
                      "current_price","pct_change","perf_1w_pct","perf_2w_pct","perf_3w_pct",
                      "thesis_status","invalidation_price",
