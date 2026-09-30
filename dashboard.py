@@ -11636,7 +11636,7 @@ _color_cols = [c for c in ["pct_change", "perf_1w_pct", "perf_2w_pct", "perf_3w_
                        if c in show.columns]
 _pct_fmt = lambda v: f"{v:+.1f}%" if pd.notna(v) else "–"
 
-        st.dataframe(
+st.dataframe(
             show.style.map(_c, subset=_color_cols).format({
                 "discovery_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
                 "current_price":   lambda v: f"${v:.2f}" if pd.notna(v) else "–",
@@ -11661,7 +11661,7 @@ _pct_fmt = lambda v: f"{v:+.1f}%" if pd.notna(v) else "–"
             use_container_width=True, height=500
         )
 
-        st.download_button(
+st.download_button(
             "⬇ Export Discovery Log (CSV)",
             show.to_csv(index=False).encode("utf-8"),
             file_name=f"apexscan_discoveries_{datetime.now().strftime('%Y%m%d')}.csv",
