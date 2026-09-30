@@ -1172,7 +1172,54 @@ def backfill_invalidation_prices(disc_list: list, period: str = "2y") -> dict:
 
     return summary
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def _weekday_changes_cached(tickers: tuple):
+    """Display-only. Day-over-day % change for Mon-Fri of the current week,
+    plus chg_1d_pct = the latest trading day vs the one before it.
+    Returns (DataFrame indexed by ticker, last_trading_day_str). Never persisted."""
+    today = datetime.now().date()
+    monday = today - timedelta(days=today.weekday())
+    friday = monday + timedelta(days=4)
+    start = monday - timedelta(days=7)
+    end = friday + timedelta(days=1)
+    day_cols = ["wk_mon_pct", "wk_tue_pct", "wk_wed_pct", "wk_thu_pct", "wk_fri_pct"]
+    all_cols = ["chg_1d_pct"] + day_cols + ["wk_week_pct"]
 
+    frames = []
+    for k in range(0, len(tickers), 100):
+        batch = list(tickers[k:k + 100])
+        try:
+            raw = yf.download(batch, start=start.isoformat(), end=end.isoformat(),
+                              auto_adjust=True, progress=False, threads=True)
+            close = raw["Close"]
+            if isinstance(close, pd.Series):
+                close = close.to_frame(batch[0])
+            frames.append(close)
+        except Exception as e:
+            log.warning(f"Daily changes: batch {k // 100 + 1} failed: {e}")
+    if not frames:
+        return pd.DataFrame(columns=all_cols), None
+
+    closes = pd.concat(frames, axis=1)
+    closes = closes.loc[:, ~closes.columns.duplicated()]
+    daily = closes.pct_change(fill_method=None) * 100
+    if daily.empty:
+        return pd.DataFrame(columns=all_cols), None
+
+    out = pd.DataFrame(index=closes.columns, columns=all_cols, dtype=float)
+    out["chg_1d_pct"] = daily.iloc[-1]
+    last_day = pd.Timestamp(daily.index[-1]).date().isoformat()
+
+    growth = pd.Series(1.0, index=closes.columns)
+    seen = pd.Series(False, index=closes.columns)
+    for ts, row in daily.iterrows():
+        d = pd.Timestamp(ts).date()
+        if monday <= d <= friday:
+            out[day_cols[d.weekday()]] = row
+            growth = growth * (1 + row.fillna(0) / 100)
+            seen = seen | row.notna()
+    out["wk_week_pct"] = ((growth - 1) * 100).where(seen)
+    return out.round(2), last_day
 def compute_weekly_checkpoints(disc_list: list, weeks=(1, 2, 3), period: str = "6mo") -> dict:
     """
     Adds fixed, frozen performance checkpoints (perf_1w_pct, perf_2w_pct,
