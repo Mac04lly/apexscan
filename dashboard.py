@@ -11615,7 +11615,7 @@ _wk_labels = [("chg_1d_pct", "Last day"), ("wk_mon_pct", "Mon"), ("wk_tue_pct", 
                       ("wk_week_pct", "Week")]
 _wk_present = [(c, l) for c, l in _wk_labels if c in show.columns]  
 if _wk_present:
-st.markdown("##### 🌡️ Market Pulse — across all tracked tickers")
+    st.markdown("##### 🌡️ Market Pulse — across all tracked tickers")
             _pulse_cols = st.columns(len(_wk_present))
 for _pc, (_c_name, _lbl) in zip(_pulse_cols, _wk_present):
                 _s = pd.to_numeric(show[_c_name], errors="coerce").dropna()
