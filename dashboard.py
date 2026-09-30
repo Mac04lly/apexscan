@@ -11614,10 +11614,10 @@ except Exception as _wk_err:
                       ("wk_wed_pct", "Wed"), ("wk_thu_pct", "Thu"), ("wk_fri_pct", "Fri"),
                       ("wk_week_pct", "Week")]
             _wk_present = [(c, l) for c, l in _wk_labels if c in show.columns]
-        if _wk_present:
+if _wk_present:
             st.markdown("##### 🌡️ Market Pulse — across all tracked tickers")
             _pulse_cols = st.columns(len(_wk_present))
-            for _pc, (_c_name, _lbl) in zip(_pulse_cols, _wk_present):
+for _pc, (_c_name, _lbl) in zip(_pulse_cols, _wk_present):
                 _s = pd.to_numeric(show[_c_name], errors="coerce").dropna()
                 with _pc:
                     if _s.empty:
