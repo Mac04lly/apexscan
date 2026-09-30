@@ -11585,7 +11585,7 @@ with tabs[21]:
                 st.warning(f"⚠️ **Earnings within 7 days:** {_soon_txt} — a surprise miss right "
                            f"after discovery is one of the fastest ways a fresh long thesis breaks.")
 
-        st.markdown("#### 📋 Full Discovery Log")
+              st.markdown("#### 📋 Full Discovery Log")
         _log_cols = ["ticker","discovered_at","discovery_price","apex_score","apex_score_raw","stage",
                      "current_price","pct_change","perf_1w_pct","perf_2w_pct","perf_3w_pct",
                      "thesis_status","invalidation_price",
@@ -11594,12 +11594,31 @@ with tabs[21]:
         _log_cols = [c for c in _log_cols if c in dd.columns]
         show = dd[_log_cols].copy()
         show = show.sort_values("discovered_at", ascending=False)
-                # ── 🌡️ Market Pulse — Mon-Fri breadth across every tracked ticker ──
-        _wk_labels = [("wk_mon_pct", "Mon"), ("wk_tue_pct", "Tue"), ("wk_wed_pct", "Wed"),
-                      ("wk_thu_pct", "Thu"), ("wk_fri_pct", "Fri"), ("wk_week_pct", "Week")]
+
+        # ── Daily change columns (display-only, nothing saved) ──
+        _WK_COLS = ["chg_1d_pct", "wk_mon_pct", "wk_tue_pct", "wk_wed_pct",
+                    "wk_thu_pct", "wk_fri_pct", "wk_week_pct"]
+        try:
+            _wk_df, _last_day = _weekday_changes_cached(
+                tuple(sorted(show["ticker"].dropna().unique())))
+            show = show.merge(_wk_df, left_on="ticker", right_index=True, how="left")
+            _base = [c for c in show.columns if c not in _WK_COLS]
+            _at = _base.index("perf_3w_pct") + 1 if "perf_3w_pct" in _base else len(_base)
+            show = show[_base[:_at] + [c for c in _WK_COLS if c in show.columns] + _base[_at:]]
+            if _last_day:
+                st.caption(f"📅 'Last day' = {_last_day} vs the prior close. Mon–Fri = this week's "
+                           f"day-over-day moves (blank = not closed yet / holiday / no data). "
+                           f"Refreshes hourly; does not affect your saved data.")
+        except Exception as _wk_err:
+            st.caption(f"Daily change columns unavailable this session: {_wk_err}")
+
+        # ── 🌡️ Market Pulse ──
+        _wk_labels = [("chg_1d_pct", "Last day"), ("wk_mon_pct", "Mon"), ("wk_tue_pct", "Tue"),
+                      ("wk_wed_pct", "Wed"), ("wk_thu_pct", "Thu"), ("wk_fri_pct", "Fri"),
+                      ("wk_week_pct", "Week")]
         _wk_present = [(c, l) for c, l in _wk_labels if c in show.columns]
         if _wk_present:
-            st.markdown("##### 🌡️ Market Pulse — this week across all tracked tickers")
+            st.markdown("##### 🌡️ Market Pulse — across all tracked tickers")
             _pulse_cols = st.columns(len(_wk_present))
             for _pc, (_c_name, _lbl) in zip(_pulse_cols, _wk_present):
                 _s = pd.to_numeric(show[_c_name], errors="coerce").dropna()
@@ -11610,18 +11629,17 @@ with tabs[21]:
                     else:
                         st.metric(_lbl, f"{_s.median():+.2f}%")
                         st.caption(f"{(_s > 0).mean() * 100:.0f}% up · n={len(_s)}")
-            st.caption(
-                "Headline = median move of all tracked tickers that day (the median resists "
-                "a few wild small-caps skewing it). Below it: the share of tickers that closed "
-                "green, and how many had data. Weekly = compounded Mon-Fri."
-            )
 
         def _c(v):
             try: return "color:#3fb950;font-weight:700" if float(v)>0 else "color:#f85149;font-weight:700"
             except: return ""
 
+        _color_cols = [c for c in ["pct_change","perf_1w_pct","perf_2w_pct","perf_3w_pct", *_WK_COLS]
+                       if c in show.columns]
+        _pct_fmt = lambda v: f"{v:+.1f}%" if pd.notna(v) else "–"
+
         st.dataframe(
-            show.style.map(_c, subset=[c for c in ["pct_change","perf_1w_pct","perf_2w_pct","perf_3w_pct"] if c in show.columns]).format({
+            show.style.map(_c, subset=_color_cols).format({
                 "discovery_price": lambda v: f"${v:.2f}" if pd.notna(v) else "–",
                 "current_price":   lambda v: f"${v:.2f}" if pd.notna(v) else "–",
                 "pct_change":      lambda v: f"{v:+.1f}%" if pd.notna(v) else "–",
@@ -11635,11 +11653,22 @@ with tabs[21]:
                 "next_earnings":   lambda v: v if v else "–",
                 "apex_score":      "{:.0f}",
                 "days_tracked":    lambda v: f"{int(v)}d" if pd.notna(v) else "–",
+                **{c: _pct_fmt for c in _WK_COLS if c in show.columns},
             }, na_rep="–"),
+            column_config={
+                "chg_1d_pct": "Last day", "wk_mon_pct": "Mon", "wk_tue_pct": "Tue",
+                "wk_wed_pct": "Wed", "wk_thu_pct": "Thu", "wk_fri_pct": "Fri",
+                "wk_week_pct": "Week",
+            },
             use_container_width=True, height=500
         )
 
         st.download_button(
+            "⬇ Export Discovery Log (CSV)",
+            show.to_csv(index=False).encode("utf-8"),
+            file_name=f"apexscan_discoveries_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv",
+        )
             "⬇ Export Discovery Log (CSV)",
             show.to_csv(index=False).encode("utf-8"),
             file_name=f"apexscan_discoveries_{datetime.now().strftime('%Y%m%d')}.csv",
