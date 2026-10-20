@@ -796,7 +796,8 @@ def _render_short_radar(observations: list, short_radar_obs: list, horizon: str)
 def _render_invalidation_alpha(observations: list, horizon: str):
     from modules.invalidation_alpha import (
         backfill_stop_prices, log_invalidation_events, compute_invalidation_alpha_overview,
-        cleanup_buggy_near_miss_events,
+        cleanup_buggy_near_miss_events, audit_unversioned_events, compute_scan_coverage,
+        load_scan_status, save_scan_status, load_quarantine, save_quarantine,
     )
     from modules.alpha_validation import save_observations
 
@@ -810,45 +811,83 @@ def _render_invalidation_alpha(observations: list, horizon: str):
         "itself a usable entry signal, rather than buying at discovery."
     )
 
-    _n_bad_near_miss = sum(1 for o in observations if o.get("observation_type") == "invalidation_near_miss")
-    if _n_bad_near_miss > 0:
+    scan_status = load_scan_status()
+
+    # Legacy = near-miss events with no detector_version. Versioned events were
+    # produced by the corrected detector and are never offered for cleanup.
+    _legacy_near_miss = [o for o in observations
+                         if o.get("observation_type") == "invalidation_near_miss"
+                         and not o.get("detector_version")]
+    if _legacy_near_miss:
         st.warning(
-            f"⚠️ {_n_bad_near_miss} near-miss observation(s) on record were logged before a "
-            f"look-ahead bug was fixed (they picked each stock's single lowest price in "
-            f"hindsight rather than the first genuine approach to the line, which is why "
-            f"near-miss win rate showed an impossible 100%). These need to be cleared before "
-            f"the numbers below can be trusted — clearing them will let the corrected scan "
-            f"re-detect real near-miss events from scratch next time you run it."
+            f"⚠️ {len(_legacy_near_miss)} near-miss observation(s) have no detector provenance "
+            f"(logged before version tracking). Some may have been logged by the older "
+            f"look-ahead logic (lowest price in hindsight rather than first genuine approach). "
+            f"Nothing is deleted automatically: the audit below re-runs the causal detector on "
+            f"each one's real price history. Only confirmed mismatches can be removed, and they "
+            f"are moved to a recoverable quarantine, not erased."
         )
-        if st.button("🧹 Clean Up Old Near-Miss Data (one-time bug fix)", key="inval_alpha_cleanup_btn"):
-            with st.spinner("Removing bugged near-miss observations…"):
-                n_removed = cleanup_buggy_near_miss_events(observations)
-                save_observations(observations)
-            st.success(f"✅ Removed {n_removed} bugged near-miss observation(s). "
-                       f"Click 'Scan for Invalidation Events' below to re-detect them correctly.")
+        if st.button("🔬 Audit legacy near-miss events (read-only)", key="inval_alpha_audit_btn"):
+            with st.spinner("Re-deriving each legacy near-miss from price history…"):
+                st.session_state["inval_audit_results"] = audit_unversioned_events(observations)
             st.rerun()
+
+        _audit = st.session_state.get("inval_audit_results")
+        if _audit:
+            _counts = {s: sum(1 for r in _audit if r["status"] == s)
+                       for s in ("verified", "mismatch", "unverifiable")}
+            st.info(f"Audit result — verified: {_counts['verified']}, mismatch: "
+                    f"{_counts['mismatch']}, unverifiable (kept): {_counts['unverifiable']}.")
+            st.dataframe(pd.DataFrame(_audit), use_container_width=True, hide_index=True)
+            if st.button("✅ Apply audit (quarantine mismatches, stamp verified)",
+                         key="inval_alpha_apply_audit_btn"):
+                quarantine = load_quarantine()
+                summary = cleanup_buggy_near_miss_events(
+                    observations, _audit, quarantine=quarantine, scan_status=scan_status)
+                if summary["removed"] and not save_quarantine(quarantine):
+                    # No recoverable copy => no removal. The in-memory change is
+                    # discarded on rerun because observations reload from storage.
+                    st.error("Quarantine could not be saved, so NOTHING was removed or changed.")
+                    return
+                save_observations(observations)
+                save_scan_status(scan_status)
+                st.session_state.pop("inval_audit_results", None)
+                st.session_state["inval_last_msg"] = (
+                    f"Audit applied: {summary['removed']} quarantined, "
+                    f"{summary['verified_stamped']} verified & stamped, "
+                    f"{summary['kept_unverified']} kept unverified, "
+                    f"{summary['versioned_untouched']} versioned untouched.")
+                st.rerun()
 
     if st.button("🔎 Scan for Invalidation Events", key="inval_alpha_scan_btn"):
         with st.spinner("Backfilling stop prices and walking price history since discovery…"):
             n_backfilled = backfill_stop_prices(observations)
-            result = log_invalidation_events(observations)
+            result = log_invalidation_events(observations, scan_status=scan_status)
             if n_backfilled or result.get("new_events"):
                 save_observations(observations)
+            if not result.get("error"):
+                save_scan_status(scan_status)  # record "scanned, no event" too
         if result.get("error"):
-            st.warning(result["error"])
+            st.session_state["inval_last_msg"] = "⚠️ " + result["error"]
         else:
-            st.success(
-                f"Backfilled {n_backfilled} stop price(s) from existing data. "
-                f"Logged {result['new_events']} new event(s) "
-                f"({result['breaches']} breach, {result['near_misses']} near-miss). "
-                f"{result['skipped']} ticker(s) skipped (no history available)."
-            )
+            st.session_state["inval_last_msg"] = (
+                f"Backfilled {n_backfilled} stop price(s). Scanned {result['scanned']} source(s); "
+                f"detected {result['new_events']} new event(s) "
+                f"({result['breaches']} breach of which {result['mechanical_breaches']} mechanical, "
+                f"{result['near_misses']} near-miss). {result['no_event']} scanned with no event yet, "
+                f"{result['no_data']} with no price data. "
+                f"{result['remaining_unscanned']} still waiting for a later run.")
         st.rerun()
 
-    ov = compute_invalidation_alpha_overview(observations, horizon)
+    if st.session_state.get("inval_last_msg"):
+        st.success(st.session_state["inval_last_msg"])
+
+    ov = compute_invalidation_alpha_overview(observations, horizon, scan_status=scan_status)
     rows = []
     if ov["breach"]["n"] > 0:
-        rows.append(_metrics_row_to_disp("Event Type", {**ov["breach"], "label": "🔴 Breach → forward return"}))
+        rows.append(_metrics_row_to_disp("Event Type", {**ov["breach"], "label": "🔴 Breach → forward return (all)"}))
+    if ov["breach_genuine"]["n"] > 0 and ov["breach_mechanical_n"] > 0:
+        rows.append(_metrics_row_to_disp("Event Type", {**ov["breach_genuine"], "label": "🔴 Breach → genuine post-discovery crossings only"}))
     if ov["near_miss"]["n"] > 0:
         rows.append(_metrics_row_to_disp("Event Type", {**ov["near_miss"], "label": "🟡 Near miss (held) → forward return"}))
 
@@ -859,13 +898,22 @@ def _render_invalidation_alpha(observations: list, horizon: str):
             "near-miss returns are the entry signal you're looking for — buying a successful "
             "retest rather than the original discovery price."
         )
+        if ov["breach_mechanical_n"]:
+            st.caption(
+                f"{ov['breach_mechanical_n']} breach event(s) are MECHANICAL: the stock was already "
+                "below its stop (200MA) when discovered, so no post-discovery crossing occurred. "
+                "Compare the 'genuine' row before reading anything into the combined breach number."
+            )
     else:
         st.info("No invalidation events logged yet — click the button above to scan.")
 
+    cov = compute_scan_coverage(observations, scan_status)
     st.caption(
-        f"{ov['with_stop_price']} / {ov['total_discovery_observations']} discovery observations "
-        f"have a stop_price on record. {ov['not_yet_scanned']} of those haven't been through an "
-        "event scan yet (or genuinely haven't tested their level either way so far)."
+        f"Scanned vs detected: {ov['with_stop_price']} / {ov['total_discovery_observations']} discovery "
+        f"observations have a stop_price. {cov['overall']['scanned_any']} have been examined by a scan "
+        f"({cov['overall']['scanned_with_status']} with a recorded scan status), "
+        f"{cov['overall']['detected']} produced an event, and {ov['not_yet_scanned']} have not been "
+        "examined yet. An examined source with no event has simply not tested its level so far."
     )
 
 
