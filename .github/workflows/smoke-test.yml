@@ -34,8 +34,5 @@ jobs:
       - name: Install test dependencies
         run: pip install pytest
 
-      - name: Generate fixture scan data (fake data, never touches real scans)
-        run: python tests/make_fixture.py
-
       - name: Run smoke test suite
         run: pytest tests/test_smoke_app.py -v
