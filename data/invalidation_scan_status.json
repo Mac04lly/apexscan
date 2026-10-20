@@ -1,0 +1,1602 @@
+{
+  "4802f0d9-6774-4834-83f2-a61a4c6ad09f": {
+    "ticker": "WEAV",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "5ea412a9-9f1d-45cf-b72c-801f26983d7c": {
+    "ticker": "CURV",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "92dc4242-8015-4101-a2e4-376a6bba2dce": {
+    "ticker": "ALNT",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "a786c36e-67f9-46b0-a650-2608f5a09fd1": {
+    "ticker": "CCSI",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "198a5f41-c8d3-4996-8182-11cfb6d03cb7": {
+    "ticker": "DAVE",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "ba281a9f-778a-4a09-8a4c-210bb35d534d": {
+    "ticker": "ESTC",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "0a5088d6-07b5-4920-a2c5-11a41c0fe0e8": {
+    "ticker": "KYMR",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "6bcc9f13-b3d8-4514-a1ff-27e22632ddba": {
+    "ticker": "FRSH",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "a6f0f4e3-7cca-4a6e-8d19-120a1fc1cae1": {
+    "ticker": "ACAD",
+    "scanned_on": "2026-10-20",
+    "result": "breach",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "3573fc3d-4ffa-4e59-b54c-aeaee0306031": {
+    "ticker": "ERO",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "7375633b-7f4f-4472-9f46-6245e718285b": {
+    "ticker": "APGE",
+    "scanned_on": "2026-10-20",
+    "result": "no_data",
+    "bars": 0,
+    "last_bar": null,
+    "detector_version": "INVAL-2.0"
+  },
+  "4bc0942e-e123-4561-9d76-855b77838ea7": {
+    "ticker": "HALO",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "74a08b0f-10da-483a-8cd0-ab7675688b35": {
+    "ticker": "GTLB",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "532bbf8e-64b8-465b-ba1e-524b979375c9": {
+    "ticker": "TILE",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "afba2fea-a1e5-4693-a0fb-d149850bab53": {
+    "ticker": "LGDTF",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 40,
+    "last_bar": "2026-10-19",
+    "detector_version": "INVAL-2.0"
+  },
+  "3d09114b-d058-47d3-be68-53a1fd56f61d": {
+    "ticker": "HOOD",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "3620b478-4eee-4274-a8a1-24c3b6ad30af": {
+    "ticker": "ATRO",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "7bd47574-956d-4b7d-b2a0-2c43fb1a2fdd": {
+    "ticker": "PATH",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "938a56f2-854c-43cf-9e60-1b2649a748b2": {
+    "ticker": "KURA",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "95c64ac4-33a4-458b-ae32-e70ddb2c4d72": {
+    "ticker": "ALKS",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "a488f7d6-3f0d-4130-ae72-d3d1a3f7f7b6": {
+    "ticker": "IMVT",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "826c7a55-c1be-487e-a9b0-a7946f5c1d2c": {
+    "ticker": "QURE",
+    "scanned_on": "2026-10-20",
+    "result": "breach",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "74961bc1-24d3-4489-9b01-3bc47524ea8b": {
+    "ticker": "RSKD",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "3e3c1ded-d5b5-42f3-8df6-1335c121fe39": {
+    "ticker": "TDW",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "dff5824c-1a04-4e84-a3c1-656bdc75261b": {
+    "ticker": "SPSC",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "a96736a0-d19c-4627-8cb5-21346e85596b": {
+    "ticker": "SSRM",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "ea3ec023-2633-493c-ab59-a3dd747d821f": {
+    "ticker": "APPN",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "d59a9510-d134-43d7-a1cd-7f6820bdbfbf": {
+    "ticker": "FLYW",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "5223efd7-ba7f-4bae-8270-d6083533c884": {
+    "ticker": "ELF",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "916cdea0-f246-44ac-9a7a-494f47d30a80": {
+    "ticker": "RELY",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "53efa175-1905-462a-846c-7ed8ad3f820f": {
+    "ticker": "FSM",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "e925a75c-9f33-45ed-87ce-c5ab564ae8de": {
+    "ticker": "AGIO",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "9326c606-e51c-48a4-b149-fe719ab8d314": {
+    "ticker": "TASK",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "ec6d608a-4f3e-4a58-b164-f1eb3b45a8cb": {
+    "ticker": "ARCB",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "73fde0e5-505d-4fd1-b956-f711491ddaf2": {
+    "ticker": "JAZZ",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "ca1a3d4c-811c-457a-be89-ee82d725b7ed": {
+    "ticker": "SVM",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "80007ec7-276d-4dad-aa1c-3320cf7d7fc0": {
+    "ticker": "PGNY",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "bef1e48e-b9d5-41fb-8fb7-485a6046cc80": {
+    "ticker": "FATE",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "13884503-ce86-4ca8-95a2-677923cd2806": {
+    "ticker": "GEF",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "7d50e55c-1cd1-4bb4-aeb3-bae08a4d2d3a": {
+    "ticker": "TGT",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "d2d6f8bf-e01d-4f57-8d2d-d4a3a091a6c6": {
+    "ticker": "PK",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "9a054930-5bd6-4239-9c1c-d6b12b2dc84d": {
+    "ticker": "HAE",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "3f3ea438-189d-4d9c-bdc6-1371bf8eb45d": {
+    "ticker": "TMO",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "2f14f5f7-8f07-40d2-a76b-a768f386cbd9": {
+    "ticker": "RGEN",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "45c7cb9f-5629-42dc-bff7-fa98c2bec97e": {
+    "ticker": "MPC",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "efa852b8-69dc-4231-8398-69fda68031c7": {
+    "ticker": "ILMN",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "9940e1b0-534d-4131-84ba-3418a9482f36": {
+    "ticker": "A",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "a11f8d5a-070f-4180-87bb-321366a6907a": {
+    "ticker": "HRB",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "7562e4ae-bb38-406e-ba1d-538d59fde8f1": {
+    "ticker": "BBY",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "15b3b574-aca1-42ef-9b34-53cbf6d22dc0": {
+    "ticker": "PBF",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "cdccc2c0-8fc9-435d-aaf1-a6ee7d435f05": {
+    "ticker": "CRL",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "3e23f2a7-d552-4790-bb9c-abf2812f754e": {
+    "ticker": "NTNX",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "118728fe-e784-4057-8ece-aa6458a1da80": {
+    "ticker": "IQV",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "c5323cd4-75f6-47c6-ac8e-9aeaf2e2ffb8": {
+    "ticker": "VLO",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "d613f1db-e86c-4e4e-84c2-aed37ddb6a64": {
+    "ticker": "MANH",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "1d6a26e5-28f7-4a44-aaff-bb3a1fea8ec1": {
+    "ticker": "BDX",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "94121a76-fa8a-4c40-b469-d2c1edc53dd4": {
+    "ticker": "EXPE",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "2d20eb06-d995-4719-aa10-ecd647cc9985": {
+    "ticker": "AVTR",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "d790bf64-142f-424c-9ea5-537c82f7bd0b": {
+    "ticker": "DINO",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "82f82244-3208-4a35-9f5e-2eaafa451e76": {
+    "ticker": "RVTY",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "b3fd1b46-83e6-442a-bf73-5d5380f49afb": {
+    "ticker": "TECH",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "3ec0be3a-6720-45a8-9c43-9d88a197e3d0": {
+    "ticker": "PSX",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "688e20af-e83c-481f-a93f-9ca431bb5e14": {
+    "ticker": "ABNB",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "84ba4f2b-f8fa-49f5-94f0-67d1a702c082": {
+    "ticker": "AMGN",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "2aa843bf-4390-4373-8355-c00e52c84a1a": {
+    "ticker": "MRNA",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "13ad7286-ea6d-41ec-86d1-8e64d6c854e8": {
+    "ticker": "TEAM",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "12523db8-563d-43d4-b2c1-1155b95dfc98": {
+    "ticker": "LH",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "5d796784-fe78-4136-94b0-73a483ac8b9a": {
+    "ticker": "PAYX",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "d27cd323-fd96-4131-9e82-cf62265f3832": {
+    "ticker": "VEEV",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "38668d10-f886-4f09-ac1b-0142c87f5fcc": {
+    "ticker": "LIVN",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "56df098f-47d9-401d-987d-40d081f80e6b": {
+    "ticker": "PAG",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "9debda2e-f84b-42b2-b85b-e2403fe96355": {
+    "ticker": "GPC",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "180d7cb8-9295-4012-bdc5-120fbbfe74d6": {
+    "ticker": "NTAP",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "92f3319a-f1c5-41cd-9184-95624aef6eed": {
+    "ticker": "HPE",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "4b603d05-fe48-4400-a043-0a816b899261": {
+    "ticker": "CDP",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 40,
+    "last_bar": "2026-10-19",
+    "detector_version": "INVAL-2.0"
+  },
+  "d3c55614-ae74-4530-a712-747c0aa49aea": {
+    "ticker": "MEDP",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "4302ed9e-021f-42cd-a4e5-ee80ed3cbc26": {
+    "ticker": "PCTY",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "5dda30f4-9748-46b4-bedb-7ed861094c32": {
+    "ticker": "DXCM",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "81cc13b0-4ca2-44ed-86fd-9a26e385c21b": {
+    "ticker": "ZBRA",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "183da2f5-d41f-40d6-90b8-b9d0cbf4f429": {
+    "ticker": "SNOW",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "4dfe4ba6-13ee-4766-894a-3d87fdfef2ce": {
+    "ticker": "ANF",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "37ba2a29-c5d1-4a11-8168-967bc2295ad6": {
+    "ticker": "THC",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "026b6e47-b293-4439-84e7-44ed035b66ed": {
+    "ticker": "SEIC",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "b34398fc-aa67-4d0e-9a75-9400fdb86f6d": {
+    "ticker": "MRK",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "026cdad1-e06e-4b3e-a930-cd1ec968295e": {
+    "ticker": "BRKR",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "4e25316c-6b2a-4208-924a-b59086ce4426": {
+    "ticker": "SAIC",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "23924928-025b-41de-9b2e-0ef4a4deab40": {
+    "ticker": "J",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "59b7947f-98f8-49c6-8ff3-7b414fbf2bc6": {
+    "ticker": "CUZ",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "24a04bc7-83a6-4809-b53a-a20a3df1f96b": {
+    "ticker": "VRTX",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "de263a37-9fcc-4b49-9e3b-6bd07d065370": {
+    "ticker": "BIO",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "4f631194-c4ab-44ae-b70a-4d19211589cf": {
+    "ticker": "RLI",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "333a7987-e32a-4253-8f8a-ae549589874f": {
+    "ticker": "WEX",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "717ada0e-4054-429b-b286-adc8d75a1683": {
+    "ticker": "ADP",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "d343b309-7332-4336-afcb-665ad9beff05": {
+    "ticker": "SJM",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "69d737c7-4f0b-41a3-bede-52b649a32a54": {
+    "ticker": "UFPT",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "91fb4b17-9b16-4e28-b37c-647e04a272af": {
+    "ticker": "OKTA",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "d609083d-56ea-403d-b827-726282fa5106": {
+    "ticker": "GPN",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "88a628cb-61d0-45ae-85e8-4fa6df44de58": {
+    "ticker": "QLYS",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "7c81f1bc-68ce-434a-9f3b-9583b842fde9": {
+    "ticker": "SN",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "e0d17e4e-9dd6-4ff1-801f-b4d082ba1cce": {
+    "ticker": "SCHW",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "7d9b6b33-fee6-4f42-ba96-70980fc5021b": {
+    "ticker": "DGX",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "c9a853cd-5841-4cd9-9a88-5c65efa4dfd2": {
+    "ticker": "ROKU",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "f2c526d8-808e-441a-9b1d-8f52d7ce2a5e": {
+    "ticker": "PANW",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "69aff2db-bfe0-4e1c-b122-b76121a6368f": {
+    "ticker": "DELL",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "b7f33d0c-105f-4f44-be3e-cee476471010": {
+    "ticker": "CNO",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "4242cd48-8d43-4703-80db-8eb7208c2000": {
+    "ticker": "AMP",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "9a2e1209-576c-4637-926c-d9d6286de7ab": {
+    "ticker": "BAX",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "04b94501-1b03-4355-9bc0-47b9c81d1170": {
+    "ticker": "CPAY",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "a47c3884-fe91-4c97-8c9f-c1aaeb1fc247": {
+    "ticker": "ABBV",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "e2976733-817f-406f-9277-46e91ae4f6e1": {
+    "ticker": "NEU",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "9411d37e-19b3-4155-a2bc-a2eeee7c2fd2": {
+    "ticker": "SHC",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "a5ec55a0-ba42-4163-9b6a-4d95cc09997f": {
+    "ticker": "CCK",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "1b0e0f7f-57dd-4f84-bb9e-8189403f5195": {
+    "ticker": "CFR",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 40,
+    "last_bar": "2026-10-19",
+    "detector_version": "INVAL-2.0"
+  },
+  "5b71b925-1f59-4cfc-a514-f0efe2ed897e": {
+    "ticker": "INCY",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "0f4f28db-bf4b-41ea-bd11-913216aad6c2": {
+    "ticker": "PR",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "d533f9b8-afa9-4bcb-a29c-f45f7001a094": {
+    "ticker": "KRYS",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "98aa1acd-0ea5-4d48-931d-4678295aee11": {
+    "ticker": "NET",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "f323a003-bb14-49d5-8155-1f79a5f70a87": {
+    "ticker": "KO",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "3c358794-e514-4d0b-a970-6bd20ce85710": {
+    "ticker": "P",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "9fcac57b-d48b-429f-8a0c-e23b04d4f352": {
+    "ticker": "IVZ",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "cf97c6e2-b126-49a8-9286-b081c25fd44e": {
+    "ticker": "SWK",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "21207a21-d857-47dd-96e9-59f2f11af093": {
+    "ticker": "MTG",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "4b43ec20-66f9-4451-8d5e-30d958a3075c": {
+    "ticker": "NWSA",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "97a8b7cc-9a70-4727-bb1d-a4c170b65831": {
+    "ticker": "STT",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "f78e0ed5-5c85-447b-a616-27321ce3605a": {
+    "ticker": "ASH",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "4c3155ea-0610-430c-b5e4-9ad224b10400": {
+    "ticker": "JNJ",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "85afb42e-f2f7-4898-aa5a-b415ab2fbc2c": {
+    "ticker": "MU",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "53f386ca-5afe-4831-9e3e-056a9aaa3899": {
+    "ticker": "HOG",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "f0c7d5ff-cabc-4faa-b9c8-9e542bcafce6": {
+    "ticker": "NWS",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "03ec74d3-de6c-4e8c-b3bc-1b180cdd3b41": {
+    "ticker": "EXPD",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "8a06102e-204f-4457-bcbd-65fe87041838": {
+    "ticker": "OVV",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "8eda7a05-3423-4605-90ed-25dc754f9e31": {
+    "ticker": "BMRN",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "dbc3201b-6e25-4ae0-8694-c21e6b392ed0": {
+    "ticker": "AVNT",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 40,
+    "last_bar": "2026-10-19",
+    "detector_version": "INVAL-2.0"
+  },
+  "20b83646-fae9-42ab-a935-e65a1d12b405": {
+    "ticker": "FCX",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "10ee129f-2b1a-4e81-b958-4e04cf0c3fa3": {
+    "ticker": "DBX",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "c6c8bbde-8868-4c2b-9485-75f9a83b8be3": {
+    "ticker": "IBKR",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "128f57fe-2c3e-4ad0-a5d6-7fa66d0ab47f": {
+    "ticker": "BMY",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "92492f82-b888-41d5-8ca6-0e004b36fb0b": {
+    "ticker": "BAC",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "47ee12b3-6229-4180-ae32-f5909fa0ffc6": {
+    "ticker": "XYZ",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "ee65f7bf-7357-4e13-a1f7-83a9fc6da252": {
+    "ticker": "MA",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "074d1f6b-3acb-4c36-bdef-84e0604f9803": {
+    "ticker": "SOLV",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "2aeaa5e1-9c4f-49a7-ba9e-d4e2d808ae86": {
+    "ticker": "UNP",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "4537f6b7-2ca3-46b6-84a8-dd618c2e6ec4": {
+    "ticker": "VRNS",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "6ad8cb1a-3ded-41fc-b301-1a9706a4961c": {
+    "ticker": "WTS",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "c567173f-d845-4ae3-8a9c-fe89b8bbfee2": {
+    "ticker": "KDP",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "cc38972e-1270-45f6-aa88-35933ff7d982": {
+    "ticker": "WSM",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "816ff406-5d62-411d-b5cd-7c42bf496c86": {
+    "ticker": "DE",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "07ebb7ff-54eb-444e-9647-c6a68515d3af": {
+    "ticker": "CNH",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "c664918c-ccb3-423a-a207-cbd5cc50dd54": {
+    "ticker": "URI",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "8b0fdc1a-dedd-4728-8875-39ae04ecb9cc": {
+    "ticker": "CRBG",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "8f5466da-3115-43a6-88ee-0bfe8af72380": {
+    "ticker": "USB",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "ce37d9d0-d9cd-4197-a0b8-7e590623b8c5": {
+    "ticker": "CFG",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "7c07cb2a-0dc5-4975-86e3-fc75b8fade99": {
+    "ticker": "RNR",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "25e2069d-c387-4748-98c1-73f80b417c61": {
+    "ticker": "CHE",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "ca96aecd-df6c-4cbc-a62f-3878de76a4c3": {
+    "ticker": "VOYA",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "aafa7cad-775d-408e-a07d-5391fe039062": {
+    "ticker": "WDAY",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "125d4215-25fa-4a1f-809a-715985269938": {
+    "ticker": "PRU",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "3f436215-01d4-464f-bff5-94ee7bfae08a": {
+    "ticker": "FLR",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "1aab8b5b-aad6-4b1a-88cc-85c8fa73e1d2": {
+    "ticker": "CSX",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "4d9cc4cf-a007-4997-b91e-2dc10698d5c0": {
+    "ticker": "ATI",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "764bf843-5e78-40c9-b4aa-cd2672036f67": {
+    "ticker": "HUM",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "ca31c1be-eb4e-4e15-9166-be79fa2ed8a1": {
+    "ticker": "CLH",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "76f81478-ea05-466d-98e3-9d36aa7482a1": {
+    "ticker": "LLY",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "4a88a576-528d-4ffd-a0be-6262f2be9c9e": {
+    "ticker": "WAT",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "06e0cd4d-19d3-4f26-93ca-0012788f60d5": {
+    "ticker": "UMBF",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "20095f43-1316-443a-93ac-7bec142500a5": {
+    "ticker": "FDS",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "c456bb84-4c2e-41bd-805b-1e50266893cb": {
+    "ticker": "IEX",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "ead83d1b-0eee-46fd-8c11-1ca1ad930471": {
+    "ticker": "UBSI",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "052fdcda-663f-4db5-be03-86b9caf1e057": {
+    "ticker": "JPM",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "5be0d69b-de9e-4807-a068-0682cceff937": {
+    "ticker": "MSI",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "4be3a6d2-401f-402a-b76e-1d589fc80155": {
+    "ticker": "ROIV",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "1f642600-7a77-41ae-a5e1-1fb0659b78d1": {
+    "ticker": "ASB",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "e3710ee0-e5b1-41a9-a1b0-92f5ffa5603e": {
+    "ticker": "CART",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "e415de4b-89d9-4bb7-a7f9-33f04938eb5d": {
+    "ticker": "THG",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 40,
+    "last_bar": "2026-10-19",
+    "detector_version": "INVAL-2.0"
+  },
+  "51e4dca6-d5fc-4289-aced-11d735b527d3": {
+    "ticker": "ALL",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "7e3595c6-0689-44f4-a8e1-3a8e8bdd60de": {
+    "ticker": "BEN",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "65390698-69d8-47ae-8e0c-9a6cea29c7bd": {
+    "ticker": "ESNT",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 40,
+    "last_bar": "2026-10-19",
+    "detector_version": "INVAL-2.0"
+  },
+  "360e8437-e7e5-4da2-87fc-acef28188659": {
+    "ticker": "CAH",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "b550ca0b-db9e-47d7-91df-0f06ad44d112": {
+    "ticker": "DT",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "020aa70f-b568-4235-a9c1-2c7692a1e224": {
+    "ticker": "BILL",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "c96a4092-ecae-4fd1-a9bb-6a73786e6e8f": {
+    "ticker": "ZION",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "cd4a504c-8938-497e-a0f7-f8492594b702": {
+    "ticker": "HSIC",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "a1eb64cb-debe-4777-852a-5d05a89d0922": {
+    "ticker": "EOG",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "45d74f9e-bb6e-47ce-bee7-066f37f6c368": {
+    "ticker": "WELL",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "67d3bfa0-c78b-4e25-a895-464c27846624": {
+    "ticker": "APPF",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "7fadf15e-8e93-40a2-905c-cd2b0f20e660": {
+    "ticker": "V",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "99d38a63-ff89-48ac-966a-32be7784e032": {
+    "ticker": "AWK",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "4d73d15c-d7bd-4c1b-bd9f-be61eb889a87": {
+    "ticker": "TWLO",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "d24f7f95-3822-4080-9321-202292a62b60": {
+    "ticker": "ARMK",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "0fe0a967-4c63-4361-807d-1b9dd679759c": {
+    "ticker": "EXEL",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "8aece8cb-7e1c-4662-a5cc-a1ab5dcb2bbc": {
+    "ticker": "ALSN",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "b3ad0f89-0cea-4132-965d-01e42ccb203f": {
+    "ticker": "BNY",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "f9278774-e02a-4994-a57e-6da85413481d": {
+    "ticker": "EQH",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "84125f4e-6d6b-43a2-8afb-47a8aaf08d30": {
+    "ticker": "WAB",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "268a3668-cd69-4f99-b973-f1cc9b42d940": {
+    "ticker": "NTRS",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "251dc301-4467-4a7d-8fb0-0f9ea9de0712": {
+    "ticker": "MOG-A",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "976c77b8-2c97-4971-8795-b8f5047b0662": {
+    "ticker": "RGA",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "af3f8e8a-7fc8-4ab0-bdca-e231bc6011a0": {
+    "ticker": "BIIB",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "206ce32b-7669-4df2-b5bc-9fcbe224d272": {
+    "ticker": "KVUE",
+    "scanned_on": "2026-10-20",
+    "result": "near_miss",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  },
+  "83fc12b0-115c-4f4b-82cb-fcb2f956a8e4": {
+    "ticker": "NDSN",
+    "scanned_on": "2026-10-20",
+    "result": "no_event",
+    "bars": 41,
+    "last_bar": "2026-10-20",
+    "detector_version": "INVAL-2.0"
+  }
+}
