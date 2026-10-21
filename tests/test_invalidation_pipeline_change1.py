@@ -385,7 +385,8 @@ def test_cleanup_quarantines_only_confirmed_mismatches_and_preserves_everything_
 
     summary = cleanup_buggy_near_miss_events(obs, audit, quarantine=quarantine, scan_status=status,
                                              now=pd.Timestamp("2026-10-20 10:00:00").to_pydatetime())
-    assert summary == {"removed": 1, "verified_stamped": 1, "kept_unverified": 1, "versioned_untouched": 1}
+    assert summary == {"removed": 1, "verified_stamped": 1, "drift_stamped": 0,
+                       "kept_unverified": 1, "versioned_untouched": 1}
 
     ids = {o["observation_id"] for o in obs}
     assert "leg1" not in ids                              # confirmed mismatch removed
