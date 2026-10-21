@@ -835,11 +835,14 @@ def _render_invalidation_alpha(observations: list, horizon: str):
         _audit = st.session_state.get("inval_audit_results")
         if _audit:
             _counts = {s: sum(1 for r in _audit if r["status"] == s)
-                       for s in ("verified", "mismatch", "unverifiable")}
-            st.info(f"Audit result — verified: {_counts['verified']}, mismatch: "
-                    f"{_counts['mismatch']}, unverifiable (kept): {_counts['unverifiable']}.")
+                       for s in ("verified", "adjustment_drift", "mismatch", "unverifiable")}
+            st.info(f"Audit result — verified: {_counts['verified']}, adjustment drift "
+                    f"(kept): {_counts['adjustment_drift']}, mismatch: {_counts['mismatch']}, "
+                    f"unverifiable (kept): {_counts['unverifiable']}. 'Adjustment drift' = same "
+                    "event, differing only by what retroactive dividend adjustment of price "
+                    "history explains; only 'mismatch' rows can be quarantined.")
             st.dataframe(pd.DataFrame(_audit), use_container_width=True, hide_index=True)
-            if st.button("✅ Apply audit (quarantine mismatches, stamp verified)",
+            if st.button("✅ Apply audit (quarantine mismatches only; stamp verified and drift)",
                          key="inval_alpha_apply_audit_btn"):
                 quarantine = load_quarantine()
                 summary = cleanup_buggy_near_miss_events(
@@ -855,6 +858,7 @@ def _render_invalidation_alpha(observations: list, horizon: str):
                 st.session_state["inval_last_msg"] = (
                     f"Audit applied: {summary['removed']} quarantined, "
                     f"{summary['verified_stamped']} verified & stamped, "
+                    f"{summary['drift_stamped']} adjustment-drift stamped, "
                     f"{summary['kept_unverified']} kept unverified, "
                     f"{summary['versioned_untouched']} versioned untouched.")
                 st.rerun()
