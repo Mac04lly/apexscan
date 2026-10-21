@@ -123,17 +123,17 @@
   },
   "MSFT": {
     "fields": {
-      "roe": 0.34039003,
-      "revenue_growth": 0.177,
-      "earnings_growth": 0.317,
-      "debt_to_equity": 29.118,
-      "gross_margin": 0.67944,
-      "free_cash_flow": 16545500160.0,
+      "roe": null,
+      "revenue_growth": null,
+      "earnings_growth": null,
+      "debt_to_equity": null,
+      "gross_margin": null,
+      "free_cash_flow": null,
       "peg_ratio": null,
-      "institutional_ownership": 0.75808,
-      "rs_3m": 1021.1
+      "institutional_ownership": null,
+      "rs_3m": 0.0
     },
-    "as_of": "2026-10-19"
+    "as_of": "2026-10-21"
   },
   "RELY": {
     "fields": {
