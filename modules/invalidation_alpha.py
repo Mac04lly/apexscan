@@ -81,6 +81,14 @@ DETECTOR_VERSION = "INVAL-2.0"
 # Stamped on legacy (unversioned) near-miss events that an audit re-derived
 # from price history and found identical to what the causal detector gives.
 LEGACY_VERIFIED_VERSION = "INVAL-2.0-legacy-verified"
+# Stamped on legacy near-miss events that the audit CONFIRMED after reconstructing the
+# price path as it looked when the event was logged (see audit_unversioned_events):
+# the causal detector selects exactly the stored event on that reconstructed path.
+LEGACY_DRIFT_VERSION = "INVAL-2.0-legacy-verified-adjusted"
+# Ceiling on how far today's adjusted close may differ from the stored price before the
+# difference can no longer be attributed to ordinary dividend adjustment (splits, special
+# dividends, bad data). Beyond it the audit declines to judge (unverifiable, kept).
+AUDIT_PRICE_TOL = 0.03
 
 SCAN_STATUS_PATH = "data/invalidation_scan_status.json"
 QUARANTINE_PATH = "data/invalidation_quarantine.json"
@@ -141,13 +149,39 @@ def audit_unversioned_events(observations: list, near_miss_pct: float = 5.0,
                              fetch: Optional[Callable] = None) -> list:
     """READ-ONLY audit of legacy near-miss events (those with no
     detector_version). Re-runs the causal detector on each source's real
-    price history and compares with the stored event:
-      verified     — same type, same date, same price as the causal detector
-      mismatch     — the causal detector gives something else (the signature
-                     of the old argmin look-ahead bug)
-      unverifiable — source missing, no stop, or no price data (kept as-is)
-    Mutates nothing. Breach events are not audited: breach detection was
-    always causal."""
+    price history and compares with the stored event.
+
+    Why not just compare dates and prices? yfinance history is dividend/
+    split-adjusted RETROACTIVELY. A dividend paid after an event was logged
+    multiplies every earlier bar by the same constant, so today's closes
+    differ slightly from the ones the detector saw at logging time. That can
+    nudge a first-approach date by one day, or, for a stock hovering just
+    above the band edge, by several. A fixed day tolerance cannot tell that
+    from the old look-ahead bug.
+
+    So the audit reconstructs the as-logged path instead. The constant is read
+    off the stored event itself: rescale = today's adjusted close on the stored
+    date / stored price. Dividing today's whole path by it recovers the path as
+    it was when the event was logged, and the question becomes: does the causal
+    detector select exactly the stored event on THAT path?
+
+      verified          today's path already yields the stored event (same type,
+                        date, and price to the cent)
+      adjustment_drift  today's path does not, but the reconstructed as-logged
+                        path does (same type, date, price) and the rescale is
+                        within AUDIT_PRICE_TOL. Valid event; history was adjusted.
+      mismatch          even the reconstructed as-logged path selects something
+                        else (different type/date, or no event), the old
+                        argmin look-ahead signature. Any date gap counts, even 1.
+      unverifiable      source missing, no stop, no price data, stored date not a
+                        trading day in current history, or the rescale exceeds
+                        AUDIT_PRICE_TOL (split / special dividend / bad data).
+                        Kept as-is. Only POSITIVE evidence of a mismatch can lead
+                        to quarantine.
+
+    Every result carries evidence (stored vs causal date/price, rescale factor,
+    trading-day gap on today's path). Mutates nothing. Breach events are not
+    audited: breach detection was always causal."""
     fetch_fn = fetch or _fetch_price_path
     by_id = {o.get("observation_id"): o for o in observations if o.get("observation_id")}
     results = []
@@ -168,20 +202,51 @@ def audit_unversioned_events(observations: list, near_miss_pct: float = 5.0,
         if close is None or len(close) < 2:
             results.append({**rec, "status": "unverifiable", "reason": "no price history available"})
             continue
-        found = _detect_first_event(close, float(src["stop_price"]), near_miss_pct)
-        if found is None:
-            results.append({**rec, "status": "mismatch",
-                            "reason": "causal detector finds no event on this path"})
+
+        stop = float(src["stop_price"])
+        stored_date = pd.Timestamp(str(ev.get("timestamp", ""))[:10])
+        stored_price = ev.get("entry_price")
+        evidence = {"stored_date": _iso(stored_date), "stored_price": stored_price,
+                    "causal_date": None, "causal_price": None,
+                    "rescale_factor": None, "trading_day_gap": None}
+
+        found = _detect_first_event(close, stop, near_miss_pct)
+        if found is not None:
+            etype, edate, eprice = found
+            stored_pos = int(close.index.searchsorted(stored_date))
+            evidence.update({"causal_date": _iso(edate), "causal_price": round(eprice, 2),
+                             "trading_day_gap": stored_pos - close.index.get_loc(edate)})
+            if (etype == "invalidation_near_miss" and edate == stored_date
+                    and round(eprice, 2) == stored_price):
+                results.append({**rec, **evidence, "rescale_factor": 1.0, "status": "verified",
+                                "reason": "matches causal detector"})
+                continue
+
+        # Reconstruct the as-logged path from the stored event itself.
+        pos = int(close.index.searchsorted(stored_date))
+        if pos >= len(close) or close.index[pos] != stored_date or not stored_price:
+            results.append({**rec, **evidence, "status": "unverifiable",
+                            "reason": "stored date is not a trading day in current price history"})
             continue
-        etype, edate, eprice = found
-        same = (etype == "invalidation_near_miss"
-                and edate.strftime("%Y-%m-%d") == str(ev.get("timestamp", ""))[:10]
-                and round(eprice, 2) == ev.get("entry_price"))
-        if same:
-            results.append({**rec, "status": "verified", "reason": "matches causal detector"})
+        rescale = float(close.iloc[pos]) / float(stored_price)
+        evidence["rescale_factor"] = round(rescale, 5)
+        if abs(rescale - 1) > AUDIT_PRICE_TOL:
+            results.append({**rec, **evidence, "status": "unverifiable",
+                            "reason": f"today's adjusted close differs from the stored price by "
+                                      f"{abs(rescale - 1) * 100:.1f}%, beyond dividend-adjustment "
+                                      "tolerance (split, special dividend or data error?); kept"})
+            continue
+        again = _detect_first_event(close / rescale, stop, near_miss_pct)
+        if (again is not None and again[0] == "invalidation_near_miss" and again[1] == stored_date
+                and round(again[2], 2) == stored_price):
+            results.append({**rec, **evidence, "status": "adjustment_drift",
+                            "reason": f"matches causal detector once price history is rescaled "
+                                      f"by {rescale:.4f} (retroactive dividend adjustment)"})
         else:
-            results.append({**rec, "status": "mismatch",
-                            "reason": f"causal detector gives {etype} on {edate.strftime('%Y-%m-%d')}"})
+            what = "no event" if again is None else f"{again[0]} on {_iso(again[1])}"
+            results.append({**rec, **evidence, "status": "mismatch",
+                            "reason": f"even on the as-logged (rescaled) path the causal detector gives {what}, "
+                                      f"not a near-miss on {_iso(stored_date)}"})
     return results
 
 
@@ -196,8 +261,10 @@ def cleanup_buggy_near_miss_events(observations: list, audit_results: Optional[l
     can be justified, so it raises rather than guessing. Then:
       * events that carry a detector_version are NEVER touched;
       * legacy near-miss events audited as `verified` are kept and only
-        stamped with detector_version=LEGACY_VERIFIED_VERSION (no other
-        field, and never `outcomes`, is modified);
+        stamped with detector_version=LEGACY_VERIFIED_VERSION, and those
+        audited as `adjustment_drift` are kept and only stamped with
+        LEGACY_DRIFT_VERSION (no other field, and never `outcomes`, is
+        modified);
       * legacy events audited as `mismatch` are removed from `observations`
         and appended — complete, outcomes included — to `quarantine`
         together with the reason and timestamp, so they stay recoverable;
@@ -215,7 +282,7 @@ def cleanup_buggy_near_miss_events(observations: list, audit_results: Optional[l
     stamp = (now or datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
     verdict = {r["observation_id"]: r for r in audit_results}
 
-    kept, removed, stamped, unverifiable, versioned = [], 0, 0, 0, 0
+    kept, removed, stamped, drift, unverifiable, versioned = [], 0, 0, 0, 0, 0
     for o in observations:
         if o.get("observation_type") != "invalidation_near_miss":
             kept.append(o)
@@ -235,11 +302,14 @@ def cleanup_buggy_near_miss_events(observations: list, audit_results: Optional[l
         if r and r["status"] == "verified":
             o["detector_version"] = LEGACY_VERIFIED_VERSION
             stamped += 1
+        elif r and r["status"] == "adjustment_drift":
+            o["detector_version"] = LEGACY_DRIFT_VERSION
+            drift += 1
         else:
             unverifiable += 1
         kept.append(o)
     observations[:] = kept
-    return {"removed": removed, "verified_stamped": stamped,
+    return {"removed": removed, "verified_stamped": stamped, "drift_stamped": drift,
             "kept_unverified": unverifiable, "versioned_untouched": versioned}
 
 
