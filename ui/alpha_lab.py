@@ -80,6 +80,26 @@ def _metrics_row_to_disp(prefix_key: str, r: dict) -> dict:
     }
 
 
+def _independence_caption(observations: list, horizon: str) -> str:
+    """Row counts are not independent evidence: rows stamped on a few dates share overlapping
+    forward windows. This states how many INDEPENDENT windows the resolved rows really span."""
+    from modules.eval_harness import independence_summary, horizon_days
+    s = independence_summary(observations, horizon_days(horizon), horizon_key=horizon)
+    return (f"Independence check @ {horizon}: {s['n_rows']} resolved rows span "
+            f"{s['n_windows']} independent window(s) → {s['label']}. {s['note']} "
+            "The 'Sample' column counts rows, not independent windows.")
+
+
+def _sample_caption(observations: list, horizon: str, metrics: dict) -> str:
+    """Replaces the row-count-only 'Sample: Robust' headline with an independence-aware one."""
+    from modules.eval_harness import independence_summary, horizon_days
+    s = independence_summary(observations, horizon_days(horizon), horizon_key=horizon)
+    row_label = str(metrics.get("sample_classification", "")).split(" — ")[0]
+    n = metrics.get("n", s["n_rows"])
+    return (f"Sample: {n} resolved rows ({row_label} by row count), but only {s['n_windows']} "
+            f"independent {horizon} window(s) → {s['label']}. {s['note']}")
+
+
 def _render_overview(observations: list, horizon: str):
     from modules.alpha_metrics import compute_alpha_lab_overview
 
@@ -98,7 +118,7 @@ def _render_overview(observations: list, horizon: str):
     c7.metric("Profit Factor",
               f"{overall['profit_factor']:.2f}" if isinstance(overall["profit_factor"], (int, float)) else "–")
 
-    st.caption(f"Sample: {overall['sample_classification']}")
+    st.caption(_sample_caption(observations, horizon, overall))
 
     bs, bf, wf = ov["best_setup"], ov["best_feature"], ov["worst_feature"]
     col1, col2 = st.columns(2)
@@ -140,7 +160,7 @@ def _render_overview(observations: list, horizon: str):
         bc2.metric(f"Baseline win rate @ {horizon}",
                   f"{bm['win_rate_%']:.1f}%" if bm["win_rate_%"] is not None else "–")
         bc3.metric("Baseline expectancy", _fmt_pct(bm["expectancy_%"]))
-        st.caption(f"Sample: {bm['sample_classification']}")
+        st.caption(_sample_caption(observations, horizon, bm))
     except Exception as e:
         st.caption(f"Baseline snapshot unavailable this session: {e}")
 
@@ -154,6 +174,7 @@ def _render_score_validation(observations: list, horizon: str):
         "a 95% confidence interval, so a bucket's apparent edge can be judged against real "
         "statistical uncertainty, not just a point estimate."
     )
+    st.caption(_independence_caption(observations, horizon))
     rows = [r for r in compute_alpha_metrics_by_score_bucket(observations, horizon) if r["n"] > 0]
     if not rows:
         st.info(f"No observations have reached the {horizon} horizon yet.")
@@ -177,6 +198,7 @@ def _render_setup_alpha(observations: list, horizon: str):
         "— e.g. pullback to the 50-day average vs. a fresh 200-day reclaim. Answers: which setup "
         "types actually work?"
     )
+    st.caption(_independence_caption(observations, horizon))
     rows = compute_alpha_metrics_by_setup(observations, horizon)
     if not rows:
         st.info("No setups logged yet.")
@@ -198,6 +220,7 @@ def _render_feature_alpha(observations: list, horizon: str):
         "into it. Results describe historical association within ApexScan's own observed "
         "universe, never a causal claim."
     )
+    st.caption(_independence_caption(observations, horizon))
     ranked = rank_feature_alpha(observations, horizon)
     conclusive = [r for r in ranked if r["is_conclusive"]]
     if conclusive:
@@ -793,6 +816,37 @@ def _render_short_radar(observations: list, short_radar_obs: list, horizon: str)
     st.caption(f"Sample: {radar_metrics['sample_classification']}")
 
 
+def _render_matched_evaluation(observations: list):
+    """Read-only. Compares each invalidation event's forward return with the leave-one-out return
+    of cohort stocks in the SAME distance-to-200MA quintile over the SAME calendar window."""
+    from modules.eval_harness import evaluate_invalidation_events
+    rows = evaluate_invalidation_events(observations, horizons=(5, 10, 20))
+    if not rows:
+        st.info("No invalidation events to evaluate yet.")
+        return
+    disp = []
+    for r in rows:
+        ci = r["ci"]
+        disp.append({
+            "Group": r["label"], "Horizon": r["horizon"],
+            "Events": r["n_with_outcome"], "Matched": r["n_matched"],
+            "Indep. windows": r["n_windows"],
+            "Event avg": _fmt_pct(r["mean_event_%"]), "Matched control": _fmt_pct(r["mean_control_%"]),
+            "Difference": _fmt_pct(r["mean_diff_%"], sign=True) if r["mean_diff_%"] is not None else "–",
+            "95% CI (cluster-robust)": (f"[{ci[0]:+.1f}%, {ci[1]:+.1f}%]" if ci
+                                        else f"withheld (<6 independent windows)" if r["n_matched"] else "–"),
+            "Verdict": r["verdict"],
+        })
+    st.dataframe(pd.DataFrame(disp), use_container_width=True, hide_index=True)
+    st.caption(
+        "Control = average return of cohort stocks in the same distance-to-200MA quintile over the "
+        "same trading-day window, excluding the event's own stock. A raw negative return only means "
+        "something if it is worse than that. Intervals use windows of one horizon length as the "
+        "independence unit and are withheld when there are fewer than 6 — a narrow interval from "
+        "2–3 overlapping windows would be a false claim. Gross of costs; one market episode so far."
+    )
+
+
 def _render_invalidation_alpha(observations: list, horizon: str):
     from modules.invalidation_alpha import (
         backfill_stop_prices, log_invalidation_events, compute_invalidation_alpha_overview,
@@ -919,6 +973,9 @@ def _render_invalidation_alpha(observations: list, horizon: str):
         f"{cov['overall']['detected']} produced an event, and {ov['not_yet_scanned']} have not been "
         "examined yet. An examined source with no event has simply not tested its level so far."
     )
+
+    with st.expander("Matched-control evaluation — do events beat comparable stocks over the same window?"):
+        _render_matched_evaluation(observations)
 
 
 def render_alpha_lab(cfg: Optional[dict] = None):
