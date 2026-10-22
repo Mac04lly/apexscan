@@ -256,8 +256,10 @@ def test_simulated_specificity_and_sensitivity_on_real_legacy_events():
     import json, random
     real = json.load(open(Path(__file__).resolve().parent.parent / "data" / "alpha_observations.json"))
     byid = {o.get("observation_id"): o for o in real if o.get("observation_id")}
+    # The original legacy population: events with no version OR already audited-and-stamped by an
+    # earlier "Apply" (the live store changes as the audit is applied; this test must not go quiet).
     legacy = [e for e in real if e.get("observation_type") == "invalidation_near_miss"
-              and not e.get("detector_version")]   # unversioned = what the audit actually targets
+              and e.get("detector_version") in (None, LEGACY_VERIFIED_VERSION, LEGACY_DRIFT_VERSION)]
     if len(legacy) < 20:
         pytest.skip("not enough committed legacy events")
     rng = random.Random(7)
@@ -273,6 +275,7 @@ def test_simulated_specificity_and_sensitivity_on_real_legacy_events():
         post = [max(stop * 1.01, pe * (1 + rng.uniform(-0.01, 0.01))) for _ in range(8)]
         logged = _series(pre + [pe] + post)
         ev = {**e, "timestamp": logged.index[k].strftime("%Y-%m-%d") + " 00:00:00", "entry_price": round(pe, 2)}
+        ev.pop("detector_version", None)               # present it to the audit as unversioned
         s2 = {**src, "observation_id": e["source_observation_id"], "timestamp": "2026-08-23 11:49:29"}
         d = rng.uniform(0.002, 0.015)                                  # realistic retroactive dividend adjustment
         res = audit_unversioned_events([s2, ev], fetch=lambda t, dd: logged * (1 - d))[0]
