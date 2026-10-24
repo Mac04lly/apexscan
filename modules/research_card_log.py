@@ -68,7 +68,8 @@ def compact_card(card: dict) -> dict:
     sz = plan.get("sizing") or {}
     return {
         "card_version": card["card_version"], "status": plan["status"],
-        "setup": card["setup"]["label"], "observation_date": card["observation_date"],
+        "setup": card["setup"]["label"], "setup_why": card["setup"]["why"],
+        "observation_date": card["observation_date"],
         "close": card["price"]["close"], "bars": card["data"]["bars"],
         "structure": st["structure"], "break_of_structure": st["break_of_structure"],
         "swings": st["swings"][-4:],
