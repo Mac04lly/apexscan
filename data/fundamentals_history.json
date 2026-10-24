@@ -218,5 +218,19 @@
       "rs_3m": 0.0
     },
     "as_of": "2026-10-14"
+  },
+  "PSX": {
+    "fields": {
+      "roe": 0.23452999,
+      "revenue_growth": 0.531,
+      "earnings_growth": 3.449,
+      "debt_to_equity": 62.884,
+      "gross_margin": 0.13098,
+      "free_cash_flow": 4545375232.0,
+      "peg_ratio": null,
+      "institutional_ownership": 0.80572,
+      "rs_3m": 1459.7
+    },
+    "as_of": "2026-10-24"
   }
 }
