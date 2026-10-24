@@ -5595,7 +5595,7 @@ with tabs[6]:
           </div>
         </div>
         """, unsafe_allow_html=True)
-               from ui.research_card import render_research_card
+       from ui.research_card import render_research_card
        render_research_card(dive_ticker, dive_btn)
 
 
