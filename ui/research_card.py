@@ -116,6 +116,7 @@ def _render(t: str) -> None:
     st.caption(f"Observation: {card['observation_date']} · close {_money(card['price']['close'])} · "
                f"{d['bars']} complete daily bars" + (" · " + "; ".join(d["notes"]) if d["notes"] else ""))
     st.markdown(f"**Description:** {card['setup']['text']}")
+    st.markdown(f"**Why:** {card['setup']['why']}")
     st.caption(card["setup"]["note"])
 
     _render_plan(card, account, risk)
