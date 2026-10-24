@@ -451,22 +451,57 @@ LABEL_TEXT = {
 }
 
 
+def _swing_pattern(structure: dict) -> str:
+    return {"uptrend": "HH/HL (higher highs and higher lows)", "downtrend": "LH/LL (lower highs and lower lows)",
+            "mixed": "mixed (the last swing highs and lows do not move together)",
+            "insufficient": "not yet established (fewer than two confirmed swing highs and lows)"}[structure["structure"]]
+
+
 def interpret_setup(structure: dict, close: float, atr_last: float, zones: list, sma200: Optional[float],
                     ema50: Optional[float], breakout: Optional[dict]) -> dict:
+    """Describes the chart with ONE rule, tested in a fixed order, and says which rule fired and with
+    what numbers (`why`). The conditions are exactly those of CARD-1.0; only the explanation was added."""
     st = structure["structure"]
-    if st == "downtrend" or (sma200 is not None and ema50 is not None and close < sma200 and ema50 < sma200):
-        return {"label": "weak_or_deteriorating"}
+    if st == "downtrend":
+        return {"label": "weak_or_deteriorating",
+                "why": f"Rule: downtrend structure. The last two swing highs and lows are both lower (LH/LL)."}
+    if sma200 is not None and ema50 is not None and close < sma200 and ema50 < sma200:
+        return {"label": "weak_or_deteriorating",
+                "why": (f"Rule: below the long-term trend. The close ({close:.2f}) is below the 200-day SMA ({sma200:.2f}) "
+                        f"and the 50-day EMA ({ema50:.2f}) is also below the 200-day SMA. This rule applies whatever the "
+                        f"swing pattern is; here the swings are {_swing_pattern(structure)}. "
+                        f"It is a bright-line rule: the close is {abs(close / sma200 - 1) * 100:.1f}% from the 200-day SMA.")}
     if st == "uptrend":
         if breakout is not None:
-            return {"label": "breakout_occurred", "breakout": breakout}
+            return {"label": "breakout_occurred", "breakout": breakout,
+                    "why": (f"Rule: recent breakout in an uptrend structure. The close went above {breakout['zone_high']:.2f} "
+                            f"on {breakout.get('date', 'a recent bar')} ({breakout.get('bars_ago', '?')} bar(s) ago) "
+                            "after the previous close had not.")}
         res = sorted([z for z in zones if z["low"] >= close], key=lambda z: z["low"])
         if res and (res[0]["low"] - close) <= BREAKOUT_NEAR_ATR * atr_last:
-            return {"label": "breakout_candidate", "zone": res[0]}
+            d = res[0]["low"] - close
+            return {"label": "breakout_candidate", "zone": res[0],
+                    "why": (f"Rule: uptrend structure with resistance close above. The nearest resistance zone starts at "
+                            f"{res[0]['low']:.2f}, {d:.2f} ({d / atr_last:.1f} ATR) above the close, inside the "
+                            f"{BREAKOUT_NEAR_ATR:g}-ATR window.")}
         sh, sl = structure["last_swing_high"], structure["last_swing_low"]
         if sh and sl and close <= sh["price"] - PULLBACK_ATR * atr_last and close > sl["price"]:
-            return {"label": "trend_pullback", "swing_high": sh}
-        return {"label": "trend_extended"}
-    return {"label": "unclassified"}
+            d = sh["price"] - close
+            return {"label": "trend_pullback", "swing_high": sh,
+                    "why": (f"Rule: pullback within an uptrend structure. The close is {d:.2f} ({d / atr_last:.1f} ATR) below the "
+                            f"last swing high ({sh['price']:.2f}), at least {PULLBACK_ATR:g} ATR, and still above the last "
+                            f"swing low ({sl['price']:.2f}).")}
+        if sl and close <= sl["price"]:
+            extra = f" The close ({close:.2f}) is at or below the last swing low ({sl['price']:.2f})."
+        elif res:
+            extra = f" The nearest resistance is {(res[0]['low'] - close) / atr_last:.1f} ATR away (needs {BREAKOUT_NEAR_ATR:g} or less)."
+        else:
+            extra = " No resistance zone lies above the close."
+        return {"label": "trend_extended",
+                "why": ("Rule: uptrend structure, but none of the other descriptions applies: no recent breakout, "
+                        f"no resistance within {BREAKOUT_NEAR_ATR:g} ATR, and no pullback of at least {PULLBACK_ATR:g} ATR." + extra)}
+    return {"label": "unclassified",
+            "why": f"Rule: none applies. The swing pattern is {_swing_pattern(structure)}."}
 
 
 # ── evidence lists ────────────────────────────────────────────────────────
@@ -673,7 +708,7 @@ def build_card(ticker: str, hist: pd.DataFrame, market: str = "US", asof=None,
                        "recent_breakout": breakout,
                        "note": "Zones are candidate areas from past swing points; price can pass straight through them."},
             "volume": volume, "momentum": momentum,
-            "setup": {"label": label, "text": LABEL_TEXT[label],
+            "setup": {"label": label, "text": LABEL_TEXT[label], "why": setup["why"],
                       "note": "A description of the chart. Setup types have not been shown to predict returns."},
             "plan": plan,
             "risk_context": {"earnings": earn, "liquidity": liq, "wide_stop": bool(inval and inval["risk_pct"] > WIDE_STOP_PCT)},
