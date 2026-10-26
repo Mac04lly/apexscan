@@ -1,0 +1,102 @@
+[
+  {
+    "observation_id": "90addaf3-a279-493e-92ff-075aa2a49146",
+    "observation_type": "research_card",
+    "ticker": "DOCU",
+    "market": "US",
+    "timestamp": "2026-10-23 00:00:00",
+    "entry_price": 85.27,
+    "setup_id": "breakout_occurred",
+    "status": "research_candidate",
+    "card_version": "CARD-1.0",
+    "logged_at": "2026-10-26 07:28:14 UTC",
+    "entry_ref": 85.27,
+    "stop_price": 63.2116,
+    "target_price": 86.65,
+    "risk_pct": 25.87,
+    "reward_risk": 0.063,
+    "trigger_pct_from_close": 0.0,
+    "stop_pct_from_close": -25.869,
+    "target_pct_from_close": 1.618,
+    "card": {
+      "card_version": "CARD-1.0",
+      "status": "research_candidate",
+      "setup": "breakout_occurred",
+      "setup_why": "Rule: recent breakout in an uptrend structure. The close went above 84.36 on 2026-10-22 (1 bar(s) ago) after the previous close had not.",
+      "observation_date": "2026-10-23",
+      "close": 85.27,
+      "bars": 501,
+      "structure": "uptrend",
+      "break_of_structure": null,
+      "swings": [
+        {
+          "type": "high",
+          "price": 70.4,
+          "date": "2026-09-04",
+          "confirmed_date": "2026-09-14"
+        },
+        {
+          "type": "low",
+          "price": 63.633,
+          "date": "2026-09-09",
+          "confirmed_date": "2026-09-16"
+        },
+        {
+          "type": "high",
+          "price": 74.065,
+          "date": "2026-09-15",
+          "confirmed_date": "2026-09-22"
+        },
+        {
+          "type": "low",
+          "price": 63.92,
+          "date": "2026-09-28",
+          "confirmed_date": "2026-10-05"
+        }
+      ],
+      "trend": {
+        "ema20_dist_pct": 13.37,
+        "ema50_dist_pct": 23.51,
+        "sma200_dist_pct": 57.39,
+        "alignment": "bullish (20 > 50 > 200)",
+        "weekly_above_40w": true
+      },
+      "rvol_last": 0.62,
+      "rsi14": 76.9,
+      "divergence": {
+        "bearish": "none between the last two swings",
+        "bullish": "none between the last two swings"
+      },
+      "plan": {
+        "entry_condition": "Breakout above 84.36 closed on 2026-10-22 (1 bar(s) ago); volume NOT confirmed.",
+        "entry_ref": 85.27,
+        "stop": 63.2116,
+        "swing_date": "2026-09-28",
+        "risk_pct": 25.87,
+        "target": 86.65,
+        "target_reason": null,
+        "reward_risk": 0.063,
+        "shares_illustration": 4
+      },
+      "earnings_flag": false,
+      "evidence_for": [
+        "Last two swing highs and lows are both higher (HH/HL).",
+        "Close is 13.4% above the 20-day EMA.",
+        "Close is 23.5% above the 50-day EMA.",
+        "Close is 57.4% above the 200-day SMA.",
+        "Moving averages are aligned bullishly (20 > 50 > 200).",
+        "Weekly close is above the 40-week SMA."
+      ],
+      "evidence_against": [
+        "Last session volume is only 0.6x its 50-session average.",
+        "Structural stop is 25.9% from entry (wide)."
+      ],
+      "missing_data": [
+        "Earnings date unavailable",
+        "Broader market context not supplied",
+        "Bid/ask spread unavailable"
+      ]
+    },
+    "outcomes": {}
+  }
+]
