@@ -329497,6 +329497,14 @@
         "benchmark_return_%": 0.544,
         "excess_return_%": 9.846,
         "computed_at": "2026-10-24"
+      },
+      "17D": {
+        "forward_return_%": 8.371,
+        "mfe_%": 12.463,
+        "mae_%": -1.025,
+        "benchmark_return_%": -0.097,
+        "excess_return_%": 8.468,
+        "computed_at": "2026-10-26"
       }
     }
   },
@@ -329539,6 +329547,14 @@
         "benchmark_return_%": -0.407,
         "excess_return_%": -5.269,
         "computed_at": "2026-10-22"
+      },
+      "5D": {
+        "forward_return_%": -17.708,
+        "mfe_%": 0.244,
+        "mae_%": -19.392,
+        "benchmark_return_%": -1.041,
+        "excess_return_%": -16.667,
+        "computed_at": "2026-10-26"
       }
     }
   },
@@ -329581,6 +329597,14 @@
         "benchmark_return_%": -0.407,
         "excess_return_%": -6.768,
         "computed_at": "2026-10-22"
+      },
+      "5D": {
+        "forward_return_%": -18.157,
+        "mfe_%": 5.557,
+        "mae_%": -19.73,
+        "benchmark_return_%": -1.041,
+        "excess_return_%": -17.116,
+        "computed_at": "2026-10-26"
       }
     }
   },
@@ -329779,6 +329803,14 @@
         "benchmark_return_%": -1.19,
         "excess_return_%": -12.922,
         "computed_at": "2026-10-23"
+      },
+      "7D": {
+        "forward_return_%": -21.349,
+        "mfe_%": 0.253,
+        "mae_%": -22.49,
+        "benchmark_return_%": -1.819,
+        "excess_return_%": -19.53,
+        "computed_at": "2026-10-26"
       }
     }
   },
@@ -329837,6 +329869,14 @@
         "benchmark_return_%": -0.961,
         "excess_return_%": -22.3,
         "computed_at": "2026-10-21"
+      },
+      "10D": {
+        "forward_return_%": -31.265,
+        "mfe_%": 9.836,
+        "mae_%": -32.403,
+        "benchmark_return_%": -1.313,
+        "excess_return_%": -29.952,
+        "computed_at": "2026-10-26"
       }
     }
   },
@@ -329887,6 +329927,14 @@
         "benchmark_return_%": 0.495,
         "excess_return_%": -1.476,
         "computed_at": "2026-10-24"
+      },
+      "7D": {
+        "forward_return_%": 5.334,
+        "mfe_%": 12.876,
+        "mae_%": -1.661,
+        "benchmark_return_%": -1.234,
+        "excess_return_%": 6.568,
+        "computed_at": "2026-10-26"
       }
     }
   },
@@ -329996,7 +330044,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 0.282,
+        "mfe_%": 1.976,
+        "mae_%": -0.847,
+        "benchmark_return_%": -1.208,
+        "excess_return_%": 1.49,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "ticker": "WH",
@@ -330104,7 +330161,16 @@
     "breakout_price": 78.36000061035156,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -2.948,
+        "mfe_%": 3.187,
+        "mae_%": -3.723,
+        "benchmark_return_%": -1.208,
+        "excess_return_%": -1.74,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "ticker": "MAT",
@@ -330212,7 +330278,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -0.294,
+        "mfe_%": 1.648,
+        "mae_%": -2.531,
+        "benchmark_return_%": -1.208,
+        "excess_return_%": 0.914,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "ticker": "CCL",
@@ -330314,7 +330389,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 0.074,
+        "mfe_%": 2.328,
+        "mae_%": -1.109,
+        "benchmark_return_%": -1.208,
+        "excess_return_%": 1.282,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "ticker": "TRMB",
@@ -330422,7 +330506,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 3.043,
+        "mfe_%": 3.22,
+        "mae_%": -0.982,
+        "benchmark_return_%": -1.208,
+        "excess_return_%": 4.251,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "ticker": "UTHR",
@@ -330542,7 +330635,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 5.581,
+        "mfe_%": 6.664,
+        "mae_%": -0.69,
+        "benchmark_return_%": -1.208,
+        "excess_return_%": 6.789,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "ticker": "AFRM",
@@ -330644,7 +330746,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -3.717,
+        "mfe_%": 0.632,
+        "mae_%": -5.073,
+        "benchmark_return_%": -1.208,
+        "excess_return_%": -2.509,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "ticker": "AIG",
@@ -330752,7 +330863,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 1.591,
+        "mfe_%": 1.64,
+        "mae_%": -0.942,
+        "benchmark_return_%": -1.208,
+        "excess_return_%": 2.799,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "ticker": "HUBS",
@@ -330872,7 +330992,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 5.661,
+        "mfe_%": 6.218,
+        "mae_%": -2.323,
+        "benchmark_return_%": -1.208,
+        "excess_return_%": 6.869,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "ticker": "TSLA",
@@ -330974,7 +331103,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -3.414,
+        "mfe_%": 0.268,
+        "mae_%": -3.638,
+        "benchmark_return_%": -1.208,
+        "excess_return_%": -2.206,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "ticker": "PINS",
@@ -331076,7 +331214,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -0.542,
+        "mfe_%": 2.364,
+        "mae_%": -2.19,
+        "benchmark_return_%": -1.208,
+        "excess_return_%": 0.666,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "ticker": "M",
@@ -331184,7 +331331,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 3.601,
+        "mfe_%": 3.858,
+        "mae_%": -1.329,
+        "benchmark_return_%": -1.208,
+        "excess_return_%": 4.809,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "ticker": "CHH",
@@ -331286,7 +331442,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -1.694,
+        "mfe_%": 1.308,
+        "mae_%": -3.933,
+        "benchmark_return_%": -1.208,
+        "excess_return_%": -0.486,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "observation_id": "0f3aa9a7-1ae3-4eac-90da-a9cc3e8c8745",
@@ -331364,7 +331529,17 @@
     "stop_price": 248.48,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 0.835,
+        "mfe_%": 1.925,
+        "mae_%": -4.557,
+        "benchmark_return_%": -0.519,
+        "excess_return_%": 1.354,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "observation_id": "1344782a-77e7-4410-b7c2-3f825245a9b3",
@@ -331442,7 +331617,17 @@
     "stop_price": 569.71,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 1.846,
+        "mfe_%": 3.262,
+        "mae_%": -0.594,
+        "benchmark_return_%": -0.519,
+        "excess_return_%": 2.365,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "observation_id": "c04ca715-41fe-401d-90db-56bd164ec9e8",
@@ -331520,7 +331705,17 @@
     "stop_price": 81.0,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -18.115,
+        "mfe_%": -8.935,
+        "mae_%": -18.653,
+        "benchmark_return_%": -0.519,
+        "excess_return_%": -17.596,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "observation_id": "ce7ddc1b-9475-4875-a638-998d8653cb9c",
@@ -331598,7 +331793,17 @@
     "stop_price": 19.52,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 2.595,
+        "mfe_%": 5.926,
+        "mae_%": -2.106,
+        "benchmark_return_%": -0.519,
+        "excess_return_%": 3.114,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "observation_id": "a0ce82c2-c416-4942-aa2a-a01b03d02a30",
@@ -331676,7 +331881,17 @@
     "stop_price": 254.38,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 0.014,
+        "mfe_%": 0.664,
+        "mae_%": -2.944,
+        "benchmark_return_%": -0.519,
+        "excess_return_%": 0.533,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "observation_id": "5b42bf42-66f6-4f84-8b99-f4b547117300",
@@ -331754,7 +331969,17 @@
     "stop_price": 364.27,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -0.856,
+        "mfe_%": 0.875,
+        "mae_%": -2.546,
+        "benchmark_return_%": -0.519,
+        "excess_return_%": -0.337,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "observation_id": "a6176e6d-00c7-459e-91fa-2760b441bd52",
@@ -331832,7 +332057,17 @@
     "stop_price": 92.24,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 3.733,
+        "mfe_%": 5.307,
+        "mae_%": -1.3,
+        "benchmark_return_%": -0.519,
+        "excess_return_%": 4.252,
+        "computed_at": "2026-10-26"
+      }
+    }
   },
   {
     "ticker": "R",
