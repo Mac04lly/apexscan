@@ -163,6 +163,25 @@ def _render_overview(observations: list, horizon: str):
         st.caption(_sample_caption(observations, horizon, bm))
     except Exception as e:
         st.caption(f"Baseline snapshot unavailable this session: {e}")
+    _render_forward_hypotheses(observations)
+
+
+def _render_forward_hypotheses(observations: list):
+    """Pre-registered, forward-only hypotheses on discoveries. Read-only; the definition lives in
+    modules/forward_hypotheses.py and was fixed before any qualifying data existed."""
+    from modules.forward_hypotheses import evaluate_all, NOTE
+    rows = evaluate_all(observations)
+    with st.expander("Pre-registered forward hypotheses (fixed before any qualifying data existed)"):
+        for r in rows:
+            st.markdown(f"**{r['id']}** — {r['text']}")
+            st.caption(f"Registered {r['registered']}. {r['motivation']}")
+        st.dataframe(pd.DataFrame([{
+            "ID": r["id"], "Logged since": r["n_in_scope"], f"Resolved @ {r['horizon']}": r["n_resolved"],
+            "Independent windows": r["windows"], "Mean excess vs SPY": _fmt_pct(r["mean_excess_%"], sign=True) if r["mean_excess_%"] is not None else "–",
+            "95% CI (cluster-robust)": (f"[{r['ci'][0]:+.1f}%, {r['ci'][1]:+.1f}%]" if r["ci"] else "withheld"),
+            "Others, same period (descriptive)": _fmt_pct(r["others_mean_excess_%"], sign=True) if r["others_mean_excess_%"] is not None else "–",
+            "Verdict": r["verdict"]} for r in rows]), use_container_width=True, hide_index=True)
+        st.caption(NOTE)
 
 
 def _render_score_validation(observations: list, horizon: str):
