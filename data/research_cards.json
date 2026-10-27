@@ -97,6 +97,15 @@
         "Bid/ask spread unavailable"
       ]
     },
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -0.446,
+        "mfe_%": 0.739,
+        "mae_%": -2.633,
+        "benchmark_return_%": 0.696,
+        "excess_return_%": -1.142,
+        "computed_at": "2026-10-27"
+      }
+    }
   }
 ]
