@@ -335335,9 +335335,9 @@
       "min_required": 5000000.0,
       "market": "US"
     },
-    "breakout_status": "PRE_BREAKOUT",
-    "breakout_date": null,
-    "breakout_price": null,
+    "breakout_status": "CONFIRMED_BREAKOUT",
+    "breakout_date": "2026-10-28",
+    "breakout_price": 106.08999633789062,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
     "outcomes": {}
@@ -335539,9 +335539,9 @@
       "min_required": 5000000.0,
       "market": "US"
     },
-    "breakout_status": "PRE_BREAKOUT",
-    "breakout_date": null,
-    "breakout_price": null,
+    "breakout_status": "CONFIRMED_BREAKOUT",
+    "breakout_date": "2026-10-28",
+    "breakout_price": 41.970001220703125,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
     "outcomes": {}
@@ -335743,9 +335743,9 @@
       "min_required": 5000000.0,
       "market": "US"
     },
-    "breakout_status": "PRE_BREAKOUT",
-    "breakout_date": null,
-    "breakout_price": null,
+    "breakout_status": "CONFIRMED_BREAKOUT",
+    "breakout_date": "2026-10-28",
+    "breakout_price": 191.66000366210938,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
     "outcomes": {}
@@ -335947,9 +335947,9 @@
       "min_required": 5000000.0,
       "market": "US"
     },
-    "breakout_status": "PRE_BREAKOUT",
-    "breakout_date": null,
-    "breakout_price": null,
+    "breakout_status": "CONFIRMED_BREAKOUT",
+    "breakout_date": "2026-10-28",
+    "breakout_price": 253.5,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
     "outcomes": {}
@@ -336151,9 +336151,9 @@
       "min_required": 5000000.0,
       "market": "US"
     },
-    "breakout_status": "PRE_BREAKOUT",
-    "breakout_date": null,
-    "breakout_price": null,
+    "breakout_status": "CONFIRMED_BREAKOUT",
+    "breakout_date": "2026-10-28",
+    "breakout_price": 49.060001373291016,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
     "outcomes": {}
