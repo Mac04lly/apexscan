@@ -61,7 +61,13 @@ def _market_of(ticker: str) -> str:
 
 
 def _money(x) -> str:
-    return "–" if x is None else f"${x:,.2f}"
+    """Dollar amounts go into Streamlit markdown, where text between two bare `$` is rendered as a LaTeX formula
+    (one line with a stop and a swing low turned into garbled math). Escape the sign so it always prints as `$`."""
+    return "–" if x is None else f"\\${x:,.2f}"
+
+
+def _pct_of_volume(x) -> str:
+    return "<0.001%" if x < 0.001 else f"{x:.3g}%"
 
 
 def _pct(x, nd=1, sign=False) -> str:
@@ -162,7 +168,7 @@ def _render_plan(card: dict, account: float, risk: float) -> None:
             f"**{s['shares']:,} shares**, position {_money(s['position_value'])}, actual risk "
             f"{_money(s['actual_risk_dollars'])}"
             + (", capped by the account size" if s["capped_by_account"] else "")
-            + (f"; {s['pct_of_adv20_shares']:.3g}% of 20-day average volume" if s["pct_of_adv20_shares"] is not None else "")
+            + (f"; {_pct_of_volume(s['pct_of_adv20_shares'])} of 20-day average volume" if s["pct_of_adv20_shares"] is not None else "")
             + ".")
         st.caption(s["note"])
     elif p["entry_condition"]:
