@@ -298,6 +298,28 @@ def _recent_breakout(hist: pd.DataFrame, swings: list, atr: np.ndarray, rvol_win
     return None
 
 
+def below_breakout_level(breakout: Optional[dict], close: float) -> Optional[dict]:
+    """TEXT ONLY (Change 4). A breakout is detected on the bar that closed above a zone and stays "recent" for
+    BREAKOUT_LOOKBACK_BARS bars, but price can fall back under that level in the meantime. Returns the facts
+    when the latest close is at or below the level the breakout crossed, else None. It never changes a label,
+    a status, a level, a stop or a sizing figure; it only feeds one sentence in `why` and one evidence line."""
+    if not breakout:
+        return None
+    level = breakout.get("zone_high")
+    try:
+        level, close = round(float(level), 4), round(float(close), 4)    # the card's own precision, so every caller agrees
+    except (TypeError, ValueError):
+        return None
+    if not (math.isfinite(level) and math.isfinite(close)) or level <= 0 or close <= 0 or close > level:
+        return None
+    pct = (1.0 - close / level) * 100.0
+    if pct > 0:
+        word, tail = "back below", ", " + ("less than 0.1% under it" if pct < 0.1 else f"{pct:.1f}% under it")
+    else:
+        word, tail = "back at", ", no longer above it"
+    return {"level": level, "close": close, "pct_under": pct, "date": breakout.get("date"), "word": word, "tail": tail}
+
+
 # ── volume, momentum, trend ───────────────────────────────────────────────
 def volume_context(hist: pd.DataFrame) -> dict:
     V, C = hist["Volume"].to_numpy(float), hist["Close"].to_numpy(float)
@@ -473,10 +495,13 @@ def interpret_setup(structure: dict, close: float, atr_last: float, zones: list,
                         f"It is a bright-line rule: the close is {abs(close / sma200 - 1) * 100:.1f}% from the 200-day SMA.")}
     if st == "uptrend":
         if breakout is not None:
+            back = below_breakout_level(breakout, close)
             return {"label": "breakout_occurred", "breakout": breakout,
                     "why": (f"Rule: recent breakout in an uptrend structure. The close went above {breakout['zone_high']:.2f} "
                             f"on {breakout.get('date', 'a recent bar')} ({breakout.get('bars_ago', '?')} bar(s) ago) "
-                            "after the previous close had not.")}
+                            "after the previous close had not."
+                            + (f" The latest close ({close:.2f}) is {back['word']} that level ({back['level']:.2f}){back['tail']}."
+                               if back else ""))}
         res = sorted([z for z in zones if z["low"] >= close], key=lambda z: z["low"])
         if res and (res[0]["low"] - close) <= BREAKOUT_NEAR_ATR * atr_last:
             d = res[0]["low"] - close
@@ -515,6 +540,11 @@ def _evidence(card: dict) -> tuple:
     if st and st.get("break_of_structure"):
         (ag if st["break_of_structure"].startswith("bearish") else fo).append(
             "Structure break — " + st["break_of_structure"] + ".")
+    lv, px = card.get("levels"), card.get("price")
+    back = below_breakout_level(lv.get("recent_breakout"), px["close"]) if lv and px else None
+    if back:
+        ag.append(f"The latest close ({back['close']:.2f}) is {back['word']} the breakout level ({back['level']:.2f})"
+                  f"{back['tail']}; the breakout bar was {back['date'] or 'a recent bar'}.")
     for key, nm in (("ema20", "20-day EMA"), ("ema50", "50-day EMA"), ("sma200", "200-day SMA")):
         r = tr[key]
         if r["value"] is not None:
