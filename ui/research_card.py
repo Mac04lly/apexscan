@@ -47,9 +47,29 @@ def _fetch_history_raw(ticker: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+class _NoHistory(Exception):
+    """Raised inside the cached loader so that an empty or failed fetch is NEVER stored: Streamlit caches return
+    values, not exceptions. (Before this, one failed Yahoo call left the card empty for the full ten minutes
+    even after Yahoo had recovered, and pressing Analyse again did not retry.)"""
+
+
 @st.cache_data(ttl=600, show_spinner=False)
+def _load_history_cached(ticker: str) -> pd.DataFrame:
+    h = _fetch_history_raw(ticker)
+    if h is None or len(h) == 0:
+        raise _NoHistory(ticker)
+    return h
+
+
 def _load_history(ticker: str) -> pd.DataFrame:
-    return _fetch_history_raw(ticker)
+    """Cached for ten minutes when the fetch returned bars; an empty frame (never cached) when it did not."""
+    try:
+        return _load_history_cached(ticker)
+    except _NoHistory:
+        return pd.DataFrame()
+
+
+_load_history.clear = _load_history_cached.clear      # tests and callers clear the cache through the public name
 
 
 def _market_of(ticker: str) -> str:
@@ -101,7 +121,9 @@ def _render(t: str) -> None:
     if market == "US":
         hist = _load_history(t)
         if hist is None or len(hist) == 0:
-            st.info(f"No price history is available for {t}, so no card can be built.")
+            st.info(f"No price history is available for {t}, so no card can be built. The price service may be "
+                    "temporarily unavailable, or the ticker may not exist. Nothing was saved from this attempt, "
+                    "so pressing Analyse again tries again straight away.")
             return
 
     c1, c2 = st.columns(2)
