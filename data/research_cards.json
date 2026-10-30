@@ -105,6 +105,14 @@
         "benchmark_return_%": 0.696,
         "excess_return_%": -1.142,
         "computed_at": "2026-10-27"
+      },
+      "3D": {
+        "forward_return_%": -1.958,
+        "mfe_%": 0.739,
+        "mae_%": -5.442,
+        "benchmark_return_%": 1.578,
+        "excess_return_%": -3.536,
+        "computed_at": "2026-10-30"
       }
     }
   },
@@ -207,7 +215,16 @@
         "Bid/ask spread unavailable"
       ]
     },
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -3.357,
+        "mfe_%": 1.19,
+        "mae_%": -3.434,
+        "benchmark_return_%": 0.597,
+        "excess_return_%": -3.954,
+        "computed_at": "2026-10-30"
+      }
+    }
   },
   {
     "observation_id": "33920b29-b4c0-4d1c-9cad-b5461c98194a",
