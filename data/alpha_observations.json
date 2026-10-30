@@ -339111,9 +339111,9 @@
       "min_required": 5000000.0,
       "market": "US"
     },
-    "breakout_status": "PRE_BREAKOUT",
-    "breakout_date": null,
-    "breakout_price": null,
+    "breakout_status": "CONFIRMED_BREAKOUT",
+    "breakout_date": "2026-10-30",
+    "breakout_price": 45.02000045776367,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
     "outcomes": {}
@@ -339213,9 +339213,9 @@
       "min_required": 5000000.0,
       "market": "US"
     },
-    "breakout_status": "PRE_BREAKOUT",
-    "breakout_date": null,
-    "breakout_price": null,
+    "breakout_status": "CONFIRMED_BREAKOUT",
+    "breakout_date": "2026-10-30",
+    "breakout_price": 63.689998626708984,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
     "outcomes": {}
@@ -339315,9 +339315,9 @@
       "min_required": 5000000.0,
       "market": "US"
     },
-    "breakout_status": "PRE_BREAKOUT",
-    "breakout_date": null,
-    "breakout_price": null,
+    "breakout_status": "CONFIRMED_BREAKOUT",
+    "breakout_date": "2026-10-30",
+    "breakout_price": 181.24000549316406,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
     "outcomes": {}
@@ -339825,9 +339825,9 @@
       "min_required": 5000000.0,
       "market": "US"
     },
-    "breakout_status": "PRE_BREAKOUT",
-    "breakout_date": null,
-    "breakout_price": null,
+    "breakout_status": "CONFIRMED_BREAKOUT",
+    "breakout_date": "2026-10-30",
+    "breakout_price": 63.4900016784668,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
     "outcomes": {}
@@ -340947,9 +340947,9 @@
       "min_required": 5000000.0,
       "market": "US"
     },
-    "breakout_status": "PRE_BREAKOUT",
-    "breakout_date": null,
-    "breakout_price": null,
+    "breakout_status": "CONFIRMED_BREAKOUT",
+    "breakout_date": "2026-10-30",
+    "breakout_price": 145.38999938964844,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
     "outcomes": {}
