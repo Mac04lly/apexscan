@@ -427,5 +427,105 @@
       ]
     },
     "outcomes": {}
+  },
+  {
+    "observation_id": "ce3dcd82-5c49-43ab-94f6-45f6480f9617",
+    "observation_type": "research_card",
+    "ticker": "DY",
+    "market": "US",
+    "timestamp": "2026-10-29 00:00:00",
+    "entry_price": 239.66,
+    "setup_id": "weak_or_deteriorating",
+    "status": "no_long_setup",
+    "card_version": "CARD-1.0",
+    "logged_at": "2026-10-30 08:28:02 UTC",
+    "entry_ref": null,
+    "stop_price": null,
+    "target_price": null,
+    "risk_pct": null,
+    "reward_risk": null,
+    "trigger_pct_from_close": null,
+    "stop_pct_from_close": null,
+    "target_pct_from_close": null,
+    "card": {
+      "card_version": "CARD-1.0",
+      "status": "no_long_setup",
+      "setup": "weak_or_deteriorating",
+      "setup_why": "Rule: downtrend structure. The last two swing highs and lows are both lower (LH/LL).",
+      "observation_date": "2026-10-29",
+      "close": 239.66,
+      "bars": 501,
+      "structure": "downtrend",
+      "break_of_structure": null,
+      "swings": [
+        {
+          "type": "high",
+          "price": 309.48,
+          "date": "2026-09-11",
+          "confirmed_date": "2026-09-18"
+        },
+        {
+          "type": "low",
+          "price": 280.87,
+          "date": "2026-09-15",
+          "confirmed_date": "2026-09-22"
+        },
+        {
+          "type": "low",
+          "price": 263.36,
+          "date": "2026-10-01",
+          "confirmed_date": "2026-10-08"
+        },
+        {
+          "type": "high",
+          "price": 294.45,
+          "date": "2026-10-06",
+          "confirmed_date": "2026-10-13"
+        }
+      ],
+      "trend": {
+        "ema20_dist_pct": -4.61,
+        "ema50_dist_pct": -16.54,
+        "sma200_dist_pct": -36.89,
+        "alignment": "bearish (20 < 50 < 200)",
+        "weekly_above_40w": false
+      },
+      "rvol_last": 0.85,
+      "rsi14": 35.8,
+      "divergence": {
+        "bearish": "none between the last two swings",
+        "bullish": "candidate: lows on 2026-09-15 and 2026-10-01 with RSI 30.1 then 30.7"
+      },
+      "plan": {
+        "entry_condition": null,
+        "entry_ref": null,
+        "stop": null,
+        "swing_date": null,
+        "risk_pct": null,
+        "target": null,
+        "target_reason": "No entry condition is defined for this description.",
+        "reward_risk": null,
+        "shares_illustration": null
+      },
+      "earnings_flag": false,
+      "evidence_for": [
+        "Bullish RSI divergence candidate between the last two swing lows."
+      ],
+      "evidence_against": [
+        "Last two swing highs and lows are both lower (LH/LL).",
+        "Close is 4.6% below the 20-day EMA.",
+        "Close is 16.5% below the 50-day EMA.",
+        "Close is 36.9% below the 200-day SMA.",
+        "Moving averages are aligned bearishly (20 < 50 < 200).",
+        "Weekly close is below the 40-week SMA.",
+        "Up-day volume averages only 0.72x down-day volume over 20 sessions."
+      ],
+      "missing_data": [
+        "Earnings date unavailable",
+        "Broader market context not supplied",
+        "Bid/ask spread unavailable"
+      ]
+    },
+    "outcomes": {}
   }
 ]
