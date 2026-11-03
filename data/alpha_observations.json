@@ -351435,7 +351435,16 @@
     "breakout_price": 191.66000366210938,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 1.988,
+        "mfe_%": 2.103,
+        "mae_%": -1.466,
+        "benchmark_return_%": -0.305,
+        "excess_return_%": 2.293,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "AEP",
@@ -351543,7 +351552,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -0.737,
+        "mfe_%": 0.537,
+        "mae_%": -1.781,
+        "benchmark_return_%": -0.305,
+        "excess_return_%": -0.432,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "NXPI",
@@ -351651,7 +351669,16 @@
     "breakout_price": 253.5,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 4.931,
+        "mfe_%": 5.318,
+        "mae_%": -7.298,
+        "benchmark_return_%": -0.305,
+        "excess_return_%": 5.236,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "WEC",
@@ -351753,7 +351780,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 2.872,
+        "mfe_%": 4.029,
+        "mae_%": -1.023,
+        "benchmark_return_%": -0.305,
+        "excess_return_%": 3.177,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "GBCI",
@@ -351855,7 +351891,16 @@
     "breakout_price": 49.060001373291016,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -0.55,
+        "mfe_%": 0.326,
+        "mae_%": -2.752,
+        "benchmark_return_%": -0.305,
+        "excess_return_%": -0.245,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "AEE",
@@ -351963,7 +352008,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 1.352,
+        "mfe_%": 1.6,
+        "mae_%": -0.892,
+        "benchmark_return_%": -0.305,
+        "excess_return_%": 1.657,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "XEL",
@@ -352071,7 +352125,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 1.152,
+        "mfe_%": 1.638,
+        "mae_%": -1.497,
+        "benchmark_return_%": -0.305,
+        "excess_return_%": 1.457,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "LIN",
@@ -352179,7 +352242,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -1.081,
+        "mfe_%": 0.906,
+        "mae_%": -2.025,
+        "benchmark_return_%": -0.305,
+        "excess_return_%": -0.776,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "observation_id": "2349e2c8-1abd-4017-b4aa-aebf3e9e045f",
@@ -352257,7 +352329,17 @@
     "stop_price": 78.99,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 1.185,
+        "mfe_%": 1.31,
+        "mae_%": -2.657,
+        "benchmark_return_%": -0.305,
+        "excess_return_%": 1.49,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "observation_id": "a082dfd1-5103-41e2-9605-ebd41fbe0fa2",
@@ -352335,7 +352417,17 @@
     "stop_price": 327.37,
     "target_price": null,
     "risk_reward": null,
-    "benchmark_price": null
+    "benchmark_price": null,
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -0.096,
+        "mfe_%": 1.667,
+        "mae_%": -2.851,
+        "benchmark_return_%": -0.305,
+        "excess_return_%": 0.209,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "KEX",
@@ -352437,7 +352529,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -3.671,
+        "mfe_%": -0.425,
+        "mae_%": -4.062,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": -3.161,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "APG",
@@ -352539,7 +352640,16 @@
     "breakout_price": 45.02000045776367,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 0.622,
+        "mfe_%": 1.71,
+        "mae_%": -2.932,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 1.132,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "COLM",
@@ -352641,7 +352751,16 @@
     "breakout_price": 63.689998626708984,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 11.666,
+        "mfe_%": 11.744,
+        "mae_%": 0.801,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 12.176,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "FCN",
@@ -352743,7 +352862,16 @@
     "breakout_price": 181.24000549316406,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 5.81,
+        "mfe_%": 7.311,
+        "mae_%": -0.039,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 6.32,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "CROX",
@@ -352845,7 +352973,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 1.91,
+        "mfe_%": 4.293,
+        "mae_%": -0.839,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 2.42,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "H",
@@ -352947,7 +353084,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 0.901,
+        "mfe_%": 2.415,
+        "mae_%": -2.512,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 1.411,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "CCI",
@@ -353049,7 +353195,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -2.026,
+        "mfe_%": 1.689,
+        "mae_%": -3.051,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": -1.516,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "IBM",
@@ -353151,7 +353306,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -2.234,
+        "mfe_%": 0.616,
+        "mae_%": -2.292,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": -1.724,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "AOS",
@@ -353253,7 +353417,16 @@
     "breakout_price": 63.4900016784668,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 3.04,
+        "mfe_%": 3.402,
+        "mae_%": -1.276,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 3.55,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "ISRG",
@@ -353355,7 +353528,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -2.65,
+        "mfe_%": 1.079,
+        "mae_%": -3.915,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": -2.14,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "DOV",
@@ -353457,7 +353639,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 2.633,
+        "mfe_%": 2.733,
+        "mae_%": -1.887,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 3.143,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "EXC",
@@ -353559,7 +353750,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 1.176,
+        "mfe_%": 2.57,
+        "mae_%": -0.653,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 1.686,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "RL",
@@ -353661,7 +353861,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -0.747,
+        "mfe_%": 0.859,
+        "mae_%": -2.105,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": -0.237,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "WMT",
@@ -353763,7 +353972,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 5.311,
+        "mfe_%": 5.518,
+        "mae_%": 1.237,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 5.821,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "MCHP",
@@ -353865,7 +354083,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": -6.176,
+        "mfe_%": -0.752,
+        "mae_%": -7.15,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": -5.666,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "NI",
@@ -353967,7 +354194,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 0.246,
+        "mfe_%": 0.939,
+        "mae_%": -1.14,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 0.756,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "DUK",
@@ -354069,7 +354305,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 1.97,
+        "mfe_%": 2.272,
+        "mae_%": 0.294,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 2.48,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "SO",
@@ -354171,7 +354416,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 1.742,
+        "mfe_%": 2.0,
+        "mae_%": 0.097,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 2.252,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "IDA",
@@ -354273,7 +354527,16 @@
     "breakout_price": null,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 2.368,
+        "mfe_%": 2.59,
+        "mae_%": 0.404,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 2.878,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "ticker": "WING",
@@ -354375,7 +354638,16 @@
     "breakout_price": 145.38999938964844,
     "feature_version": "APEX10-FEATURES-C1",
     "model_version": "APEX10-SCORE-D1",
-    "outcomes": {}
+    "outcomes": {
+      "1D": {
+        "forward_return_%": 12.14,
+        "mfe_%": 17.181,
+        "mae_%": -0.846,
+        "benchmark_return_%": -0.51,
+        "excess_return_%": 12.65,
+        "computed_at": "2026-11-03"
+      }
+    }
   },
   {
     "observation_id": "fce2bccd-862c-4fec-a8f7-a4ecf1b2499b",
