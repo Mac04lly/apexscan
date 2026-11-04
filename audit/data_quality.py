@@ -86,7 +86,8 @@ def validate(prices: pd.DataFrame, log: pd.DataFrame, window=("2019-01-01", "202
             # missing sessions inside the ticker's own span
             lo, hi = d.min(), d.max()
             span = [x for x in ref if lo <= x <= hi]
-            miss = [x for x in span if x not in set(d)]
+            dset = set(d)                                                       # built once, not once per session
+            miss = [x for x in span if x not in dset]
             row["missing_sessions"] = len(miss)
             if miss: flag(t, "missing_sessions", f"{len(miss)} of {len(span)} sessions missing, e.g. {miss[:3]}",
                           "error" if len(miss) > 0.02 * max(len(span), 1) else "warn")
@@ -145,7 +146,8 @@ def report(res, log, meta, out: Path):
     else:
         L.append("| (none) | | 0 | 0 |")
     err = set(f.loc[f.severity == "error", "ticker"]) if len(f) else set()
-    clean = [t for t in per.ticker if t not in set(f.ticker)] if len(f) else list(per.ticker)
+    flagged = set(f.ticker) if len(f) else set()
+    clean = [t for t in per.ticker if t not in flagged]
     L += ["", f"Tickers with at least one **error** flag: {len(err)}. Tickers with no flag at all: {len(clean)} of {len(per)}.", ""]
     if len(f):
         L += ["## Error-level detail (first 60)", "", "| ticker | check | detail |", "| --- | --- | --- |"]
