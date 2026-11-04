@@ -112,17 +112,28 @@ def replay_ticker(hist: pd.DataFrame, bench, dates=None, calendar=None, bench_r2
         out.append(row)
     return pd.DataFrame(out).set_index("date")
 
-def first_pass_dates(r: pd.DataFrame, since=None):
-    """For the most recent unbroken run in which all replayed gates pass, return when each gate last opened."""
-    r = r[r.eligible_history.fillna(False) & r.get("evaluable", True)]
-    if since is not None: r = r[r.index >= since]
-    gates = ["g1_above_200ma", "g2_perf3m_ok", "g3_rs_ok", "g4_volume_ok", "passes_replayed_gates"]
+GATES = ["g1_above_200ma", "g2_perf3m_ok", "g3_rs_ok", "g4_volume_ok", "passes_replayed_gates"]
+
+
+def first_pass_detail(r: pd.DataFrame, since=None, calendar=None) -> dict:
+    """For each gate (and all four together): the start of the VERIFIED unbroken passing run that ends at the last replayed
+    session, with its status. Passing sessions continue a run; a failed session, an unevaluable session, and (when `calendar` is
+    given) a session with no replay row all break it. Nothing is bridged. Shares audit.cohorts.session_states/verified_run with
+    cohorts.four_gate_lower_bound so the two cannot disagree.
+    Returns {gate: {"date": ISO date or None, "status": ..., "note": ...}}."""
+    from audit.cohorts import session_states, verified_run
+    if since is not None:
+        r = r[r.index >= pd.Timestamp(since)]
     res = {}
-    for gname in gates:
-        s = r[gname].dropna().astype(bool)
-        if s.empty: res[gname] = None; continue
-        if not s.iloc[-1]: res[gname] = "not passing on last date"; continue
-        # start of the final unbroken True run
-        broken = s[~s]
-        res[gname] = (s.index[0] if broken.empty else s.index[s.index > broken.index[-1]][0]).date().isoformat()
+    for g in GATES:
+        v = verified_run(session_states(r, g, calendar))
+        res[g] = {"date": v["start"].date().isoformat() if v["start"] is not None else None, "status": v["status"], "note": v["note"]}
     return res
+
+
+def first_pass_dates(r: pd.DataFrame, since=None, calendar=None):
+    """Date-only view of first_pass_detail (the earlier return format): the start of the verified run, None when nothing was
+    evaluable, 'not passing on last date' when the final session fails, 'last session not evaluable' when it cannot be assessed.
+    A date may carry an uncertain start: see first_pass_detail for the status."""
+    labels = {"gates_not_met_on_recorded_date": "not passing on last date", "recorded_date_not_evaluable": "last session not evaluable"}
+    return {g: (d["date"] if d["date"] else labels.get(d["status"])) for g, d in first_pass_detail(r, since, calendar).items()}

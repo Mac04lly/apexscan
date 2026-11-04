@@ -88,21 +88,64 @@ def population_a_tables(maturity_df: pd.DataFrame, cal: pd.DatetimeIndex, horizo
     return pd.DataFrame(rows).set_index("cohort")
 
 
-def four_gate_lower_bound(replay: pd.DataFrame, recorded_date) -> dict:
-    """Reconstructed four-gate date for one ticker (from audit.replay output indexed by date).
-    status: 'ok', 'left_censored', 'gates_not_met_on_recorded_date' or 'no_evaluable_data'."""
-    r = replay[replay.eligible_history.fillna(False) & replay.get("evaluable", True)] if len(replay) else replay
-    out = {"recorded_discovery_date": str(recorded_date)[:10], "reconstructed_four_gate_date": None,
-           "status": "no_evaluable_data", "full_scanner_qualification_date": FULL_QUALIFICATION_DATE}
-    if r is None or r.empty: return out
-    s = r["passes_replayed_gates"].dropna().astype(bool); s = s[s.index <= pd.Timestamp(recorded_date)]
-    if s.empty: return out
-    if not s.iloc[-1]:
-        out["status"] = "gates_not_met_on_recorded_date"; return out
-    broken = s[~s]
-    start = s.index[0] if broken.empty else s.index[s.index > broken.index[-1]][0]
-    out["reconstructed_four_gate_date"] = start.date().isoformat()
-    out["status"] = "left_censored" if broken.empty else "ok"
+LEFT_CENSORED_NOTE = "Left-censored at the beginning of available evaluable history; the true qualification start may be earlier."
+GAP_NOTE = ("The run begins after a session that could not be evaluated; the true start may be earlier. "
+            "The date shown is the start of the verified unbroken run only.")
+
+
+def session_states(r: pd.DataFrame, pass_col: str, calendar=None, upto=None) -> pd.Series:
+    """One state per session: 'pass', 'fail' or 'unev' (not evaluable). The single place where this is decided, shared by
+    four_gate_lower_bound and replay.first_pass_dates. A session is evaluable only if the replay marked it eligible and
+    evaluable AND the gate value is present. If `calendar` is given, a session with no replay row is 'unev' as well."""
+    r = r.copy()
+    if calendar is not None: r = r.reindex(pd.DatetimeIndex(calendar).union(r.index))
+    if upto is not None: r = r[r.index <= pd.Timestamp(upto)]
+    if r.empty: return pd.Series(dtype=object)
+    elig = r["eligible_history"].fillna(False).astype(bool) if "eligible_history" in r else pd.Series(True, index=r.index)
+    evl = r["evaluable"].fillna(False).astype(bool) if "evaluable" in r else pd.Series(True, index=r.index)
+    val = r[pass_col] if pass_col in r else pd.Series(index=r.index, dtype=object)
+    ok = elig & evl & val.notna()
+    passed = ok & val.fillna(False).astype(bool)
+    state = pd.Series("unev", index=r.index, dtype=object); state[ok & ~passed] = "fail"; state[passed] = "pass"
+    return state
+
+
+def verified_run(state: pd.Series) -> dict:
+    """The unbroken run of 'pass' sessions that ENDS at the last session. Only consecutive passing sessions belong to it:
+    a fail or an unevaluable session breaks it. Returns {"status", "start" (Timestamp or None), "note", "first_evaluable"}.
+    status: ok | left_censored | start_uncertain_unevaluable_gap | gates_not_met_on_recorded_date |
+            recorded_date_not_evaluable | no_evaluable_data"""
+    out = {"status": "no_evaluable_data", "start": None, "note": "", "first_evaluable": None}
+    if state is None or len(state) == 0 or not (state != "unev").any(): return out
+    out["first_evaluable"] = state[state != "unev"].index[0]
+    last = state.iloc[-1]
+    if last == "unev": out["status"] = "recorded_date_not_evaluable"; return out
+    if last == "fail": out["status"] = "gates_not_met_on_recorded_date"; return out
+    k = len(state) - 1
+    while k > 0 and state.iloc[k - 1] == "pass": k -= 1
+    out["start"] = state.index[k]
+    before = state.iloc[:k]
+    if before.empty or not (before != "unev").any(): out["status"] = "left_censored"; out["note"] = LEFT_CENSORED_NOTE
+    elif before.iloc[-1] == "unev": out["status"] = "start_uncertain_unevaluable_gap"; out["note"] = GAP_NOTE
+    else: out["status"] = "ok"
+    return out
+
+
+def four_gate_lower_bound(replay: pd.DataFrame, recorded_date, calendar=None) -> dict:
+    """Reconstructed four-gate date for one ticker (from audit.replay output indexed by date). It is a LOWER BOUND on full
+    scanner qualification and never an ApexScan discovery date. Every session counts: an unevaluable or (with a calendar)
+    missing session is neither pass nor fail and CANNOT be skipped, so a run never bridges one (see verified_run for statuses)."""
+    out = {"recorded_discovery_date": str(recorded_date)[:10], "reconstructed_four_gate_date": None, "status": "no_evaluable_data",
+           "first_evaluable_date": None, "first_replayed_date": None, "note": "",
+           "full_scanner_qualification_date": FULL_QUALIFICATION_DATE}
+    if replay is None or len(replay) == 0: return out
+    state = session_states(replay, "passes_replayed_gates", calendar, upto=recorded_date)
+    if len(state) == 0: return out
+    out["first_replayed_date"] = state.index[0].date().isoformat()
+    v = verified_run(state)
+    out["status"] = v["status"]; out["note"] = v["note"]
+    if v["first_evaluable"] is not None: out["first_evaluable_date"] = v["first_evaluable"].date().isoformat()
+    if v["start"] is not None: out["reconstructed_four_gate_date"] = v["start"].date().isoformat()
     return out
 
 

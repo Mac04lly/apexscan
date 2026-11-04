@@ -35,7 +35,8 @@ def series(prices, sym):
     return None if h is None else h["Close"]
 
 def replay_for(prices: pd.DataFrame, ticker: str, start: str = "2026-07-01"):
-    """Test A replay for one ticker with ApexScan's own functions. Returns (daily frame, first-pass dates). Never fills data."""
+    """Test A replay for one ticker with ApexScan's own functions. Returns (daily frame, per-gate verified-run detail:
+    {gate: {date, status, note}}). A session with no row for this ticker breaks a run (the ^GSPC calendar is supplied). Never fills data."""
     from audit import replay as R
     gspc = series(prices, "^GSPC")
     if gspc is None or gspc.dropna().empty: raise ValueError("^GSPC has no data: relative strength cannot be replayed")
@@ -46,7 +47,7 @@ def replay_for(prices: pd.DataFrame, ticker: str, start: str = "2026-07-01"):
     dates = hist.index[hist.index >= pd.Timestamp(start)]
     r = R.replay_ticker(hist, {"^GSPC": gspc}, dates=dates, calendar=cal,
                         bench_r2500=spec("^R25I", "SMMD"), bench_r3000g=spec("^RAG", "IWZ"))
-    return r, R.first_pass_dates(r)
+    return r, R.first_pass_detail(r, calendar=cal[cal >= pd.Timestamp(start)])
 
 def zip_dir(d: Path) -> bytes:
     buf = io.BytesIO()
