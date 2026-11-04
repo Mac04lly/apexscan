@@ -66,7 +66,7 @@ def test_export_then_data_quality_then_chdn_replay_work_end_to_end_with_a_fake_d
     assert not at.exception and "Finished:" in _texts(at) and "audit_dq" in at.session_state
     assert any(m.label == "Error flags" and m.value == "0" for m in at.metric)
     at.button(key="audit_run_replay").click().run()
-    assert not at.exception and "Passing continuously since" in " ".join(str(df.value.columns.tolist()) for df in at.dataframe)
+    assert not at.exception and "Passing continuously since (reconstructed; lower bound)" in " ".join(str(df.value.columns.tolist()) for df in at.dataframe)
 
 
 def test_a_failed_export_shows_a_plain_message_and_keeps_the_page_alive(monkeypatch):
@@ -81,3 +81,26 @@ def test_dollar_signs_in_the_registered_text_are_escaped_so_they_are_not_read_as
     at = AppTest.from_file(PAGE, default_timeout=60).run()
     amend = [m.value for m in at.markdown if "Amendment 1" in m.value or "$20M" in m.value or "20M" in m.value]
     assert amend and all("$" not in v.replace("\\$", "") for v in amend)
+
+
+def test_cohorts_are_shown_separately_with_the_agreed_names_and_no_pooled_row():
+    from audit import cohorts as C
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+    assert not at.exception
+    frames = [df.value for df in at.dataframe]
+    ct = [f for f in frames if "Unique tickers" in f.columns and "Non-overlapping trades (per ticker)" in f.columns]
+    assert len(ct) == 1 and list(ct[0]["cohort"]) == [C.A1, C.A2]                 # exactly the two cohorts, nothing pooled
+    t = _texts(at); assert "Initial persistence/seeding cohort" in t and "Post-seeding first-recorded discovery cohort" in t
+    assert "not confirmed first-time qualifications" in t and "cannot be established" in t
+
+
+def test_three_date_concepts_are_kept_apart_on_the_page():
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+    dates = [df.value for df in at.dataframe if "Meaning" in df.value.columns]
+    d = dates[0]; assert list(d["Date"]) == ["Recorded discovery date", "Reconstructed four-gate date", "Actual full scanner qualification date"]
+    assert "not established" in d["Available"].iloc[2] and "lower bound" in d["Meaning"].iloc[1].lower()
+
+
+def test_amendment_3_is_shown_on_the_registration_tab():
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+    assert any("Amendment 3" in e.label for e in at.expander) and any("Amendments 1, 2 and 3 registered" in str(df.value) for df in at.dataframe)
