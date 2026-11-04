@@ -20,7 +20,7 @@ import streamlit as st
 
 st.set_page_config(page_title="ApexScan Audit", page_icon="🔬", layout="wide")
 
-from audit import inapp, maturity, registry  # noqa: E402  (after set_page_config, which must be the first Streamlit call)
+from audit import cohorts, inapp, maturity, registry  # noqa: E402  (after set_page_config, which must be the first Streamlit call)
 
 
 def _md(text: str):
@@ -38,9 +38,10 @@ tabs = st.tabs(["Status", "Registration", "Live discoveries", "Get prices", "Dat
 
 # ── Status ────────────────────────────────────────────────────────────────────────────────────
 with tabs[0]:
-    st.subheader("Where the audit stands (1 Nov 2026)")
+    st.subheader("Where the audit stands (3 Nov 2026)")
     _show(pd.DataFrame([
-        ("Methodology, Amendment 1 and 2 registered", "Done", "Hash-checked on the Registration tab"),
+        ("Methodology, Amendments 1, 2 and 3 registered", "Done", "Hash-checked on the Registration tab"),
+        ("Population A cohorts (A1 seeding, A2 post-seeding)", "Live on this page", "Live discoveries tab; reported separately, never pooled"),
         ("Live discoveries: matured vs immature", "Live on this page", "Live discoveries tab"),
         ("Price export tool", "Built and tested on synthetic data", "Not yet run against live Yahoo data"),
         ("Data-quality report", "Tool built", "Waits for real prices; must be reviewed before any analysis"),
@@ -62,7 +63,7 @@ with tabs[1]:
         st.error("A registered document has changed or is missing. Compare the hashes below.")
     _show(pd.DataFrame(rows)[["document", "registered_utc", "status", "recorded"]])
     for name, label in (("methodology.md", "Methodology (registered 31 Oct 2026)"), ("amendments.md", "Amendment 1"),
-                        ("amendments2.md", "Amendment 2")):
+                        ("amendments2.md", "Amendment 2"), ("amendments3.md", "Amendment 3 (3 Nov 2026)")):
         with st.expander(label):
             _md(registry.text(name))
 
@@ -94,9 +95,28 @@ with tabs[2]:
                            + (f"; the earliest does so on {e63}." if e63 else ".") + " No statement is made about the 63-session horizon until they do.")
             st.markdown("**Sessions of history since entry**")
             _show(pd.DataFrame({"band": list(s["bands"]), "discoveries": list(s["bands"].values())}))
+            st.markdown("**Cohorts (Amendment 3): reported separately, never pooled**")
+            st.caption(f"{cohorts.A1}: records dated {cohorts.SEEDING_DATE}, when the log first persisted. "
+                       f"{cohorts.A2}: all other records; not confirmed first-time qualifications. {cohorts.LIMITATION}")
+            ct = cohorts.population_a_tables(df, cal, 63).reset_index()
+            ct = ct.rename(columns={"records": "Discovery events", "unique_tickers": "Unique tickers",
+                                    "distinct_recorded_dates": "Distinct recorded dates", "distinct_entry_dates": "Distinct entry dates",
+                                    "largest_single_date_share": "Largest single-date share",
+                                    "max_simultaneous_open_windows": "Most 63-session windows open at once",
+                                    "overlapping_window_pairs": "Overlapping window pairs",
+                                    "non_overlapping_trades": "Non-overlapping trades (per ticker)",
+                                    "matured_21": "Matured at 21", "matured_63": "Matured at 63"})
+            _show(ct)
+            st.caption("The A1 records share one entry date and one market episode: they are not independent observations. "
+                       "Calendar-month views are descriptive only and never change the registered decision rule.")
+            st.markdown("**Three different dates (never interchanged)**")
+            _show(pd.DataFrame([("Recorded discovery date", "The day the discovery log first saw the ticker", "All records"),
+                                ("Reconstructed four-gate date", cohorts.LOWER_BOUND_NOTE, "Computed from prices once they are loaded"),
+                                ("Actual full scanner qualification date", "Includes the Apex Score of at least 20, which cannot be replayed",
+                                 cohorts.FULL_QUALIFICATION_DATE)], columns=["Date", "Meaning", "Available"]))
             with st.expander("Per-discovery table"):
-                _show(df)
-            st.download_button("Download this table (CSV)", df.to_csv(index=False), "population_A_maturity.csv", "text/csv", key="audit_dl_maturity")
+                _show(cohorts.add_cohort(df))
+            st.download_button("Download this table (CSV)", cohorts.add_cohort(df).to_csv(index=False), "population_A_maturity.csv", "text/csv", key="audit_dl_maturity")
     except Exception as ex:
         st.error(f"Could not read the discovery log: {ex}")
 
@@ -153,6 +173,18 @@ with tabs[4]:
         c[1].metric("Error flags", int((flags.severity == "error").sum()) if len(flags) else 0)
         c[2].metric("Warnings", int((flags.severity == "warn").sum()) if len(flags) else 0)
         _md(md)
+        st.markdown("**Counts that must not be confused**")
+        try:
+            _d = pd.DataFrame(json.loads((REPO / "data" / "discoveries.json").read_text(encoding="utf-8")))
+            _have = set(st.session_state["audit_prices"].ticker) if "audit_prices" in st.session_state else set()
+            _d = cohorts.add_cohort(_d); _d["has_prices"] = _d.ticker.isin(_have)
+            _c = _d.groupby("cohort").agg(discovery_events=("ticker", "size"), unique_tickers=("ticker", "nunique"),
+                                         tickers_with_prices=("has_prices", "sum")).reset_index()
+            _show(_c)
+        except Exception as ex:
+            st.caption(f"Discovery counts unavailable: {ex}")
+        st.caption("Unique tickers, discovery events and independent trading observations are three different counts. Signal events and "
+                   "non-overlapping trades per ticker (Amendment 3, item 6) are produced only after this report has been reviewed.")
         st.download_button("Download the report (markdown)", md, "DATA_QUALITY_REPORT.md", "text/markdown", key="audit_dl_dq")
         if len(flags):
             with st.expander("All flags"):
@@ -181,7 +213,8 @@ with tabs[5]:
             names = {"g1_above_200ma": "Close above 200-day average", "g2_perf3m_ok": "3-month return at least 0%",
                      "g3_rs_ok": "Relative strength at least -30", "g4_volume_ok": "Volume at least 100,000",
                      "passes_replayed_gates": "All four replayed gates together"}
-            _show(pd.DataFrame([(names[k], v if v else "n/a") for k, v in fp.items()], columns=["Gate", "Passing continuously since"]))
+            _show(pd.DataFrame([(names[k], v if v else "n/a") for k, v in fp.items()], columns=["Gate", "Passing continuously since (reconstructed; lower bound)"]))
+            st.caption(cohorts.LOWER_BOUND_NOTE + " The actual full scanner qualification date is " + cohorts.FULL_QUALIFICATION_DATE + ".")
             st.caption("The score gate (at least 20) is not replayed. A date shown as 'not passing on last date' means the gate is closed at the end of the data.")
             ev = r["evaluable"].fillna(False) if "evaluable" in r else pd.Series(dtype=bool)
             st.markdown(f"Days replayed: **{len(r)}**; days that could not be evaluated: **{int((~ev).sum())}** (reasons are in the table).")
