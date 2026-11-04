@@ -138,6 +138,7 @@ with tabs[3]:
             meta = EX.run(EX.parse_args(argv), progress=lambda n, t, msg: bar.progress(n / t, text=f"Downloading {msg}"))
             d = out / "apexscan_audit_data"
             prices = inapp.prices_from_file(d / "prices_long.csv.gz"); log = inapp.log_from_file(d / "download_log.csv")
+            bar.progress(1.0, text="Download finished. Checking data quality (about a minute); stay on this page")
             res, md = inapp.dq(prices, log, meta)
             st.session_state.update(audit_prices=prices, audit_log=log, audit_meta=meta, audit_dq=(res, md), audit_zip=inapp.zip_dir(d))
             bar.progress(1.0, text="Done")
