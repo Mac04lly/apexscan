@@ -213,7 +213,15 @@ with tabs[5]:
             names = {"g1_above_200ma": "Close above 200-day average", "g2_perf3m_ok": "3-month return at least 0%",
                      "g3_rs_ok": "Relative strength at least -30", "g4_volume_ok": "Volume at least 100,000",
                      "passes_replayed_gates": "All four replayed gates together"}
-            _show(pd.DataFrame([(names[k], v if v else "n/a") for k, v in fp.items()], columns=["Gate", "Passing continuously since (reconstructed; lower bound)"]))
+            shown = {"ok": "Verified: the session before the run was evaluated and failed",
+                     "left_censored": "Left-censored: nothing earlier was evaluated; the true start may be earlier",
+                     "start_uncertain_unevaluable_gap": "Uncertain: an unevaluable session precedes the run; the true start may be earlier",
+                     "gates_not_met_on_recorded_date": "Not passing on the last session", "recorded_date_not_evaluable": "Last session not evaluable",
+                     "no_evaluable_data": "No evaluable sessions"}
+            _show(pd.DataFrame([(names[k], v["date"] or "n/a", shown.get(v["status"], v["status"])) for k, v in fp.items()],
+                               columns=["Gate", "Passing continuously since (reconstructed; lower bound)", "Start of the run"]))
+            st.caption("A failed session, a session that could not be evaluated, or a missing session ends a run; none is skipped over. "
+                       "The replay starts on the date you chose, so a run that reaches that date is left-censored: choose an earlier start to look further back.")
             st.caption(cohorts.LOWER_BOUND_NOTE + " The actual full scanner qualification date is " + cohorts.FULL_QUALIFICATION_DATE + ".")
             st.caption("The score gate (at least 20) is not replayed. A date shown as 'not passing on last date' means the gate is closed at the end of the data.")
             ev = r["evaluable"].fillna(False) if "evaluable" in r else pd.Series(dtype=bool)
