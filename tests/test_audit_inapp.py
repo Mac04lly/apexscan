@@ -36,7 +36,7 @@ def test_replay_for_finds_the_same_200_day_date_as_an_independent_calculation():
     for t in r.index:
         w = h[(h.index > t - pd.Timedelta(days=365)) & (h.index <= t)].values; ok[t] = len(w) >= 200 and w[-1] > w[-200:].mean()
     s = pd.Series(ok); f = s[~s]; first = (s.index[0] if f.empty else s.index[s.index > f.index[-1]][0]).date().isoformat() if s.iloc[-1] else "not passing on last date"
-    assert fp["g1_above_200ma"] == first
+    assert fp["g1_above_200ma"]["date"] == first and fp["g1_above_200ma"]["status"] in ("ok", "left_censored")
 
 
 def test_replay_refuses_without_gspc_and_for_an_unknown_ticker():
@@ -47,3 +47,17 @@ def test_replay_refuses_without_gspc_and_for_an_unknown_ticker():
 def test_ticker_file_contains_every_discovery_plus_chdn_once(tmp_path):
     p = IA.ticker_file([{"ticker": "A"}, {"ticker": "B"}, {"ticker": "CHDN"}], tmp_path / "t.txt")
     assert p.read_text().split() == ["A", "B", "CHDN"]
+
+
+def test_replay_for_never_reports_a_run_across_a_bar_that_is_missing_for_the_ticker():
+    p = synth(); fp0 = IA.replay_for(p, "CHDN", "2026-06-01")[1]["g1_above_200ma"]
+    assert fp0["status"] in ("ok", "left_censored") and fp0["date"]
+    # (a) the ticker's final bar is missing although ^GSPC traded: the last market session cannot be assessed, so no date is claimed
+    last = "2026-10-30"; q = p[~((p.ticker == "CHDN") & (p.date == last))]
+    d = IA.replay_for(q, "CHDN", "2026-06-01")[1]["g1_above_200ma"]
+    assert d["status"] == "recorded_date_not_evaluable" and d["date"] is None
+    # (b) a bar missing mid-run: the replay marks the following sessions unevaluable (missing session in the lookback), so the
+    #     earlier run is not carried forward to the last date either
+    gap = list(pd.bdate_range(fp0["date"], last))[10].strftime("%Y-%m-%d")
+    d = IA.replay_for(p[~((p.ticker == "CHDN") & (p.date == gap))], "CHDN", "2026-06-01")[1]["g1_above_200ma"]
+    assert d["status"] == "recorded_date_not_evaluable" and d["date"] is None

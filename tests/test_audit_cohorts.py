@@ -59,9 +59,12 @@ def test_dependence_table_counts_each_notion_separately():
     assert C.dependence_table(df.iloc[0:0], 10)["records"] == 0
 
 
-def _replay(passes, start="2026-01-02"):
+def _replay(passes, start="2026-01-02", unev=(), elig=None):
+    """passes: list of bool. unev: positions that are NOT evaluable (they carry no pass/fail)."""
     idx = pd.bdate_range(start, periods=len(passes))
-    return pd.DataFrame({"eligible_history": True, "evaluable": True, "passes_replayed_gates": passes}, index=idx)
+    ev = [i not in set(unev) for i in range(len(passes))]
+    return pd.DataFrame({"eligible_history": True if elig is None else elig, "evaluable": ev,
+                         "passes_replayed_gates": [bool(p) and e for p, e in zip(passes, ev)]}, index=idx)
 
 
 def test_four_gate_date_is_the_start_of_the_unbroken_run_containing_the_recorded_date():
@@ -72,14 +75,55 @@ def test_four_gate_date_is_the_start_of_the_unbroken_run_containing_the_recorded
     assert o["full_scanner_qualification_date"] == "not established" and o["recorded_discovery_date"] == rec.date().isoformat()
 
 
-def test_four_gate_run_ignores_later_data_and_flags_left_censoring_and_failure():
+def test_an_unevaluable_session_cannot_be_bridged_into_one_continuous_run():
+    # Monday pass, Tuesday NOT evaluable, Wednesday pass, Thursday pass: not one run from Monday
+    r = _replay([True, True, True, True], start="2026-10-05", unev=(1,))          # 5 Oct 2026 is a Monday
+    o = C.four_gate_lower_bound(r, r.index[3])
+    assert o["reconstructed_four_gate_date"] == "2026-10-07" and o["reconstructed_four_gate_date"] != "2026-10-05"   # Wednesday, never Monday
+    assert o["status"] == "start_uncertain_unevaluable_gap" and "may be earlier" in o["note"] and "verified unbroken run" in o["note"]
+    assert o["status"] != "ok"
+
+
+def test_a_session_with_no_replay_row_at_all_is_also_a_break_when_the_calendar_is_given():
+    r = _replay([True, True, True, True], start="2026-10-05"); r = r.drop(r.index[1])         # Tuesday row absent
+    cal = pd.bdate_range("2026-10-05", periods=4)
+    assert C.four_gate_lower_bound(r, cal[3], calendar=cal)["reconstructed_four_gate_date"] == "2026-10-07"
+    assert C.four_gate_lower_bound(r, cal[3], calendar=cal)["status"] == "start_uncertain_unevaluable_gap"
+
+
+def test_the_recorded_date_itself_being_unevaluable_assigns_no_date():
+    r = _replay([True, True, True], unev=(2,)); o = C.four_gate_lower_bound(r, r.index[2])
+    assert o["status"] == "recorded_date_not_evaluable" and o["reconstructed_four_gate_date"] is None
+
+
+def test_a_failure_before_the_run_gives_a_known_start_even_with_unevaluable_sessions_further_back():
+    r = _replay([True, True, False, True, True], unev=(0,)); o = C.four_gate_lower_bound(r, r.index[4])
+    assert o["status"] == "ok" and o["reconstructed_four_gate_date"] == r.index[3].date().isoformat()
+
+
+def test_left_censoring_means_start_of_evaluable_history_not_start_of_downloaded_prices():
+    # first 4 sessions have too little history (not eligible); the gates pass from the 5th session on
+    elig = [False] * 4 + [True] * 4; r = _replay([True] * 8, elig=elig)
+    o = C.four_gate_lower_bound(r, r.index[7])
+    assert o["status"] == "left_censored" and o["reconstructed_four_gate_date"] == r.index[4].date().isoformat()
+    assert o["first_replayed_date"] == r.index[0].date().isoformat() and o["first_evaluable_date"] == r.index[4].date().isoformat()
+    assert o["first_evaluable_date"] != o["first_replayed_date"]                       # the two beginnings are different things
+    assert o["note"] == "Left-censored at the beginning of available evaluable history; the true qualification start may be earlier."
+
+
+def test_run_that_starts_on_the_first_evaluated_session_with_nothing_earlier_is_left_censored():
+    r = _replay([True, True, True]); o = C.four_gate_lower_bound(r, r.index[2])
+    assert o["status"] == "left_censored" and o["reconstructed_four_gate_date"] == r.index[0].date().isoformat()
+
+
+def test_four_gate_run_ignores_later_data_and_flags_failure_and_missing_data():
     r = _replay([True, True, True, False, True])
-    assert C.four_gate_lower_bound(r, r.index[2])["status"] == "left_censored"                     # run reaches the start of history
-    assert C.four_gate_lower_bound(r, r.index[2])["reconstructed_four_gate_date"] == r.index[0].date().isoformat()
+    assert C.four_gate_lower_bound(r, r.index[2])["reconstructed_four_gate_date"] == r.index[0].date().isoformat()   # later failure is not used
     assert C.four_gate_lower_bound(r, r.index[3])["status"] == "gates_not_met_on_recorded_date"
     assert C.four_gate_lower_bound(r, r.index[3])["reconstructed_four_gate_date"] is None
     assert C.four_gate_lower_bound(r, "2025-01-01")["status"] == "no_evaluable_data"
     assert C.four_gate_lower_bound(r.iloc[0:0], "2026-02-01")["status"] == "no_evaluable_data"
+    assert C.four_gate_lower_bound(_replay([True, True], unev=(0, 1)), "2026-01-30")["status"] == "no_evaluable_data"
 
 
 def test_monthly_description_groups_by_entry_month_and_changes_nothing():

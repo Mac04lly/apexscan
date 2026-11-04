@@ -115,3 +115,88 @@ def test_benchmark_session_missing_in_the_stocks_last_64_sessions_makes_the_day_
 def test_replay_does_not_modify_or_fill_its_inputs():
     h, b = make(); h = h.copy(); h.iloc[-3, h.columns.get_loc("Volume")] = np.nan; before = h.copy()
     _row(h, b); pd.testing.assert_frame_equal(h, before)
+
+
+# ── continuity of passing runs (4 Nov 2026): fail / unevaluable / missing sessions break a run, nothing is bridged ──────────────
+from audit import cohorts as _C
+
+_GATES = ["g1_above_200ma", "g2_perf3m_ok", "g3_rs_ok", "g4_volume_ok", "passes_replayed_gates"]
+
+
+def _grid(spec, start="2026-10-05", elig=None):
+    """spec: one of 'P' pass, 'F' fail, 'U' unevaluable per session (5 Oct 2026 is a Monday)."""
+    idx = pd.bdate_range(start, periods=len(spec)); rows = []
+    for i, ch in enumerate(spec):
+        e = True if elig is None else elig[i]
+        row = {"eligible_history": e, "evaluable": e and ch != "U"}
+        for g in _GATES: row[g] = {"P": True, "F": False}.get(ch) if row["evaluable"] else None
+        rows.append(row)
+    return pd.DataFrame(rows, index=idx)
+
+
+def test_monday_pass_tuesday_unevaluable_wednesday_thursday_pass_is_not_one_run():
+    r = _grid("PUPP")
+    for g in _GATES:
+        d = R.first_pass_detail(r)[g]
+        assert d["date"] == "2026-10-07" and d["status"] == "start_uncertain_unevaluable_gap" and "may be earlier" in d["note"]
+    assert R.first_pass_dates(r)["g1_above_200ma"] == "2026-10-07" != "2026-10-05"
+
+
+def test_monday_pass_missing_tuesday_row_wednesday_thursday_pass_is_not_one_run_with_a_calendar():
+    r = _grid("PPPP").drop(pd.Timestamp("2026-10-06")); cal = pd.bdate_range("2026-10-05", periods=4)
+    d = R.first_pass_detail(r, calendar=cal)["passes_replayed_gates"]
+    assert d["date"] == "2026-10-07" and d["status"] == "start_uncertain_unevaluable_gap"
+    assert R.first_pass_dates(r, calendar=cal)["g1_above_200ma"] == "2026-10-07"
+    assert R.first_pass_dates(r)["g1_above_200ma"] == "2026-10-05"           # without a calendar a missing row cannot be seen: documented
+
+
+def test_the_last_session_not_evaluable_gives_no_date():
+    r = _grid("PPU"); d = R.first_pass_detail(r)["g1_above_200ma"]
+    assert d["date"] is None and d["status"] == "recorded_date_not_evaluable" and R.first_pass_dates(r)["g1_above_200ma"] == "last session not evaluable"
+
+
+def test_a_failed_session_before_a_passing_run_makes_the_start_verified():
+    r = _grid("UPFPPP"); d = R.first_pass_detail(r)["g1_above_200ma"]
+    assert d["date"] == "2026-10-08" and d["status"] == "ok" and d["note"] == ""
+
+
+def test_a_normal_uninterrupted_run_after_a_failure_and_a_final_failure():
+    r = _grid("FFPPPP"); assert R.first_pass_detail(r)["g2_perf3m_ok"]["date"] == "2026-10-07" and R.first_pass_detail(r)["g2_perf3m_ok"]["status"] == "ok"
+    r = _grid("PPPF"); d = R.first_pass_detail(r)["g1_above_200ma"]
+    assert d["date"] is None and d["status"] == "gates_not_met_on_recorded_date" and R.first_pass_dates(r)["g1_above_200ma"] == "not passing on last date"
+
+
+def test_left_censoring_when_nothing_earlier_was_evaluated_or_history_is_too_short():
+    r = _grid("PPPP"); d = R.first_pass_detail(r)["g1_above_200ma"]
+    assert d["status"] == "left_censored" and d["date"] == "2026-10-05" and d["note"] == _C.LEFT_CENSORED_NOTE
+    r = _grid("UUPP", elig=[False, False, True, True]); d = R.first_pass_detail(r)["g1_above_200ma"]       # too little history at first
+    assert d["status"] == "left_censored" and d["date"] == "2026-10-07"
+    assert R.first_pass_detail(_grid("UU", elig=[False, False]))["g1_above_200ma"]["status"] == "no_evaluable_data"
+
+
+def test_each_gate_is_judged_separately_and_since_trims_the_start():
+    r = _grid("PPPPPP"); r.loc[r.index[2], "g3_rs_ok"] = False; r.loc[r.index[2], "passes_replayed_gates"] = False
+    d = R.first_pass_detail(r)
+    assert d["g1_above_200ma"]["date"] == "2026-10-05" and d["g3_rs_ok"]["date"] == "2026-10-08" and d["passes_replayed_gates"]["date"] == "2026-10-08"
+    assert R.first_pass_detail(r, since="2026-10-07")["g1_above_200ma"]["date"] == "2026-10-07"
+
+
+def test_replay_and_cohorts_cannot_disagree_on_the_same_table():
+    for spec in ("PUPP", "FPPP", "PPPP", "UFPP", "PFUP", "PPFP"):
+        r = _grid(spec)
+        a = R.first_pass_detail(r)["passes_replayed_gates"]; b = _C.four_gate_lower_bound(r, r.index[-1])
+        assert (a["date"], a["status"]) == (b["reconstructed_four_gate_date"], b["status"]), spec
+
+
+def test_a_calendar_that_starts_before_the_table_does_not_create_false_breaks():
+    r = _grid("PPPP"); cal = pd.bdate_range("2026-10-01", "2026-10-08")                 # calendar starts before the table, ends with it
+    d = R.first_pass_detail(r, since="2026-10-05", calendar=cal)["g1_above_200ma"]
+    assert d["date"] == "2026-10-05" and d["status"] == "left_censored"
+
+
+def test_a_session_that_is_evaluable_but_has_no_gate_value_is_not_a_fail_and_not_a_pass():
+    r = _grid("PPPP").astype({"g1_above_200ma": object, "passes_replayed_gates": object})
+    r.loc[r.index[1], ["g1_above_200ma", "passes_replayed_gates"]] = [None, None]                  # evaluable day, value unavailable
+    assert bool(r.loc[r.index[1], "evaluable"])
+    d = R.first_pass_detail(r)["g1_above_200ma"]
+    assert d["date"] == "2026-10-07" and d["status"] == "start_uncertain_unevaluable_gap"      # a gap, not a verified failure
