@@ -29,11 +29,13 @@ def test_the_page_loads_cleanly_with_six_tabs_and_an_intact_registration():
     t = _texts(at); assert "match the hashes recorded" in t and "Where the audit stands" in t
 
 
-def test_live_discoveries_tab_reports_zero_matured_at_63_sessions():
+def test_live_discoveries_tab_reports_matured_at_63_sessions_and_warns_only_when_none():
     at = AppTest.from_file(PAGE, default_timeout=60)
     at.run(); labels = {m.label: m.value for m in at.metric}
     assert labels["Discoveries"] == str(len(json.loads((REPO / "data" / "discoveries.json").read_text(encoding="utf-8"))))
-    assert labels["Matured at 63 sessions"] == "0" and "None of the discoveries has completed the registered 63-session" in _texts(at)
+    m63 = labels["Matured at 63 sessions"]
+    assert m63.isdigit() and int(m63) <= int(labels["Discoveries"])       # depends on the calendar date; the warning must appear exactly when none has matured
+    assert ("None of the discoveries has completed the registered 63-session" in _texts(at)) == (m63 == "0")
 
 
 def test_opening_the_page_does_not_write_to_data_or_start_a_download(monkeypatch):

@@ -253,3 +253,12 @@ def test_progress_callback_is_called_once_per_batch_and_does_not_change_the_outp
     assert seen and seen[-1][0] == seen[-1][1] and all(t == seen[0][1] for _, t, _ in seen)
     meta2 = X.run(_args(tmp_path, out=str(tmp_path / "o2")), yf=FakeYF())
     assert meta["rows"] == meta2["rows"] and meta["tickers_with_data"] == meta2["tickers_with_data"]
+
+
+def test_default_end_is_tomorrow_and_an_explicit_end_is_honoured():
+    from datetime import datetime, timedelta, timezone
+    from audit.tools import export_prices as EX
+    want = (datetime.now(timezone.utc).date() + timedelta(days=1)).isoformat()
+    assert EX.parse_args([]).end == want and EX.parse_args([]).end >= "2026-11-03"        # no longer the fixed 2026-11-02
+    assert EX.parse_args(["--end", "2026-11-02"]).end == "2026-11-02"
+    assert EX.parse_args([]).start == "2019-01-01" and EX.parse_args([]).seed == 20261031   # nothing else about the registered sample changed
