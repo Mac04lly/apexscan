@@ -28,7 +28,7 @@ Rules this script follows:
   * Benchmarks are exactly those in ApexScan config.yaml (see BENCHMARKS below).
 """
 import argparse, gzip, hashlib, io, json, random, re, sys, time, urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -259,11 +259,17 @@ def run(args, yf=None, fetch_text=None, progress=None):
     return meta
 
 
+def default_end():
+    """Exclusive end date = tomorrow (UTC), so the download includes every completed session up to today.
+    Replaces the fixed 2026-11-02 (which stopped at the 30 Oct 2026 session) so later price refreshes get later sessions."""
+    return (datetime.now(timezone.utc).date() + timedelta(days=1)).isoformat()
+
+
 def parse_args(argv=None):
     p = argparse.ArgumentParser()
     p.add_argument("--out", default="apexscan_audit_data")
     p.add_argument("--start", default="2019-01-01")
-    p.add_argument("--end", default="2026-11-02", help="exclusive; 2026-11-02 includes the 30 Oct 2026 session")
+    p.add_argument("--end", default=default_end(), help="exclusive; default is tomorrow (UTC), i.e. up to the latest completed session")
     p.add_argument("--seed", type=int, default=20261031)
     p.add_argument("--n-nasdaq", type=int, default=250)
     p.add_argument("--n-nyse", type=int, default=250)
