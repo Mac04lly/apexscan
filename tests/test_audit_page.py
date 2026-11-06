@@ -103,4 +103,9 @@ def test_three_date_concepts_are_kept_apart_on_the_page():
 
 def test_amendment_3_is_shown_on_the_registration_tab():
     at = AppTest.from_file(PAGE, default_timeout=60).run()
-    assert any("Amendment 3" in e.label for e in at.expander) and any("Amendments 1, 2 and 3 registered" in str(df.value) for df in at.dataframe)
+    assert any("Amendment 3" in e.label for e in at.expander) and any("Amendments 1, 2, 3 and 4 registered" in str(df.value) for df in at.dataframe)
+
+
+def test_amendment_4_is_shown_on_the_registration_tab():
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+    assert any("Amendment 4" in e.label for e in at.expander)
