@@ -232,5 +232,19 @@
       "rs_3m": 1459.7
     },
     "as_of": "2026-10-28"
+  },
+  "CBOE": {
+    "fields": {
+      "roe": 0.27388,
+      "revenue_growth": 0.19,
+      "earnings_growth": 0.432,
+      "debt_to_equity": 26.628,
+      "gross_margin": 0.53876,
+      "free_cash_flow": 848625024.0,
+      "peg_ratio": null,
+      "institutional_ownership": 0.87001,
+      "rs_3m": 0.0
+    },
+    "as_of": "2026-11-14"
   }
 }
