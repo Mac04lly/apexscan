@@ -246,5 +246,19 @@
       "rs_3m": 665.3
     },
     "as_of": "2026-11-25"
+  },
+  "EXPO": {
+    "fields": {
+      "roe": 0.32266998,
+      "revenue_growth": 0.117,
+      "earnings_growth": 0.164,
+      "debt_to_equity": 26.354,
+      "gross_margin": 0.37764,
+      "free_cash_flow": 115878248.0,
+      "peg_ratio": null,
+      "institutional_ownership": 1.0122,
+      "rs_3m": 600.7
+    },
+    "as_of": "2026-11-27"
   }
 }
